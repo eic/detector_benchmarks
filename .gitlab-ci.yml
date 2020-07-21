@@ -12,6 +12,7 @@ track_test1:
     - sodium
   script:
     - bash trackers/dummy_test.sh
+  allow_failure: true
 
 cal_test1:
   stage: calorimeters
@@ -19,6 +20,7 @@ cal_test1:
     - sodium
   script:
     - bash calorimeters/dummy_test.sh
+  allow_failure: true
 
 pid_test1:
   stage: pid
@@ -26,6 +28,7 @@ pid_test1:
     - sodium
   script:
     - bash pid/dummy_test.sh
+  allow_failure: true
 
 
       #pages:

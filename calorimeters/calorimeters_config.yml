@@ -1,19 +1,5 @@
-image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
-
-default:
-  artifacts:
-    paths:
-      - results/
-      - datasets/
-      - data
-stages:
-  - simulate
-  - benchmarks
-
 cal_sim_1_dummy_test2:
   stage: benchmarks
-  tags:
-    - sodium
   script:
     - echo "here we run simulation"
       #artifact:

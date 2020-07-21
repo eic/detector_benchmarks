@@ -49,6 +49,16 @@ cal_sim_1_dummy_test2:
   script:
     - echo "here we run simulation"
 
+roman_pot_simu:
+  stage: simulate
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
+    - bash trackers/roman_pot_simu.sh
+  allow_failure: true
+
 cal_test_1_dummy_test2:
   stage: benchmarks
   tags:
@@ -89,7 +99,7 @@ track_test_1_dummy_test:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
-simple_tracking_test:
+roman_pot_benchmark:
   stage: benchmarks
   tags:
     - sodium

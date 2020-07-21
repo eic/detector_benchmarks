@@ -12,6 +12,7 @@ default:
 
 stages:
   - data_init
+  - ci_gen
   - benchmarks
     #  - simulate
     #- others
@@ -26,7 +27,7 @@ get_data:
     - mkdir -p results
 
 generate_config:
-  stage: data_init
+  stage: ci_gen
   tags:
     - sodium
   script:

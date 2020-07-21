@@ -86,6 +86,8 @@ track_test_1_dummy_test:
 
 deploy_results:
   stage: deploy
+  tags:
+    - sodium
   script:
     - echo "deploy results!"
 

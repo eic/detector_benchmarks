@@ -57,7 +57,6 @@ roman_pot_simu:
     - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
     - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
     - bash trackers/roman_pot_simu.sh
-  allow_failure: true
 
 cal_test_1_dummy_test2:
   stage: benchmarks

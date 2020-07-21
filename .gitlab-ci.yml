@@ -54,6 +54,8 @@ roman_pot_simu:
   tags:
     - sodium
   script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
     - bash trackers/roman_pot_simu.sh
   allow_failure: true
 
@@ -102,8 +104,6 @@ roman_pot_benchmark:
   tags:
     - sodium
   script:
-    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml trackers/.
-    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml trackers/.
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 

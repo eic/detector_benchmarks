@@ -1,0 +1,108 @@
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" 
+       xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+  <info name="RomanPot_example" title="Roman Pot detector example"
+        author="Tomas Polakovic"
+        url="https://eicweb.phy.anl.gov/EIC/NPDet"
+        status="development"
+        version="$Id: compact.xml v1.0 2016-12-21$">
+    <comment>A simplified Roman pot detector</comment>        
+  </info>
+
+  <includes>
+    <gdmlFile  ref="elements.xml"/>
+    <gdmlFile  ref="materials.xml"/>
+  </includes>
+  
+  <define>
+    <constant name="world_side" value="30*m"/>
+    <constant name="world_x" value="world_side"/>
+    <constant name="world_y" value="world_side"/>
+    <constant name="world_z" value="world_side"/>
+    
+    <constant name="tracker_region_zmax" value="5*m"/>
+    <constant name="tracker_region_rmax" value="5*m"/>
+    <constant name="CrossingAngle" value="0.020*rad"/>
+  </define>
+
+  <limits>
+    <limitset name="cal_limits">
+      <limit name="step_length_max" particles="*" value="5.0" unit="mm" />
+    </limitset>
+    <limitset name="SimpleRomanPotRegionLimitSet">
+      <limit name="step_length_max" particles="*" value="1.0" unit="mm" />
+      <limit name="track_length_max" particles="*" value="1.0" unit="mm" />
+      <limit name="time_max" particles="*" value="0.1" unit="ns" />
+      <limit name="ekin_min" particles="*" value="0.001" unit="MeV" />
+      <limit name="range_min" particles="*" value="0.1" unit="mm" />
+    </limitset>
+  </limits>
+  <regions>
+    <region name="SimpleRomanPotRegion" eunit="MeV" lunit="mm" cut="0.0001" threshold="0.0001">
+      <limitsetref name="SimpleRomanPotRegionLimitSet"/>
+    </region>
+  </regions>
+
+  <comment>Common Generic visualization attributes</comment>
+  <display>
+    <vis name="InvisibleNoDaughters"      showDaughters="false" visible="false"/>
+    <vis name="InvisibleWithDaughters"    showDaughters="true" visible="false"/>
+    <vis name="GreenVis"       alpha="0.5"  r= "0.0" g="1.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="RedVis"         alpha="0.3"  r= "1.0" g="0.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="BlueVis"        alpha="0.3"  r= "0.0" g="0.0" b="1.0" showDaughters="true" visible="true"/>
+    <vis name="OrangeVis"      alpha="0.5"  r= "1.0" g="0.45" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="RedGreenVis"    alpha="0.5"  r= "1.0" g="1.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="BlueGreenVis"   alpha="0.5"  r= "0.0" g="1.0" b="1.0" showDaughters="true" visible="true"/>
+    <vis name="PurpleVis"      alpha="0.5"  r= "1.0" g="0.0" b="1.0" showDaughters="true" visible="true"/>
+    <vis name="DoubleRedG"     alpha="0.5"  r= "2.0" g=".10" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="RBG015"         alpha="0.5"  r= "0.0" g=".2"  b="1.0" showDaughters="true" visible="true"/>
+    <vis name="RBG510"         alpha="0.5"  r= "1.0" g=".2"  b="0.0" showDaughters="true" visible="true"/>
+    <vis name="RBG"            alpha="0.5"  r= "1.0" g="1.0" b="1.0" showDaughters="true" visible="true"/>
+    <vis name="GrayVis"        alpha="0.5"  r= "0.75" g="0.75" b="0.75" showDaughters="true" visible="true"/>
+  </display>
+
+  <detectors>
+    <detector id = "1" name = "MyRomanPot" type = "RomanPot" readout =
+              "ForwardRomanPotHits" vis = "InvisibleWithDaughters">
+      <dimensions x = "3.0*cm" y = "3.0*cm" delta = "0.5*cm" />
+      <frame x = "10.0*cm" y = "5.0*cm" z = "2*cm" />
+      <position z_offset = "20.0*m" rotation = "false" vmax = "10*cm" v = "0.5*cm" />
+      <layer repeat = "5">
+        <slice material="Carbon"  thickness="0.5*mm"  vis = "BlueVis" />
+        <slice material="Silicon" thickness="0.3*mm"  vis = "GreenVis" sensitive = "true"  />
+        <slice material="Carbon"  thickness="0.5*mm"  vis = "BlueVis" />
+        <slice material="Vacuum"  thickness="1.0*mm"  vis="InvisibleWithDaughters" />
+      </layer>
+    </detector>
+  </detectors>
+
+  <!--  Definition of the readout segmentation/definition  -->
+  <readouts>
+    <readout name="ForwardRomanPotHits">
+      <segmentation type="CartesianGridXY" grid_size_x="0.05*mm" grid_size_y="0.05*mm" />
+      <id>system:5,element:5,frame:4,layer:4,slice:5,x:32:-16,y:-16</id>
+    </readout>
+  </readouts>
+
+  <plugins>
+    <!--
+    <plugin name="DD4hep_GenericSurfaceInstallerPlugin">
+      <argument value="MyRomanPot"/>
+      <argument value="dimension=2"/>
+      <argument value="u_x=-1."/>
+      <argument value="v_y=-1."/>
+      <argument value="n_z=1."/>
+    </plugin>	
+    -->
+    <plugin name="InstallSurfaceManager"/>
+  </plugins>
+
+  <fields>
+    <field name="GlobalSolenoid" type="solenoid" 
+      inner_field="4.0*tesla"
+      outer_field="-0.6*tesla" 
+      zmax="3*m"
+      outer_radius="2*m">
+    </field>
+  </fields>
+</lccdd>

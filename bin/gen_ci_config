@@ -59,8 +59,6 @@ do
   ifile=$((ifile+1))
   cat <<EOF 
 ${CI_JOB_PREFIX}${ifile}_${filename_noext}:
-  tags:
-    - ${CI_TAG}
   script:
     - bash ${script_name}
   allow_failure: true
@@ -75,8 +73,6 @@ do
   ifile=$((ifile+1))
   cat <<EOF 
 ${CI_JOB_PREFIX}${ifile}_${filename_noext}:
-  tags:
-    - ${CI_TAG}
   script:
     - root -b -q ${script_name}
   allow_failure: true

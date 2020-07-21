@@ -41,6 +41,7 @@ calorimeters-pipeline:
     include:
       - artifact: results/calorimeters_config.yml
         job: generate_config
+  allow_failure: true
 
 trackers-pipeline:
   stage: benchmarks
@@ -48,9 +49,11 @@ trackers-pipeline:
     include:
       - artifact: results/trackers_config.yml
         job: generate_config
+  allow_failure: true
 
 pid-pipeline:
   stage: benchmarks
+  allow_failure: true
   trigger:
     include:
       - artifact: results/pid_config.yml

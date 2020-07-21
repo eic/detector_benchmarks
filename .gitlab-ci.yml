@@ -14,6 +14,7 @@ stages:
   - data_init
   - ci_gen
   - benchmarks
+  - deploy
     #  - simulate
     #- others
 
@@ -58,6 +59,11 @@ pid-pipeline:
     include:
       - artifact: results/pid_config.yml
         job: generate_config
+
+deploy_results:
+  stage: deploy
+  script:
+    - echo "deploy results!"
 
       #  artifacts:
       #    paths:

@@ -1,8 +1,26 @@
 image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
 
 stages:
-  - phase1
-  - phase1
+  - trackers
+  - calorimeters
+  - pid
+  - others
+
+track_test1:
+  stage: trackers
+  script:
+    - bash trackers/dummy_test.sh
+
+cal_test1:
+  stage: calorimeters
+  script:
+    - bash calorimeters/dummy_test.sh
+
+pid_test1:
+  stage: pid
+  script:
+    - bash pid/dummy_test.sh
+
 
 #compile:
 #  stage: build

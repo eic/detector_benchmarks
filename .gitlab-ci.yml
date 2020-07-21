@@ -2,7 +2,7 @@ image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest
 
 default:
   artifacts:
-    path:
+    paths:
       - results/
 
 

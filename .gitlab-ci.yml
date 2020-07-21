@@ -10,7 +10,6 @@ default:
         #      - .git/
         #      - datasets/.git/
 
-
 stages:
   - data_init
   - benchmarks
@@ -40,21 +39,21 @@ calorimeters-pipeline:
   trigger:
     include:
       - artifact: results/calorimeters_config.yml
-        job: generate-config
+        job: generate_config
 
 trackers-pipeline:
   stage: benchmarks
   trigger:
     include:
       - artifact: results/trackers_config.yml
-        job: generate-config
+        job: generate_config
 
 pid-pipeline:
   stage: benchmarks
   trigger:
     include:
       - artifact: results/pid_config.yml
-        job: generate-config
+        job: generate_config
 
       #  artifacts:
       #    paths:

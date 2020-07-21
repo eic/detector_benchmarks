@@ -5,23 +5,35 @@
 
 #include "TH1F.h"
 #include <iostream>
+#include <cstdlib>
 using namespace HepMC3;
 
 void zdc_neutrons_reader(){
 
   //-------------------------------------
   ReaderAscii hepmc_input("data/neutrons_zdc.hepmc");
+  if( hepmc_input.failed() ) {
+    std::cerr << " could not find data file\n";
+    std::quick_exit(1);
+  }
+
+
   int        events_parsed = 0;
   GenEvent   evt(Units::GEV, Units::MM);
 
   TH1F* h_neutron_energy = new TH1F("n energy","; E [GeV]",100,0,200);
 
-  while(!hepmc_input.failed()) {
-    // Read event from input file
-    hepmc_input.read_event(evt);
+  // Read event from input file
+  hepmc_input.read_event(evt);
+  // If reading failed before loop then fail hard
+  // because the data wasn't found.
+  if( hepmc_input.failed() ) {
+    std::cerr << " could not find first event\n";
+    std::quick_exit(1);
+  }
 
-    // If reading failed - exit loop
-    if( hepmc_input.failed() ) break;
+  while(!hepmc_input.failed()) {
+
 
     for(const auto& v : evt.vertices() ) {
       for(const auto& p : v->particles_out() ) {
@@ -32,6 +44,7 @@ void zdc_neutrons_reader(){
     }
     evt.clear();
     events_parsed++;
+    hepmc_input.read_event(evt);
   }
   std::cout << "Events parsed and written: " << events_parsed << std::endl;
 

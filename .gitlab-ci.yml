@@ -37,7 +37,7 @@ get_data:
       #    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
 
 calorimeters_pipeline:
-  #stage: benchmarks
+  stage: benchmarks
   trigger:
     include: results/calorimeters_config.yml
     #include:
@@ -46,7 +46,7 @@ calorimeters_pipeline:
         #allow_failure: true
 
 trackers-pipeline:
-  #stage: benchmarks
+  stage: benchmarks
   trigger:
     include: results/trackers_config.yml
     #include:
@@ -55,7 +55,7 @@ trackers-pipeline:
         #allow_failure: true
 
 pid-pipeline:
-  #stage: benchmarks
+  stage: benchmarks
   #allow_failure: true
   trigger:
     include: results/pid_config.yml

@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 //#include "lcio2/TrackerRawDataData.h"
 //#include "lcio2/TrackerRawData.h"
 
-void simple_tracking(const char* fname = "../sim_output/roman_pot_out.root"){
+void simple_tracking(const char* fname = "./sim_output/roman_pot_out.root"){
 
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   //using namespace lcio2;

@@ -12,10 +12,10 @@ default:
 
 stages:
   - data_init
-  - ci_gen
+    #  - ci_gen
+  - simulate
   - benchmarks
   - deploy
-    #  - simulate
     #- others
 
 get_data:
@@ -27,41 +27,60 @@ get_data:
     - ln -s datasets/data
     - mkdir -p results
 
-      #generate_config:
-      #  stage: ci_gen
-      #  tags:
-      #    - sodium
-      #  script:
-      #    - ./bin/gen_ci_config -p track_test_ -i trackers > results/trackers_config.yml
-      #    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
-      #    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
+#generate_config:
+#  stage: ci_gen
+#  tags:
+#    - sodium
+#  script:
+#    - ./bin/gen_ci_config -p track_test_ -i trackers > results/trackers_config.yml
+#    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
+#    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
 
-calorimeters_pipeline:
-  stage: benchmarks
-  trigger:
-    include: results/calorimeters_config.yml
-    #include:
-    #  - artifact: results/calorimeters_config.yml
-        #job: generate_config
-        #allow_failure: true
+cal_sim_1_dummy_test2:
+  stage: simulate
+  script:
+    - echo "here we run simulation"
 
-trackers-pipeline:
+cal_test_1_dummy_test2:
   stage: benchmarks
-  trigger:
-    include: results/trackers_config.yml
-    #include:
-    #  - artifact: results/trackers_config.yml
-        #job: generate_config
-        #allow_failure: true
+  tags:
+    - sodium
+  script:
+    - bash calorimeters/dummy_test2.sh
+  allow_failure: true
 
-pid-pipeline:
+cal_test_2_dummy_test:
   stage: benchmarks
-  #allow_failure: true
-  trigger:
-    include: results/pid_config.yml
-    #include:
-    #  - artifact: results/pid_config.yml
-        #job: generate_config
+  tags:
+    - sodium
+  script:
+    - bash calorimeters/dummy_test.sh
+  allow_failure: true
+
+cal_test_3_zdc_neutrons_reader:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - root -b -q calorimeters/zdc_neutrons_reader.cxx
+  allow_failure: true
+
+pid_test_1_dummy_test:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - bash pid/dummy_test.sh
+  allow_failure: true
+
+track_test_1_dummy_test:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - bash trackers/dummy_test.sh
+  allow_failure: true
+
 
 deploy_results:
   stage: deploy

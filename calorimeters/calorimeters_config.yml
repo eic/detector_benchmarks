@@ -7,10 +7,24 @@ default:
       - datasets/
       - data
 stages:
-  #- simulate
+  - simulate
   - benchmarks
+
+cal_sim_1_dummy_test2:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - echo "here we run simulation"
+      #artifact:
+      #  paths: 
+      #    - results/
+  allow_failure: true
+
 cal_test_1_dummy_test2:
   stage: benchmarks
+  tags:
+    - sodium
   script:
     - bash calorimeters/dummy_test2.sh
       #artifact:
@@ -20,6 +34,8 @@ cal_test_1_dummy_test2:
 
 cal_test_2_dummy_test:
   stage: benchmarks
+  tags:
+    - sodium
   script:
     - bash calorimeters/dummy_test.sh
       #artifact:
@@ -29,6 +45,8 @@ cal_test_2_dummy_test:
 
 cal_test_3_zdc_neutrons_reader:
   stage: benchmarks
+  tags:
+    - sodium
   script:
     - root -b -q calorimeters/zdc_neutrons_reader.cxx
       #artifact:

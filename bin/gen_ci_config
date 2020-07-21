@@ -52,6 +52,12 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 shopt -s nullglob
 ifile=0
 
+
+cat <<EOF 
+stages:
+  #- simulate
+  - benchmarks
+
 for script_name in ${BENCHMARK_SCRIPT_DIR}/*.sh
 do
   filename=$(basename ${script_name})

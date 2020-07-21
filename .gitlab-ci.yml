@@ -4,6 +4,7 @@ default:
   artifacts:
     paths:
       - results/
+      - datasets/
 
 
 stages:

@@ -27,21 +27,21 @@ get_data:
     - ln -s datasets/data
     - mkdir -p results
 
-generate_config:
-  stage: ci_gen
-  tags:
-    - sodium
-  script:
-    - ./bin/gen_ci_config -p track_test_ -i trackers > results/trackers_config.yml
-    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
-    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
+      #generate_config:
+      #  stage: ci_gen
+      #  tags:
+      #    - sodium
+      #  script:
+      #    - ./bin/gen_ci_config -p track_test_ -i trackers > results/trackers_config.yml
+      #    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
+      #    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
 
 calorimeters-pipeline:
   stage: benchmarks
   trigger:
     include:
       - artifact: results/calorimeters_config.yml
-        job: generate_config
+        #job: generate_config
   allow_failure: true
 
 trackers-pipeline:
@@ -49,7 +49,7 @@ trackers-pipeline:
   trigger:
     include:
       - artifact: results/trackers_config.yml
-        job: generate_config
+        #job: generate_config
   allow_failure: true
 
 pid-pipeline:
@@ -58,7 +58,7 @@ pid-pipeline:
   trigger:
     include:
       - artifact: results/pid_config.yml
-        job: generate_config
+        #job: generate_config
 
 deploy_results:
   stage: deploy

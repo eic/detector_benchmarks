@@ -11,6 +11,8 @@ get_data:
     - sodium
   script:
     - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
+    - ln -s datasets/data
+    - mkdir -p results
       #  artifacts:
       #    paths:
       #      - datasets

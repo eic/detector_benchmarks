@@ -1,0 +1,30 @@
+image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
+
+stages:
+  - phase1
+  - phase1
+
+#compile:
+#  stage: build
+#  #tags:
+#  #   - singularity
+#  script:
+#    - ./bin/do_build
+#
+#      #trigger:
+#      #  stage: containerize
+#      #  script: curl -X POST -F token=8806e69cdc802d752413e8a31554a2 -F ref=master https://eicweb.phy.anl.gov/api/v4/projects/290/trigger/pipeline
+#      #
+
+pages:
+  image: alpine
+  when: manual
+  stage: build
+  script:
+  - apk update && apk add doxygen  graphviz ttf-ubuntu-font-family
+  - cd doc && doxygen Doxyfile && mv doxygen_output/html/ ../public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master

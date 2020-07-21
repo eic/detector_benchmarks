@@ -1,13 +1,22 @@
 image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
 
 stages:
-  - trackers
-  - calorimeters
-  - pid
+  - data_init
+  - detectors
     #- others
 
+get_data:
+  stage: data_init
+  tags:
+    - sodium
+  script:
+    - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
+      #  artifacts:
+      #    paths:
+      #      - datasets
+
 track_test1:
-  stage: trackers
+  stage: detectors
   tags:
     - sodium
   script:
@@ -15,7 +24,7 @@ track_test1:
   allow_failure: true
 
 cal_test1:
-  stage: calorimeters
+  stage: detectors
   tags:
     - sodium
   script:
@@ -23,7 +32,7 @@ cal_test1:
   allow_failure: true
 
 pid_test1:
-  stage: pid
+  stage: detectors
   tags:
     - sodium
   script:

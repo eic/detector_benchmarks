@@ -8,16 +8,22 @@ stages:
 
 track_test1:
   stage: trackers
+  tags:
+    - sodium
   script:
     - bash trackers/dummy_test.sh
 
 cal_test1:
   stage: calorimeters
+  tags:
+    - sodium
   script:
     - bash calorimeters/dummy_test.sh
 
 pid_test1:
   stage: pid
+  tags:
+    - sodium
   script:
     - bash pid/dummy_test.sh
 

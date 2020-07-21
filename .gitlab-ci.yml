@@ -1,5 +1,11 @@
 image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
 
+default:
+  artifacts:
+    path:
+      - results/
+
+
 stages:
   - data_init
   - detectors
@@ -32,6 +38,15 @@ cal_test1:
   script:
     - bash calorimeters/dummy_test.sh
   allow_failure: true
+
+cal_test2:
+  stage: detectors
+  tags:
+    - sodium
+  script:
+    - root -b -q calorimeters/zdc_neutrons_reader.cxx
+  allow_failure: true
+
 
 pid_test1:
   stage: detectors

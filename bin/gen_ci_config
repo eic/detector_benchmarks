@@ -57,6 +57,7 @@ cat <<EOF
 stages:
   #- simulate
   - benchmarks
+EOF
 
 for script_name in ${BENCHMARK_SCRIPT_DIR}/*.sh
 do

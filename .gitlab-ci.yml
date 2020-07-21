@@ -38,8 +38,6 @@ get_data:
 
 calorimeters_pipeline:
   stage: benchmarks
-  tags:
-    - sodium
   trigger:
     include: results/calorimeters_config.yml
     #include:

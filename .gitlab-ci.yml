@@ -5,6 +5,7 @@ default:
     paths:
       - results/
       - datasets/
+      - sim_output/
       - data
         #    exclude:
         #      - .git/
@@ -30,6 +31,7 @@ get_data:
     - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
     - ln -s datasets/data
     - mkdir -p results
+    - mkdir -p sim_output
 
 #generate_config:
 #  stage: ci_gen
@@ -85,6 +87,14 @@ track_test_1_dummy_test:
     - sodium
   script:
     - bash trackers/dummy_test.sh
+  allow_failure: true
+
+simple_tracking_test:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 
 

@@ -59,6 +59,7 @@ do
   ifile=$((ifile+1))
   cat <<EOF 
 ${CI_JOB_PREFIX}${ifile}_${filename_noext}:
+  stage: benchmarks
   script:
     - bash ${script_name}
   allow_failure: true
@@ -73,6 +74,7 @@ do
   ifile=$((ifile+1))
   cat <<EOF 
 ${CI_JOB_PREFIX}${ifile}_${filename_noext}:
+  stage: benchmarks
   script:
     - root -b -q ${script_name}
   allow_failure: true

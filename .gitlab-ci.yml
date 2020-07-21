@@ -38,6 +38,8 @@ get_data:
 
 cal_sim_1_dummy_test2:
   stage: simulate
+  tags:
+    - sodium
   script:
     - echo "here we run simulation"
 

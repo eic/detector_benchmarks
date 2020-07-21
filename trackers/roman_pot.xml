@@ -64,8 +64,8 @@
   <detectors>
     <detector id = "1" name = "MyRomanPot" type = "RomanPot" readout =
               "ForwardRomanPotHits" vis = "InvisibleWithDaughters">
-      <dimensions x = "3.0*cm" y = "3.0*cm" delta = "0.5*cm" />
-      <frame x = "10.0*cm" y = "5.0*cm" z = "2*cm" />
+      <dimensions x = "5.0*cm" y = "5.0*cm" delta = "0.05*mm" />
+      <frame x = "20.0*cm" y = "10.0*cm" z = "2*cm" />
       <position z_offset = "20.0*m" rotation = "false" vmax = "10*cm" v = "0.5*cm" />
       <layer repeat = "5">
         <slice material="Carbon"  thickness="0.5*mm"  vis = "BlueVis" />

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ddsim --runType batch -N 100 \
+ddsim --runType batch -N 300 \
 	--inputFiles ../data/forward_ions.hepmc \
 	--compactFile ./roman_pot.xml \
-	--outputFile ./roman_pot_out.root
+	--outputFile ../sim_output/roman_pot_out.root

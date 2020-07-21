@@ -89,11 +89,21 @@ track_test_1_dummy_test:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
-simple_tracking_test:
+roman_pot_simu:
+  stage: simulate
+  tags:
+    - sodium
+  script:
+    - bash trackers/roman_pot_simu.sh
+  allow_failure: true
+
+roman_pot_benchmark:
   stage: benchmarks
   tags:
     - sodium
   script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml trackers/.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml trackers/.
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 

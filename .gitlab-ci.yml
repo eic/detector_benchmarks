@@ -13,7 +13,8 @@ default:
 
 stages:
   - data_init
-  - detectors
+  - benchmarks
+    #  - simulate
     #- others
 
 get_data:
@@ -24,42 +25,73 @@ get_data:
     - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
     - ln -s datasets/data
     - mkdir -p results
+
+generate_config:
+  stage: data_init
+  tags:
+    - sodium
+  script:
+    - ./bin/gen_ci_config -p track_test_ -i trackers > results/trackers_config.yml
+    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
+    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
+
+calorimeters-pipeline:
+  stage: benchmarks
+  trigger:
+    include:
+      - artifact: results/calorimeters_config.yml
+        job: generate-config
+
+trackers-pipeline:
+  stage: benchmarks
+  trigger:
+    include:
+      - artifact: results/trackers_config.yml
+        job: generate-config
+
+pid-pipeline:
+  stage: benchmarks
+  trigger:
+    include:
+      - artifact: results/pid_config.yml
+        job: generate-config
+
       #  artifacts:
       #    paths:
       #      - datasets
 
-track_test1:
-  stage: detectors
-  tags:
-    - sodium
-  script:
-    - bash trackers/dummy_test.sh
-  allow_failure: true
+      #track_test1:
+      #  stage: detectors
+      #  tags:
+      #    - sodium
+      #  script:
+      #    - bash trackers/dummy_test.sh
+      #  allow_failure: true
+      #
+      #cal_test1:
+      #  stage: detectors
+      #  tags:
+      #    - sodium
+      #  script:
+      #    - bash calorimeters/dummy_test.sh
+      #  allow_failure: true
+      #
+      #cal_test2:
+      #  stage: detectors
+      #  tags:
+      #    - sodium
+      #  script:
+      #    - root -b -q calorimeters/zdc_neutrons_reader.cxx
+      #  allow_failure: true
 
-cal_test1:
-  stage: detectors
-  tags:
-    - sodium
-  script:
-    - bash calorimeters/dummy_test.sh
-  allow_failure: true
 
-cal_test2:
-  stage: detectors
-  tags:
-    - sodium
-  script:
-    - root -b -q calorimeters/zdc_neutrons_reader.cxx
-  allow_failure: true
-
-
-pid_test1:
-  stage: detectors
-  tags:
-    - sodium
-  script:
-    - bash pid/dummy_test.sh
-  allow_failure: true
+        #pid_test1:
+        #  stage: detectors
+        #  tags:
+        #    - sodium
+        #  script:
+        #    - bash pid/dummy_test.sh
+        #  allow_failure: true
 
 
       #pages:

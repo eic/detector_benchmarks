@@ -10,8 +10,8 @@ default:
         #    exclude:
         #      - .git/
         #      - datasets/.git/
-        before_script:
-          - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+    before_script:
+      - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
         #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
         #    - cd ../.. 
 

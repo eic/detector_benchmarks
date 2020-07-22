@@ -1,4 +1,4 @@
-image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
+image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest 
 
 default:
   artifacts:
@@ -11,9 +11,9 @@ default:
         #      - .git/
         #      - datasets/.git/
   before_script:
-    - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git && mkdir NPDet/build
-    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
-    - cd ../.. 
+    - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+        #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
+        #    - cd ../.. 
 
 stages:
   - data_init

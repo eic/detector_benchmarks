@@ -115,7 +115,7 @@ std::cout << "testing 4\n";
   //d1.Snapshot("digitized_EVENT","test_gem_tracker_digi.root");
 std::cout << "testing 5\n";
   std::cout << *n0 << " events with nonzero hits\n";
-
+std::cout << "testing 6\n";
   if(*n0<5) {
     std::quick_exit(1);
   }

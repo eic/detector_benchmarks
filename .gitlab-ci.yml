@@ -63,7 +63,7 @@ zdc_simulation:
   tags:
     - sodium
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_zdc.sh
 

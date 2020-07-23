@@ -57,7 +57,7 @@ std::cout << "testing 2\n";
   //auto surfMap = surfMan.map( "world" ) ;
   
   auto nhits = [] (std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits){ return (int) hits.size(); };
-  //auto hit_position = [&](const std::vector<dd4hep::sim::Geant4Tracker::Hit*>& hits){
+std::cout << "testing 3\n";
   //for(const auto& h: hits){
   //  //std::cout << (h->position/10.0) << std::endl;
   //  //std::cout << cellid_converter.position(h->cellID) << std::endl;

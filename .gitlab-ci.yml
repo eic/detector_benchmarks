@@ -120,6 +120,7 @@ zdc_benchmark:
   tags:
     - sodium
   script:
+    - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking.cxx+
   allow_failure: true
 

@@ -113,7 +113,7 @@ std::cout << "testing 4\n";
   TCanvas* c = new TCanvas();
 
   //d1.Snapshot("digitized_EVENT","test_gem_tracker_digi.root");
-  h0->DrawClone();
+std::cout << "testing 5\n";
   std::cout << *n0 << " events with nonzero hits\n";
 
   if(*n0<5) {

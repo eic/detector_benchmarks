@@ -105,7 +105,7 @@ std::cout << "testing 3\n";
               //.Define("delta",hit_position, {"GEMTrackerHits"})
               //.Define("RawTrackerHits", digitize_gem_hits, {"GEMTrackerHits"})
               ;
-
+std::cout << "testing 4\n";
   auto h0 = d1.Histo1D(TH1D("h0", "nhits; ", 20, 0,20), "nhits");
 
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();

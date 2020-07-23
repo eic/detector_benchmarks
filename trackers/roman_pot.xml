@@ -68,9 +68,8 @@
       <frame x = "20.0*cm" y = "10.0*cm" z = "2*cm" />
       <position z_offset = "20.0*m" rotation = "false" vmax = "10*cm" v = "0.5*cm" />
       <layer repeat = "5">
-        <slice material="Carbon"  thickness="0.5*mm"  vis = "BlueVis" />
-        <slice material="Silicon" thickness="0.3*mm"  vis = "GreenVis" sensitive = "true"  />
-        <slice material="Carbon"  thickness="0.5*mm"  vis = "BlueVis" />
+        <slice material="SiliconNitride"  thickness="0.001*mm"  vis="BlueVis" />
+        <slice material="Silicon" thickness="0.03*cm" vis="GreenVis" sensitive="true"  />
         <slice material="Vacuum"  thickness="1.0*mm"  vis="InvisibleWithDaughters" />
       </layer>
     </detector>

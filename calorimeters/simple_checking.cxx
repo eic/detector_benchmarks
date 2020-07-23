@@ -39,7 +39,7 @@ std::cout << "testing 1\n";
   t->Add(fname);
 
   ROOT::RDataFrame d0(*t);//, {"GEMTrackerHintits","MCParticles"});
-
+std::cout << "testing 2\n";
   //std::cout << t->GetBranch("GEMTrackerHits")->GetClassName() << std::endl;
   //std::vector<dd4hep::sim::Geant4Tracker::Hit*>
   

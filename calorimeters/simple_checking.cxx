@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 //#include "lcio2/TrackerRawDataData.h"
 //#include "lcio2/TrackerRawData.h"
 
-void simple_checking(const char* fname = "./sim_output/output_zdc_photons.root"){
+void simple_checking(const char* fname = "sim_output/output_zdc_photons.root"){
 std::cout << "testing 1\n";
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   //using namespace lcio2;

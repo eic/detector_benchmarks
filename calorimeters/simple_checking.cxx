@@ -56,7 +56,7 @@ std::cout << "testing 2\n";
   //dd4hep::rec::SurfaceManager& surfMan = *detector.extension<dd4hep::rec::SurfaceManager>() ;
   //auto surfMap = surfMan.map( "world" ) ;
   
-  auto nhits = [] (std::vector<dd4hep::sim::Geant4Tracker::Hit*>& hits){ return (int) hits.size(); };
+  auto nhits = [] (std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits){ return (int) hits.size(); };
 std::cout << "testing 3\n";
   //for(const auto& h: hits){
   //  //std::cout << (h->position/10.0) << std::endl;

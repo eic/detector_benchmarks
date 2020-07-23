@@ -58,6 +58,15 @@ roman_pot_simu:
     - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
     - bash trackers/roman_pot_simu.sh
 
+zdc_simulation:
+  stage: simulate
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./
+    - bash calorimeters/run_simulation_zdc.sh
+
 cal_test_1_dummy_test2:
   stage: benchmarks
   tags:
@@ -106,6 +115,13 @@ roman_pot_benchmark:
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 
+zdc_benchmark:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - root -b -q calorimeters/simple_checking.cxx+
+  allow_failure: true
 
 deploy_results:
   stage: deploy

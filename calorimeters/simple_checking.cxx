@@ -29,8 +29,8 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 //#include "lcio2/TrackerRawDataData.h"
 //#include "lcio2/TrackerRawData.h"
 
-void simple_checking(const char* fname = "./sim_output/output_zdc_photons.root"){
-
+void simple_checking(const char* fname = "sim_output/output_zdc_photons.root"){
+std::cout << "testing 1\n";
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   //using namespace lcio2;
   double degree = TMath::Pi()/180.0;
@@ -39,7 +39,7 @@ void simple_checking(const char* fname = "./sim_output/output_zdc_photons.root")
   t->Add(fname);
 
   ROOT::RDataFrame d0(*t);//, {"GEMTrackerHintits","MCParticles"});
-
+std::cout << "testing 2\n";
   //std::cout << t->GetBranch("GEMTrackerHits")->GetClassName() << std::endl;
   //std::vector<dd4hep::sim::Geant4Tracker::Hit*>
   
@@ -57,7 +57,7 @@ void simple_checking(const char* fname = "./sim_output/output_zdc_photons.root")
   //auto surfMap = surfMan.map( "world" ) ;
   
   auto nhits = [] (std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits){ return (int) hits.size(); };
-  //auto hit_position = [&](const std::vector<dd4hep::sim::Geant4Tracker::Hit*>& hits){
+std::cout << "testing 3\n";
   //for(const auto& h: hits){
   //  //std::cout << (h->position/10.0) << std::endl;
   //  //std::cout << cellid_converter.position(h->cellID) << std::endl;
@@ -105,17 +105,17 @@ void simple_checking(const char* fname = "./sim_output/output_zdc_photons.root")
               //.Define("delta",hit_position, {"GEMTrackerHits"})
               //.Define("RawTrackerHits", digitize_gem_hits, {"GEMTrackerHits"})
               ;
-
+std::cout << "testing 4\n";
   auto h0 = d1.Histo1D(TH1D("h0", "nhits; ", 20, 0,20), "nhits");
 
-  auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();
+  auto n0 = d1.Filter([](int n){ return (n>=0); },{"nhits"}).Count();
 
   TCanvas* c = new TCanvas();
 
   //d1.Snapshot("digitized_EVENT","test_gem_tracker_digi.root");
-  h0->DrawClone();
+std::cout << "testing 5\n";
   std::cout << *n0 << " events with nonzero hits\n";
-
+std::cout << "testing 6\n";
   if(*n0<5) {
     std::quick_exit(1);
   }

@@ -63,8 +63,8 @@ zdc_simulation:
   tags:
     - sodium
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_zdc.sh
 
 cal_test_1_dummy_test2:
@@ -120,6 +120,7 @@ zdc_benchmark:
   tags:
     - sodium
   script:
+    - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking.cxx+
   allow_failure: true
 

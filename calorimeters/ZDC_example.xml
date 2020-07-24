@@ -31,12 +31,12 @@
     		<constant name="offset_ZDC"    value="5.0*mm"/>
 		<constant name="st_length"     value="20.0*mm"/>
 		<constant name="lt_length"     value="40.0*mm"/>
-		<constant name="st_ZDC_x_pos"  value="0.60*m"/>
+		<constant name="st_ZDC_x_pos"  value="0.0*m"/>   <!-- value="0.60*m"  -->
 		<constant name="st_ZDC_y_pos"  value="0.0*m"/>
-		<constant name="st_ZDC_z_pos"  value="34.0*m"/>
-		<constant name="lt_ZDC_x_pos"  value="0.60*m"/>
+		<constant name="st_ZDC_z_pos"  value="1.0*m"/>   <!-- value="34.0*m"  -->
+		<constant name="lt_ZDC_x_pos"  value="0.0*m"/>   <!-- value="0.60*m"  -->
 		<constant name="lt_ZDC_y_pos"  value="offset_ZDC + (st_length+lt_length)/sqrt(2)"/>
-        	<constant name="lt_ZDC_z_pos"  value="34.0*m"/>
+        	<constant name="lt_ZDC_z_pos"  value="1.0*m"/>  <!-- value="34.0*m"  -->
   	</define>
 
   <limits>

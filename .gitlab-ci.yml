@@ -113,7 +113,7 @@ roman_pot_eta:
   script:
     - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml trackers/.
     - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml trackers/.
-    - root -b -q trackers/roman_pot_eta.cxx+
+    - root -b -q trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
 
 deploy_results:

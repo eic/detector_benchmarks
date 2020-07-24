@@ -29,7 +29,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 //#include "lcio2/TrackerRawDataData.h"
 //#include "lcio2/TrackerRawData.h"
 
-void roman_pot_hit_eta(const char* fname = "../sim_output/roman_pot_out.root"){
+void roman_pot_hit_eta(const char* fname = "./sim_output/roman_pot_out.root"){
 
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   double degree = TMath::Pi()/180.0;

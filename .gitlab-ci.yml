@@ -97,7 +97,7 @@ roman_pot_simu:
     - bash trackers/roman_pot_simu.sh
   allow_failure: true
 
-roman_pot_benchmark:
+roman_pot_nhits:
   stage: benchmarks
   tags:
     - sodium
@@ -107,6 +107,15 @@ roman_pot_benchmark:
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 
+roman_pot_eta:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml trackers/.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml trackers/.
+    - root -b -q trackers/roman_pot_eta.cxx+
+  allow_failure: true
 
 deploy_results:
   stage: deploy

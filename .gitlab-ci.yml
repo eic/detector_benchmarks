@@ -115,7 +115,7 @@ roman_pot_nhits:
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 
-roman_pot_nhits:
+roman_pot_eta:
   stage: benchmarks
   tags:
     - sodium

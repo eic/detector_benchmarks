@@ -1,4 +1,5 @@
-image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest 
+image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
+p
 
 default:
   artifacts:
@@ -107,12 +108,20 @@ track_test_1_dummy_test:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
-roman_pot_benchmark:
+roman_pot_nhits:
   stage: benchmarks
   tags:
     - sodium
   script:
     - root -b -q trackers/simple_tracking.cxx+
+  allow_failure: true
+
+roman_pot_eta:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - root -b -q trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
 
 zdc_benchmark:

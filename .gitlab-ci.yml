@@ -1,4 +1,4 @@
-image: eicweb.phy.anl.gov:4567/containers/eic_container/eic_container:latest 
+image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest 
 
 default:
   artifacts:
@@ -11,9 +11,9 @@ default:
         #      - .git/
         #      - datasets/.git/
   before_script:
-    - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git && mkdir NPDet/build
-    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
-    - cd ../.. 
+    - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+        #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
+        #    - cd ../.. 
 
 stages:
   - data_init
@@ -48,6 +48,15 @@ cal_sim_1_dummy_test2:
     - sodium
   script:
     - echo "here we run simulation"
+
+roman_pot_simu:
+  stage: simulate
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
+    - bash trackers/roman_pot_simu.sh
 
 cal_test_1_dummy_test2:
   stage: benchmarks
@@ -89,21 +98,11 @@ track_test_1_dummy_test:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
-roman_pot_simu:
-  stage: simulate
-  tags:
-    - sodium
-  script:
-    - bash trackers/roman_pot_simu.sh
-  allow_failure: true
-
 roman_pot_nhits:
   stage: benchmarks
   tags:
     - sodium
   script:
-    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml trackers/.
-    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml trackers/.
     - root -b -q trackers/simple_tracking.cxx+
   allow_failure: true
 

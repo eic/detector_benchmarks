@@ -1,4 +1,4 @@
-image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest 
+image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
 
 default:
   artifacts:
@@ -88,6 +88,7 @@ cal_test_3_zdc_neutrons_reader:
   tags:
     - sodium
   script:
+    - source /etc/profile
     - root -b -q calorimeters/zdc_neutrons_reader.cxx
   allow_failure: true
 
@@ -107,12 +108,22 @@ track_test_1_dummy_test:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
-roman_pot_benchmark:
+roman_pot_nhits:
   stage: benchmarks
   tags:
     - sodium
   script:
+    - source /etc/profile
     - root -b -q trackers/simple_tracking.cxx+
+  allow_failure: true
+
+roman_pot_eta:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - source /etc/profile
+    - root -b -q trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
 
 zdc_benchmark:
@@ -120,6 +131,7 @@ zdc_benchmark:
   tags:
     - sodium
   script:
+    - source /etc/profile
     - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking.cxx+
   allow_failure: true
@@ -178,6 +190,5 @@ deploy_results:
       #  - cd doc && doxygen Doxyfile && mv doxygen_output/html/ ../public/
       #  artifacts:
       #    paths:
-      #    - public
-      #  only:
+      #    - public #  only:
       #  - master

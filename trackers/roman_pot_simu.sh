@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/local/bin/thisdd4hep.sh
+source /etc/profile
 
 ddsim --runType batch -N 300 \
 	--inputFiles ./data/forward_ions.hepmc \

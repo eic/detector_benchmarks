@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/local/bin/thisdd4hep.sh
+source /etc/profile
 
 ddsim --runType batch --numberOfEvents 100 \
       --compactFile ./calorimeters/ZDC_example.xml \

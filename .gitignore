@@ -1,5 +1,37 @@
-results/*
-data/*
-datasets/*
-data
-calorimeters/test/
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# build trees
+DEBUG*/*
+BUILD*/*
+RELEASE*/*
+TEST*/*
+
+# cmake
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# vim 
+~*
+*.swp
+*.swo
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints

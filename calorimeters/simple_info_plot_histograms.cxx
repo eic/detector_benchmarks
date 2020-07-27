@@ -121,7 +121,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();
 
-  d1.Snapshot("info_EVENT","./calorimeters/info_zdc_photons.root");
+  d1.Snapshot("info_EVENT","sim_output/info_zdc_photons.root");
   std::cout << *n0 << " events with nonzero hits\n";
 
   TCanvas *c1 = new TCanvas("c1","c1",800,600);
@@ -130,7 +130,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h0->SetLineWidth(2);
   h0->SetLineColor(kBlack);
   h0->DrawClone();
-  c1->SaveAs("./calorimeters/nhits_histo_zdc_photons.png");
+  c1->SaveAs("sim_output/nhits_histo_zdc_photons.png");
 
   TCanvas *c2 = new TCanvas("c2","c2",1000,1000);
   c2->Divide(2,2);
@@ -151,7 +151,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h3->SetLineWidth(2);
   h3->SetLineColor(kBlack);  
   h3->DrawClone();
-  c2->SaveAs("./calorimeters/hit_postion_histo_zdc_photons.png");
+  c2->SaveAs("sim_output/hit_postion_histo_zdc_photons.png");
 
   TCanvas *c3 = new TCanvas("c3","c3",600,600);
   c3->cd();
@@ -160,7 +160,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h4->SetLineWidth(2);
   h4->SetLineColor(kBlack);
   h4->DrawClone();
-  c3->SaveAs("./calorimeters/edep_histo_zdc_photons.png");
+  c3->SaveAs("sim_output/edep_histo_zdc_photons.png");
 
   TCanvas *c4 = new TCanvas("c4","c4",600,600);
   c4->SetLogy(0);
@@ -168,7 +168,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h5->SetLineWidth(2);
   h5->SetLineColor(kBlack);
   h5->DrawClone();
-  c4->SaveAs("./calorimeters/volID_histo_zdc_photons.png");
+  c4->SaveAs("sim_output/volID_histo_zdc_photons.png");
 
   if(*n0<5) {
     std::quick_exit(1);

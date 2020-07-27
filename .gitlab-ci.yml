@@ -139,6 +139,7 @@ zdc_benchmark_info_histogram:
   script:
     - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml calorimeters/
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml calorimeters/
+    - root -b -q calorimeters/rootlogon.C
     - root -b -q calorimeters/simple_info_plot_histograms.cxx+
   allow_failure: true
 

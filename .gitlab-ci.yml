@@ -132,6 +132,14 @@ zdc_benchmark:
     - root -b -q calorimeters/simple_checking.cxx+
   allow_failure: true
 
+zdc_benchmark_info_histogram:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - root -b -q calorimeters/simple_info_plot_histograms.cxx+
+  allow_failure: true
+
 deploy_results:
   stage: deploy
   tags:

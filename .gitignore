@@ -35,3 +35,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .ipynb_checkpoints
+
+# test for calorimeter
+calorimeters/test/

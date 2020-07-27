@@ -43,7 +43,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   ROOT::RDataFrame d0(*t);//, {"ZDCHits","MCParticles"});
 
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
-  detector.fromCompact("ZDC_example.xml");  
+  detector.fromCompact("./calorimeters/ZDC_example.xml");  
 
   //dd4hep::VolumeManager volman = detector.volumeManager();
   //volman.getVolumeManager(detector);

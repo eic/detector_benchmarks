@@ -1,4 +1,3 @@
-//R__LOAD_LIBRARY($HOME/stow/development/lib/libGenDetectors.so)
 R__LOAD_LIBRARY(libGenDetectors.so)
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
@@ -34,8 +33,19 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 #include "TChain.h"
 #include <random>
 #include <iostream>
+#include "TStyle.h"
 
 void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_photons.root"){
+
+  // Setting for graphs
+  gROOT->SetStyle("Plain");
+  gStyle->SetOptFit(1);
+  gStyle->SetLineWidth(2);
+  gStyle->SetPadTickX(1);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadGridX(1);
+  gStyle->SetPadGridY(1);
+  gStyle->SetPadLeftMargin(0.14);
 
   TChain* t = new TChain("EVENT");
   t->Add(fname);
@@ -64,7 +74,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   auto volID = [&] (const std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits) {
         std::vector<double> result;
         for(const auto& h: hits) {
-		auto detelement = volman.lookupDetElement(h->cellID);
+		auto detelement = volman.lookupDetector(h->cellID);
 		result.push_back(detelement.volumeID());
 	}
   return result;

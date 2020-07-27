@@ -67,13 +67,13 @@ zdc_simulation:
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_zdc.sh
 
-cal_test_1_dummy_test2:
-  stage: benchmarks
-  tags:
-    - sodium
-  script:
-    - bash calorimeters/dummy_test2.sh
-  allow_failure: true
+#cal_test_1_dummy_test2:
+#  stage: benchmarks
+#  tags:
+#    - sodium
+#  script:
+#    - bash calorimeters/dummy_test2.sh
+#  allow_failure: true
 
 cal_test_2_dummy_test:
   stage: benchmarks

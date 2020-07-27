@@ -1,2 +1,2 @@
 #.rootrc file
-Rint.Logon:              .rootlogon.C
+Rint.Logon: ./rootlogon.C

@@ -1,4 +1,5 @@
-R__LOAD_LIBRARY($HOME/stow/development/lib/libGenDetectors.so)
+//R__LOAD_LIBRARY($HOME/stow/development/lib/libGenDetectors.so)
+R__LOAD_LIBRARY(libGenDetectors.so)
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
 R__LOAD_LIBRARY(libDDG4IO.so)

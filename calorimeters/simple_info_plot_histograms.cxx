@@ -52,12 +52,13 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   ROOT::RDataFrame d0(*t);//, {"ZDCHits","MCParticles"});
 
+  // Detector
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
   detector.fromCompact("./calorimeters/ZDC_example.xml");  
-
-  //dd4hep::VolumeManager volman = detector.volumeManager();
-  //volman.getVolumeManager(detector);
+  // Volume
   dd4hep::VolumeManager volman = dd4hep::VolumeManager::getVolumeManager(detector);
+  // CellID Coverter
+  dd4hep::rec::CellIDPositionConverter cellid_converter(detector);
 
   // Number of hits
   auto nhits = [] (std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits){ return (int) hits.size(); };
@@ -72,6 +73,24 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   // Volume ID
   auto volID = [&] (const std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits) {
+        std::vector<double> result;
+        for(const auto& h: hits) {
+		// method 1: use cell ID to get volume ID
+                auto volcontext = cellid_converter.findContext(h->cellID);
+		//auto volid = volcontext->identifier;             
+
+		// method 2: use detector element, readout, segmentation, then volume ID
+		//dd4hep::Readout r = cellid_converter.findReadout(volcontext->element);
+		//dd4hep::Segmentation seg = r.segmentation();
+		//auto volid = seg.volumeID(h->cellID);
+
+		 result.push_back(volcontext->identifier);
+        }
+  return result;
+  };
+
+  // Detector ID
+  auto detID = [&] (const std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits) {
         std::vector<double> result;
         for(const auto& h: hits) {
 		auto detelement = volman.lookupDetector(h->cellID);
@@ -115,6 +134,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   auto d1 = d0.Define("nhits", nhits, {"ZDCHits"})
 	      .Define("cellID", cellID, {"ZDCHits"})
 	      .Define("volID", volID, {"ZDCHits"})
+	      .Define("detID", detID, {"ZDCHits"})
     	      .Define("hit_x_position", hit_x_position, {"ZDCHits"})
 	      .Define("hit_y_position", hit_y_position, {"ZDCHits"})
               .Define("hit_z_position", hit_z_position, {"ZDCHits"})
@@ -123,11 +143,12 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   // Define Histograms
   auto h0 = d1.Histo1D({"h0", "nhits histogram; nhits; Events", 100, 0,5000}, "nhits");
-  auto h1 = d1.Histo1D({"h1", "hit_x_position histogram; hit X position [mm]; Events", 60,-30,30}, "hit_x_position");
-  auto h2 = d1.Histo1D({"h2", "hit_y_position histogram; hit Y position [mm]; Events", 100,-30,80}, "hit_y_position");
-  auto h3 = d1.Histo1D({"h3", "hit_z_position histogram; hit Z position [mm]; Events", 100,1000,1300}, "hit_z_position");
+  auto h1 = d1.Histo1D({"h1", "hit position X histogram; hit position X [mm]; Events", 60,-30,30}, "hit_x_position");
+  auto h2 = d1.Histo1D({"h2", "hit position Y histogram; hit position Y [mm]; Events", 100,-30,80}, "hit_y_position");
+  auto h3 = d1.Histo1D({"h3", "hit position Z histogram; hit position Z [mm]; Events", 100,1000,1300}, "hit_z_position");
   auto h4 = d1.Histo1D({"h4", "energy deposition histogram; energy deposition [GeV]; Events", 100,0,300}, "e_dep");
-  auto h5 = d1.Histo1D({"h5", "volume ID; volumeID; Events", 92,-0.5,92.5}, "volID");
+  auto h5 = d1.Histo1D({"h5", "detector ID; detector ID; Events", 3,-0.5,2.5}, "detID");
+  auto h6 = d1.Histo1D({"h6", "volume ID; volume ID; Events", 100,0,50000000}, "volID");
 
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();
 
@@ -173,12 +194,20 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   c3->SaveAs("sim_output/edep_histo_zdc_photons.png");
 
   TCanvas *c4 = new TCanvas("c4","c4",600,600);
+  c4->Divide(2,1);
   c4->SetLogy(0);
+  c4->cd(1);
   h5->GetYaxis()->SetTitleOffset(2.0);
   h5->SetLineWidth(2);
   h5->SetLineColor(kBlack);
   h5->DrawClone();
-  c4->SaveAs("sim_output/volID_histo_zdc_photons.png");
+
+  c4->cd(2);
+  h6->GetYaxis()->SetTitleOffset(2.0);
+  h6->SetLineWidth(2);
+  h6->SetLineColor(kBlack);
+  h6->DrawClone();
+  c4->SaveAs("sim_output/detID_volID_histo_zdc_photons.png");
 
   if(*n0<5) {
     std::quick_exit(1);

@@ -193,7 +193,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h4->DrawClone();
   c3->SaveAs("sim_output/edep_histo_zdc_photons.png");
 
-  TCanvas *c4 = new TCanvas("c4","c4",600,600);
+  TCanvas *c4 = new TCanvas("c4","c4",1000,600);
   c4->Divide(2,1);
   c4->SetLogy(0);
   c4->cd(1);

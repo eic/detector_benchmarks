@@ -38,3 +38,5 @@ __pycache__/
 
 # test for calorimeter
 calorimeters/test/
+*.d
+*.pcm

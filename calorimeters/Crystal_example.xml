@@ -24,6 +24,9 @@
     <constant name="world_y" value="world_side"/>
     <constant name="world_z" value="world_side"/>
 
+    <constant name="tracker_region_zmax" value="6 * m"/>
+    <constant name="tracker_region_rmax" value="6 * m"/>
+
     <constant name="CrystalEndcap_ID"    value="1"/>
     <constant name="CrystalEndcap_rmin"  value="120.0*mm"/> <!-- 12cm -->
     <constant name="CrystalEndcap_rmax"  value="600.0*mm"/> <!-- 60cm -->

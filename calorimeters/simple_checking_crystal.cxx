@@ -16,7 +16,7 @@ void simple_checking_crystal(const char* fname = "sim_output/output_emcal_electr
   
   auto nhits = [] (std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>& hits){ return (int) hits.size(); };
 
-  auto d1 = d0.Define("nhits", nhits, {"ZDCHits"});
+  auto d1 = d0.Define("nhits", nhits, {"EcalHits"});
   auto h0 = d1.Histo1D(TH1D("h0", "nhits; ", 20, 0,20), "nhits");
 
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();

@@ -67,6 +67,15 @@ zdc_simulation:
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_zdc.sh
 
+crystal_emcal_simulation:
+  stage: simulate
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - bash calorimeters/run_simulation_crystal.sh
+
 cal_test_1_dummy_test2:
   stage: benchmarks
   tags:
@@ -140,6 +149,15 @@ zdc_benchmark_info_histogram:
     - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml calorimeters/
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml calorimeters/
     - root -b -q calorimeters/simple_info_plot_histograms.cxx+
+  allow_failure: true
+
+crystal_benchmark:
+  stage: benchmarks
+  tags:
+    - sodium
+  script:
+    - ls -lrth sim_output
+    - root -b -q calorimeters/simple_checking_crystal.cxx+
   allow_failure: true
 
 deploy_results:

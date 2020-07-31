@@ -65,7 +65,7 @@
 
   <!-- Define detector -->
   <detectors>
-    <detector id="CrystalEndcap_ID" name="ElectronECAL" type="crystal" readout="EcalHits" vis="GreenVis">
+    <detector id="CrystalEndcap_ID" name="ElectronECAL" type="Crystal" readout="EcalHits" vis="GreenVis">
                 <position x="CrystalEndcap_x_pos" y="CrystalEndcap_y_pos" z="CrystalEndcap_z_pos"/>
                 <dimensions rmin="CrystalEndcap_rmin" rmax="CrystalEndcap_rmax" x="CrystalBox_x_length" y="CrystalBox_y_length" z="CrystalBox_z_length"/>
     </detector>

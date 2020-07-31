@@ -2,6 +2,7 @@ image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
 
 default:
   artifacts:
+    expire_in: 10 mins
     paths:
       - results/
       - datasets/
@@ -46,38 +47,15 @@ cal_sim_1_dummy_test2:
   stage: simulate
   tags:
     - sodium
+  needs: 
+    - ["get_data"]
   script:
     - echo "here we run simulation"
 
-roman_pot_simu:
-  stage: simulate
-  tags:
-    - sodium
-  script:
-    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
-    - bash trackers/roman_pot_simu.sh
-
-zdc_simulation:
-  stage: simulate
-  tags:
-    - sodium
-  script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
-    - bash calorimeters/run_simulation_zdc.sh
-
-crystal_emcal_simulation:
-  stage: simulate
-  tags:
-    - sodium
-  script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
-    - bash calorimeters/run_simulation_crystal.sh
-
 cal_test_1_dummy_test2:
   stage: benchmarks
+  needs: 
+    - ["cal_sim_1_dummy_test2"]
   tags:
     - sodium
   script:
@@ -96,6 +74,8 @@ cal_test_3_zdc_neutrons_reader:
   stage: benchmarks
   tags:
     - sodium
+  needs: 
+    - ["zdc_simulation"]
   script:
     - root -b -q calorimeters/zdc_neutrons_reader.cxx
   allow_failure: true
@@ -104,20 +84,37 @@ pid_test_1_dummy_test:
   stage: benchmarks
   tags:
     - sodium
+  needs:
+    - ["cal_sim_1_dummy_test2"]
   script:
     - bash pid/dummy_test.sh
   allow_failure: true
 
 track_test_1_dummy_test:
   stage: benchmarks
+  needs:
+    - ["cal_sim_1_dummy_test2"]
   tags:
     - sodium
   script:
     - bash trackers/dummy_test.sh
   allow_failure: true
 
+roman_pot_simu:
+  stage: simulate
+  needs: 
+    - ["get_data"]
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
+    - bash trackers/roman_pot_simu.sh
+
 roman_pot_nhits:
   stage: benchmarks
+  needs:
+    - ["roman_pot_simu"]
   tags:
     - sodium
   script:
@@ -128,14 +125,31 @@ roman_pot_eta:
   stage: benchmarks
   tags:
     - sodium
+  needs:
+    - ["roman_pot_simu"]
   script:
     - root -b -q trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
+
+zdc_simulation:
+  stage: simulate
+  needs: 
+    - ["get_data"]
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - bash calorimeters/run_simulation_zdc.sh
 
 zdc_benchmark:
   stage: benchmarks
   tags:
     - sodium
+  needs: 
+    - ["zdc_simulation"]
+  dependencies:
+    - zdc_simulation
   script:
     - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking.cxx+
@@ -143,18 +157,35 @@ zdc_benchmark:
 
 zdc_benchmark_info_histogram:
   stage: benchmarks
+  needs: 
+    - ["zdc_simulation"]
   tags:
     - sodium
+  dependencies:
+    - zdc_simulation
   script:
     - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml calorimeters/
     - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml calorimeters/
     - root -b -q calorimeters/simple_info_plot_histograms.cxx+
   allow_failure: true
 
+crystal_emcal_simulation:
+  stage: simulate
+  needs: 
+    - ["get_data"]
+  tags:
+    - sodium
+  script:
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - bash calorimeters/run_simulation_crystal.sh
+
 crystal_benchmark:
   stage: benchmarks
   tags:
     - sodium
+  needs:
+    - ["crystal_emcal_simulation"]
   script:
     - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking_crystal.cxx+
@@ -162,6 +193,8 @@ crystal_benchmark:
 
 deploy_results:
   stage: deploy
+  needs:
+    - ["zdc_benchmark","zdc_benchmark_info_histogram"]
   tags:
     - sodium
   script:

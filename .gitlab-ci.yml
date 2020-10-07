@@ -125,7 +125,6 @@ roman_pot_eta:
 
 zdc_simulation:
   stage: simulate
-  when: manual
   needs: 
     - ["get_data"]
   tags:
@@ -137,7 +136,6 @@ zdc_simulation:
 
 zdc_benchmark:
   stage: benchmarks
-  when: manual
   tags:
     - silicon
   needs: 
@@ -151,7 +149,6 @@ zdc_benchmark:
 
 zdc_benchmark_info_histogram:
   stage: benchmarks
-  when: manual
   needs: 
     - ["zdc_simulation"]
   tags:

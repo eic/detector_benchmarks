@@ -195,7 +195,7 @@ crystal_pion_simulation:
   stage: simulate
   needs:
     - ["get_data"]
-  tag:
+  tags:
     - sodium
   script:
     - cp topside/topside.xml ./.

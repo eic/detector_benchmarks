@@ -191,15 +191,6 @@ crystal_benchmark:
     - root -b -q calorimeters/simple_checking_crystal.cxx+
   allow_failure: true
 
-deploy_results:
-  stage: deploy
-  needs:
-    - ["zdc_benchmark","zdc_benchmark_info_histogram"]
-  tags:
-    - sodium
-  script:
-    - echo "deploy results!"
-
 crystal_pion_simulation:
   stage: simulate
   needs:
@@ -209,6 +200,15 @@ crystal_pion_simulation:
   script:
     - cp topside/topside.xml ./.
     - bash calorimeters/run_simulation_crystal_pion.sh
+
+deploy_results:
+  stage: deploy
+  needs:
+    - ["zdc_benchmark","zdc_benchmark_info_histogram"]
+  tags:
+    - sodium
+  script:
+    - echo "deploy results!"
 
       #  artifacts:
       #    paths:

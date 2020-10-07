@@ -13,6 +13,7 @@ default:
         #      - datasets/.git/
   before_script:
     - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+    - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git
         #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
         #    - cd ../.. 
 
@@ -190,6 +191,16 @@ crystal_benchmark:
     - ls -lrth sim_output
     - root -b -q calorimeters/simple_checking_crystal.cxx+
   allow_failure: true
+
+crystal_pion_simulation:
+  stage: simulate
+  needs:
+    - ["get_data"]
+  tags:
+    - sodium
+  script:
+    - cp topside/topside.xml ./.
+    - bash calorimeters/run_simulation_crystal_pion.sh
 
 deploy_results:
   stage: deploy

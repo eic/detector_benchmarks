@@ -200,6 +200,16 @@ deploy_results:
   script:
     - echo "deploy results!"
 
+crystal_pion_simulation:
+  stage: simulate
+  needs:
+    - ["get_data"]
+  tag:
+    - sodium
+  script:
+    - cp topside/topside.xml ./.
+    - bash calorimeters/run_simulation_crystal_pion.sh
+
       #  artifacts:
       #    paths:
       #      - datasets

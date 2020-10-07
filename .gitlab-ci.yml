@@ -13,6 +13,7 @@ default:
         #      - datasets/.git/
   before_script:
     - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+    - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git
         #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
         #    - cd ../.. 
 

@@ -15,7 +15,7 @@ int makeplot_pion(void)
   gStyle->SetPadLeftMargin(0.14);
 
   // Input ROOT file
-  TFile *f = new TFile("/home/jihee/topside/rec_crystal_pion_output.root","read");
+  TFile *f = new TFile("sim_output/rec_crystal_pion_output.root","read");
   TTree *t = (TTree *)f->Get("events");
 
   // Set Branch status and addressed
@@ -59,7 +59,7 @@ int makeplot_pion(void)
   TH1D *h4 = new TH1D("Reconstructed E","Reconstructed energy per event",100,0.0,1.0);
   TH1D *h5 = new TH1D("Thrown E","Thrown energy per event",100,0.0,1.0);
   TH2D *h6 = new TH2D("theta vs #eta","Scattering angle(#theta) vs. Pseudo-rapidity",90,135.0,180.0,50,-5.0,0.0);
-  TH1D *h7 = new TH1D("Invariant mass","Invariant mass",30,0.0,300.0);
+  TH1D *h7 = new TH1D("Invariant mass","Invariant mass",60,0.0,300.0);
 
   TH1D *h8 = new TH1D("E1","E1",100,0.0,1000.0);
   TH1D *h9 = new TH1D("E2","E2",100,0.0,1000.0);
@@ -120,9 +120,9 @@ int makeplot_pion(void)
 	// theta: angle between two photons	
 	if(ncluster == 2)
 	{
-		dot_product_pos_clusters = cluster_x_pos[0]*cluster_x_pos[1] + cluster_y_pos[0]*cluster_y_pos[1];
-		mag_pos2_cluster_1 = (cluster_x_pos[0]*cluster_x_pos[0]) + (cluster_y_pos[0]*cluster_y_pos[0]);
-		mag_pos2_cluster_2 = (cluster_x_pos[1]*cluster_x_pos[1]) + (cluster_y_pos[1]*cluster_y_pos[1]);
+		dot_product_pos_clusters = cluster_x_pos[0]*cluster_x_pos[1] + cluster_y_pos[0]*cluster_y_pos[1] + cluster_z_pos[0]*cluster_z_pos[1];
+		mag_pos2_cluster_1 = (cluster_x_pos[0]*cluster_x_pos[0]) + (cluster_y_pos[0]*cluster_y_pos[0]) + (cluster_z_pos[0]*cluster_z_pos[0]);
+		mag_pos2_cluster_2 = (cluster_x_pos[1]*cluster_x_pos[1]) + (cluster_y_pos[1]*cluster_y_pos[1]) + (cluster_z_pos[1]*cluster_z_pos[1]);
 		cosine_clusters = (dot_product_clusters/TMath::Sqrt(mag_cluster_1*mag_cluster_2));
 		theta_photons = TMath::Acos(cosine_clusters)*TMath::RadToDeg();
 		
@@ -145,8 +145,9 @@ int makeplot_pion(void)
   h1->GetYaxis()->SetTitle("events");
   h1->GetYaxis()->SetTitleOffset(1.4);
   gPad->Update();
-  h1->Draw();
-  //h1->SaveAs("./plots/theta_hist.png");
+  h1->DrawClone();
+  h1->SaveAs("results/pi0_theta_hist.png");
+  h1->SaveAs("results/pi0_theta_hist.pdf");
 
   c2->cd();
   h2->SetLineColor(kBlue);
@@ -154,15 +155,17 @@ int makeplot_pion(void)
   h2->GetXaxis()->SetTitle("#eta");
   h2->GetYaxis()->SetTitle("events");
   h2->GetYaxis()->SetTitleOffset(1.4);
-  h2->Draw();
-  //h2->SaveAs("./plots/eta_hist.png");
+  h2->DrawClone();
+  h2->SaveAs("results/pi0_eta_hist.png");
+  h2->SaveAs("results/pi0_eta_hist.pdf");
 
   c3->cd();
   h3->GetXaxis()->SetTitle("Cluster energy [GeV]");
   h3->GetYaxis()->SetTitle("#eta");
   h3->GetYaxis()->SetTitleOffset(1.4);
-  h3->Draw("COLZ");
-  //h3->SaveAs("./plots/e_vs_eta_hist.png");
+  h3->DrawClone("COLZ");
+  h3->SaveAs("results/pi0_e_vs_eta_hist.png");
+  h3->SaveAs("results/pi0_e_vs_eta_hist.pdf");
 
   c4->cd();
   c4->SetLogy(1);
@@ -171,39 +174,47 @@ int makeplot_pion(void)
   h4->GetXaxis()->SetTitle("reconstructed energy [GeV]");
   h4->GetYaxis()->SetTitle("events");
   h4->GetYaxis()->SetTitleOffset(1.4);
-  h4->Draw();
-  //h4->SaveAs("./plots/recon_e_hist.png");
+  h4->DrawClone();
+  h4->SaveAs("results/pi0_recon_e_hist.png");
+  h4->SaveAs("results/pi0_recon_e_hist.pdf");
 
   c6->cd();
   h6->GetXaxis()->SetTitle("#theta [degree]");
   h6->GetYaxis()->SetTitle("#eta");
   h6->GetYaxis()->SetTitleOffset(1.4);
-  h6->Draw("COLZ");
-  //h6->SaveAs("./plots/theta_vs_eta_hist.png");
-
+  h6->DrawClone("COLZ");
+  h6->SaveAs("results/pi0_theta_vs_eta_hist.png");
+  h6->SaveAs("results/pi0_theta_vs_eta_hist.pdf");
+  
   c7->cd();
   h7->SetLineColor(kBlue);
   h7->SetLineWidth(2);
   h7->GetXaxis()->SetTitle("Invariant mass [MeV]");
   h7->GetYaxis()->SetTitle("events");
   h7->GetYaxis()->SetTitleOffset(1.4);
-  h7->Draw();
-
+  h7->DrawClone();
+  h7->SaveAs("results/pi0_invariant_mass_hist.png"); 
+  h7->SaveAs("results/pi0_invariant_mass_hist.pdf");
+  
   c8->cd();
   h8->SetLineColor(kBlue);
   h8->SetLineWidth(2);
   h8->GetXaxis()->SetTitle("Cluster energy 1 [MeV]");
   h8->GetYaxis()->SetTitle("events");
   h8->GetYaxis()->SetTitleOffset(1.4);
-  h8->Draw();
-
+  h8->DrawClone();
+  h8->SaveAs("results/pi0_E1_hist.png");
+  h8->SaveAs("results/pi0_E1_hist.pdf");
+  
   c9->cd();
   h9->SetLineColor(kBlue);
   h9->SetLineWidth(2);
   h9->GetXaxis()->SetTitle("Cluster energy 2 [MeV]");
   h9->GetYaxis()->SetTitle("events");
   h9->GetYaxis()->SetTitleOffset(1.4);
-  h9->Draw();
+  h9->DrawClone();
+  h9->SaveAs("results/pi0_E2_hist.png");
+  h9->SaveAs("results/pi0_E2_hist.pdf");
 
   c10->cd();
   h10->SetLineColor(kBlue);
@@ -211,7 +222,9 @@ int makeplot_pion(void)
   h10->GetXaxis()->SetTitle("angle between two photons [degree]");
   h10->GetYaxis()->SetTitle("events");
   h10->GetYaxis()->SetTitleOffset(1.4);
-  h10->Draw();
+  h10->DrawClone();
+  h10->SaveAs("results/pi0_angle_twophotons.png");
+  h10->SaveAs("results/pi0_angle_twophotons.pdf");
 
   return 0;
 }

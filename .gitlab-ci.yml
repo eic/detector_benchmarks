@@ -43,25 +43,6 @@ get_data:
 #    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
 #    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
 
-cal_sim_1_dummy_test2:
-  stage: simulate
-  tags:
-    - silicon
-  needs: 
-    - ["get_data"]
-  script:
-    - echo "here we run simulation"
-
-cal_test_1_dummy_test2:
-  stage: benchmarks
-  needs: 
-    - ["cal_sim_1_dummy_test2"]
-  tags:
-    - silicon
-  script:
-    - bash calorimeters/dummy_test2.sh
-  allow_failure: true
-
 cal_test_3_zdc_neutrons_reader:
   stage: benchmarks
   tags:
@@ -70,26 +51,6 @@ cal_test_3_zdc_neutrons_reader:
     - ["zdc_simulation"]
   script:
     - root -b -q calorimeters/zdc_neutrons_reader.cxx
-  allow_failure: true
-
-pid_test_1_dummy_test:
-  stage: benchmarks
-  tags:
-    - silicon
-  needs:
-    - ["cal_sim_1_dummy_test2"]
-  script:
-    - bash pid/dummy_test.sh
-  allow_failure: true
-
-track_test_1_dummy_test:
-  stage: benchmarks
-  needs:
-    - ["cal_sim_1_dummy_test2"]
-  tags:
-    - silicon
-  script:
-    - bash trackers/dummy_test.sh
   allow_failure: true
 
 roman_pot_simu:

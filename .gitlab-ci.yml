@@ -1,5 +1,6 @@
 image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
 
+
 default:
   artifacts:
     expire_in: 10 mins
@@ -162,4 +163,20 @@ deploy_results:
     - silicon
   script:
     - echo "deploy results!"
+
+
+pages:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_SERVER_HOST != "eicweb.phy.anl.gov"'
+  cache:
+    paths:
+      - node_modules/
+  image: node:latest
+  script:
+    - mkdir public && cp doc/main.html public/index.html
+  artifacts:
+    paths:
+      - public
+
 

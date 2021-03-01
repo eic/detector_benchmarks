@@ -141,7 +141,7 @@ zdc_benchmark_info_histogram:
   script:
     - cp NPDet/src/detectors/calorimeters/compact/elements.xml calorimeters/
     - cp NPDet/src/detectors/calorimeters/compact/materials.xml calorimeters/
-    - root -b -q calorimeters/simple_info_plot_histograms.cxx+
+    - root -b -q benchmarks/calorimeters/simple_info_plot_histograms.cxx+
   allow_failure: true
 
 crystal_emcal_simulation:
@@ -153,7 +153,7 @@ crystal_emcal_simulation:
   script:
     - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
     - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
-    - bash calorimeters/run_simulation_crystal.sh
+    - bash benchmarks/calorimeters/run_simulation_crystal.sh
 
 crystal_benchmark:
   stage: benchmarks
@@ -163,7 +163,7 @@ crystal_benchmark:
     - ["crystal_emcal_simulation"]
   script:
     - ls -lrth sim_output
-    - root -b -q calorimeters/simple_checking_crystal.cxx+
+    - root -b -q benchmarks/calorimeters/simple_checking_crystal.cxx+
   allow_failure: true
 
 crystal_pion_simulation:

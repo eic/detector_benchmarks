@@ -52,10 +52,8 @@ detector:
 
 get_data:
   stage: data_init
-  tags:
-    - silicon
   script:
-    - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
+    - git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
     - ln -s datasets/data
     - mkdir -p results
     - mkdir -p sim_output

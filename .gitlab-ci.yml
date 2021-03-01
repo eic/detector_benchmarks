@@ -69,8 +69,6 @@ get_data:
 
 cal_test_3_zdc_neutrons_reader:
   stage: benchmarks
-  tags:
-    - silicon
   needs: 
     - ["zdc_simulation"]
   script:
@@ -84,8 +82,8 @@ roman_pot_simu:
   tags:
     - silicon
   script:
-    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
+    - cp NPDet/src/detectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/detectors/trackers/compact/materials.xml ./.
     - bash benchmarks/trackers/roman_pot_simu.sh
 
 roman_pot_nhits:
@@ -115,8 +113,8 @@ zdc_simulation:
   tags:
     - silicon
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_zdc.sh
 
 zdc_benchmark:
@@ -141,8 +139,8 @@ zdc_benchmark_info_histogram:
   dependencies:
     - zdc_simulation
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml calorimeters/
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml calorimeters/
+    - cp NPDet/src/detectors/calorimeters/compact/elements.xml calorimeters/
+    - cp NPDet/src/detectors/calorimeters/compact/materials.xml calorimeters/
     - root -b -q calorimeters/simple_info_plot_histograms.cxx+
   allow_failure: true
 
@@ -153,8 +151,8 @@ crystal_emcal_simulation:
   tags:
     - silicon
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_crystal.sh
 
 crystal_benchmark:

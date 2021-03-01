@@ -76,7 +76,7 @@ cal_test_3_zdc_neutrons_reader:
   needs: 
     - ["zdc_simulation"]
   script:
-    - root -b -q calorimeters/zdc_neutrons_reader.cxx
+    - root -b -q benchmarks/calorimeters/zdc_neutrons_reader.cxx
   allow_failure: true
 
 roman_pot_simu:
@@ -88,7 +88,7 @@ roman_pot_simu:
   script:
     - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
     - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
-    - bash trackers/roman_pot_simu.sh
+    - bash benchmarks/trackers/roman_pot_simu.sh
 
 roman_pot_nhits:
   stage: benchmarks

@@ -18,7 +18,7 @@ default:
 
 stages:
   - data_init
-    #  - ci_gen
+  - initialize
   - simulate
   - benchmarks
   - deploy
@@ -46,6 +46,7 @@ detector:
   script:
     - ./util/print_env.sh
     - ./util/build_detector.sh
+    - ./util/print_env.sh
     - mkdir -p results
     - mkdir -p config
 

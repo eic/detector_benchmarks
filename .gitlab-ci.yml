@@ -93,7 +93,7 @@ roman_pot_nhits:
   tags:
     - silicon
   script:
-    - root -b -q trackers/simple_tracking.cxx+
+    - root -b -q benchmarks/trackers/simple_tracking.cxx+
   allow_failure: true
 
 roman_pot_eta:
@@ -103,7 +103,7 @@ roman_pot_eta:
   needs:
     - ["roman_pot_simu"]
   script:
-    - root -b -q trackers/roman_pot_hit_eta.cxx+
+    - root -b -q benchmarks/trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
 
 zdc_simulation:
@@ -115,7 +115,7 @@ zdc_simulation:
   script:
     - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
     - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
-    - bash calorimeters/run_simulation_zdc.sh
+    - bash benchmarks/calorimeters/run_simulation_zdc.sh
 
 zdc_benchmark:
   stage: benchmarks
@@ -127,7 +127,7 @@ zdc_benchmark:
     - zdc_simulation
   script:
     - ls -lrth sim_output
-    - root -b -q calorimeters/simple_checking.cxx+
+    - root -b -q benchmarks/calorimeters/simple_checking.cxx+
   allow_failure: true
 
 zdc_benchmark_info_histogram:

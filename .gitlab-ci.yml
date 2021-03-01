@@ -80,8 +80,6 @@ roman_pot_simu:
   stage: simulate
   needs: 
     - ["get_data"]
-  tags:
-    - silicon
   script:
     - cp NPDet/src/detectors/trackers/compact/elements.xml ./.
     - cp NPDet/src/detectors/trackers/compact/materials.xml ./.
@@ -91,16 +89,12 @@ roman_pot_nhits:
   stage: benchmarks
   needs:
     - ["roman_pot_simu"]
-  tags:
-    - silicon
   script:
     - root -b -q benchmarks/trackers/simple_tracking.cxx+
   allow_failure: true
 
 roman_pot_eta:
   stage: benchmarks
-  tags:
-    - silicon
   needs:
     - ["roman_pot_simu"]
   script:
@@ -118,12 +112,8 @@ zdc_simulation:
 
 zdc_benchmark:
   stage: benchmarks
-  tags:
-    - silicon
   needs: 
     - ["zdc_simulation"]
-  dependencies:
-    - zdc_simulation
   script:
     - ls -lrth sim_output
     - root -b -q benchmarks/calorimeters/simple_checking.cxx+
@@ -133,10 +123,6 @@ zdc_benchmark_info_histogram:
   stage: benchmarks
   needs: 
     - ["zdc_simulation"]
-  tags:
-    - silicon
-  dependencies:
-    - zdc_simulation
   script:
     - cp NPDet/src/detectors/calorimeters/compact/elements.xml calorimeters/
     - cp NPDet/src/detectors/calorimeters/compact/materials.xml calorimeters/

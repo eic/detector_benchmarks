@@ -17,8 +17,8 @@ default:
         #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
 
 stages:
-  - data_init
   - initialize
+  - data_init
   - simulate
   - benchmarks
   - deploy
@@ -52,6 +52,7 @@ detector:
 
 get_data:
   stage: data_init
+  needs: ["detector"]
   script:
     - git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
     - ln -s datasets/data
@@ -110,8 +111,6 @@ zdc_simulation:
   stage: simulate
   needs: 
     - ["get_data"]
-  tags:
-    - silicon
   script:
     - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
     - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
@@ -157,8 +156,6 @@ crystal_emcal_simulation:
 
 crystal_benchmark:
   stage: benchmarks
-  tags:
-    - silicon
   needs:
     - ["crystal_emcal_simulation"]
   script:

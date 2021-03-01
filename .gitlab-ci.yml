@@ -1,6 +1,5 @@
 image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
 
-
 default:
   artifacts:
     expire_in: 10 mins
@@ -24,6 +23,31 @@ stages:
   - benchmarks
   - deploy
     #- others
+
+detector:
+  stage: initialize
+  needs: []
+  timeout: 1 hours
+  cache:
+    key:
+      files:
+        - config/env.sh
+        - util/build_detector.sh
+      prefix: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .local/detector
+      - .local/lib
+  artifacts:
+    paths:
+      - .local/detector
+      - .local/lib
+      - results
+      - config
+  script:
+    - ./util/print_env.sh
+    - ./util/build_detector.sh
+    - mkdir -p results
+    - mkdir -p config
 
 get_data:
   stage: data_init

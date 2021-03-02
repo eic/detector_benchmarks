@@ -157,6 +157,7 @@ crystal_pion_simulation:
   tags:
     - silicon
   script:
+    - source options/env.sh
     - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/topside.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.root
 
 deploy_results:

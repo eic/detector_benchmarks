@@ -1,42 +1,34 @@
-cal_sim_1_dummy_test2:
-  stage: benchmarks
-  script:
-    - echo "here we run simulation"
-      #artifact:
-      #  paths: 
-      #    - results/
-  allow_failure: true
-
-cal_test_1_dummy_test2:
-  stage: benchmarks
+sim_emcal_barrel_electrons:
+  image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
+  stage: simulate
   tags:
     - sodium
+  artifacts:
+    expire_in: 20 weeks
+    paths:
+      - results/
+      - sim_output/
   script:
-    - bash calorimeters/dummy_test2.sh
-      #artifact:
-      #  paths: 
-      #    - results/
+    - bash calorimeters/run_emcal_barrel_electrons.sh
   allow_failure: true
 
-cal_test_2_dummy_test:
+ben_emcal_barrel_electrons:
   stage: benchmarks
-  tags:
-    - sodium
+  needs:
+    - ["sim_emcal_barrel_electrons"]
   script:
-    - bash calorimeters/dummy_test.sh
-      #artifact:
-      #  paths: 
-      #    - results/
+    - ls -lrth sim_output
+    - root -b -q calorimeters/scripts/emcal_barrel_electrons_analysis.cxx+
   allow_failure: true
 
-cal_test_3_zdc_neutrons_reader:
-  stage: benchmarks
-  tags:
-    - sodium
-  script:
-    - root -b -q calorimeters/zdc_neutrons_reader.cxx
+    #cal_test_3_zdc_neutrons_reader:
+    #stage: benchmarks
+    #tags:
+    #- sodium
+    #script:
+    #- root -b -q calorimeters/zdc_neutrons_reader.cxx
       #artifact:
       #  paths: 
       #    - results/
-  allow_failure: true
+      #allow_failure: true
 

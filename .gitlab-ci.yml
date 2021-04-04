@@ -1,5 +1,4 @@
-image: eicweb.phy.anl.gov:4567/eic/npdet/npdet:latest
-
+image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
 default:
   artifacts:
@@ -9,21 +8,18 @@ default:
       - datasets/
       - sim_output/
       - data
-        #    exclude:
-        #      - .git/
-        #      - datasets/.git/
+    reports:
+      dotenv: juggler.env
   before_script:
     - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
     - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git && mkdir topside/build && cd topside/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
-        #    - cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j10 && make install
+    - git clone https://eicweb.phy.anl.gov/EIC/detectors/accelerator.git && cd topside && ln -s ../accelerator/eic && cd ../.
 
 stages:
   - data_init
-    #  - ci_gen
   - simulate
   - benchmarks
   - deploy
-    #- others
 
 get_data:
   stage: data_init
@@ -44,15 +40,15 @@ get_data:
 #    - ./bin/gen_ci_config -p cal_test_   -i calorimeters > results/calorimeters_config.yml
 #    - ./bin/gen_ci_config -p pid_test_   -i pid > results/pid_config.yml
 
-cal_test_3_zdc_neutrons_reader:
-  stage: benchmarks
-  tags:
-    - silicon
-  needs: 
-    - ["zdc_simulation"]
-  script:
-    - root -b -q calorimeters/zdc_neutrons_reader.cxx
-  allow_failure: true
+      #cal_test_3_zdc_neutrons_reader:
+      #stage: benchmarks
+      #tags:
+      #- silicon
+      #needs: 
+      #- ["zdc_simulation"]
+      #script:
+      #- root -b -q calorimeters/zdc_neutrons_reader.cxx
+      #allow_failure: true
 
 roman_pot_simu:
   stage: simulate
@@ -61,8 +57,8 @@ roman_pot_simu:
   tags:
     - silicon
   script:
-    - cp NPDet/src/GenericDetectors/trackers/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/trackers/compact/materials.xml ./.
+    - cp NPDet/src/detectors/trackers/compact/elements.xml ./.
+    - cp NPDet/src/detectors/trackers/compact/materials.xml ./.
     - bash trackers/roman_pot_simu.sh
 
 roman_pot_nhits:
@@ -85,43 +81,43 @@ roman_pot_eta:
     - root -b -q trackers/roman_pot_hit_eta.cxx+
   allow_failure: true
 
-zdc_simulation:
-  stage: simulate
-  needs: 
-    - ["get_data"]
-  tags:
-    - silicon
-  script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
-    - bash calorimeters/run_simulation_zdc.sh
+    #zdc_simulation:
+    #stage: simulate
+    #needs: 
+    #- ["get_data"]
+    #tags:
+    #- silicon
+    #script:
+    #- cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
+    #- cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
+    #- bash calorimeters/run_simulation_zdc.sh
 
-zdc_benchmark:
-  stage: benchmarks
-  tags:
-    - silicon
-  needs: 
-    - ["zdc_simulation"]
-  dependencies:
-    - zdc_simulation
-  script:
-    - ls -lrth sim_output
-    - root -b -q calorimeters/simple_checking.cxx+
-  allow_failure: true
+    #zdc_benchmark:
+    #stage: benchmarks
+    #tags:
+    #- silicon
+    #needs: 
+    #- ["zdc_simulation"]
+    #dependencies:
+    #- zdc_simulation
+    #script:
+    #- ls -lrth sim_output
+    #- root -b -q calorimeters/simple_checking.cxx+
+    #allow_failure: true
 
-zdc_benchmark_info_histogram:
-  stage: benchmarks
-  needs: 
-    - ["zdc_simulation"]
-  tags:
-    - silicon
-  dependencies:
-    - zdc_simulation
-  script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml calorimeters/
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml calorimeters/
-    - root -b -q calorimeters/simple_info_plot_histograms.cxx+
-  allow_failure: true
+    #zdc_benchmark_info_histogram:
+    #stage: benchmarks
+    #needs: 
+    #- ["zdc_simulation"]
+    #tags:
+    #- silicon
+    #dependencies:
+    #- zdc_simulation
+    #script:
+    #- cp NPDet/src/detectors/calorimeters/compact/elements.xml calorimeters/
+    #- cp NPDet/src/detectors/calorimeters/compact/materials.xml calorimeters/
+    #- root -b -q calorimeters/simple_info_plot_histograms.cxx+
+    #allow_failure: true
 
 crystal_emcal_simulation:
   stage: simulate
@@ -130,8 +126,8 @@ crystal_emcal_simulation:
   tags:
     - silicon
   script:
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/elements.xml ./.
-    - cp NPDet/src/GenericDetectors/calorimeters/compact/materials.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/elements.xml ./.
+    - cp NPDet/src/detectors/calorimeters/compact/materials.xml ./.
     - bash calorimeters/run_simulation_crystal.sh
 
 crystal_benchmark:
@@ -155,15 +151,17 @@ crystal_pion_simulation:
     - cd topside  && ls -l
     - npsim --runType batch --numberOfEvents 100 --compactFile topside.xml --inputFiles  ../data/emcal_electrons.hepmc  --outputFile  ../sim_output/output_emcal_electrons.root
 
+include:
+  - local: 'calorimeters/calorimeters_config.yml'
+
 deploy_results:
   stage: deploy
-  needs:
-    - ["zdc_benchmark","zdc_benchmark_info_histogram"]
+    #needs:
+    #- ["zdc_benchmark","zdc_benchmark_info_histogram"]
   tags:
     - silicon
   script:
     - echo "deploy results!"
-
 
 pages:
   stage: deploy

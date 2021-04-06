@@ -73,6 +73,10 @@ ben_emcal_barrel_pions:
   stage: benchmarks
   tags:
     - silicon
+  artifacts:
+    expire_in: 20 weeks
+    paths:
+      - results/
   needs:
     - ["sim_emcal_barrel_pions"]
   script:
@@ -84,6 +88,10 @@ ben_emcal_barrel_electrons:
   stage: benchmarks
   tags:
     - silicon
+  artifacts:
+    expire_in: 20 weeks
+    paths:
+      - results/
   needs:
     - ["sim_emcal_barrel_electrons"]
   script:

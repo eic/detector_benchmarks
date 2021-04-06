@@ -2,7 +2,7 @@ image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
 default:
   artifacts:
-    expire_in: 10 mins
+    expire_in: 20 weeks
     paths:
       - results/
       - datasets/

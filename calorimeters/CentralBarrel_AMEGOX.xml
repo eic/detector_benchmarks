@@ -34,12 +34,13 @@
     <constant name="cb_ECal_CopperThickness" value="100*um"/>
     <constant name="cb_ECal_KaptonThickness" value="200*um"/>
     <constant name="cb_ECal_EpoxyThickness" value="100*um"/>
-    <constant name="cb_ECal_CarbonThickness" value="200*um"/>
+    <constant name="cb_ECal_CarbonThickness" value="0.5*mm"/>
     <constant name="cb_ECal_CarbonSpacerWidth" value="4*mm"/>
+    <constant name="cb_ECal_LayerSpacing" value="5*mm"/>
 
     <constant name="cb_ECal_AvailThickness" value="40*cm"/>
     <constant name="cb_ECal_ReadoutLayerThickness"
-      value="cb_ECal_SiliconThickness+cb_ECal_ElectronicsThickness+cb_ECal_CopperThickness+cb_ECal_KaptonThickness+cb_ECal_EpoxyThickness+cb_ECal_CarbonThickness" />
+      value="cb_ECal_SiliconThickness+cb_ECal_ElectronicsThickness+cb_ECal_CopperThickness+cb_ECal_KaptonThickness+cb_ECal_EpoxyThickness+cb_ECal_CarbonThickness+cb_ECal_LayerSpacing" />
     <constant name="cb_ECal_ReadoutLayerNumber" value="floor(cb_ECal_AvailThickness/cb_ECal_ReadoutLayerThickness)"/>
 
   </define>
@@ -96,6 +97,7 @@
         <slice material="Kapton" thickness="cb_ECal_KaptonThickness"/>
         <slice material="Epoxy" thickness="cb_ECal_EpoxyThickness"/>
         <slice material="CarbonFiber" thickness="cb_ECal_CarbonThickness"/>
+        <slice material="Air" thickness="cb_ECal_LayerSpacing"/>
       </layer>
     </detector>
   </detectors>

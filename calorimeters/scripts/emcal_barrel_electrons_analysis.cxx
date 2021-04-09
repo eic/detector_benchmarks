@@ -8,13 +8,6 @@
 
 #include "dd4pod/Geant4ParticleCollection.h"
 #include "dd4pod/CalorimeterHitCollection.h"
-#include "dd4pod/TrackerHitCollection.h"
-#include "eicd/RawCalorimeterHitCollection.h"
-#include "eicd/RawCalorimeterHitData.h"
-#include "eicd/CalorimeterHitCollection.h"
-#include "eicd/CalorimeterHitData.h"
-#include "eicd/ClusterCollection.h"
-#include "eicd/ClusterData.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -49,35 +42,17 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   return result;
   };
 
-  // Reconstructed Energy [GeV] in XY merger
-  auto ErecXY = [] (const std::vector<eic::CalorimeterHitData> & evt) {
-    std::vector<double> result;
-    auto total_eng = 0.0;
-    for (const auto& i: evt)
-      total_eng += i.energy;
-    result.push_back(total_eng / 1.e+3);
-    return result;
-  };
+  // Number of hits
+  auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
 
-  // Reconstructed Energy [GeV] in Z merger
-  auto ErecZ = [] (const std::vector<eic::CalorimeterHitData> & evt) {
+  // Energy deposition [GeV]
+  auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
     std::vector<double> result;
-    auto total_eng = 0.0;
+    auto total_edep = 0.0;
     for (const auto& i: evt)
-      total_eng += i.energy;
-    result.push_back(total_eng / 1.e+3);
-    return result;
-  };
-
-  // Number of Clusters
-  auto ncluster = [] (const std::vector<eic::ClusterData>& evt) {return (int) evt.size(); };
-
-  // Cluster Energy [GeV]
-  auto Ecluster = [] (const std::vector<eic::ClusterData>& evt) {
-    std::vector<double> result;
-    for (const auto& i: evt)
-      result.push_back(i.energy / 1.e+3);
-    return result;
+      total_edep += i.energyDeposit;
+    result.push_back(total_edep);
+  return result;
   };
 
   // Sampling fraction = Esampling / Ethrown
@@ -91,21 +66,17 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr",      Ethr,       {"mcparticles2"})
-	      .Define("ErecXY",    ErecXY,     {"RecoEcalBarrelAstroPixHitsXY"})
-	      .Define("ErecZ",     ErecZ,      {"RecoEcalBarrelAstroPixHitsZ"})
-	      .Define("ncluster",  ncluster,   {"EcalBarrelAstroPixClusters"})
-	      .Define("Ecluster",  Ecluster,   {"EcalBarrelAstroPixClusters"})
-	      .Define("fsam",      fsam,       {"Ecluster","Ethr"})
+  auto d1 = d0.Define("Ethr",  Ethr,  {"mcparticles2"})
+	      .Define("nhits", nhits, {"EcalBarrelAstroPixHits2"})
+	      .Define("Esim",  Esim,  {"EcalBarrelAstroPixHits2"})
+	      .Define("fsam",  fsam,  {"Esim","Ethr"})
 	      ;
 
   // Define Histograms
-  auto hEthr     = d1.Histo1D({"hEthr",     "Thrown Energy; Thrown Energy [GeV]; Events",                            100, -0.5, 10.5}, "Ethr");
-  auto hErecXY   = d1.Histo1D({"hErecXY",   "Reconstructed Energy in XY merger; Reconstructed Energy [GeV]; Events", 100, -0.5, 10.5}, "ErecXY");
-  auto hErecZ    = d1.Histo1D({"hErecZ",    "Reconstructed Energy in Z merger; Reconstructed Energy [GeV]; Events",  100, -0.5, 10.5}, "ErecZ");
-  auto hNCluster = d1.Histo1D({"hNCluster", "Number of Clusters; # of Clusters; Events",                              20, -0.5, 20.5}, "ncluster");
-  auto hEcluster = d1.Histo1D({"hEcluster", "Cluster Energy; Cluster Energy [GeV]; Events",                          100, -0.5, 10.5}, "Ecluster");
-  auto hfsam     = d1.Histo1D({"hfsam",     "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,  0.1}, "fsam");
+  auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");
+  auto hNhits = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100,  0.0, 2000.0}, "nhits");
+  auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim");
+  auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -118,47 +89,29 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   hEthr->SetLineWidth(2);
   hEthr->SetLineColor(kBlue);
   hEthr->DrawClone();
-  c1->SaveAs("results/emcal_electrons_Ethr.png");
-  c1->SaveAs("results/emcal_electrons_Ethr.pdf");
+  c1->SaveAs("results/emcal_barrel_electrons_Ethr.png");
+  c1->SaveAs("results/emcal_barrel_electrons_Ethr.pdf");
 
   TCanvas *c2 = new TCanvas("c2", "c2", 700, 500);
   c2->SetLogy(1);
-  hErecXY->GetYaxis()->SetTitleOffset(1.4);
-  hErecXY->SetLineWidth(2);
-  hErecXY->SetLineColor(kBlue);
-  hErecXY->DrawClone();
-  c2->SaveAs("results/emcal_electrons_ErecXY.png");
-  c2->SaveAs("results/emcal_electrons_ErecXY.pdf");
+  hNhits->GetYaxis()->SetTitleOffset(1.4);
+  hNhits->SetLineWidth(2);
+  hNhits->SetLineColor(kBlue);
+  hNhits->DrawClone();
+  c2->SaveAs("results/emcal_barrel_electrons_nhits.png");
+  c2->SaveAs("results/emcal_barrel_electrons_nhits.pdf");
 
   TCanvas *c3 = new TCanvas("c3", "c3", 700, 500);
   c3->SetLogy(1);
-  hErecZ->GetYaxis()->SetTitleOffset(1.4);
-  hErecZ->SetLineWidth(2);
-  hErecZ->SetLineColor(kBlue);
-  hErecZ->DrawClone();
-  c3->SaveAs("results/emal_electrons_ErecZ.png"); 
-  c3->SaveAs("results/emal_electrons_ErecZ.pdf");
+  hEsim->GetYaxis()->SetTitleOffset(1.4);
+  hEsim->SetLineWidth(2);
+  hEsim->SetLineColor(kBlue);
+  hEsim->DrawClone();
+  c3->SaveAs("results/emcal_barrel_electrons_Esim.png"); 
+  c3->SaveAs("results/emcal_barrel_electrons_Esim.pdf");
 
   TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
-  c4->SetLogy(1); 
-  hNCluster->GetYaxis()->SetTitleOffset(1.6);
-  hNCluster->SetLineWidth(2);
-  hNCluster->SetLineColor(kBlue);
-  hNCluster->DrawClone();
-  c4->SaveAs("results/emcal_electrons_ncluster.png");
-  c4->SaveAs("results/emcal_electrons_ncluster.pdf");
-
-  TCanvas *c5 = new TCanvas("c5", "c5", 700, 500); 
-  c5->SetLogy(1);
-  hEcluster->GetYaxis()->SetTitleOffset(1.4);
-  hEcluster->SetLineWidth(2);
-  hEcluster->SetLineColor(kBlue);
-  hEcluster->DrawClone();
-  c5->SaveAs("results/emcal_electrons_Ecluster.png");
-  c5->SaveAs("results/emcal_electrons_Ecluster.pdf");
-
-  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
-  c6->SetLogy(1);
+  c4->SetLogy(1);
   hfsam->GetYaxis()->SetTitleOffset(1.4);
   hfsam->SetLineWidth(2);
   hfsam->SetLineColor(kBlue);
@@ -166,6 +119,6 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   hfsam->GetFunction("gaus")->SetLineWidth(2);
   hfsam->GetFunction("gaus")->SetLineColor(kRed);
   hfsam->DrawClone();
-  c6->SaveAs("results/emcal_electrons_fsam.png");
-  c6->SaveAs("results/emcal_electrons_fsam.pdf");
+  c4->SaveAs("results/emcal_barrel_electrons_fsam.png");
+  c4->SaveAs("results/emcal_barrel_electrons_fsam.pdf");
 }

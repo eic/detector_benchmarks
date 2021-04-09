@@ -12,6 +12,7 @@ default:
       dotenv: juggler.env
   before_script:
     - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
+      #- git clone https://eicweb.phy.anl.gov/EIC/NPDet.git && mkdir NPDet/build && cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
     - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git && mkdir topside/build && cd topside/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
     - git clone https://eicweb.phy.anl.gov/EIC/detectors/accelerator.git && cd topside && ln -s ../accelerator/eic && cd ../.
 

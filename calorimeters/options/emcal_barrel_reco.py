@@ -44,7 +44,7 @@ from Configurables import Jug__Reco__SamplingECalHitsMerger as SamplingECalHitsM
 from Configurables import Jug__Reco__CalorimeterIslandCluster as IslandCluster
 from Configurables import Jug__Reco__ClusterRecoCoG as RecoCoG
 
-podioinput = PodioInput("PodioReader", collections=["mcparticles","EcalBarrelHits"], OutputLevel=DEBUG)
+podioinput = PodioInput("PodioReader", collections=["mcparticles","EcalBarrelAstroPixHits"], OutputLevel=DEBUG)
 
 # Thrown Information
 copier = MCCopier("MCCopier", 
@@ -53,44 +53,49 @@ copier = MCCopier("MCCopier",
         OutputLevel=DEBUG) 
 # Geant4 Information
 embarrelcopier = CalCopier("CalBarrelCopier", 
-        inputCollection="EcalBarrelHits", 
-        outputCollection="EcalBarrelHits2",
+        inputCollection="EcalBarrelAstroPixHits", 
+        outputCollection="EcalBarrelAstroPixHits2",
         OutputLevel=DEBUG)
 # Digitization
 embarreldigi = EcalTungstenSamplingDigi("ecal_barrel_digi", 
-        inputHitCollection="EcalBarrelHits", 
-        outputHitCollection="RawEcalBarrelHits",
+        inputHitCollection="EcalBarrelAstroPixHits", 
+        outputHitCollection="RawEcalBarrelAstroPixHits",
         inputEnergyUnit=units.GeV,
         inputTimeUnit=units.ns,
+        dynamicRangeADC=700*units.keV, 
+        energyResolutions=[0., 0.02, 0.], 
+        pedestalSigma=40,
         OutputLevel=DEBUG)
 # Reconstruction
 embarrelreco = EcalTungstenSamplingReco("ecal_barrel_reco", 
-        inputHitCollection="RawEcalBarrelHits", 
-        outputHitCollection="RecoEcalBarrelHits",
+        inputHitCollection="RawEcalBarrelAstroPixHits", 
+        outputHitCollection="RecoEcalBarrelAstroPixHits",
+        dynamicRangeADC=700*units.keV, 
+        pedestalSigma=40,
         OutputLevel=DEBUG)
 # 2D+1 Clusterings
 # readout id definition for barrel ecal
-# <id>system:8,barrel:3,module:4,layer:6,slice:5,x:32:-16,y:-16</id>
-# xy_merger sum layers/slices, masking (8+3+4, 8+3+4+5+6-1)
+# <id>system:8,barrel:3,module:4,layer:10,slice:5,x:32:-16,y:-16</id>
+# xy_merger sum layers/slices, masking (8+3+4, 8+3+4+5+10-1)
 embarrelxymerger = SamplingECalHitsMerger("ecal_barrel_xy_merger",
-        cellIDMaskRanges=[(15, 25)],
-        inputHitCollection="RecoEcalBarrelHits",
-        outputHitCollection="RecoEcalBarrelHitsXY")
-# xy_merger sum modules, masking (8+3+4+5+6, 8+3+4+5+6+32-1)
+        cellIDMaskRanges=[(15, 29)],
+        inputHitCollection="RecoEcalBarrelAstroPixHits",
+        outputHitCollection="RecoEcalBarrelAstroPixHitsXY")
+# xy_merger sum modules, masking (8+3+4+5+10, 8+3+4+5+10+32-1)
 embarrelzmerger = SamplingECalHitsMerger("ecal_barrel_z_merger",
-        cellIDMaskRanges=[(26, 57)],
-        inputHitCollection="RecoEcalBarrelHits",
-        outputHitCollection="RecoEcalBarrelHitsZ")
+        cellIDMaskRanges=[(30, 61)],
+        inputHitCollection="RecoEcalBarrelAstroPixHits",
+        outputHitCollection="RecoEcalBarrelAstroPixHitsZ")
 # Clustering
 embarrelcluster = IslandCluster("ecal_barrel_cluster",
-        inputHitCollection="RecoEcalBarrelHitsXY",
-        outputClusterCollection="EcalBarrelClusters",
-        minClusterCenterEdep=5.0*units.MeV,
+        inputHitCollection="RecoEcalBarrelAstroPixHitsXY",
+        outputClusterCollection="EcalBarrelAstroPixClusters",
+        minClusterCenterEdep=0.5*units.MeV,
         splitCluster=False,
-        groupRange=5.0)
+        groupRanges=[2.0*units.cm, 2.0*units.cm, 2.0*units.cm])
 # Reconstruct the cluster with Center of Gravity method
 embarrelclusterreco = RecoCoG("ecal_barrel_clusterreco",
-        clusterCollection="EcalBarrelClusters", 
+        clusterCollection="EcalBarrelAstroPixClusters", 
         logWeightBase=6.2) 
 
 out = PodioOutput("out", filename=output_rec_file)

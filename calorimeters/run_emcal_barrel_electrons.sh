@@ -47,7 +47,7 @@ npsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
-      --compactFile topside/${JUGGLER_DETECTOR}.xml \
+      --compactFile ${JUGGLER_DETECTOR}/${JUGGLER_DETECTOR}.xml \
       --inputFiles ${JUGGLER_FILE_NAME_TAG}.hepmc \
       --outputFile sim_output/${JUGGLER_SIM_FILE}
 

@@ -92,10 +92,10 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
 
   // Define variables
   auto d1 = d0.Define("Ethr",      Ethr,       {"mcparticles2"})
-	      .Define("ErecXY",    ErecXY,     {"RecoEcalBarrelHitsXY"})
-	      .Define("ErecZ",     ErecZ,      {"RecoEcalBarrelHitsZ"})
-	      .Define("ncluster",  ncluster,   {"EcalBarrelClusters"})
-	      .Define("Ecluster",  Ecluster,   {"EcalBarrelClusters"})
+	      .Define("ErecXY",    ErecXY,     {"RecoEcalBarrelAstroPixHitsXY"})
+	      .Define("ErecZ",     ErecZ,      {"RecoEcalBarrelAstroPixHitsZ"})
+	      .Define("ncluster",  ncluster,   {"EcalBarrelAstroPixClusters"})
+	      .Define("Ecluster",  Ecluster,   {"EcalBarrelAstroPixClusters"})
 	      .Define("fsam",      fsam,       {"Ecluster","Ethr"})
 	      ;
 
@@ -105,7 +105,7 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   auto hErecZ    = d1.Histo1D({"hErecZ",    "Reconstructed Energy in Z merger; Reconstructed Energy [GeV]; Events",  100, -0.5, 10.5}, "ErecZ");
   auto hNCluster = d1.Histo1D({"hNCluster", "Number of Clusters; # of Clusters; Events",                              20, -0.5, 20.5}, "ncluster");
   auto hEcluster = d1.Histo1D({"hEcluster", "Cluster Energy; Cluster Energy [GeV]; Events",                          100, -0.5, 10.5}, "Ecluster");
-  auto hfsam     = d1.Histo1D({"hfsam",     "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,  1.0}, "fsam");
+  auto hfsam     = d1.Histo1D({"hfsam",     "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,  0.1}, "fsam");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -162,7 +162,7 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/rec_e
   hfsam->GetYaxis()->SetTitleOffset(1.4);
   hfsam->SetLineWidth(2);
   hfsam->SetLineColor(kBlue);
-  hfsam->Fit("gaus","","",0.1,1.0);
+  hfsam->Fit("gaus","","",0.01,0.1);
   hfsam->GetFunction("gaus")->SetLineWidth(2);
   hfsam->GetFunction("gaus")->SetLineColor(kRed);
   hfsam->DrawClone();

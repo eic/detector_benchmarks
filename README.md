@@ -6,10 +6,9 @@ EIC Detector Benchmarks
 ## Overview
 
 Detector benchmarks are meant to test for regressions in individual detector subsystems.
-The analysis is meant to avoid a complex reconstruction. 
-So for now this precludes using [juggler](https://eicweb.phy.anl.gov/EIC/juggler) for processing the events.
-[Physics benchmarks](https://eicweb.phy.anl.gov/EIC/benchmarks/physics_benchmarks) will 
-include the full reconstruction chain processing.
+The analysis is meant to avoid a reconstruction step. 
+So this precludes using [juggler](https://eicweb.phy.anl.gov/EIC/juggler) for processing the events.
+
 
 
 ## Adding new benchmarks

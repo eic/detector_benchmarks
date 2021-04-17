@@ -1,0 +1,12 @@
+#stages:
+#  #- simulate
+#  - benchmarks
+pid_test_1_dummy_test:
+  stage: benchmarks
+  script:
+    - bash benchmarks/pid/dummy_test.sh
+  artifacts:
+    paths: 
+      - results/
+  allow_failure: true
+

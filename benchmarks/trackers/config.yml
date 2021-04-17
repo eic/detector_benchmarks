@@ -1,0 +1,24 @@
+sim_trackers:roman_pot:
+  stage: simulate
+  extends: .det_benchmark
+  script:
+    - bash benchmarks/trackers/roman_pot_simu.sh
+
+roman_pot_nhits:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs:
+    - ["sim_trackers:roman_pot"]
+  script:
+    - root -b -q benchmarks/trackers/simple_tracking.cxx+
+
+roman_pot_eta:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs:
+    - ["sim_trackers:roman_pot"]
+  script:
+    - root -b -q benchmarks/trackers/roman_pot_hit_eta.cxx+
+  allow_failure: true
+
+

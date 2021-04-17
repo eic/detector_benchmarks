@@ -1,79 +1,170 @@
 image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
 default:
-  artifacts:
-    expire_in: 20 weeks
-    paths:
-      - results/
-      - datasets/
-      - sim_output/
-      - data
-    reports:
-      dotenv: juggler.env
   before_script:
-    - git clone https://eicweb.phy.anl.gov/EIC/NPDet.git
-      #- git clone https://eicweb.phy.anl.gov/EIC/NPDet.git && mkdir NPDet/build && cd NPDet/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
     - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git && mkdir topside/build && cd topside/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
-    - git clone https://eicweb.phy.anl.gov/EIC/detectors/accelerator.git && cd topside && ln -s ../accelerator/eic && cd ../.
+  artifacts:
+    expire_in: 72 hours 
+    paths:
+      - .local/detector
+      - .local/lib
+      - results
+      - config
 
 stages:
+  - config
+  - initialize
   - data_init
   - simulate
   - benchmarks
   - deploy
 
+env:
+  stage: config
+  script:
+    - ./util/print_env.sh
+    - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}
+    - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}/sim_output
+
+detector:
+  stage: initialize
+  needs: ["env"]
+  timeout: 1 hours
+  cache:
+    key:
+      files:
+        - options/env.sh
+        - util/build_detector.sh
+      prefix: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .local/detector
+      - .local/lib
+  script:
+    - ./util/print_env.sh
+    - ./util/build_detector.sh
+    - ./util/print_env.sh
+    - mkdir -p results
+    - mkdir -p config
+
 get_data:
   stage: data_init
-  tags:
-    - silicon
+  needs: ["detector"]
   script:
-    - git clone https://eicweb.phy.anl.gov/EIC/datasets.git datasets
-    - ln -s datasets/data
-    - mkdir -p results
-    - mkdir -p sim_output
+    - source options/env.sh
+    - ln -s ${LOCAL_DATA_PATH}/sim_output sim_output
+    - ln -s ${LOCAL_DATA_PATH}/datasets/data data
+    - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
 
-roman_pot_simu:
-  stage: simulate
-  needs: 
+.det_benchmark:
+  image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
+  needs:
     - ["get_data"]
-  tags:
-    - silicon
-  script:
-    - cp NPDet/src/detectors/trackers/compact/elements.xml ./.
-    - cp NPDet/src/detectors/trackers/compact/materials.xml ./.
-    - bash trackers/roman_pot_simu.sh
+  before_script:
+    - source options/env.sh
+    - ln -s ${LOCAL_DATA_PATH}/sim_output sim_output
+    - ln -s ${LOCAL_DATA_PATH}/datasets/data data
+  artifacts:
+    expire_in: 20 weeks
+    paths:
+      - results/
 
-roman_pot_nhits:
-  stage: benchmarks
-  needs:
-    - ["roman_pot_simu"]
-  tags:
-    - silicon
-  script:
-    - root -b -q trackers/simple_tracking.cxx+
-  allow_failure: true
 
-roman_pot_eta:
-  stage: benchmarks
-  tags:
-    - silicon
-  needs:
-    - ["roman_pot_simu"]
-  script:
-    - root -b -q trackers/roman_pot_hit_eta.cxx+
-  allow_failure: true
+include: 
+  - local: 'benchmarks/trackers/config.yml'
+  - local: 'benchmarks/calorimeters/config.yml'
+  - local: 'benchmarks/pid/config.yml'
 
-include:
-  - local: 'calorimeters/calorimeters_config.yml'
+    #roman_pot_simu:
+    #  stage: simulate
+    #  needs: 
+    #    - ["get_data","detector"]
+    #  script:
+    #    - bash benchmarks/trackers/roman_pot_simu.sh
+    #
+    #roman_pot_nhits:
+    #  stage: benchmarks
+    #  needs:
+    #    - ["roman_pot_simu","detector"]
+    #  script:
+    #    - root -b -q benchmarks/trackers/simple_tracking.cxx+
+    #  allow_failure: true
+    #
+    #roman_pot_eta:
+    #  stage: benchmarks
+    #  needs:
+    #    - ["roman_pot_simu","detector"]
+    #  script:
+    #    - root -b -q benchmarks/trackers/roman_pot_hit_eta.cxx+
+    #  allow_failure: true
+    #
+    #zdc_simulation:
+    #  stage: simulate
+    #  needs: 
+    #    - ["get_data","detector"]
+    #  script:
+    #    - bash benchmarks/calorimeters/run_simulation_zdc.sh
+    #
+    #cal_test_3_zdc_neutrons_reader:
+    #  stage: benchmarks
+    #  needs: 
+    #    - ["zdc_simulation","detector"]
+    #  script:
+    #    - root -b -q benchmarks/calorimeters/zdc_neutrons_reader.cxx
+    #  allow_failure: true
+    #
+    #
+    #zdc_benchmark:
+    #  stage: benchmarks
+    #  needs: 
+    #    - ["zdc_simulation","detector"]
+    #  script:
+    #    - ls -lrth sim_output
+    #    - root -b -q benchmarks/calorimeters/simple_checking.cxx+
+    #  allow_failure: true
+    #
+    #zdc_benchmark_info_histogram:
+    #  stage: benchmarks
+    #  needs: 
+    #    - ["zdc_simulation","detector"]
+    #  script:
+    #    - root -b -q benchmarks/calorimeters/simple_info_plot_histograms.cxx+
+    #  allow_failure: true
+    #
+    #crystal_emcal_simulation:
+    #  stage: simulate
+    #  needs: 
+    #    - ["get_data"]
+    #  script:
+    #     bash benchmarks/calorimeters/run_simulation_crystal.sh
+    #
+    #crystal_benchmark:
+    #  stage: benchmarks
+    #  needs:
+    #    - ["crystal_emcal_simulation","detector"]
+    #  script:
+    #    - ls -lrth sim_output
+    #    - root -b -q benchmarks/calorimeters/simple_checking_crystal.cxx+
+    #  allow_failure: true
+    #
+    #crystal_pion_simulation:
+    #  stage: simulate
+    #  needs:
+    #    - ["get_data","detector"]
+    #  tags:
+    #    - silicon
+    #  script:
+    #    - source options/env.sh
+    #    - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/topside.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.root
 
 deploy_results:
   stage: deploy
   needs:
-    - ["ben_emcal_barrel_electrons"]
+    - ["cal_bench:zdc_benchmark"]
   tags:
     - silicon
   script:
     - echo "deploy results!"
+
 
 pages:
   stage: deploy
@@ -88,4 +179,5 @@ pages:
   artifacts:
     paths:
       - public
+
 

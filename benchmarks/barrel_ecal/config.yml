@@ -1,0 +1,37 @@
+sim:emcal_barrel_pions:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_pions.sh
+
+sim:emcal_barrel_electrons:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
+
+bench:emcal_barrel_pions:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_pions"]
+  script:
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
+
+bench:emcal_barrel_electrons:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_electrons"]
+  script:
+    - rootls -t sim_output/sim_emcal_barrel_uniform_electrons.root
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_electrons_analysis.cxx+
+
+collect_results:barrel_ecal:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - ["bench:emcal_barrel_pions","sim:emcal_barrel_electrons"]
+  script:
+    - ls -lrht
+

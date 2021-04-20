@@ -54,7 +54,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   // Detector
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
-  detector.fromCompact("benchmarks/calorimeters/ZDC_example.xml");  
+  detector.fromCompact("benchmarks/zdc/ZDC_example.xml");  
   // Volume
   dd4hep::VolumeManager volman = dd4hep::VolumeManager::getVolumeManager(detector);
   // CellID Coverter

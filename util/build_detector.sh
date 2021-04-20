@@ -64,8 +64,8 @@ echo "Building and installing the ${JUGGLER_DETECTOR} package"
 
 mkdir -p ${DETECTOR_PREFIX}/build
 pushd ${DETECTOR_PREFIX}/build
-cmake ${DETECTOR_PATH} -DCMAKE_INSTALL_PREFIX=${LOCAL_PREFIX} -DCMAKE_CXX_STANDARD=17 &&
-  make -j30 install || exit 1
+cmake ${DETECTOR_PATH} -DCMAKE_INSTALL_PREFIX=${LOCAL_PREFIX} -DCMAKE_CXX_STANDARD=17 && make -j30 install || exit 1
+cmake ${DETECTOR_PATH} -DCMAKE_INSTALL_PREFIX=${LOCAL_PREFIX}  -DCMAKE_CXX_STANDARD=17  && make -j30 install
 
 ## =============================================================================
 ## Step 3: That's all!

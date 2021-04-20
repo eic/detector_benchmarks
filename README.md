@@ -9,8 +9,6 @@ Detector benchmarks are meant to test for regressions in individual detector sub
 The analysis is meant to avoid a reconstruction step. 
 So this precludes using [juggler](https://eicweb.phy.anl.gov/EIC/juggler) for processing the events.
 
-
-
 ## Adding new benchmarks
 
 ### Pass/Fail tests

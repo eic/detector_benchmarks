@@ -23,6 +23,7 @@ stages:
   - data_init
   - simulate
   - benchmarks
+  - collect
   - deploy
 
 env:
@@ -76,98 +77,16 @@ get_data:
 
 
 include: 
-  - local: 'benchmarks/trackers/config.yml'
-  - local: 'benchmarks/calorimeters/config.yml'
+  - local: 'benchmarks/barrel_ecal/config.yml'
+  - local: 'benchmarks/roman_pots/config.yml'
+  - local: 'benchmarks/zdc/config.yml'
+  - local: 'benchmarks/crystal_calorimeter/config.yml'
   - local: 'benchmarks/pid/config.yml'
-
-    #roman_pot_simu:
-    #  stage: simulate
-    #  needs: 
-    #    - ["get_data","detector"]
-    #  script:
-    #    - bash benchmarks/trackers/roman_pot_simu.sh
-    #
-    #roman_pot_nhits:
-    #  stage: benchmarks
-    #  needs:
-    #    - ["roman_pot_simu","detector"]
-    #  script:
-    #    - root -b -q benchmarks/trackers/simple_tracking.cxx+
-    #  allow_failure: true
-    #
-    #roman_pot_eta:
-    #  stage: benchmarks
-    #  needs:
-    #    - ["roman_pot_simu","detector"]
-    #  script:
-    #    - root -b -q benchmarks/trackers/roman_pot_hit_eta.cxx+
-    #  allow_failure: true
-    #
-    #zdc_simulation:
-    #  stage: simulate
-    #  needs: 
-    #    - ["get_data","detector"]
-    #  script:
-    #    - bash benchmarks/calorimeters/run_simulation_zdc.sh
-    #
-    #cal_test_3_zdc_neutrons_reader:
-    #  stage: benchmarks
-    #  needs: 
-    #    - ["zdc_simulation","detector"]
-    #  script:
-    #    - root -b -q benchmarks/calorimeters/zdc_neutrons_reader.cxx
-    #  allow_failure: true
-    #
-    #
-    #zdc_benchmark:
-    #  stage: benchmarks
-    #  needs: 
-    #    - ["zdc_simulation","detector"]
-    #  script:
-    #    - ls -lrth sim_output
-    #    - root -b -q benchmarks/calorimeters/simple_checking.cxx+
-    #  allow_failure: true
-    #
-    #zdc_benchmark_info_histogram:
-    #  stage: benchmarks
-    #  needs: 
-    #    - ["zdc_simulation","detector"]
-    #  script:
-    #    - root -b -q benchmarks/calorimeters/simple_info_plot_histograms.cxx+
-    #  allow_failure: true
-    #
-    #crystal_emcal_simulation:
-    #  stage: simulate
-    #  needs: 
-    #    - ["get_data"]
-    #  script:
-    #     bash benchmarks/calorimeters/run_simulation_crystal.sh
-    #
-    #crystal_benchmark:
-    #  stage: benchmarks
-    #  needs:
-    #    - ["crystal_emcal_simulation","detector"]
-    #  script:
-    #    - ls -lrth sim_output
-    #    - root -b -q benchmarks/calorimeters/simple_checking_crystal.cxx+
-    #  allow_failure: true
-    #
-    #crystal_pion_simulation:
-    #  stage: simulate
-    #  needs:
-    #    - ["get_data","detector"]
-    #  tags:
-    #    - silicon
-    #  script:
-    #    - source options/env.sh
-    #    - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/topside.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.root
 
 deploy_results:
   stage: deploy
   needs:
-    - ["cal_bench:zdc_benchmark"]
-  tags:
-    - silicon
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:crystal_calorimeter"]
   script:
     - echo "deploy results!"
 

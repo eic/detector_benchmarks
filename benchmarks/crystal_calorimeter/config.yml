@@ -1,0 +1,30 @@
+cal_sim:crystal_emcal:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/crystal_calorimeter/run_simulation_crystal.sh
+
+cal_sim:crystal_pion:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/topside.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.root
+
+cal_bench:crystal_benchmark:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["cal_sim:crystal_emcal"]
+  script:
+    - rootls -t sim_output/output_emcal_electrons.root
+    - echo " Not yet complete"
+      #- root -b -q benchmarks/cryxtal_calorimeter/simple_checking_crystal.cxx+
+      #
+collect_results:crystal_calorimeter:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - ["cal_bench:crystal_benchmark"]
+  script:
+    - ls -lrht
+

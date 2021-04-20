@@ -27,13 +27,13 @@ echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
 
 # Generate the input events
-root -b -q "benchmarks/calorimeters/scripts/emcal_barrel_electrons.cxx(${JUGGLER_N_EVENTS}, ${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
+root -b -q "benchmarks/barrel_ecal/scripts/emcal_barrel_electrons.cxx(${JUGGLER_N_EVENTS}, ${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running script: generating input events"
   exit 1
 fi
 # Plot the input events
-root -b -q "benchmarks/calorimeters/scripts/emcal_barrel_electrons_reader.cxx(${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
+root -b -q "benchmarks/barrel_ecal/scripts/emcal_barrel_electrons_reader.cxx(${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running script: plotting input events"
   exit 1

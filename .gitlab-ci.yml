@@ -2,7 +2,13 @@ image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
 default:
   before_script:
-    - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git && mkdir topside/build && cd topside/build && cmake ../. -DCMAKE_INSTALL_PREFIX=/usr/local && make -j20 install && cd ../..
+    - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git 
+      && mkdir topside/build 
+      && cd topside/build 
+      && cmake ../. -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=/usr/local 
+      && make -j20 install 
+      && cd ../.. 
+      || exit 1
   artifacts:
     expire_in: 72 hours 
     paths:

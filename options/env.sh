@@ -34,7 +34,7 @@ if [ ! -n  "${JUGGLER_DETECTOR}" ] ; then
 fi
 
 if [ ! -n  "${JUGGLER_DETECTOR_VERSION}" ] ; then 
-  export JUGGLER_DETECTOR_VERSION="v0.0.1"
+  export JUGGLER_DETECTOR_VERSION="master"
 fi
 
 

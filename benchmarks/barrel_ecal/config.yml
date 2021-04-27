@@ -31,7 +31,7 @@ collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:emcal_barrel_pions","sim:emcal_barrel_electrons"]
+    - ["bench:emcal_barrel_pions","bench:emcal_barrel_electrons"]
   script:
     - ls -lrht
 

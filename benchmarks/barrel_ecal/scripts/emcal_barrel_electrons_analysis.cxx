@@ -37,9 +37,9 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/sim_e
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    std::vector<double> result;
-    result.push_back(TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass));
-  return result;
+    auto p = input[2];
+    auto energy = TMath::Sqrt(p.psx * p.psx + p.psy * p.psy + p.psz * p.psz + p.mass * p.mass);
+    return energy;
   };
 
   // Number of hits
@@ -47,23 +47,15 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/sim_e
 
   // Energy deposition [GeV]
   auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
-    std::vector<double> result;
     auto total_edep = 0.0;
     for (const auto& i: evt)
       total_edep += i.energyDeposit;
-    result.push_back(total_edep);
-    return result;
+    return total_edep;
   };
 
   // Sampling fraction = Esampling / Ethrown
-  auto fsam = [](const std::vector<double>& sampled,
-                 const std::vector<double>& thrown) {
-    std::vector<double> result;
-    for (const auto& E1 : thrown) {
-      for (const auto& E2 : sampled)
-        result.push_back(E2 / E1);
-    }
-    return result;
+  auto fsam = [](const double sampled, const double thrown) {
+    return sampled / thrown;
   };
 
   // Define variables

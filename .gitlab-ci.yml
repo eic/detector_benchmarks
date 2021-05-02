@@ -1,19 +1,14 @@
 image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
 default:
-  before_script:
-    - git clone https://eicweb.phy.anl.gov/EIC/detectors/topside.git 
-      && mkdir topside/build 
-      && cd topside/build 
-      && cmake ../. -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=/usr/local 
-      && make -j20 install 
-      && cd ../.. 
-      || exit 1
   artifacts:
     expire_in: 72 hours 
     paths:
       - .local/detector
       - .local/lib
+      - .local/bin
+      - .local/include
+      - .local/share
       - results
       - config
 
@@ -26,54 +21,42 @@ stages:
   - collect
   - deploy
 
-env:
+common:setup:
   stage: config
   script:
-    - ./util/print_env.sh
+    - git clone https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+    - source setup/bin/env.sh && ./setup/bin/install_common.sh
+
+common:detector:
+  stage: initialize
+  needs: ["common:setup"]
+  script:
+    - source .local/bin/env.sh && build_detector.sh
     - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}
     - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}/sim_output
-
-detector:
-  stage: initialize
-  needs: ["env"]
-  timeout: 1 hours
-  cache:
-    key:
-      files:
-        - options/env.sh
-        - util/build_detector.sh
-      prefix: "$CI_COMMIT_REF_SLUG"
-    paths:
-      - .local/detector
-      - .local/lib
-  script:
-    - ./util/print_env.sh
-    - ./util/build_detector.sh
-    - ./util/print_env.sh
     - mkdir -p results
     - mkdir -p config
+    - print_env.sh
 
 get_data:
   stage: data_init
-  needs: ["detector"]
+  needs: ["common:detector"]
   script:
-    - source options/env.sh
-    - ln -s ${LOCAL_DATA_PATH}/sim_output sim_output
-    - ln -s ${LOCAL_DATA_PATH}/datasets/data data
+    - source .local/bin/env.sh
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
     - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
 
 .det_benchmark:
   image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
   needs:
-    - ["get_data"]
+    - ["get_data","common:detector"]
   before_script:
-    - source options/env.sh
-    - ln -s ${LOCAL_DATA_PATH}/sim_output sim_output
-    - ln -s ${LOCAL_DATA_PATH}/datasets/data data
-  artifacts:
-    expire_in: 20 weeks
-    paths:
-      - results/
+    - source .local/bin/env.sh
+    - ls -lrtha 
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
+    - ls -lrtha
 
 
 include: 

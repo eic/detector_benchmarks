@@ -1,7 +1,6 @@
 {
-	/*
 	// top-level include-dir
-  gROOT->ProcessLine(".include detector_benchmarks/include");
+  gROOT->ProcessLine(".include include");
 
 	// Setting for Graphs
 	gROOT->SetStyle("Plain");
@@ -12,6 +11,5 @@
 	gStyle->SetPadGridX(1);
 	gStyle->SetPadGridY(1);
 	gStyle->SetPadLeftMargin(0.14);
-	*/
 
 }

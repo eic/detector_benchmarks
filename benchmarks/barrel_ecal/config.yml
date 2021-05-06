@@ -34,4 +34,5 @@ collect_results:barrel_ecal:
     - ["bench:emcal_barrel_pions","bench:emcal_barrel_electrons"]
   script:
     - ls -lrht
+    - echo " FIX ME" 
 

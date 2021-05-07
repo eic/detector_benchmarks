@@ -102,6 +102,7 @@ void e_pi_separation(const char* input_fname =
                 .Define("nhits", nhits, {"EcalBarrelHits"})
                 .Define("Esim", Esim, {"EcalBarrelHits"})
                 .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
+                .Define("Eratio", "Esim_front/Esim")
                 .Define("fsam", fsam, {"Esim", "Ethr"});
 
   // Define Histograms
@@ -119,9 +120,13 @@ void e_pi_separation(const char* input_fname =
   auto hEsim_front = d1.Histo1D(
       {"hEsim_front", "; Front Energy Deposit [GeV]; Events", 100, 0.0, 0.2},
       "Esim_front");
+
   auto hfsam = d1.Histo1D(
       {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 100, 0.0, 0.1},
       "fsam");
+  auto hEratio = d1.Histo1D(
+      {"Eratio", "E_front/E_tot; Sampling Fraction; Events", 100, 0.0, 1.0},
+      "Eratio");
 
   // Event Counts
   auto nevents_thrown = d1.Count();
@@ -169,14 +174,14 @@ void e_pi_separation(const char* input_fname =
   {
     TCanvas* c4 = new TCanvas("c4", "c4", 700, 500);
     c4->SetLogy(1);
-    auto h = hfsam->DrawCopy();
+    auto h = hEratio->DrawCopy();
     //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     //h->Fit("gaus", "", "", 0.01, 0.1);
     //h->GetFunction("gaus")->SetLineWidth(2);
     //h->GetFunction("gaus")->SetLineColor(kRed);
-    c4->SaveAs("results/emcal_barrel_electrons_fsam.png");
-    c4->SaveAs("results/emcal_barrel_electrons_fsam.pdf");
+    c4->SaveAs("results/emcal_barrel_Eratio.png");
+    c4->SaveAs("results/emcal_barrel_Eratio.pdf");
   }
 }

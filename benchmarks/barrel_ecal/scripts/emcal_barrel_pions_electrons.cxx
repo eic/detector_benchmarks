@@ -65,6 +65,14 @@ void emcal_barrel_pions_electrons(int n_events = 1e6, double e_start = 0.0, doub
     // pdgid -211 - pion- 139.570 MeV/c^2
     // pdgid 111 - pion0 134.977 MeV/c^2
     GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.139570 * 0.139570))), -211, 1);
+
+    p        = r1->Uniform(e_start, e_end);
+    phi      = r1->Uniform(0.0, 2.0 * M_PI);
+    costheta = r1->Uniform(cos_theta_min, cos_theta_max);
+    theta    = std::acos(costheta);
+    px       = p * std::cos(phi) * std::sin(theta);
+    py       = p * std::sin(phi) * std::sin(theta);
+    pz       = p * std::cos(theta);
     GenParticlePtr p4 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.000511 * 0.000511))), 11, 1);
 
     GenVertexPtr v1 = std::make_shared<GenVertex>();

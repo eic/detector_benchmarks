@@ -115,6 +115,7 @@ void e_pi_separation(const char* input_fname =
   auto hEsim = d1.Histo1D(
       {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 100, 0.0, 1.0},
       "Esim");
+
   auto hEsim_front = d1.Histo1D(
       {"hEsim_front", "; Front Energy Deposit [GeV]; Events", 100, 0.0, 1.0},
       "Esim");
@@ -157,6 +158,9 @@ void e_pi_separation(const char* input_fname =
     //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
+    h = hEsim_front->DrawCopy("same");
+    h->SetLineWidth(2);
+    h->SetLineColor(kRED);
     c3->SaveAs("results/emcal_barrel_electrons_Esim.png");
     c3->SaveAs("results/emcal_barrel_electrons_Esim.pdf");
   }

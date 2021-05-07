@@ -30,7 +30,7 @@ echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
 
 # Generate the input events
-root -b -q "benchmarks/barrel_ecal/scripts/emcal_barrel_uniform_pions_electrons.cxx(${JUGGLER_N_EVENTS}, ${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
+root -b -q "benchmarks/barrel_ecal/scripts/emcal_barrel_pions_electrons.cxx(${JUGGLER_N_EVENTS}, ${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running script: generating input events"
   exit 1

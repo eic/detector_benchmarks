@@ -59,9 +59,9 @@ void e_pi_separation(const char* input_fname =
   //dd4hep::rec::CellIDPositionConverter cellid_converter(detector);
 
   auto decoder = detector.readout("EcalBarrelHits").idSpec().decoder();
-  std::cout << decoder->fieldDescription() << "\n";
-
-
+  fmt::print("{}\n", decoder->fieldDescription());
+  auto layer_index = decoder->index("layer");
+  fmt::print(" layer index is {}.\n", layer_index);
 
 
   // Thrown Energy [GeV]
@@ -81,6 +81,16 @@ void e_pi_separation(const char* input_fname =
       total_edep += i.energyDeposit;
     return total_edep;
   };
+  auto Esim_front = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+    auto total_edep = 0.0;
+    for (const auto& i: evt) {
+      fmt::print("cell id {}, layer {}\n",i.cellID, decoder->get(i.cellID, layer_index));
+      if( decoder->get(i.cellID, layer_index) < 5 ){
+        total_edep += i.energyDeposit;
+      }
+    }
+    return total_edep;
+  };
 
   // Sampling fraction = Esampling / Ethrown
   auto fsam = [](const double sampled, const double thrown) {
@@ -91,6 +101,7 @@ void e_pi_separation(const char* input_fname =
   auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
                 .Define("Esim", Esim, {"EcalBarrelHits"})
+                .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
                 .Define("fsam", fsam, {"Esim", "Ethr"});
 
   // Define Histograms

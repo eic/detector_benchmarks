@@ -70,7 +70,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   // Returns the pdgID of the particle
   auto getpid = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return input[2].pdgID;
+    return {input[2].pdgID, input[3].pdgID};
   };
 
   // Returns number of particle daughters

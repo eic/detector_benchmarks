@@ -79,17 +79,10 @@ void emcal_barrel_pions_electrons(int n_events = 1e6, double e_start = 0.0, doub
     GenVertexPtr v2 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);
     v1->add_particle_in(p2);
-    v1->add_particle_out(p3);
 
-    v2->add_particle_in(p1);
-    v2->add_particle_in(p2);
-    v2->add_particle_out(p4);
-/*
-    if (phi <= M_PI) {v1->add_particle_out(p3);}
-    if (phi > M_PI) {v1->add_particle_out(p4);}
-    */
+    v1->add_particle_out(p3);
+    v1->add_particle_out(p4);
     evt.add_vertex(v1);
-    evt.add_vertex(v2);
 
     if (events_parsed == 0) {
       std::cout << "First event: " << std::endl;

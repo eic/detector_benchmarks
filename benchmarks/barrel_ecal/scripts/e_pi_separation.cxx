@@ -85,7 +85,7 @@ void e_pi_separation(const char* input_fname =
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       fmt::print("cell id {}, layer {}\n",i.cellID, decoder->get(i.cellID, layer_index));
-      if( decoder->get(i.cellID, layer_index) < 5 ){
+      if( decoder->get(i.cellID, layer_index) < 7 ){
         total_edep += i.energyDeposit;
       }
     }

@@ -125,7 +125,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
   auto hEsim_ele  = d1.Histo1D({"hEsim_ele",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim_ele");
-  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",  "Energy Deposit Pi-; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim_pi");
+  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim_pi");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -161,19 +161,19 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
   c4->SetLogy(1);
-  hfEsim_ele->GetYaxis()->SetTitleOffset(1.4);
-  hfEsim_ele->SetLineWidth(2);
-  hfEsim_ele->SetLineColor(kBlue);
-  hfEsim_ele->DrawClone();
+  hEsim_ele->GetYaxis()->SetTitleOffset(1.4);
+  hEsim_ele->SetLineWidth(2);
+  hEsim_ele->SetLineColor(kBlue);
+  hEsim_ele->DrawClone();
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.png");
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
 
   TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
   c5->SetLogy(1);
-  hfEsim_pi->GetYaxis()->SetTitleOffset(1.4);
-  hfEsim_pi->SetLineWidth(2);
-  hfEsim_pi->SetLineColor(kBlue);
-  hfEsim_pi->DrawClone();
+  hEsim_pi->GetYaxis()->SetTitleOffset(1.4);
+  hEsim_pi->SetLineWidth(2);
+  hEsim_pi->SetLineColor(kBlue);
+  hEsim_pi->DrawClone();
   c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.png");
   c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.pdf");
 

@@ -160,7 +160,7 @@ void e_pi_separation(const char* input_fname =
     h->SetLineColor(kBlue);
     h = hEsim_front->DrawCopy("same");
     h->SetLineWidth(2);
-    h->SetLineColor(kRED);
+    h->SetLineColor(2);
     c3->SaveAs("results/emcal_barrel_electrons_Esim.png");
     c3->SaveAs("results/emcal_barrel_electrons_Esim.pdf");
   }

@@ -68,28 +68,6 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     return result;
   };
 
-  // Energy Resolution = Esampling/Sampling_fraction - Ethrown
-  auto eResol = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / samp_frac - *it_thr);
-    }
-    return result;
-  };
-
-  // Relative Energy Resolution = (Esampling/Sampling fraction - Ethrown)/Ethrown
-  auto eResol_rel = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back((*it_sam / samp_frac - *it_thr) / *it_thr);
-    }
-    return result;
-  };
-
   // Returns the pdgID of the particle
   auto getpid = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
     return input[2].pdgID;

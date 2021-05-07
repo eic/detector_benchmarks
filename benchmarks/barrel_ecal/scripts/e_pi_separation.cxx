@@ -118,7 +118,7 @@ void e_pi_separation(const char* input_fname =
 
   auto hEsim_front = d1.Histo1D(
       {"hEsim_front", "; Front Energy Deposit [GeV]; Events", 100, 0.0, 1.0},
-      "Esim");
+      "Esim_front");
   auto hfsam = d1.Histo1D(
       {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 100, 0.0, 0.1},
       "fsam");

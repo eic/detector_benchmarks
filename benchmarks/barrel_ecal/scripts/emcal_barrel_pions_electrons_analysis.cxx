@@ -61,10 +61,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto Esim_ele = [](const std::vector<dd4pod::CalorimeterHitData>& evt, std::vector<dd4pod::Geant4ParticleData> const& input) {
     std::vector<double> result;
     auto total_edep = 0.0;
+    int count = 0;
     if (input[2].pdgID == 11)// Electron
     { 
-      for (const auto& i: evt)
+      for (const auto& i: evt && count > 1)
         total_edep += i.energyDeposit;
+        count++;
     }
     result.push_back(total_edep);
   return result;
@@ -74,10 +76,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto Esim_pi = [](const std::vector<dd4pod::CalorimeterHitData>& evt, std::vector<dd4pod::Geant4ParticleData> const& input) {
     std::vector<double> result;
     auto total_edep = 0.0;
+    int count = 0;
     if (input[2].pdgID == -211)// Negative pion
     { 
-      for (const auto& i: evt)
+      for (const auto& i: evt && count < 1)
         total_edep += i.energyDeposit;
+        count++;
     }
     result.push_back(total_edep);
   return result;

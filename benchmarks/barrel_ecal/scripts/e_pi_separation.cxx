@@ -16,6 +16,14 @@
 #include "TF1.h"
 #include "TH1D.h"
 
+R__LOAD_LIBRARY(libfmt.so)
+#include "fmt/core.h"
+#include "DD4hep/Detector.h"
+#include "DDG4/Geant4Data.h"
+#include "DDRec/CellIDPositionConverter.h"
+//#include "DDRec/SurfaceManager.h"
+//#include "DDRec/Surface.h"
+
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 

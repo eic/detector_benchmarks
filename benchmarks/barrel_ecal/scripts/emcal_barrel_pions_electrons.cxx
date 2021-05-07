@@ -80,8 +80,8 @@ void emcal_barrel_pions_electrons(int n_events = 1e6, double e_start = 0.0, doub
     v1->add_particle_in(p1);
     v1->add_particle_in(p2);
 
-    v1->add_particle_out(p3);
-    v1->add_particle_out(p4);
+    if (r1 -> Uniform(0,1) <= 0.5) {v1->add_particle_out(p3);}
+    else {v1->add_particle_out(p4);}
     evt.add_vertex(v1);
 
     if (events_parsed == 0) {

@@ -133,10 +133,10 @@ void e_pi_separation(const char* input_fname =
       "fsam");
 
   auto hEratio = d1.Histo1D(
-      {"Eratio", ";E_front/E_tot;  Events", 100, 0.0, 1.0},
+      {"Eratio", ";E_front/E_tot;  Events", 100, 0.0, 0.4},
       "Eratio");
   auto hEratio2 = d2.Histo1D(
-      {"Eratio2", ";E_front/E_tot; Events", 100, 0.0, 1.0},
+      {"Eratio2", ";E_front/E_tot; Events", 100, 0.0, 0.4},
       "Eratio");
 
   // Event Counts

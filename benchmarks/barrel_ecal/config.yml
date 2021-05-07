@@ -1,22 +1,33 @@
-sim:emcal_barrel_pions:
-  extends: .det_benchmark
-  stage: simulate
-  script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_pions.sh
+# sim:emcal_barrel_pions:
+#   extends: .det_benchmark
+#   stage: simulate
+#   script:
+#     - bash benchmarks/barrel_ecal/run_emcal_barrel_pions.sh
 
 sim:emcal_barrel_electrons:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
+    # energy_scan should run first to avoid overwriting the non-scan sim file
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh electron
+    #- bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
 
-bench:emcal_barrel_pions:
+sim:emcal_barrel_photons:
   extends: .det_benchmark
-  stage: benchmarks
-  needs:
-    - ["sim:emcal_barrel_pions"]
+  stage: simulate
   script:
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
+    # energy_scan should run first to avoid overwriting the non-scan sim file
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh photon
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh photon
+
+# bench:emcal_barrel_pions:
+#   extends: .det_benchmark
+#   stage: benchmarks
+#   needs:
+#     - ["sim:emcal_barrel_pions"]
+#   script:
+#     - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
 
 bench:emcal_barrel_electrons:
   extends: .det_benchmark
@@ -24,14 +35,27 @@ bench:emcal_barrel_electrons:
   needs:
     - ["sim:emcal_barrel_electrons"]
   script:
-    - rootls -t sim_output/sim_emcal_barrel_uniform_electrons.root
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_electrons_analysis.cxx+
+    - ls -lhtR sim_output/
+    - rootls -t sim_output/sim_emcal_barrel_electron.root
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron")'
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("electron")'
+
+bench:emcal_barrel_photons:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_photons"]
+  script:
+    - ls -lhtR sim_output/
+    - rootls -t sim_output/sim_emcal_barrel_photon.root
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon")'
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")'
 
 collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:emcal_barrel_pions","bench:emcal_barrel_electrons"]
+    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons"]
   script:
     - ls -lrht
     - echo " FIX ME" 

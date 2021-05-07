@@ -60,8 +60,8 @@ bench:e_pi_separation:
 collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
-  needs: 
-    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons","bench:emcal_barrel_pions"]
+  #  needs: 
+  #    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons"]
   script:
     - ls -lrht
     - echo " FIX ME" 

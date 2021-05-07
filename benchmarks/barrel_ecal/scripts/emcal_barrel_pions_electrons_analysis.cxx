@@ -65,7 +65,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     if (input[2].pdgID == 11)// Electron
     { 
       for (const auto& i: evt)
-        if (count > 0) continue;
+        if (count > 0) break;
         total_edep += i.energyDeposit;
         count++;
     }
@@ -81,7 +81,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     if (input[2].pdgID == -211)// Negative pion
     { 
       for (const auto& i: evt)
-        if (count > 0) continue;
+        if (count > 0) break;
         total_edep += i.energyDeposit;
         count++;
     }

@@ -57,6 +57,32 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   return result;
   };
 
+  // Energy deposition electron
+  auto Esim_ele = [](const std::vector<dd4pod::CalorimeterHitData>& evt, std::vector<dd4pod::Geant4ParticleData> const& input) {
+    std::vector<double> result;
+    auto total_edep = 0.0;
+    if (input[2].pdgID == 11)// Electron
+    { 
+      for (const auto& i: evt)
+        total_edep += i.energyDeposit;
+    }
+    result.push_back(total_edep);
+  return result;
+  };
+
+  // Energy deposition [GeV] pion
+  auto Esim_pi = [](const std::vector<dd4pod::CalorimeterHitData>& evt, std::vector<dd4pod::Geant4ParticleData> const& input) {
+    std::vector<double> result;
+    auto total_edep = 0.0;
+    if (input[2].pdgID == -211)// Negative pion
+    { 
+      for (const auto& i: evt)
+        total_edep += i.energyDeposit;
+    }
+    result.push_back(total_edep);
+  return result;
+  };
+
   // Sampling fraction = Esampling / Ethrown
   auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
     std::vector<double> result;
@@ -86,6 +112,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
               .Define("fsam",   fsam,       {"Esim","Ethr"})
               .Define("pid",    getpid,     {"mcparticles"})
               .Define("dau",    getdau,     {"mcparticles"})
+              .Define("Esim_ele", Esim_ele, {"EcalBarrelHits", "mcparticles"})
+              .Define("Esim_pi", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
               ;
 
   // Define Histograms
@@ -95,6 +123,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
+
+  auto hEsim_ele  = d1.Histo1D({"hEsim_ele",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim_ele");
+  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",  "Energy Deposit Pi-; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim_pi");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -107,8 +138,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hEthr->SetLineWidth(2);
   hEthr->SetLineColor(kBlue);
   hEthr->DrawClone();
-  c1->SaveAs("results/emcal_barrel_pions_Ethr.png");
-  c1->SaveAs("results/emcal_barrel_pions_Ethr.pdf");
+  c1->SaveAs("results/emcal_barrel_pions_electrons_Ethr.png");
+  c1->SaveAs("results/emcal_barrel_pions_electrons_Ethr.pdf");
 
   TCanvas *c2 = new TCanvas("c2", "c2", 700, 500);
   c2->SetLogy(1);
@@ -116,8 +147,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hNhits->SetLineWidth(2);
   hNhits->SetLineColor(kBlue);
   hNhits->DrawClone();
-  c2->SaveAs("results/emcal_barrel_pions_nhits.png");
-  c2->SaveAs("results/emcal_barrel_pions_nhits.pdf");
+  c2->SaveAs("results/emcal_barrel_pions_electrons_nhits.png");
+  c2->SaveAs("results/emcal_barrel_pions_electrons_nhits.pdf");
 
   TCanvas *c3 = new TCanvas("c3", "c3", 700, 500);
   c3->SetLogy(1);
@@ -125,35 +156,35 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hEsim->SetLineWidth(2);
   hEsim->SetLineColor(kBlue);
   hEsim->DrawClone();
-  c3->SaveAs("results/emcal_barrel_pions_Esim.png"); 
-  c3->SaveAs("results/emcal_barrel_pions_Esim.pdf");
+  c3->SaveAs("results/emcal_barrel_pions_electrons_Esim.png"); 
+  c3->SaveAs("results/emcal_barrel_pions_electrons_Esim.pdf");
 
   TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
   c4->SetLogy(1);
-  hfsam->GetYaxis()->SetTitleOffset(1.4);
-  hfsam->SetLineWidth(2);
-  hfsam->SetLineColor(kBlue);
-  hfsam->DrawClone();
-  c4->SaveAs("results/emcal_barrel_pions_fsam.png");
-  c4->SaveAs("results/emcal_barrel_pions_fsam.pdf");
+  hfEsim_ele->GetYaxis()->SetTitleOffset(1.4);
+  hfEsim_ele->SetLineWidth(2);
+  hfEsim_ele->SetLineColor(kBlue);
+  hfEsim_ele->DrawClone();
+  c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.png");
+  c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
 
   TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
   c5->SetLogy(1);
+  hfEsim_pi->GetYaxis()->SetTitleOffset(1.4);
+  hfEsim_pi->SetLineWidth(2);
+  hfEsim_pi->SetLineColor(kBlue);
+  hfEsim_pi->DrawClone();
+  c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.png");
+  c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.pdf");
+
+  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
+  c6->SetLogy(1);
   hpid->GetYaxis()->SetTitleOffset(1.4);
   hpid->SetLineWidth(2);
   hpid->SetLineColor(kBlue);
   hpid->DrawClone();
-  c5->SaveAs("results/emcal_barrel_pions_pid.png");
-  c5->SaveAs("results/emcal_barrel_pions_pid.pdf");
-
-  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
-  c5->SetLogy(1);
-  hdau->GetYaxis()->SetTitleOffset(1.4);
-  hdau->SetLineWidth(2);
-  hdau->SetLineColor(kBlue);
-  hdau->DrawClone();
-  c6->SaveAs("results/emcal_barrel_pions_dau.png");
-  c6->SaveAs("results/emcal_barrel_pions_dau.pdf");
+  c6->SaveAs("results/emcal_barrel_pions_electrons_pid.png");
+  c6->SaveAs("results/emcal_barrel_pions_electrons_pid.pdf");
 
 
 }

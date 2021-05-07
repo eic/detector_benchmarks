@@ -48,6 +48,15 @@ bench:emcal_barrel_photons:
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon")'
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")'
 
+bench:e_pi_separation:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_electrons","sim:emcal_barrel_pions"]
+  script:
+    - rootls -t sim_output/sim_emcal_barrel_uniform_electrons.root
+    - root -b -q benchmarks/barrel_ecal/scripts/e_pi_separation.cxx+
+
 collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect

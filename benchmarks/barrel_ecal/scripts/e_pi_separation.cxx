@@ -65,6 +65,11 @@ void e_pi_separation(const char* input_fname =
 
 
   // Thrown Energy [GeV]
+  auto is_electron = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+    auto p = input[2];
+      if(p.pdgID == 11) return true;
+      return false;
+  };
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
     auto p = input[2];
     auto energy = TMath::Sqrt(p.psx * p.psx + p.psy * p.psy + p.psz * p.psz + p.mass * p.mass);
@@ -99,11 +104,13 @@ void e_pi_separation(const char* input_fname =
 
   // Define variables
   auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
+.Define("is_electron", is_electron, {"mcparticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
                 .Define("Esim", Esim, {"EcalBarrelHits"})
                 .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
                 .Define("Eratio", "Esim_front/Esim")
                 .Define("fsam", fsam, {"Esim", "Ethr"});
+  auto d2 = d1.Filter("is_electron");
 
   // Define Histograms
   auto hEthr = d1.Histo1D(
@@ -124,8 +131,12 @@ void e_pi_separation(const char* input_fname =
   auto hfsam = d1.Histo1D(
       {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 100, 0.0, 0.1},
       "fsam");
+
   auto hEratio = d1.Histo1D(
-      {"Eratio", "E_front/E_tot; Sampling Fraction; Events", 100, 0.0, 1.0},
+      {"Eratio", ";E_front/E_tot;  Events", 100, 0.0, 1.0},
+      "Eratio");
+  auto hEratio2 = d2.Histo1D(
+      {"Eratio2", ";E_front/E_tot; Events", 100, 0.0, 1.0},
       "Eratio");
 
   // Event Counts
@@ -178,6 +189,9 @@ void e_pi_separation(const char* input_fname =
     //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
+    h = hEratio2->DrawCopy("same");
+    h->SetLineWidth(2);
+    h->SetLineColor(2);
     //h->Fit("gaus", "", "", 0.01, 0.1);
     //h->GetFunction("gaus")->SetLineWidth(2);
     //h->GetFunction("gaus")->SetLineColor(kRed);

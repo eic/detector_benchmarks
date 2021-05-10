@@ -17,6 +17,13 @@
 #include "TH1D.h"
 #include "TFitResult.h"
 
+R__LOAD_LIBRARY(libfmt.so)
+#include "fmt/core.h"
+#include "DD4hep/Detector.h"
+#include "DDG4/Geant4Data.h"
+#include "DDRec/CellIDPositionConverter.h"
+
+
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
@@ -36,6 +43,27 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
+
+  //Using the detector layers 
+  std::string detector_path = "";
+  std::string detector_name = "topside";
+  if(std::getenv("DETECTOR_PATH")) {
+    detector_path = std::getenv("DETECTOR_PATH");
+  }
+  if(std::getenv("JUGGLER_DETECTOR")) {
+    detector_name = std::getenv("JUGGLER_DETECTOR");
+  }
+
+  dd4hep::Detector& detector = dd4hep::Detector::getInstance();
+  detector.fromCompact(fmt::format("{}/{}.xml", detector_path,detector_name));
+  //dd4hep::rec::CellIDPositionConverter cellid_converter(detector);
+
+  auto decoder = detector.readout("EcalBarrelHits").idSpec().decoder();
+  fmt::print("{}\n", decoder->fieldDescription());
+  auto layer_index = decoder->index("layer");
+  fmt::print(" layer index is {}.\n", layer_index);
+
+
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
@@ -65,8 +93,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     if (input[2].pdgID == 11)// Electron
     { 
       for (const auto& i: evt)
-        if (count > 0) break;
         total_edep += i.energyDeposit;
+        //if (total_edep > 0) {break;}
         count++;
     }
     result.push_back(total_edep);
@@ -81,13 +109,25 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     if (input[2].pdgID == -211)// Negative pion
     { 
       for (const auto& i: evt)
-        if (count > 0) break;
         total_edep += i.energyDeposit;
+         //if (total_edep > 0) {break;}
         count++;
     }
     result.push_back(total_edep);
   return result;
   };
+
+  auto Esim_front = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+    auto total_edep = 0.0;
+    for (const auto& i: evt) {
+      fmt::print("cell id {}, layer {}\n",i.cellID, decoder->get(i.cellID, layer_index));
+      if( decoder->get(i.cellID, layer_index) < 4 ){
+        total_edep += i.energyDeposit;
+      }
+    }
+    return total_edep;
+  };
+
 
   // Sampling fraction = Esampling / Ethrown
   auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
@@ -111,6 +151,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     return input[2].daughters_begin;
   };
 
+  auto is_electron = [](std::vector<dd4pod::Geant4ParticleData> const& input){
+    if (input[2].pdgID == 11){return true;}
+    else {return false;}
+  };
+
   // Define variables
   auto d1 = d0.Define("Ethr",   Ethr,       {"mcparticles"})
               .Define("nhits",  nhits,      {"EcalBarrelHits"})
@@ -120,7 +165,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
               .Define("dau",    getdau,     {"mcparticles"})
               .Define("Esim_ele", Esim_ele, {"EcalBarrelHits", "mcparticles"})
               .Define("Esim_pi", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
+              .Define("Esim_ele_red", Esim_ele, {"EcalBarrelHits", "mcparticles"})
+              .Define("Esim_pi_red", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
+              .Define("Esim_front", Esim_front, {"EcalBarrelHits", "mcparticles"})
               ;
+
+  auto d2 = d1.Filter(is_electron, {"mcparticles"});
 
   // Define Histograms
   auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");
@@ -130,8 +180,24 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
-  auto hEsim_ele  = d1.Histo1D({"hEsim_ele",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      100,  1e-6,    1.0}, "Esim_ele");
-  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",           100,  1e-6,    1.0}, "Esim_pi");
+  auto hEsim_ele  = d1.Histo1D({"hEsim_ele",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      10,  1e-6,    0.5}, "Esim_ele");
+  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",           10,  1e-6,    0.5}, "Esim_pi");
+
+  TH1D* sumHEsim = (TH1D *)hEsim_ele -> Clone();
+  TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
+  sumHEsim -> Add(hEsim_pi.GetPtr(), 1);
+  hElePurity_initial -> Divide(sumHEsim);
+
+
+  auto hEsim_ele_red  = d1.Histo1D({"hEsim_ele_red",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      10,  1e-6,    0.5}, "Esim_ele_red");
+  auto hEsim_pi_red   = d1.Histo1D({"hEsim_pi_red",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",           10,  1e-6,    0.5}, "Esim_pi_red");
+
+  TH1D* sumHEsim_red = (TH1D *)hEsim_ele_red -> Clone();
+  TH1D* hElePurity_final = (TH1D *)hEsim_ele_red -> Clone();
+  sumHEsim_red -> Add(hEsim_pi_red.GetPtr());
+  hElePurity_final -> Divide(sumHEsim_red);
+  hElePurity_final -> Scale(0.5);
+
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -191,6 +257,18 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hpid->DrawClone();
   c6->SaveAs("results/emcal_barrel_pions_electrons_pid.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_pid.pdf");
+
+  TCanvas *c7 = new TCanvas("c7", "c7", 700, 500);
+  //c7->SetLogy(1);
+  hElePurity_initial->GetYaxis()->SetTitleOffset(1.4);
+  hElePurity_initial->SetLineWidth(2);
+  hElePurity_initial->SetLineColor(kBlue);
+  hElePurity_initial->DrawClone();
+  hElePurity_final->SetLineWidth(2);
+  hElePurity_final->SetLineColor(kRed);
+  hElePurity_final->DrawClone("SAME");
+  c7->SaveAs("results/emcal_barrel_pions_electrons_purity.png");
+  c7->SaveAs("results/emcal_barrel_pions_electrons_purity.pdf");
 
 
 }

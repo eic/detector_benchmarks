@@ -18,12 +18,12 @@
 using namespace HepMC3;
 
 void emcal_barrel_pions_electrons(int n_events = 1e6, double e_start = 0.0, double e_end = 30.0, const char* out_fname = "./data/emcal_barrel_pions_electrons.hepmc") {
-	/*
+	
 	n_events = 1000; 
 	e_start = 5;
-	e_end = 18; 
+	e_end = 5; 
 	out_fname = "temp_pions_electrons.hepmc";
-	*/
+	
   WriterAscii hepmc_output(out_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);

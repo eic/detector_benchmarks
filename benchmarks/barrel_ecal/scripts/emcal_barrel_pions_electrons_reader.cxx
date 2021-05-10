@@ -14,7 +14,7 @@
 
 using namespace HepMC3;
 
-void emcal_barrel_pions_electrons_reader(double e_start = 0.0, double e_end = 30.0, const char* in_fname = "./data/emcal_barrel_pions_electrons.hepmc") {
+void emcal_barrel_pions_electrons_reader(double e_start = 0.0, double e_end = 30.0, const char* in_fname = "./data/emcal_barrel_uniform_pions_electrons.hepmc") {
   // Setting for graphs
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1);

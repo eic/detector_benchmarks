@@ -228,7 +228,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hEsim_ele->DrawClone();
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.png");
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
-
+/*
   TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
   c5->SetLogy(1);
   hEsim_pi->GetYaxis()->SetTitleOffset(1.4);
@@ -237,7 +237,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hEsim_pi->DrawClone();
   c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.png");
   c5->SaveAs("results/emcal_barrel_pions_electrons_Esim_pi.pdf");
-
+*/
   TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
   c6->SetLogy(1);
   hpid->GetYaxis()->SetTitleOffset(1.4);

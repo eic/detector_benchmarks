@@ -172,28 +172,20 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   // Define Histograms
   auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");
   auto hNhits = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100,  0.0, 2000.0}, "nhits");
-  auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim");
+  auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim");
   auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
-  auto hEsim_ele  = d1.Histo1D({"hEsim_ele",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      10,  1e-6,    0.5}, "Esim_ele");
-  auto hEsim_pi   = d1.Histo1D({"hEsim_pi",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",           10,  1e-6,    0.5}, "Esim_pi");
+  auto hEsim_ele        = d2.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim");
+  auto hEsim_ele_front  = d2.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim_front");
+  auto hEsim_front      = d1.Histo1D({"hEsim_front",      "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim_front");
 
-  TH1D* sumHEsim = (TH1D *)hEsim_ele -> Clone();
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
-  sumHEsim -> Add(hEsim_pi.GetPtr(), 1);
-  hElePurity_initial -> Divide(sumHEsim);
+  hElePurity_initial -> Divide(hEsim.GetPtr());
 
-
-  auto hEsim_ele_red  = d1.Histo1D({"hEsim_ele_red",  "Energy Deposit Electron; Energy Deposit [GeV]; Events",      10,  1e-6,    0.5}, "Esim_ele_red");
-  auto hEsim_pi_red   = d1.Histo1D({"hEsim_pi_red",   "Energy Deposit Pi-; Energy Deposit [GeV]; Events",           10,  1e-6,    0.5}, "Esim_pi_red");
-
-  TH1D* sumHEsim_red = (TH1D *)hEsim_ele_red -> Clone();
-  TH1D* hElePurity_final = (TH1D *)hEsim_ele_red -> Clone();
-  sumHEsim_red -> Add(hEsim_pi_red.GetPtr());
-  hElePurity_final -> Divide(sumHEsim_red);
-  hElePurity_final -> Scale(0.5);
+  TH1D* hElePurity_final = (TH1D *)hEsim_ele_front -> Clone();
+  hElePurity_initial -> Divide(hEsim_front.GetPtr());
 
 
   // Event Counts

@@ -29,7 +29,7 @@ using namespace ROOT::VecOps;
 
 void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_uniform_pions_electrons.root")
 {
-  input_fname = "temp_pions_electrons.root";
+  //input_fname = "temp_pions_electrons.root";
   // Setting for graphs
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1);

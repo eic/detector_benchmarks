@@ -16,13 +16,13 @@
 #include "TF1.h"
 #include "TH1D.h"
 #include "TFitResult.h"
-
+/*
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
 #include "DD4hep/Detector.h"
 #include "DDG4/Geant4Data.h"
 #include "DDRec/CellIDPositionConverter.h"
-
+*/
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -43,7 +43,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
-
+/*
   //Using the detector layers 
   std::string detector_path = "";
   std::string detector_name = "topside";
@@ -62,7 +62,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   fmt::print("{}\n", decoder->fieldDescription());
   auto layer_index = decoder->index("layer");
   fmt::print(" layer index is {}.\n", layer_index);
-
+*/
 
 
   // Thrown Energy [GeV]
@@ -94,7 +94,6 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     { 
       for (const auto& i: evt)
         total_edep += i.energyDeposit;
-        //if (total_edep > 0) {break;}
         count++;
     }
     result.push_back(total_edep);
@@ -110,13 +109,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     { 
       for (const auto& i: evt)
         total_edep += i.energyDeposit;
-         //if (total_edep > 0) {break;}
         count++;
     }
     result.push_back(total_edep);
   return result;
   };
-
+/*
   auto Esim_front = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
@@ -127,7 +125,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
     }
     return total_edep;
   };
-
+*/
 
   // Sampling fraction = Esampling / Ethrown
   auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
@@ -167,7 +165,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
               .Define("Esim_pi", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
               .Define("Esim_ele_red", Esim_ele, {"EcalBarrelHits", "mcparticles"})
               .Define("Esim_pi_red", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
-              .Define("Esim_front", Esim_front, {"EcalBarrelHits", "mcparticles"})
+              //.Define("Esim_front", Esim_front, {"EcalBarrelHits"})
               ;
 
   auto d2 = d1.Filter(is_electron, {"mcparticles"});

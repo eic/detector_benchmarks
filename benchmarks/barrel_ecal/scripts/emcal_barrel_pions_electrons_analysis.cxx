@@ -144,15 +144,6 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto d_ele = d1.Filter(is_electron, {"mcparticles"});
   auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
 
-  auto both = d1.Count();
-  auto nele = d_ele.Count();
-  auto npi  = d_pim.Count();
-
-
-
-
-
-
 
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
@@ -163,8 +154,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.25}, "Esim");
   auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
-  auto hNhits2          = d_ele.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
-  
+
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
   hElePurity_initial -> Divide(hEsim.GetPtr());
@@ -172,11 +162,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   TH1D* hElePurity_final = (TH1D *)hEsim_ele_front -> Clone();
   hElePurity_final -> Divide(hEsim_front.GetPtr());
+  hElePurity_final -> SetTitle("Electron/Pion Rejection");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
-  std::cout << *both << " " << *nele << " " << *npi << std::endl;
 
   // Draw Histograms
   TCanvas *c1 = new TCanvas("c1", "c1", 700, 500);
@@ -207,16 +197,22 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
 
   TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
-  c4->SetLogy(1);
-  hNhits->GetYaxis()->SetTitleOffset(1.4);
-  hNhits->SetLineWidth(2);
-  hNhits->SetLineColor(kBlue);
-  hNhits->DrawClone();
-  hNhits2->SetLineWidth(2);
-  hNhits2->SetLineColor(kRed);
-  hNhits2->DrawClone("same");
-  c5->SaveAs("results/emcal_barrel_pions_electrons_nhits.png");
-  c5->SaveAs("results/emcal_barrel_pions_electrons_nhits.pdf");
+  //c5->SetLogy(1);
+  hElePurity_initial->GetYaxis()->SetTitleOffset(1.4);
+  hElePurity_initial->SetLineWidth(2);
+  hElePurity_initial->SetLineColor(kBlue);
+  hElePurity_initial->DrawClone();
+  c5->SaveAs("results/emcal_barrel_pions_electrons_rejection_initial.png");
+  c5->SaveAs("results/emcal_barrel_pions_electrons_rejection_initial.pdf");
+
+  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
+  //c6->SetLogy(1);
+  hElePurity_final->GetYaxis()->SetTitleOffset(1.4);
+  hElePurity_final->SetLineWidth(2);
+  hElePurity_final->SetLineColor(kBlue);
+  hElePurity_final->DrawClone();
+  c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.png");
+  c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.pdf");
 
   auto leg = new TLegend(0.7, 0.8, 0.8, 0.9);
   leg->AddEntry(hElePurity_initial, "Initial", "l");
@@ -232,8 +228,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_final->SetLineColor(kRed);
   hElePurity_final->DrawClone("SAME");
   leg->Draw("same");
-  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection.png");
-  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection.pdf");
+  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection_both.png");
+  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection_both.pdf");
 
 
 }

@@ -119,7 +119,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   };
 
   // Returns number of particle daughters
-  auto getdau = [](const std::vector<dd4pod::Geant4ParticleData> const& input){
+  auto getdau = [](std::vector<dd4pod::Geant4ParticleData> const& input){
     return input[2].daughters_begin;
   };
 

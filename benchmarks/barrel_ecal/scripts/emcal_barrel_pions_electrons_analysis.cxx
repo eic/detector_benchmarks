@@ -178,10 +178,21 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_final -> Divide(hEsim_front.GetPtr());
   hElePurity_final -> SetTitle("Electron/Pion Rejection");
 
-
   TH1D* hElePurity_pim = (TH1D *)hEsim_pim_front -> Clone();
   hElePurity_pim -> Divide(hEsim_front.GetPtr());
   hElePurity_pim -> SetTitle("Electron/Pion Rejection");
+
+  TH1D* hElePurity_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
+  hElePurity_rej -> Add(hEsim_pim_front_rej.GetPtr());
+  hElePurity_rej -> SetTitle("Electron/Pion Rejection");
+
+  TH1D* hElePurity_ele_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
+  hElePurity_ele_rej -> Divide(hElePurity_rej);
+  hElePurity_ele_rej -> SetTitle("Electron/Pion Rejection");
+
+  TH1D* hElePurity_pim_rej = (TH1D *)hEsim_pim_front_rej -> Clone();
+  hElePurity_pim_rej -> Divide(hElePurity_rej);
+  hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -230,6 +241,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_final->SetLineWidth(2);
   hElePurity_final->SetLineColor(kBlue);
   hElePurity_final->DrawClone();
+  hElePurity_ele_rej->SetLineWidth(2);
+  hElePurity_ele_rej->SetLineColor(kRed);
+  hElePurity_ele_rej->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.pdf");
 
@@ -237,27 +251,19 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   leg->AddEntry(hElePurity_initial, "Initial", "l");
   leg->AddEntry(hElePurity_final, "Final", "l");
 
-  TCanvas *c7 = new TCanvas("c7", "c7", 700, 500);
-  //c7->SetLogy(1);
-  hElePurity_initial->GetYaxis()->SetTitleOffset(1.4);
-  hElePurity_initial->SetLineWidth(2);
-  hElePurity_initial->SetLineColor(kBlue);
-  hElePurity_initial->DrawClone();
-  hElePurity_final->SetLineWidth(2);
-  hElePurity_final->SetLineColor(kRed);
-  hElePurity_final->DrawClone("SAME");
-  leg->Draw("same");
-  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection_both.png");
-  c7->SaveAs("results/emcal_barrel_pions_electrons_rejection_both.pdf");
-
   TCanvas *c8 = new TCanvas("c8", "c8", 700, 500);
   //c6->SetLogy(1);
   hElePurity_pim->GetYaxis()->SetTitleOffset(1.4);
   hElePurity_pim->SetLineWidth(2);
   hElePurity_pim->SetLineColor(kBlue);
   hElePurity_pim->DrawClone();
+  hElePurity_pim_rej->SetLineWidth(2);
+  hElePurity_pim_rej->SetLineColor(kRed);
+  hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
+
+
 
 
 

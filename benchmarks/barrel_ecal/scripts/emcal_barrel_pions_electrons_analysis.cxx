@@ -145,31 +145,28 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
               .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
               ;
 
+  // Particle Filters
   auto d_ele = d1.Filter(is_electron, {"mcparticles"});
   auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
-
-  string cutStr = "Esim_front > ";
-  cutStr += to_string(rejectCut);
-  auto d_ele_rej = d_ele.Filter(cutStr);
-  auto d_pim_rej = d_pim.Filter(cutStr);
-
-  auto ele = d_ele_rej.Count();
-  auto pim = d_pim_rej.Count();
-  std::cout << *ele << " " << *pim << std::endl;
+  
+  // Energy Deposit Filters
+  auto d_ele_rej = d_ele.Filter("Esim_front > " + to_string(rejectCut));
+  auto d_pim_rej = d_pim.Filter("Esim_front > " + to_string(rejectCut));
 
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
   auto hNhits      = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
-  auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           25,  0.0,   0.05}, "Esim");
+  auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           10,  0.0,   0.05}, "Esim");
   auto hfsam       = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,    0.1}, "fsam");
-  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front; Energy Deposit [GeV]; Events",               25,  0.0,   0.05}, "Esim_front");
+  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front; Energy Deposit [GeV]; Events",               10,  0.0,   0.05}, "Esim_front");
 
-  auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            25,  0.0,    0.05}, "Esim");
-  auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      25,  0.0,    0.05}, "Esim_front");
-  auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         25,  0.0,    0.05}, "Esim_front");
+  auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
+  auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
+  auto hEsim_ele        = d_pim.Histo1D({"hEsim_pim",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
+  auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
 
-  auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      25,  0.0,    0.05}, "Esim_front");
-  auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         25,  0.0,    0.05}, "Esim_front");
+  auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
+  auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
 
 
 
@@ -192,11 +189,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   TH1D* hElePurity_ele_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
   hElePurity_ele_rej -> Divide(hElePurity_rej);
-  hElePurity_ele_rej -> SetTitle("Electron/Pion Rejection");
+  hElePurity_ele_rej -> SetTitle("Electron/Pion Rejection : Electron");
 
   TH1D* hElePurity_pim_rej = (TH1D *)hEsim_pim_front_rej -> Clone();
   hElePurity_pim_rej -> Divide(hElePurity_rej);
-  hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection");
+  hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection : Pi Minus");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();

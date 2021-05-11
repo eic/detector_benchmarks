@@ -40,11 +40,10 @@ common:setup:
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        export JUGGLER_DETECTOR_VERSION="${CI_COMMIT_REF_NAME}"
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
-        echo "JUGGLER_DETECTOR_VERSION = ${CI_COMMIT_REF_NAME}"
-        echo "JUGGLER_DETECTOR_VERSION=$CI_COMMIT_REF_NAME" >> juggler.env
+        echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
+        echo "JUGGLER_DETECTOR_VERSION=$JUGGLER_DETECTOR_VERSION" >> juggler.env
       fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
 

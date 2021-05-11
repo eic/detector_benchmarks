@@ -147,12 +147,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
   auto hNhits      = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
-  auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           10,  0.0,    0.5}, "Esim");
+  auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           10,  0.0,    0.25}, "Esim");
   auto hfsam       = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,    0.1}, "fsam");
-  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim_front");
+  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
 
-  auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.5}, "Esim");
-  auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.5}, "Esim_front");
+  auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.25}, "Esim");
+  auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
   
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
@@ -194,7 +194,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.png");
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
 
-  auto leg = new TLegend(0.7, 0.7, 0.9, 0.9);
+  auto leg = new TLegend(0.7, 0.8, 0.8, 0.9);
   leg->AddEntry(hElePurity_initial, "Initial", "l");
   leg->AddEntry(hElePurity_final, "Final", "l");
 

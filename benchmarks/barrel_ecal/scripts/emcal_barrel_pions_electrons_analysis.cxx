@@ -144,6 +144,16 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto d_ele = d1.Filter(is_electron, {"mcparticles"});
   auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
 
+  auto both = d1.Count();
+  auto nele = d_ele.Count();
+  auto npi  = d_pim.Count();
+
+
+
+
+
+
+
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
   auto hNhits      = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
@@ -166,6 +176,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   // Event Counts
   auto nevents_thrown      = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
+  std::cout << *both << " " << *nele << " " << *npi << std::endl;
 
   // Draw Histograms
   TCanvas *c1 = new TCanvas("c1", "c1", 700, 500);

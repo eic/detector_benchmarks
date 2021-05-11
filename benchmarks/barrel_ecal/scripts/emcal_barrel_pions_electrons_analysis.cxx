@@ -153,6 +153,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto d_ele_rej = d_ele.Filter(cutStr);
   auto d_pim_rej = d_pim.Filter(cutStr);
 
+  auto ele = d_ele_rej.Count();
+  auto pim = d_pim_rej.Count();
+  std::cout << *ele << " " *pim << std::endl;
 
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");

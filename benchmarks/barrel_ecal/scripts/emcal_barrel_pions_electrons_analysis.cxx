@@ -68,7 +68,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   // Rejection Value [GeV] based upon Energy deposit in the first 4 layers.
   // Currently constructed from looking at tthe pion and electron Energy deposit plots
   // should eventually grab a value from a json file
-  double rejectCut = 0.025;
+  double rejectCut = 0.005;
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
@@ -178,11 +178,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_initial -> SetTitle("Electron/Pion Rejection");
 
   TH1D* hElePurity_ele = (TH1D *)hEsim_ele_front -> Clone();
-  //hElePurity_ele -> Divide(hEsim_front.GetPtr());
+  hElePurity_ele -> Divide(hEsim_front.GetPtr());
   hElePurity_ele -> SetTitle("Electron/Pion Rejection");
 
   TH1D* hElePurity_pim = (TH1D *)hEsim_pim_front -> Clone();
-  //hElePurity_pim -> Divide(hEsim_front.GetPtr());
+  hElePurity_pim -> Divide(hEsim_front.GetPtr());
   hElePurity_pim -> SetTitle("Electron/Pion Rejection");
 
   // Rejection
@@ -245,9 +245,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_ele->SetLineWidth(2);
   hElePurity_ele->SetLineColor(kBlue);
   hElePurity_ele->DrawClone();
-  //hElePurity_ele_rej->SetLineWidth(2);
-  //hElePurity_ele_rej->SetLineColor(kRed);
-  //hElePurity_ele_rej->DrawClone("Same");
+  hElePurity_ele_rej->SetLineWidth(2);
+  hElePurity_ele_rej->SetLineColor(kRed);
+  hElePurity_ele_rej->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.pdf");
 
@@ -261,9 +261,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim->SetLineWidth(2);
   hElePurity_pim->SetLineColor(kBlue);
   hElePurity_pim->DrawClone();
-  //hElePurity_pim_rej->SetLineWidth(2);
-  //hElePurity_pim_rej->SetLineColor(kRed);
-  //hElePurity_pim_rej->DrawClone("Same");
+  hElePurity_pim_rej->SetLineWidth(2);
+  hElePurity_pim_rej->SetLineColor(kRed);
+  hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
 

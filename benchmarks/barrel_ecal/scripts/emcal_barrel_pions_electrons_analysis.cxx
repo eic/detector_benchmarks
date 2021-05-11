@@ -246,7 +246,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_final->DrawClone();
   hElePurity_ele_rej->SetLineWidth(2);
   hElePurity_ele_rej->SetLineColor(kRed);
-  hElePurity_ele_rej->DrawClone("Same");
+  //hElePurity_ele_rej->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_final.pdf");
 
@@ -262,7 +262,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim->DrawClone();
   hElePurity_pim_rej->SetLineWidth(2);
   hElePurity_pim_rej->SetLineColor(kRed);
-  hElePurity_pim_rej->DrawClone("Same");
+  //hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
 

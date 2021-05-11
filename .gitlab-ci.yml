@@ -1,5 +1,13 @@
 image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "webide"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_TAG'
+
 default:
   artifacts:
     expire_in: 72 hours 
@@ -11,6 +19,9 @@ default:
       - .local/share
       - results
       - config
+      - juggler.env
+    reports:
+      dotenv: juggler.env
 
 stages:
   - config
@@ -20,20 +31,30 @@ stages:
   - benchmarks
   - collect
   - deploy
+  - trigger
 
 common:setup:
   stage: config
-  script:
+  before_script:
     - git clone https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+  script:
+    - |
+      if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
+        export JUGGLER_DETECTOR_VERSION="${CI_COMMIT_REF_NAME}"
+        echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
+        echo "JUGGLER_DETECTOR_VERSION = ${CI_COMMIT_REF_NAME}"
+        echo "JUGGLER_DETECTOR_VERSION=$CI_COMMIT_REF_NAME" >> juggler.env
+        echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
+      fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
+
 
 common:detector:
   stage: initialize
   needs: ["common:setup"]
   script:
     - source .local/bin/env.sh && build_detector.sh
-    - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}
-    - mkdir -p /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}/sim_output
+    - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
     - print_env.sh
@@ -58,7 +79,6 @@ get_data:
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
     - ls -lrtha
 
-
 include: 
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/roman_pots/config.yml'
@@ -73,6 +93,25 @@ deploy_results:
   script:
     - echo "deploy results!"
 
+benchmarks:reconstruction:
+  stage: trigger
+  variables:
+    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
+    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+  trigger:
+    project: EIC/benchmarks/reconstruction_benchmarks
+    strategy: depend
+  needs: ["deploy_results"]
+
+benchmarks:physics:
+  stage: trigger
+  variables:
+    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
+    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+  trigger:
+    project: EIC/benchmarks/physics_benchmarks
+    strategy: depend
+  needs: ["deploy_results"]
 
 pages:
   stage: deploy

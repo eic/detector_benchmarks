@@ -45,7 +45,6 @@ fi
 
 ls -ltRhL
 
-Run geant4 simulations
 npsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \

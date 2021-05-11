@@ -162,7 +162,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
   auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
-  auto hEsim_ele        = d_pim.Histo1D({"hEsim_pim",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
+  auto hEsim_pim        = d_pim.Histo1D({"hEsim_pim",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
   auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
 
   auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");

@@ -148,7 +148,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto d_ele = d1.Filter(is_electron, {"mcparticles"});
   auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
 
-  string cutStr = "Esim_front < ";
+  string cutStr = "Esim_front > ";
   cutStr += to_string(rejectCut);
   auto d_ele_rej = d_ele.Filter(cutStr);
   auto d_pim_rej = d_pim.Filter(cutStr);

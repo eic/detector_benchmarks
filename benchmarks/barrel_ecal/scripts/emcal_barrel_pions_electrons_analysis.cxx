@@ -149,10 +149,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto hNhits      = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
   auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           10,  0.0,    0.25}, "Esim");
   auto hfsam       = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,    0.1}, "fsam");
-  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
+  auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front; Energy Deposit [GeV]; Events",               10,  0.0,    0.25}, "Esim_front");
 
   auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.25}, "Esim");
   auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
+  auto hNhits2          = d_ele.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
   
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
@@ -193,6 +194,18 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hEsim_ele->DrawClone();
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.png");
   c4->SaveAs("results/emcal_barrel_pions_electrons_Esim_ele.pdf");
+
+  TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
+  c4->SetLogy(1);
+  hNhits->GetYaxis()->SetTitleOffset(1.4);
+  hNhits->SetLineWidth(2);
+  hNhits->SetLineColor(kBlue);
+  hNhits->DrawClone();
+  hNhits2->SetLineWidth(2);
+  hNhits2->SetLineColor(kRed);
+  hNhits2->DrawClone("same");
+  c5->SaveAs("results/emcal_barrel_pions_electrons_nhits.png");
+  c5->SaveAs("results/emcal_barrel_pions_electrons_nhits.pdf");
 
   auto leg = new TLegend(0.7, 0.8, 0.8, 0.9);
   leg->AddEntry(hElePurity_initial, "Initial", "l");

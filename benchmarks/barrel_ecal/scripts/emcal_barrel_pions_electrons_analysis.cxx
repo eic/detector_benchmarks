@@ -132,16 +132,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr",   Ethr,       {"mcparticles"})
-              .Define("nhits",  nhits,      {"EcalBarrelHits"})
-              .Define("Esim",   Esim,       {"EcalBarrelHits"})
-              .Define("fsam",   fsam,       {"Esim","Ethr"})
-              .Define("pid",    getpid,     {"mcparticles"})
-              .Define("dau",    getdau,     {"mcparticles"})
-              .Define("Esim_ele", Esim_ele, {"EcalBarrelHits", "mcparticles"})
-              .Define("Esim_pi", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
-              .Define("Esim_ele_red", Esim_ele, {"EcalBarrelHits", "mcparticles"})
-              .Define("Esim_pi_red", Esim_pi,   {"EcalBarrelHits", "mcparticles"})
+  auto d1 = d0.Define("Ethr",       Ethr,       {"mcparticles"})
+              .Define("nhits",      nhits,      {"EcalBarrelHits"})
+              .Define("Esim",       Esim,       {"EcalBarrelHits"})
+              .Define("fsam",       fsam,       {"Esim","Ethr"})
+              .Define("pid",        getpid,     {"mcparticles"})
+              .Define("dau",        getdau,     {"mcparticles"})
               .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
               ;
 
@@ -161,12 +157,10 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
   hElePurity_initial -> Divide(hEsim.GetPtr());
-
-  TH1D* hElePurity_final = (TH1D *)hEsim_ele_front -> Clone();
-  hElePurity_initial -> Divide(hEsim_front.GetPtr());
-
   hElePurity_initial -> SetTitle("Electron/Pion Rejection");
 
+  TH1D* hElePurity_final = (TH1D *)hEsim_ele_front -> Clone();
+  hElePurity_final -> Divide(hEsim_front.GetPtr());
 
   // Event Counts
   auto nevents_thrown      = d1.Count();

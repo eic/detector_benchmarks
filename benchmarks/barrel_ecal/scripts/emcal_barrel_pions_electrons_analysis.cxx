@@ -176,11 +176,11 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   TH1D* hElePurity_ele = (TH1D *)hEsim_ele_front -> Clone();
   hElePurity_ele -> Divide(hEsim_front.GetPtr());
-  hElePurity_ele -> SetTitle("Electron/Pion Rejection");
+  hElePurity_ele -> SetTitle("Electron/Pion Rejection : Electron");
 
   TH1D* hElePurity_pim = (TH1D *)hEsim_pim_front -> Clone();
   hElePurity_pim -> Divide(hEsim_front.GetPtr());
-  hElePurity_pim -> SetTitle("Electron/Pion Rejection");
+  hElePurity_pim -> SetTitle("Electron/Pion Rejection : Pion Minus");
 
   // Rejection
   TH1D* hElePurity_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
@@ -244,6 +244,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_ele->DrawClone();
   hElePurity_ele_rej->SetLineWidth(2);
   hElePurity_ele_rej->SetLineColor(kRed);
+  hElePurity_ele_rej->SetLineStyle(10);
   hElePurity_ele_rej->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.pdf");
@@ -260,6 +261,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim->DrawClone();
   hElePurity_pim_rej->SetLineWidth(2);
   hElePurity_pim_rej->SetLineColor(kRed);
+  hElePurity_pim_rej->SetLineStyle(10);
   hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");

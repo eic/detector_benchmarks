@@ -17,6 +17,7 @@
 #include "TH1D.h"
 #include "TFitResult.h"
 #include "TLegend.h"
+#include "TString.h"
 
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
@@ -64,7 +65,10 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto layer_index = decoder->index("layer");
   fmt::print(" layer index is {}.\n", layer_index);
 
-
+  // Rejection Value [GeV] based upon Energy deposit in the first 4 layers.
+  // Currently constructed from looking at tthe pion and electron Energy deposit plots
+  // should eventually grab a value from a json file
+  double rejectCut = 0.025;
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
@@ -115,7 +119,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   };
 
   // Returns number of particle daughters
-  auto getdau = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+  auto getdau = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
     return input[2].daughters_begin;
   };
 
@@ -144,6 +148,9 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto d_ele = d1.Filter(is_electron, {"mcparticles"});
   auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
 
+  auto d_ele_rej = d_ele.Filter(TString::Form("Esim_front < %f", rejectCut));
+  auto d_pim_rej = d_pim.Filter(TString::Form("Esim_front < %f", rejectCut));
+
 
   // Define Histograms
   auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
@@ -154,7 +161,10 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.25}, "Esim");
   auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
-  auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
+  auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.25}, "Esim_front");
+
+  auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.25}, "Esim_front");
+  auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.25}, "Esim_front");
 
 
 
@@ -246,6 +256,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim->DrawClone();
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
+
+
 
 
 }

@@ -195,6 +195,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim_rej -> Divide(hElePurity_rej);
   hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection : Pi Minus");
 
+  auto th1 = hElePurity_ele_rej->GetCumulative();
+
   // Event Counts
   auto nevents_thrown      = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
@@ -242,10 +244,15 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_ele->SetLineWidth(2);
   hElePurity_ele->SetLineColor(kBlue);
   hElePurity_ele->DrawClone();
-  hElePurity_ele_rej->SetLineWidth(2);
+  /*hElePurity_ele_rej->SetLineWidth(2);
   hElePurity_ele_rej->SetLineColor(kRed);
   hElePurity_ele_rej->SetLineStyle(10);
   hElePurity_ele_rej->DrawClone("Same");
+*/
+  th1->SetLineWidth(2);
+  th1->SetLineColor(kRed);
+  th1->SetLineStyle(10);
+  th1->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.pdf");
 

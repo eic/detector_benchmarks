@@ -31,7 +31,6 @@ using namespace ROOT::VecOps;
 
 void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_uniform_pions_electrons.root")
 {
-  //input_fname = "temp_pions_electrons.root";
   // Setting for graphs
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1);
@@ -169,7 +168,6 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
 
 
-
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
   hElePurity_initial -> Divide(hEsim.GetPtr());
   hElePurity_initial -> SetTitle("Electron/Pion Rejection");
@@ -194,8 +192,6 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   TH1D* hElePurity_pim_rej = (TH1D *)hEsim_pim_front_rej -> Clone();
   hElePurity_pim_rej -> Divide(hElePurity_rej);
   hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection : Pi Minus");
-
-  auto th1 = hElePurity_ele_rej->GetCumulative();
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -244,15 +240,10 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_ele->SetLineWidth(2);
   hElePurity_ele->SetLineColor(kBlue);
   hElePurity_ele->DrawClone();
-  /*hElePurity_ele_rej->SetLineWidth(2);
+  hElePurity_ele_rej->SetLineWidth(2);
   hElePurity_ele_rej->SetLineColor(kRed);
   hElePurity_ele_rej->SetLineStyle(10);
   hElePurity_ele_rej->DrawClone("Same");
-*/
-  th1->SetLineWidth(2);
-  th1->SetLineColor(kRed);
-  th1->SetLineStyle(10);
-  th1->DrawClone("Same");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.png");
   c6->SaveAs("results/emcal_barrel_pions_electrons_rejection_ele.pdf");
 
@@ -272,10 +263,5 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
-
-
-
-
-
 
 }

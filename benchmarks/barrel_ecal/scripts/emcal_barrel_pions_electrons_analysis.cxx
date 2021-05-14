@@ -272,7 +272,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   //c6->SetLogy(1);
   hEpvp->GetYaxis()->SetTitleOffset(1.4);
   hEpvp->DrawClone("COLZ");
-  c8->SaveAs("results/emcal_barrel_pions_electrons_Epvp.png");
-  c8->SaveAs("results/emcal_barrel_pions_electrons_Epvp.pdf");
+  c9->SaveAs("results/emcal_barrel_pions_electrons_Epvp.png");
+  c9->SaveAs("results/emcal_barrel_pions_electrons_Epvp.pdf");
 
 }

@@ -76,17 +76,20 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   return result;
   };
 
+  // Thrown Momentum [GeV]
+  auto Pthr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz);
+  };
+
   // Number of hits
   auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
 
   // Energy deposition [GeV]
   auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
-    std::vector<double> result;
     auto total_edep = 0.0;
     for (const auto& i: evt)
       total_edep += i.energyDeposit;
-    result.push_back(total_edep);
-  return result;
+  return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 4 layers
@@ -102,14 +105,13 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   };
 
   // Sampling fraction = Esampling / Ethrown
-  auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / *it_thr);
-    }
-    return result;
+  auto fsam = [](const double& sampled, const double& thrown) {
+    return sampled / thrown;
+  };
+
+  // E_front / p
+  auto fEp = [](const double& E_front, const double& mom) {
+    return E_front / mom;
   };
 
   // Returns the pdgID of the particle
@@ -136,12 +138,14 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   // Define variables
   auto d1 = d0.Define("Ethr",       Ethr,       {"mcparticles"})
+              .Define("Pthr",       Pthr,       {"mcparticles"})
               .Define("nhits",      nhits,      {"EcalBarrelHits"})
               .Define("Esim",       Esim,       {"EcalBarrelHits"})
               .Define("fsam",       fsam,       {"Esim","Ethr"})
               .Define("pid",        getpid,     {"mcparticles"})
               .Define("dau",        getdau,     {"mcparticles"})
               .Define("Esim_front", Esim_front, {"EcalBarrelHits"})
+              .Define("EOverP",     fEp,        {"Esim_front", "Pthr"})
               ;
 
   // Particle Filters
@@ -166,6 +170,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
   auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
+
+  auto hEpvp = d_ele.Histo2D({"hEpvp", "Energy Deposit Front/P vs P; E/P, P [GeV]", 10, 0.0, 0.01, 10, 0.0, 5.0}, "Esim_front", "Pthr");
 
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
@@ -263,5 +269,12 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
   hElePurity_pim_rej->DrawClone("Same");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.png");
   c8->SaveAs("results/emcal_barrel_pions_electrons_rejection_pim.pdf");
+
+  TCanvas *c9 = new TCanvas("c9", "c9", 700, 500);
+  //c6->SetLogy(1);
+  hEpvp->GetYaxis()->SetTitleOffset(1.4);
+  hEpvp->DrawClone("COLZ");
+  c8->SaveAs("results/emcal_barrel_pions_electrons_Epvp.png");
+  c8->SaveAs("results/emcal_barrel_pions_electrons_Epvp.pdf");
 
 }

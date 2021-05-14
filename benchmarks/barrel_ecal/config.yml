@@ -4,6 +4,12 @@ sim:emcal_barrel_pions:
   script:
     - bash benchmarks/barrel_ecal/run_emcal_barrel_pions.sh
 
+sim:emcal_barrel_pi0:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_pi0.sh
+
 sim:emcal_barrel_electrons:
   extends: .det_benchmark
   stage: simulate
@@ -25,6 +31,14 @@ bench:emcal_barrel_pions:
     - ["sim:emcal_barrel_pions"]
   script:
     - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
+
+bench:emcal_barrel_pi0:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_pi0"]
+  script:
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pi0_analysis.cxx+
 
 bench:emcal_barrel_electrons:
   extends: .det_benchmark
@@ -52,7 +66,7 @@ collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons"]
+    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons", "bench:emcal_barrel_pions", "bench:emcal_barrel_pi0"]
   script:
     - ls -lrht
     - echo " FIX ME" 

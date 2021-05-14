@@ -71,9 +71,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname = "sim_output
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    std::vector<double> result;
-    result.push_back(TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass));
-  return result;
+    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass);
   };
 
   // Thrown Momentum [GeV]

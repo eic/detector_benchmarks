@@ -56,15 +56,13 @@ void emcal_barrel_pions(int n_events = 1e6, double e_start = 0.0, double e_end =
     // type 1 is final state
     // pdgid 211 - pion+ 139.570 MeV/c^2
     // pdgid 111 - pion0 134.977 MeV/c^2
-    //GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.139570 * 0.139570))), 211, 1);
-    GenParticlePtr p4 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.134977 * 0.134977))), 111, 1);
+    GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.139570 * 0.139570))), 211, 1);
 
     GenVertexPtr v1 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);
     v1->add_particle_in(p2);
 
-    //v1->add_particle_out(p3);
-    v1->add_particle_out(p4);
+    v1->add_particle_out(p3);
     evt.add_vertex(v1);
 
     if (events_parsed == 0) {

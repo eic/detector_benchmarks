@@ -61,7 +61,6 @@ void emcal_barrel_pions(int n_events = 1e6, double e_start = 0.0, double e_end =
     GenVertexPtr v1 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);
     v1->add_particle_in(p2);
-
     v1->add_particle_out(p3);
     evt.add_vertex(v1);
 

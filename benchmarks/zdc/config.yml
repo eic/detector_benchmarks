@@ -2,16 +2,7 @@ sim:zdc:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/zdc/run_simulation_zdc.sh
-
-zdc_neutrons:
-  extends: .det_benchmark
-  stage: benchmarks
-  needs: 
-    - ["sim:zdc"]
-  script:
-    - echo " Not yet complete"
-      #- root -b -q benchmarks/zdc/zdc_neutrons_reader.cxx
+    - bash benchmarks/zdc/run_zdc_neutrons.sh
 
 bench:zdc_benchmark:
   extends: .det_benchmark
@@ -19,21 +10,12 @@ bench:zdc_benchmark:
   needs: 
     - ["sim:zdc"]
   script:
-    - echo " Not yet complete"
-    #- root -b -q benchmarks/zdc/simple_checking.cxx+
-
-bench:zdc_benchmark_info_histogram:
-  extends: .det_benchmark
-  stage: benchmarks
-  needs: 
-    - ["sim:zdc"]
-  script:
-    - root -b -q benchmarks/zdc/simple_info_plot_histograms.cxx+
+    - root -b -q benchmarks/zdc/scripts/zdc_neutrons_analysis.cxx+
 
 collect_results:zdc:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:zdc_benchmark","bench:zdc_benchmark_info_histogram"]
+    - ["bench:zdc_benchmark"]
   script:
     - ls -lrht

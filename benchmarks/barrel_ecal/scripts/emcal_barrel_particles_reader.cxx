@@ -20,6 +20,8 @@
 #include <iostream>
 #include <fmt/core.h>
 
+#include "emcal_barrel_common_functions.h"
+
 using namespace HepMC3;
 
 void save_canvas(TCanvas* c, std::string label)
@@ -32,16 +34,6 @@ void save_canvas(TCanvas* c, std::string label, std::string particle_label)
 {
   std::string label_with_E = fmt::format("input_emcal_barrel_{}_{}", particle_label, label); 
   save_canvas(c, label_with_E);
-}
-
-std::tuple <int, double> extract_particle_parameters(std::string particle_name) {
-    if (particle_name == "electron") return std::make_tuple(11, 0.51099895e-3);
-    if (particle_name == "photon") return std::make_tuple(22, 0.0);
-    if (particle_name == "positron") return std::make_tuple(-11, 0.51099895e-3);
-    if (particle_name == "proton") return std::make_tuple(2212, 0.938272);
-
-    std::cout << "wrong particle name" << std::endl;
-    abort();
 }
 
 void emcal_barrel_particles_reader(std::string particle_name = "electron") {

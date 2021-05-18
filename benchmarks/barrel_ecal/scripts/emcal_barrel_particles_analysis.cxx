@@ -17,6 +17,8 @@
 #include "TF1.h"
 #include "TH1D.h"
 
+#include "emcal_barrel_common_functions.h"
+
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 

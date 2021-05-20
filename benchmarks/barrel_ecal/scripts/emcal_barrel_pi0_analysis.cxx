@@ -24,7 +24,7 @@
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_uniform_pi0.root")
+void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_pi0.root")
 {
   // Setting for graphs
   gROOT->SetStyle("Plain");

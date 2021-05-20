@@ -24,7 +24,7 @@
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_uniform_pions.root")
+void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_piplus.root")
 {
   // Setting for graphs
   gROOT->SetStyle("Plain");
@@ -36,26 +36,6 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   gStyle->SetPadGridY(1);
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
-
-  //Tests
-  std::string test_tag = "Barrel_emcal_pi0";
-  //TODO: Change test_tag to something else
-  std:string detector = "Barrel_emcal";
-  // Energy resolution in the barrel region(-1 < eta < 1)
-  // Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky
-  // sigma_E / E = 12% / E^0.5 convoluted with 2%
-  // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
-  double thrown_energy = 5; // Current thrown energy, will need to grab from json file
-  double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / thrown_energy + 0.02 * 0.02);
-
-  eic::util::Test pi0_energy_resolution{
-      {{"name", fmt::format("{}_energy_resolution", test_tag)},
-       {"title", "Pion0 Energy resolution"},
-       {"description",
-        fmt::format("Pion0 energy resolution with {}, estimated using a Gaussian fit.", detector)},
-       {"quantity", "resolution (in %)"},
-       {"target", std::to_string(resolutionTarget)}}};
-
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
@@ -132,7 +112,6 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
               .Define("Esim",   Esim,       {"EcalBarrelHits"})
               .Define("fsam",   fsam,       {"Esim","Ethr"})
               .Define("pid",    getpid,     {"mcparticles"})
-              .Define("dau",    getdau,     {"mcparticles"})
               ;
 
   // Define Histograms
@@ -141,14 +120,6 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim");
   auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
-  auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
-
-  // Set sampling Fraction, ideally this will be taken from a json file 
-  samp_frac = hfsam -> GetMean();
-
-  auto d2 = d1.Define("dE",     eResol,     {"Esim","Ethr"})
-              .Define("dE_rel", eResol_rel, {"Esim","Ethr"})
-              ;
 
   // Event Counts
   auto nevents_thrown      = d1.Count();
@@ -187,9 +158,6 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   hfsam->GetYaxis()->SetTitleOffset(1.4);
   hfsam->SetLineWidth(2);
   hfsam->SetLineColor(kBlue);
-  hfsam->Fit("gaus","","",0.005,0.1);
-  hfsam->GetFunction("gaus")->SetLineWidth(2);
-  hfsam->GetFunction("gaus")->SetLineColor(kRed);
   hfsam->DrawClone();
   c4->SaveAs("results/emcal_barrel_pions_fsam.png");
   c4->SaveAs("results/emcal_barrel_pions_fsam.pdf");
@@ -202,52 +170,5 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   hpid->DrawClone();
   c5->SaveAs("results/emcal_barrel_pions_pid.png");
   c5->SaveAs("results/emcal_barrel_pions_pid.pdf");
-
-  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
-  c5->SetLogy(1);
-  hdau->GetYaxis()->SetTitleOffset(1.4);
-  hdau->SetLineWidth(2);
-  hdau->SetLineColor(kBlue);
-  hdau->DrawClone();
-  c6->SaveAs("results/emcal_barrel_pions_dau.png");
-  c6->SaveAs("results/emcal_barrel_pions_dau.pdf");
-
-  //Energy Resolution Calculation
-  auto hdE          = d2.Histo1D({"hdE",      "dE; dE[GeV]; Events",              100, -3.0, 3.0}, "dE");
-  auto hdE_rel      = d2.Histo1D({"hdE_rel",  "dE Relative; dE Relative; Events", 100, -3.0, 3.0}, "dE_rel");
-  hdE->Fit("gaus", "", "", -3.0,  3.0);
-  double* res       = hdE->GetFunction("gaus")->GetParameters();
-  double sigmaOverE = res[2] / thrown_energy;
-
-  //Pass/Fail
-  if (sigmaOverE <= resolutionTarget) {
-    pi0_energy_resolution.pass(sigmaOverE);
-  } else {
-    pi0_energy_resolution.fail(sigmaOverE);
-  }
-  //std::printf("Energy Resolution is %f\n", res[2]);
-
-  //Energy Resolution Histogram Plotting
-  auto *cdE = new TCanvas("cdE", "cdE", 700, 500);
-  cdE->SetLogy(1);
-  hdE->GetYaxis()->SetTitleOffset(1.4);
-  hdE->SetLineWidth(2);
-  hdE->SetLineColor(kBlue);
-  hdE->GetFunction("gaus")->SetLineWidth(2);
-  hdE->GetFunction("gaus")->SetLineColor(kRed);
-  hdE->DrawClone();
-  cdE->SaveAs("results/emcal_barrel_pi0_dE.png");
-  cdE->SaveAs("results/emcal_barrel_pi0_dE.pdf");
-
-  auto *cdE_rel = new TCanvas("cdE_rel", "cdE_rel", 700, 500);
-  hdE_rel->GetYaxis()->SetTitleOffset(1.4);
-  hdE_rel->SetLineWidth(2);
-  hdE_rel->SetLineColor(kBlue);
-  hdE_rel->DrawClone();
-  cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
-  cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
-
-  eic::util::write_test({pi0_energy_resolution}, fmt::format("{}_pions.json", detector));
-
 
 }

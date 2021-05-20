@@ -2,13 +2,14 @@ sim:emcal_barrel_pions:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_pions.sh
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piplus
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
 
 sim:emcal_barrel_pi0:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_pi0.sh
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh pi0
 
 sim:emcal_barrel_electrons:
   extends: .det_benchmark

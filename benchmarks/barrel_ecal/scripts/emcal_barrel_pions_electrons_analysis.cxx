@@ -170,8 +170,8 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname1 = "sim_outpu
   auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
   auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
 
-  auto hEpvp_ele = d_ele.Histo2D({"hEpvp_ele", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 10, 1.0, 7.0}, "EOverP", "Pthr");
-  auto hEpvp_pim = d_pim.Histo2D({"hEpvp_pim", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 10, 1.0, 7.0}, "EOverP", "Pthr");
+  auto hEpvp_ele = d_ele.Histo2D({"hEpvp_ele", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 20, 1.0, 7.0}, "EOverP", "Pthr");
+  auto hEpvp_pim = d_pim.Histo2D({"hEpvp_pim", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 20, 1.0, 7.0}, "EOverP", "Pthr");
 
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();

@@ -25,6 +25,14 @@ sim:emcal_barrel_photons:
     - bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh photon
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh photon
 
+sim:emcal_barrel_pions_electrons:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    #- bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
+
 bench:emcal_barrel_pions:
   extends: .det_benchmark
   stage: benchmarks
@@ -63,11 +71,22 @@ bench:emcal_barrel_photons:
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon")'
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")'
 
+bench:emcal_barrel_pions_electrons:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_pions_electrons"]
+  script:
+    - ls -lhtR sim_output/
+    - rootls -t sim_output/sim_emcal_barrel_piminus.root
+    - rootls -t sim_output/sim_emcal_barrel_uniform_electrons.root
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_electrons_analysis.cxx+
+
 collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons", "bench:emcal_barrel_pions", "bench:emcal_barrel_pi0"]
+    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons", "bench:emcal_barrel_pions", "bench:emcal_barrel_pi0", "bench:emcal_barrel_pions_electrons"]
   script:
     - ls -lrht
     - echo " FIX ME" 

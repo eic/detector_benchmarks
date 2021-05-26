@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
-  export JUGGLER_DETECTOR="reference_detector"
+  export JUGGLER_DETECTOR="topside"
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 

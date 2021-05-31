@@ -1,7 +1,7 @@
 EIC Detector Benchmarks
 =======================
 
-[![pipeline status](https://eicweb.phy.anl.gov/jihee.kim/benchmarks/badges/master/pipeline.svg)](https://eicweb.phy.anl.gov/jihee.kim/benchmarks/-/commits/master)
+[![pipeline status](https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/badges/master/pipeline.svg)](https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/commits/master)
 
 ## Overview
 

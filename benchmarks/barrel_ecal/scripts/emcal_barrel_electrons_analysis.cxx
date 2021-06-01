@@ -16,11 +16,15 @@
 #include "TF1.h"
 #include "TH1D.h"
 
+#include "emcal_barrel_common_functions.h"
+#include <cctype>
+
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
 void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_uniform_electrons.root")
 {
+  input_fname = "temp_pions_electrons.root";
   // Setting for graphs
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1);
@@ -34,6 +38,16 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/sim_e
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
+
+  // Environment Variables
+  std::string detector_path = "";
+  std::string detector_name = "topside";
+  if(std::getenv("DETECTOR_PATH")) {
+    detector_path = std::getenv("DETECTOR_PATH");
+  }
+  if(std::getenv("JUGGLER_DETECTOR")) {
+    detector_name = std::getenv("JUGGLER_DETECTOR");
+  }
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
@@ -78,6 +92,10 @@ void emcal_barrel_electrons_analysis(const char* input_fname = "sim_output/sim_e
   auto hfsam = d1.Histo1D(
       {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 100, 0.0, 0.1},
       "fsam");
+
+  addDetectorName(detector_name, hEthr.GetPtr());
+  addDetectorName(detector_name, hEsim.GetPtr());
+  addDetectorName(detector_name, hfsam.GetPtr());
 
   // Event Counts
   auto nevents_thrown = d1.Count();

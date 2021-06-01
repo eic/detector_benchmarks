@@ -3,6 +3,10 @@
 // M. Scott 05/2021
 //////////////////////////
 
+#include <cctype>
+#include "TH1.h"
+
+// Returns particle pdgID and mass in [GeV]
 std::tuple <int, double> extract_particle_parameters(std::string particle_name) {
     if (particle_name == "electron") return std::make_tuple(11,    0.51099895e-3);
     if (particle_name == "photon")   return std::make_tuple(22,    0.0);
@@ -15,4 +19,18 @@ std::tuple <int, double> extract_particle_parameters(std::string particle_name) 
 
     std::cout << "wrong particle name" << std::endl;
     abort();
+}
+
+// Returns Environment Variables
+std::string getEnvVar( std::string const & key ){
+    char * val = getenv( key.c_str() );
+    return val == NULL ? std::string("") : std::string(val);
+}
+// Added detetcor name to title
+void addDetectorName(std::string name, TH1 * inhist){
+  std::string newName = inhist -> GetTitle();
+  for (auto& x : name){
+    x = toupper(x);
+  }
+  inhist -> SetTitle((name + " " + newName).c_str());
 }

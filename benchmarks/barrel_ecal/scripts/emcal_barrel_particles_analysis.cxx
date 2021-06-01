@@ -51,6 +51,16 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
   std::string input_fname = fmt::format("sim_output/sim_emcal_barrel_{}.root", particle_name);
   ROOT::RDataFrame d0("events", input_fname);
 
+  // Environment Variables
+  std::string detector_path = "";
+  std::string detector_name = "topside";
+  if(std::getenv("DETECTOR_PATH")) {
+    detector_path = std::getenv("DETECTOR_PATH");
+  }
+  if(std::getenv("JUGGLER_DETECTOR")) {
+    detector_name = std::getenv("JUGGLER_DETECTOR");
+  }
+
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
     auto p = input[2];
@@ -93,6 +103,10 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
   auto hfsam = d1.Histo1D(
       {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 200, 0.0, 0.05},
       "fsam");
+
+  addDetectorName(detector_name, hEthr.GetPtr());
+  addDetectorName(detector_name, hEsim.GetPtr());
+  addDetectorName(detector_name, hfsam.GetPtr());
 
   // Event Counts
   auto nevents_thrown = d1.Count();

@@ -24,7 +24,7 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "DD4hep/Detector.h"
 #include "DDG4/Geant4Data.h"
 #include "DDRec/CellIDPositionConverter.h"
-
+#include "emcal_barrel_common_functions.h"
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -45,7 +45,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname1 = "sim_outpu
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", {input_fname1, input_fname2});
 
-  //Using the detector layers 
+  // Environment Variables
   std::string detector_path = "";
   std::string detector_name = "topside";
   if(std::getenv("DETECTOR_PATH")) {
@@ -55,6 +55,7 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname1 = "sim_outpu
     detector_name = std::getenv("JUGGLER_DETECTOR");
   }
 
+  // Using the detector layers 
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
   detector.fromCompact(fmt::format("{}/{}.xml", detector_path,detector_name));
   //dd4hep::rec::CellIDPositionConverter cellid_converter(detector);
@@ -156,48 +157,66 @@ void emcal_barrel_pions_electrons_analysis(const char* input_fname1 = "sim_outpu
   auto d_pim_rej = d_pim.Filter("Esim_front > " + to_string(rejectCut));
 
   // Define Histograms
-  auto hEthr       = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",                            100,  0.0,    7.5}, "Ethr");
-  auto hNhits      = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",                     100,  0.0, 2000.0}, "nhits");
-  auto hEsim       = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",                           10,  0.0,   0.05}, "Esim");
-  auto hfsam       = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",                          100,  0.0,    0.1}, "fsam");
+  auto hEthr       = d1.Histo1D({"hEthr",        "Thrown Energy; Thrown Energy [GeV]; Events",                      100,  0.0,    7.5}, "Ethr");
+  auto hNhits      = d1.Histo1D({"hNhits",       "Number of hits per events; Number of hits; Events",               100,  0.0, 2000.0}, "nhits");
+  auto hEsim       = d1.Histo1D({"hEsim",        "Energy Deposit; Energy Deposit [GeV]; Events",                     10,  0.0,   0.05}, "Esim");
+  auto hfsam       = d1.Histo1D({"hfsam",        "Sampling Fraction; Sampling Fraction; Events",                    100,  0.0,    0.1}, "fsam");
   auto hEsim_front = d1.Histo1D({"hEsim_front",  "Energy Deposit Front; Energy Deposit [GeV]; Events",               10,  0.0,   0.05}, "Esim_front");
+  addDetectorName(detector_name, hEthr.GetPtr());
+  addDetectorName(detector_name, hNhits.GetPtr());
+  addDetectorName(detector_name, hfsam.GetPtr());
+  addDetectorName(detector_name, hEsim_front.GetPtr());
 
   auto hEsim_ele        = d_ele.Histo1D({"hEsim_ele",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
   auto hEsim_ele_front  = d_ele.Histo1D({"hEsim_ele_front",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
   auto hEsim_pim        = d_pim.Histo1D({"hEsim_pim",        "Energy Deposit Electron; Energy Deposit [GeV]; Events",            10,  0.0,    0.05}, "Esim");
   auto hEsim_pim_front  = d_pim.Histo1D({"hEsim_pim_front",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
+  addDetectorName(detector_name, hEsim_ele.GetPtr());
+  addDetectorName(detector_name, hEsim_pim_front.GetPtr());
+  addDetectorName(detector_name, hEsim_pim.GetPtr());
+  addDetectorName(detector_name, hEsim_pim_front.GetPtr());
 
   auto hEsim_ele_front_rej  = d_ele_rej.Histo1D({"hEsim_ele_front_rej",  "Energy Deposit Front Electron; Energy Deposit [GeV]; Events",      10,  0.0,    0.05}, "Esim_front");
   auto hEsim_pim_front_rej  = d_pim_rej.Histo1D({"hEsim_pim_front_rej",  "Energy Deposit Front Pion-; Energy Deposit [GeV]; Events",         10,  0.0,    0.05}, "Esim_front");
+  addDetectorName(detector_name, hEsim_ele_front_rej.GetPtr());
+  addDetectorName(detector_name, hEsim_pim_front_rej.GetPtr()); 
 
   auto hEpvp_ele = d_ele.Histo2D({"hEpvp_ele", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 20, 1.0, 7.0}, "EOverP", "Pthr");
   auto hEpvp_pim = d_pim.Histo2D({"hEpvp_pim", "Energy Deposit 1st 4 Layers/P vs P; E/P; P [GeV]", 20, 0.0, 0.01, 20, 1.0, 7.0}, "EOverP", "Pthr");
+  addDetectorName(detector_name, hEpvp_ele.GetPtr());
+  addDetectorName(detector_name, hEpvp_pim.GetPtr());
 
 
   TH1D* hElePurity_initial = (TH1D *)hEsim_ele -> Clone();
   hElePurity_initial -> Divide(hEsim.GetPtr());
   hElePurity_initial -> SetTitle("Electron/Pion Rejection");
+  addDetectorName(detector_name, hElePurity_initial);
 
   TH1D* hElePurity_ele = (TH1D *)hEsim_ele_front -> Clone();
   hElePurity_ele -> Divide(hEsim_front.GetPtr());
   hElePurity_ele -> SetTitle("Electron/Pion Rejection : Electron");
+  addDetectorName(detector_name, hElePurity_ele);
 
   TH1D* hElePurity_pim = (TH1D *)hEsim_pim_front -> Clone();
   hElePurity_pim -> Divide(hEsim_front.GetPtr());
   hElePurity_pim -> SetTitle("Electron/Pion Rejection : Pion Minus");
+  addDetectorName(detector_name, hElePurity_pim);
 
   // Rejection
   TH1D* hElePurity_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
   hElePurity_rej -> Add(hEsim_pim_front_rej.GetPtr());
   hElePurity_rej -> SetTitle("Electron/Pion Rejection");
+  addDetectorName(detector_name, hElePurity_rej);
 
   TH1D* hElePurity_ele_rej = (TH1D *)hEsim_ele_front_rej -> Clone();
   hElePurity_ele_rej -> Divide(hElePurity_rej);
   hElePurity_ele_rej -> SetTitle("Electron/Pion Rejection : Electron");
+  addDetectorName(detector_name, hElePurity_ele_rej);
 
   TH1D* hElePurity_pim_rej = (TH1D *)hEsim_pim_front_rej -> Clone();
   hElePurity_pim_rej -> Divide(hElePurity_rej);
   hElePurity_pim_rej -> SetTitle("Electron/Pion Rejection : Pi Minus");
+  addDetectorName(detector_name, hElePurity_pim_rej);
 
   // Event Counts
   auto nevents_thrown      = d1.Count();

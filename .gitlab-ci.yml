@@ -80,6 +80,7 @@ get_data:
 
 include: 
   - local: 'benchmarks/barrel_ecal/config.yml'
+  - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/roman_pots/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/crystal_calorimeter/config.yml'
@@ -88,7 +89,7 @@ include:
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:crystal_calorimeter"]
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter"]
   script:
     - echo "deploy results!"
 

@@ -101,7 +101,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
       {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
       "Esim");
   auto hfsam = d1.Histo1D(
-      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 200, 0.0, 0.05},
+      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 800, 0.0, 0.2},
       "fsam");
 
   addDetectorName(detector_name, hEthr.GetPtr());

@@ -15,21 +15,20 @@ sim:emcal_barrel_electrons:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh electron
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh electron ; fi
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
 
 sim:emcal_barrel_photons:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh photon
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh photon ; fi
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh photon
 
 sim:emcal_barrel_pions_electrons:
   extends: .det_benchmark
   stage: simulate
   script:
-    #- bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
     - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
 
@@ -58,7 +57,7 @@ bench:emcal_barrel_electrons:
     - ls -lhtR sim_output/
     - rootls -t sim_output/sim_emcal_barrel_electron.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron")'
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("electron")'
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("electron")' ; fi
 
 bench:emcal_barrel_photons:
   extends: .det_benchmark
@@ -69,7 +68,7 @@ bench:emcal_barrel_photons:
     - ls -lhtR sim_output/
     - rootls -t sim_output/sim_emcal_barrel_photon.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon")'
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")'
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")' ; fi
 
 bench:emcal_barrel_pions_electrons:
   extends: .det_benchmark

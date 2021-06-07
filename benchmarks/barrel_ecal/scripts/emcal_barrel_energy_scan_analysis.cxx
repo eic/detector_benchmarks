@@ -1,6 +1,7 @@
 ////////////////////////////////////////
 // Read reconstruction ROOT output file
 // Plot variables
+// M.Żurek
 ////////////////////////////////////////
 
 #include "ROOT/RDataFrame.hxx"
@@ -18,6 +19,10 @@
 #include "TH1D.h"
 #include "TGraphErrors.h"
 
+#include "DD4hep/Detector.h"
+#include "DDG4/Geant4Data.h"
+#include "DDRec/CellIDPositionConverter.h"
+
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
@@ -25,7 +30,6 @@ using namespace ROOT::VecOps;
 void save_canvas(TCanvas* c, std::string label)
 {
   c->SaveAs(fmt::format("results/energy_scan/{}.png",label).c_str());
-  c->SaveAs(fmt::format("results/energy_scan/{}.pdf",label).c_str());
 }
 
 void save_canvas(TCanvas* c, std::string label, double E)
@@ -44,7 +48,7 @@ void save_canvas(TCanvas* c, std::string var_label, std::string E_label, std::st
   save_canvas(c, label_with_E);
 }
 
-std::tuple <double, double, double, double> extract_sampling_fraction_parameters(std::string particle_label, std::string E_label)
+std::tuple <double, double, double, double> extract_sampling_fraction_parameters(std::string particle_label, std::string E_label, dd4hep::Detector& detector)
 {
   std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.root", E_label, particle_label);
   ROOT::EnableImplicitMT();
@@ -73,6 +77,12 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     return sampled / thrown;
   };
 
+  // Energy deposited in layers 
+  auto decoder = detector.readout("EcalBarrelHits").idSpec().decoder();
+  fmt::print("{}\n", decoder->fieldDescription());
+  auto layer_index = decoder->index("layer");
+  fmt::print(" layer index is {}.\n", layer_index);
+
   // Define variables
   auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
@@ -91,19 +101,82 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
       {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
       "Esim");
   auto hfsam = d1.Histo1D(
-      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 200, 0.0, 0.05},
+      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 800, 0.0, 0.2},
       "fsam");
+
+  // Number of layers to read the edep from
+  int nlayers = 20;
+
+  TGraphErrors gr_no_edep(nlayers);
+  TGraphErrors gr_edep_mean(nlayers);
+
+  // Draw energy per layer
+  TCanvas* clayer = new TCanvas("clayer", "clayer", 1250, 1000);
+  clayer->Divide(4,5);
+
+  for(int layer=1; layer<nlayers+1; layer++) {
+    auto Esim_layer = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+      auto layer_edep = 0.0;
+      for (const auto& i: evt) {
+        if (decoder->get(i.cellID, layer_index) == layer) {
+          layer_edep += i.energyDeposit;
+        }
+      }
+      return layer_edep;
+    };
+
+    auto d2 = d0.Define(fmt::format("Esim_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelHits"});
+    std::cout << "Layer to process: " << layer << std::endl;
+
+    auto hEsim_layer = d2.Histo1D({fmt::format("hEsim_layer_{}",layer).c_str(),fmt::format("Energy Deposit in layer {}; Energy Deposit [Gev]; Events",layer).c_str(), 800, 0.0, 0.04}, fmt::format("Esim_layer_{}",layer));
+
+    clayer->cd(layer);
+    gPad->SetLogy();
+    auto h = hEsim_layer->DrawCopy();
+
+    auto up_range = h->GetMean() + 3*h->GetStdDev();
+    auto down_range = h->GetMean() - 3*h->GetStdDev();
+    h->SetLineWidth(2);
+    h->SetLineColor(kBlue);
+    
+    h->GetXaxis()->SetRange(h->GetXaxis()->GetBinUpEdge(1), up_range); // skip 0th bin 
+    auto mean_layer = h->GetMean();
+    auto rms_layer = h->GetStdDev();
+    h->GetXaxis()->SetRange(); // reset the range
+    h->GetXaxis()->SetRangeUser(0.,up_range);
+
+    auto no_edep = (h->GetBinContent(1)/h->GetEntries())*100;  
+    gr_no_edep.SetPoint(gr_no_edep.GetN(),layer,no_edep);
+    gr_edep_mean.SetPoint(gr_edep_mean.GetN(),layer, mean_layer);
+    gr_edep_mean.SetPointError(gr_edep_mean.GetN()-1,0, rms_layer);
+  }
+  save_canvas(clayer, "Esim_layer", E_label, particle_label);
 
   // Event Counts
   auto nevents_thrown = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
 
-  // Draw Histograms
+  // Draw Histograms and Graphs for every energy
+  TCanvas* cnoedep = new TCanvas("c_noedep", "c_noedep", 700, 500);
+  cnoedep->cd();
+  gr_no_edep.SetTitle("% of events with no dE;Layer;Events with no dE [%]");
+  gr_no_edep.SetMarkerStyle(20);
+  gr_no_edep.Draw("AP");
+  save_canvas(cnoedep, "Layer_nodep", E_label, particle_label);
+
+  TCanvas* cmean = new TCanvas("c_mean", "c_mean", 700, 500);
+  cmean->cd();
+  gr_edep_mean.SetTitle("Mean and RMS of energy deposit;Layer;Mean dE [GeV]");
+  gr_edep_mean.GetYaxis()->SetTitleOffset(1.4);
+  gr_edep_mean.SetFillColor(4);
+  gr_edep_mean.SetFillStyle(3010);
+  gr_edep_mean.Draw("a3P");
+  save_canvas(cmean, "Layer_Esim_mean", E_label, particle_label);
+
   {
     TCanvas* c1 = new TCanvas("c1", "c1", 700, 500);
     c1->SetLogy(1);
     auto h = hEthr->DrawCopy();
-    //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     save_canvas(c1, "Ethr", E_label, particle_label);  
@@ -113,7 +186,6 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     TCanvas* c2 = new TCanvas("c2", "c2", 700, 500);
     c2->SetLogy(1);
     auto h = hNhits->DrawCopy();
-    //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     save_canvas(c2, "nhits", E_label, particle_label);
@@ -123,7 +195,6 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     TCanvas* c3 = new TCanvas("c3", "c3", 700, 500);
     c3->SetLogy(1);
     auto h = hEsim->DrawCopy();
-    //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     double up_fit = h->GetMean() + 5*h->GetStdDev();
@@ -134,13 +205,12 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
 
   {
     TCanvas* c4 = new TCanvas("c4", "c4", 700, 500);
-    //c4->SetLogy(1);
     auto h = hfsam->DrawCopy();
-    //h->GetYaxis()->SetTitleOffset(1.4);
     h->SetLineWidth(2);
     h->SetLineColor(kBlue); 
     double up_fit = h->GetMean() + 5*h->GetStdDev();
     double down_fit = h->GetMean() - 5*h->GetStdDev();
+    if(down_fit <=0 ) down_fit = h->GetXaxis()->GetBinUpEdge(1);
     h->Fit("gaus", "", "", down_fit, up_fit);
     h->GetXaxis()->SetRangeUser(0.,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
@@ -190,38 +260,52 @@ void emcal_barrel_energy_scan_analysis(std::string particle_label = "electron")
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
 
-    auto scanned_energies = read_scanned_energies(fmt::format("sim_output/emcal_barrel_energy_scan_points_{}.txt", particle_label));
+  auto scanned_energies = read_scanned_energies(fmt::format("sim_output/emcal_barrel_energy_scan_points_{}.txt", particle_label));
+  
+  //Take detector layers 
+  std::string detector_path = "";
+  std::string detector_name = "athena";
+  if(std::getenv("DETECTOR_PATH")) {
+    detector_path = std::getenv("DETECTOR_PATH");
+  }
+  if(std::getenv("JUGGLER_DETECTOR")) {
+    detector_name = std::getenv("JUGGLER_DETECTOR");
+  }
+
+  dd4hep::Detector& detector = dd4hep::Detector::getInstance();
+  detector.fromCompact(fmt::format("{}/{}.xml", detector_path, detector_name));
     
-    TGraphErrors gr_fsam(scanned_energies.size()-1);
-    TGraphErrors gr_fsam_res(scanned_energies.size()-1);
+  TGraphErrors gr_fsam(scanned_energies.size()-1);
+  TGraphErrors gr_fsam_res(scanned_energies.size()-1);
 
-    for (const auto& E_label : scanned_energies) {
-        auto [fsam, fsam_res, fsam_err, fsam_res_err] = extract_sampling_fraction_parameters(particle_label, E_label);
-        auto E = std::stod(E_label);
+  for (const auto& E_label : scanned_energies) {
+      auto [fsam, fsam_res, fsam_err, fsam_res_err] = extract_sampling_fraction_parameters(particle_label, E_label, detector);
+      auto E = std::stod(E_label);
 
-        gr_fsam.SetPoint(gr_fsam.GetN(),E,100*fsam);
-        gr_fsam.SetPointError(gr_fsam.GetN()-1,0., 100*fsam_err);
-        gr_fsam_res.SetPoint(gr_fsam_res.GetN(),E,100.0*(fsam_res/fsam));
-        auto fsam_res_rel_err = 100.0*(sqrt(pow((fsam_res_err/fsam),2)+pow((fsam_err*fsam_res)/(fsam*fsam),2)));
-        gr_fsam_res.SetPointError(gr_fsam_res.GetN()-1,0.,fsam_res_rel_err);
-    }
+      gr_fsam.SetPoint(gr_fsam.GetN(),E,100*fsam);
+      gr_fsam.SetPointError(gr_fsam.GetN()-1,0., 100*fsam_err);
+      gr_fsam_res.SetPoint(gr_fsam_res.GetN(),E,100.0*(fsam_res/fsam));
+      auto fsam_res_rel_err = 100.0*(sqrt(pow((fsam_res_err/fsam),2)+pow((fsam_err*fsam_res)/(fsam*fsam),2)));
+      gr_fsam_res.SetPointError(gr_fsam_res.GetN()-1,0.,fsam_res_rel_err);
+  }
     
-    TCanvas* c5 = new TCanvas("c5", "c5", 700, 500);
-    c5->cd();
-    gr_fsam.SetTitle("Sampling Fraction Scan;True Energy [GeV];Sampling Fraction [%]");
-    gr_fsam.SetMarkerStyle(20);
-    gr_fsam.Fit("pol0", "", "", 2., 20.);
-    gr_fsam.Draw("APE");
-    save_canvas(c5, fmt::format("emcal_barrel_{}_fsam_scan", particle_label));
+  TCanvas* c5 = new TCanvas("c5", "c5", 700, 500);
+  c5->cd();
+  gr_fsam.SetTitle("Sampling Fraction Scan;True Energy [GeV];Sampling Fraction [%]");
+  gr_fsam.SetMarkerStyle(20);
+  gr_fsam.Fit("pol0", "", "", 2., 20.);
+  gr_fsam.Draw("APE");
+  save_canvas(c5, fmt::format("emcal_barrel_{}_fsam_scan", particle_label));
 
-    TCanvas* c6 = new TCanvas("c6", "c6", 700, 500);
-    c6->cd();
-    TF1* func_res = new TF1("func_res", "[0]/sqrt(x) + [1]", 0.25, 20.);
-    func_res->SetLineWidth(2);
-    func_res->SetLineColor(kRed);
-    gr_fsam_res.SetTitle("Energy Resolution;True Energy [GeV];#Delta E/E [%]");
-    gr_fsam_res.SetMarkerStyle(20);
-    gr_fsam_res.Fit(func_res,"R");
-    gr_fsam_res.Draw("APE");
-    save_canvas(c6,fmt::format("emcal_barrel_{}_fsam_scan_res", particle_label));
+  TCanvas* c6 = new TCanvas("c6", "c6", 700, 500);
+  c6->cd();
+  TF1* func_res = new TF1("func_res", "[0]/sqrt(x) + [1]", 0.25, 20.);
+  func_res->SetLineWidth(2);
+  func_res->SetLineColor(kRed);
+  gr_fsam_res.SetTitle("Energy Resolution;True Energy [GeV];#Delta E/E [%]");
+  gr_fsam_res.SetMarkerStyle(20);
+  gr_fsam_res.Fit(func_res,"R");
+  gr_fsam_res.Draw("APE");
+  save_canvas(c6,fmt::format("emcal_barrel_{}_fsam_scan_res", particle_label));
+
 }

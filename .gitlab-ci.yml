@@ -28,6 +28,7 @@ stages:
   - initialize
   - data_init
   - simulate
+  - calibrate
   - benchmarks
   - collect
   - deploy

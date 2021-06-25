@@ -20,9 +20,11 @@
 #include "TF1.h"
 #include "TH1D.h"
 #include "TFitResult.h"
+#include <nlohmann/json.hpp>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
+using json = nlohmann::json;
 
 void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_pi0.root")
 {
@@ -56,12 +58,15 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
        {"quantity", "resolution (in %)"},
        {"target", std::to_string(resolutionTarget)}}};
 
+  json j;
+  std::ifstream prev_steps_ifstream("results/emcal_barrel_calibration.json");
+  prev_steps_ifstream >> j;
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
 
   // Sampling Fraction
-  double samp_frac = 0.0136;
+  double samp_frac = j["electron"]["sampling_fraction"];
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
@@ -139,7 +144,7 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");
   auto hNhits = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100,  0.0, 2000.0}, "nhits");
   auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim");
-  auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
+  auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      150,  0.0,    0.15}, "fsam");
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 

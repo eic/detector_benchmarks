@@ -32,6 +32,17 @@ sim:emcal_barrel_pions_electrons:
     - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
 
+calib:emcal_barrel_electrons:
+  extends: .det_benchmark
+  stage: calibrate
+  needs:
+    - ["sim:emcal_barrel_electrons"]
+  script:
+    - ls -lhtR sim_output/
+    - rootls -t sim_output/sim_emcal_barrel_electron.root
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron", true)'
+    - echo "JSON file(s) from analysis:" ; cat results/*.json
+
 bench:emcal_barrel_pions:
   extends: .det_benchmark
   stage: benchmarks
@@ -40,24 +51,22 @@ bench:emcal_barrel_pions:
   script:
     - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
 
-bench:emcal_barrel_pi0:
-  extends: .det_benchmark
-  stage: benchmarks
-  needs:
-    - ["sim:emcal_barrel_pi0"]
-  script:
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pi0_analysis.cxx+
-
-bench:emcal_barrel_electrons:
+bench:emcal_barrel_electrons_scan:
   extends: .det_benchmark
   stage: benchmarks
   needs:
     - ["sim:emcal_barrel_electrons"]
   script:
-    - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_electron.root
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron")'
     - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("electron")' ; fi
+
+bench:emcal_barrel_pi0:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_pi0", "calib:emcal_barrel_electrons"]
+  script:
+    - echo "JSON file(s) from analysis:" ; cat results/*.json
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pi0_analysis.cxx+
 
 bench:emcal_barrel_photons:
   extends: .det_benchmark
@@ -67,7 +76,7 @@ bench:emcal_barrel_photons:
   script:
     - ls -lhtR sim_output/
     - rootls -t sim_output/sim_emcal_barrel_photon.root
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon")'
+    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon", false)'
     - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")' ; fi
 
 bench:emcal_barrel_pions_electrons:
@@ -85,7 +94,12 @@ collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - ["bench:emcal_barrel_electrons", "bench:emcal_barrel_photons", "bench:emcal_barrel_pions", "bench:emcal_barrel_pi0", "bench:emcal_barrel_pions_electrons"]
+    - "calib:emcal_barrel_electrons"
+    - "bench:emcal_barrel_electrons_scan"
+    - "bench:emcal_barrel_photons"
+    - "bench:emcal_barrel_pions"
+    - "bench:emcal_barrel_pi0"
+    - "bench:emcal_barrel_pions_electrons"
   script:
     - ls -lrht
     - echo " FIX ME" 

@@ -16,11 +16,13 @@
 #include "TH1.h"
 #include "TF1.h"
 #include "TH1D.h"
+#include <nlohmann/json.hpp>
 
 #include "emcal_barrel_common_functions.h"
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
+using json = nlohmann::json;
 
 void save_canvas(TCanvas* c, std::string label)
 {
@@ -34,7 +36,7 @@ void save_canvas(TCanvas* c, std::string label, std::string particle_label)
   save_canvas(c, label_with_E);
 }
 
-void emcal_barrel_particles_analysis(std::string particle_name = "electron")
+void emcal_barrel_particles_analysis(std::string particle_name = "electron", bool save_calib = false)
 {
   // Setting for graphs
   gROOT->SetStyle("Plain");
@@ -47,13 +49,18 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
 
+  json j;
+  // variables that will be saved in the JSON file
+  double Ethr_mean;
+  double fSam_mean;
+
   ROOT::EnableImplicitMT();
   std::string input_fname = fmt::format("sim_output/sim_emcal_barrel_{}.root", particle_name);
   ROOT::RDataFrame d0("events", input_fname);
 
   // Environment Variables
   std::string detector_path = "";
-  std::string detector_name = "topside";
+  std::string detector_name = "athena";
   if(std::getenv("DETECTOR_PATH")) {
     detector_path = std::getenv("DETECTOR_PATH");
   }
@@ -117,6 +124,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
     TCanvas* c1 = new TCanvas("c1", "c1", 700, 500);
     c1->SetLogy(1);
     auto h = hEthr->DrawCopy();
+    Ethr_mean = h->GetMean();
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     save_canvas(c1,"Ethr",particle_name);
@@ -154,9 +162,22 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron")
     h->Fit("gaus", "", "", down_fit, up_fit);
     h->GetXaxis()->SetRangeUser(0.,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
+    fSam_mean = gaus->GetParameter(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c4,"fsam",particle_name);
+  }
+
+  j[particle_name] = {
+    {"particle_name", particle_name},
+    {"thrown_energy", Ethr_mean},
+    {"sampling_fraction", fSam_mean}
+  };
+  if (save_calib) {
+    std::string calib_output_path = "results/emcal_barrel_calibration.json";
+    std::cout << "Saving calibration results to " << calib_output_path << std::endl;
+    std::ofstream o(calib_output_path);
+    o << std::setw(4) << j << std::endl;
   }
 }
 

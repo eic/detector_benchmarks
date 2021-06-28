@@ -13,6 +13,9 @@
 #include "mt.h"
 #include "util.h"
 
+R__LOAD_LIBRARY(libfmt.so)
+#include "fmt/core.h"
+
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TMath.h"
@@ -28,6 +31,7 @@ using json = nlohmann::json;
 
 void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_pi0.root")
 {
+  //input_fname = "../sim_output/sim_emcal_barrel_pi0.root";
   // Setting for graphs
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1);
@@ -39,40 +43,20 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
 
-  //Tests
-  std::string test_tag = "Barrel_emcal_pi0";
-  //TODO: Change test_tag to something else
-  std:string detector = "Barrel_emcal";
-  // Energy resolution in the barrel region(-1 < eta < 1)
-  // Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky
-  // sigma_E / E = 12% / E^0.5 convoluted with 2%
-  // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
-  double thrown_energy = 5; // Current thrown energy, will need to grab from json file
-  double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / thrown_energy + 0.02 * 0.02);
-
-  eic::util::Test pi0_energy_resolution{
-      {{"name", fmt::format("{}_energy_resolution", test_tag)},
-       {"title", "Pion0 Energy resolution"},
-       {"description",
-        fmt::format("Pion0 energy resolution with {}, estimated using a Gaussian fit.", detector)},
-       {"quantity", "resolution (in %)"},
-       {"target", std::to_string(resolutionTarget)}}};
-
-  json j;
-  std::ifstream prev_steps_ifstream("results/emcal_barrel_calibration.json");
-  prev_steps_ifstream >> j;
-
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
 
-  // Sampling Fraction
+  // Sampling Fraction grabbed from json file
+  // Note that this value is derived from electrons
+  json j;
+  std::ifstream prev_steps_ifstream("results/emcal_barrel_calibration.json");
+  prev_steps_ifstream >> j;
   double samp_frac = j["electron"]["sampling_fraction"];
 
   // Thrown Energy [GeV]
+  //double meanE = 5; // Calculated later
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    std::vector<double> result;
-    result.push_back(TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass));
-  return result;
+    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass);
   };
 
   // Number of hits
@@ -80,45 +64,26 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
 
   // Energy deposition [GeV]
   auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
-    std::vector<double> result;
     auto total_edep = 0.0;
-    for (const auto& i: evt)
+    for (const auto& i: evt){
       total_edep += i.energyDeposit;
-    result.push_back(total_edep);
-  return result;
+    }
+    return total_edep;
   };
 
   // Sampling fraction = Esampling / Ethrown
-  auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / *it_thr);
-    }
-    return result;
+  auto fsam = [](const double& sampled, const double& thrown) {
+    return sampled / thrown;
   };
 
   // Energy Resolution = Esampling/Sampling_fraction - Ethrown
-  auto eResol = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / samp_frac - *it_thr);
-    }
-    return result;
+  auto eResol = [&](const double& sampled, const double& thrown){
+    return sampled / samp_frac - thrown;
   };
 
   // Relative Energy Resolution = (Esampling/Sampling fraction - Ethrown)/Ethrown
-  auto eResol_rel = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back((*it_sam / samp_frac - *it_thr) / *it_thr);
-    }
-    return result;
+  auto eResol_rel = [&](const double& sampled, const double& thrown){
+    return (sampled / samp_frac - thrown) / thrown;
   };
 
   // Returns the pdgID of the particle
@@ -138,6 +103,8 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
               .Define("fsam",   fsam,       {"Esim","Ethr"})
               .Define("pid",    getpid,     {"mcparticles"})
               .Define("dau",    getdau,     {"mcparticles"})
+              .Define("dE",     eResol,     {"Esim","Ethr"})
+              .Define("dE_rel", eResol_rel, {"Esim","Ethr"})
               ;
 
   // Define Histograms
@@ -148,15 +115,12 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
-  // Set sampling Fraction, ideally this will be taken from a json file 
-  samp_frac = hfsam -> GetMean();
-
-  auto d2 = d1.Define("dE",     eResol,     {"Esim","Ethr"})
-              .Define("dE_rel", eResol_rel, {"Esim","Ethr"})
-              ;
+  // Gather Sampling fraction and mean Energy, ideally this will be taken from a json file 
+  samp_frac = hfsam->GetMean();
+  const double meanE     = hEthr->GetMean(); 
 
   // Event Counts
-  auto nevents_thrown      = d1.Count();
+  auto nevents_thrown = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
 
   // Draw Histograms
@@ -217,30 +181,47 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   c6->SaveAs("results/emcal_barrel_pi0_dau.png");
   c6->SaveAs("results/emcal_barrel_pi0_dau.pdf");
 
-  //Energy Resolution Calculation
-  auto hdE          = d2.Histo1D({"hdE",      "dE; dE[GeV]; Events",              100, -3.0, 3.0}, "dE");
-  auto hdE_rel      = d2.Histo1D({"hdE_rel",  "dE Relative; dE Relative; Events", 100, -3.0, 3.0}, "dE_rel");
-  hdE->Fit("gaus", "", "", -3.0,  3.0);
-  double* res       = hdE->GetFunction("gaus")->GetParameters();
-  double sigmaOverE = res[2] / thrown_energy;
+  // Energy Resolution Calculation
+  std::string test_tag = "Barrel_emcal_pi0";// TODO: Change test_tag to something else
+  std:string detEle    = "Barrel_emcal";
 
-  //Pass/Fail
-  if (sigmaOverE <= resolutionTarget) {
-    pi0_energy_resolution.pass(sigmaOverE);
-  } else {
-    pi0_energy_resolution.fail(sigmaOverE);
-  }
-  //std::printf("Energy Resolution is %f\n", res[2]);
+  // Energy resolution in the barrel region (-1 < eta < 1)
+  // Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky
+  // sigma_E / E = 12% / E^0.5 convoluted with 2%
+  // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
+  
+  double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  //Energy Resolution Histogram Plotting
+  eic::util::Test pi0_energy_resolution{
+   {{"name", fmt::format("{}_energy_resolution", test_tag)},
+   {"title", "Pi0 Energy resolution"},
+   {"description",
+    fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle)},
+   {"quantity", "resolution (in %)"},
+   {"target", std::to_string(resolutionTarget)}}
+  };
+
+  // Histograms and Fitting
+  auto hdE          = d1.Histo1D({"hdE",      "dE; dE[GeV]; Events",              100, -3.0, 3.0}, "dE");
+  auto hdE_rel      = d1.Histo1D({"hdE_rel",  "dE Relative; dE Relative; Events", 100, -3.0, 3.0}, "dE_rel");
+  auto hdEcopy      = hdE->DrawCopy();
+  hdEcopy->Fit("gaus", "", "", -3.0,  3.0);
+  double* res       = hdEcopy->GetFunction("gaus")->GetParameters();
+  double sigmaOverE = res[2] / meanE;
+
+  // Pass/Fail
+  sigmaOverE <= resolutionTarget ? pi0_energy_resolution.pass(sigmaOverE) : pi0_energy_resolution.fail(sigmaOverE);
+  std::printf("Energy Resolution is %f\n", res[2]);
+
+  // Energy Resolution Histogram Plotting
   auto *cdE = new TCanvas("cdE", "cdE", 700, 500);
   cdE->SetLogy(1);
-  hdE->GetYaxis()->SetTitleOffset(1.4);
-  hdE->SetLineWidth(2);
-  hdE->SetLineColor(kBlue);
-  hdE->GetFunction("gaus")->SetLineWidth(2);
-  hdE->GetFunction("gaus")->SetLineColor(kRed);
-  hdE->DrawClone();
+  hdEcopy->GetYaxis()->SetTitleOffset(1.4);
+  hdEcopy->SetLineWidth(2);
+  hdEcopy->SetLineColor(kBlue);
+  hdEcopy->GetFunction("gaus")->SetLineWidth(2);
+  hdEcopy->GetFunction("gaus")->SetLineColor(kRed);
+  hdEcopy->DrawClone();
   cdE->SaveAs("results/emcal_barrel_pi0_dE.png");
   cdE->SaveAs("results/emcal_barrel_pi0_dE.pdf");
 
@@ -252,7 +233,5 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
 
-  eic::util::write_test({pi0_energy_resolution}, fmt::format("{}_pi0.json", detector));
-
-
+  eic::util::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
 }

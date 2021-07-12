@@ -41,6 +41,7 @@ calib:emcal_barrel_electrons:
     - ls -lhtR sim_output/
     - rootls -t sim_output/sim_emcal_barrel_electron.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron", true)'
+    - mv sim_output/sim_emcal_barrel_electron.root results/.
     - echo "JSON file(s) from analysis:" ; cat results/*.json
 
 bench:emcal_barrel_pions:
@@ -77,6 +78,7 @@ bench:emcal_barrel_photons:
     - ls -lhtR sim_output/
     - rootls -t sim_output/sim_emcal_barrel_photon.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon", false)'
+    - mv sim_output/sim_emcal_barrel_photon.root results/.
     - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")' ; fi
 
 bench:emcal_barrel_pions_electrons:

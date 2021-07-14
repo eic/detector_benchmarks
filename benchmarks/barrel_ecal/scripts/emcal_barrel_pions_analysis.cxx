@@ -45,9 +45,9 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    std::vector<double> result;
-    result.push_back(TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass));
-  return result;
+    auto p = input[2];
+    auto energy = TMath::Sqrt(p.psx * p.psx + p.psy * p.psy + p.psz * p.psz + p.mass * p.mass);
+    return energy;
   };
 
   // Number of hits
@@ -55,45 +55,25 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
 
   // Energy deposition [GeV]
   auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
-    std::vector<double> result;
     auto total_edep = 0.0;
     for (const auto& i: evt)
       total_edep += i.energyDeposit;
-    result.push_back(total_edep);
-  return result;
+    return total_edep;
   };
 
   // Sampling fraction = Esampling / Ethrown
-  auto fsam = [](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / *it_thr);
-    }
-    return result;
+  auto fsam = [](const double sampled, const double thrown) {
+    return sampled / thrown;
   };
 
   // Energy Resolution = Esampling/Sampling_fraction - Ethrown
-  auto eResol = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back(*it_sam / samp_frac - *it_thr);
-    }
-    return result;
+  auto eResol = [samp_frac](double sampled, double thrown) {
+    return sampled / samp_frac - thrown;
   };
 
   // Relative Energy Resolution = (Esampling/Sampling fraction - Ethrown)/Ethrown
-  auto eResol_rel = [samp_frac](const std::vector<double>& sampled, const std::vector<double>& thrown) {
-    std::vector<double> result;
-    auto it_sam = sampled.cbegin();
-    auto it_thr = thrown.cbegin();
-    for (; it_sam != sampled.end() && it_thr != thrown.end(); ++it_sam, ++it_thr) {
-        result.push_back((*it_sam / samp_frac - *it_thr) / *it_thr);
-    }
-    return result;
+  auto eResol_rel = [samp_frac](double sampled, double thrown) {
+      return (sampled / samp_frac - thrown) / thrown;
   };
 
   // Returns the pdgID of the particle
@@ -107,12 +87,13 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr",   Ethr,       {"mcparticles"})
-              .Define("nhits",  nhits,      {"EcalBarrelHits"})
-              .Define("Esim",   Esim,       {"EcalBarrelHits"})
-              .Define("fsam",   fsam,       {"Esim","Ethr"})
-              .Define("pid",    getpid,     {"mcparticles"})
-              ;
+  auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
+                .Define("nhits", nhits, {"EcalBarrelHits"})
+                .Define("EsimImg", Esim, {"EcalBarrelHits"})
+                .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+                .Define("Esim", "EsimImg+EsimScFi")
+                .Define("fsam", fsam, {"Esim", "Ethr"})
+                .Define("pid",    getpid,     {"mcparticles"});
 
   // Define Histograms
   auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");

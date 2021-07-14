@@ -94,7 +94,9 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   // Define variables
   auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("Esim", Esim, {"EcalBarrelHits"})
+                .Define("EsimImg", Esim, {"EcalBarrelHits"})
+                .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+                .Define("Esim", "EsimImg+EsimScFi")
                 .Define("fsam", fsam, {"Esim", "Ethr"});
 
   // Define Histograms

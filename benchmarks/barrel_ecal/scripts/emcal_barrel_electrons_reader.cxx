@@ -123,3 +123,4 @@ void emcal_barrel_electrons_reader(double e_start = 0.0, double e_end = 30.0, co
   c6->SaveAs("results/input_emcal_barrel_electrons_p.png");
   c6->SaveAs("results/input_emcal_barrel_electrons_p.pdf");
 }
+

@@ -86,7 +86,9 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
   // Define variables
   auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("Esim", Esim, {"EcalBarrelHits"})
+                .Define("EsimImg", Esim, {"EcalBarrelHits"})
+                .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+                .Define("Esim", "EsimImg+EsimScFi")
                 .Define("fsam", fsam, {"Esim", "Ethr"});
 
   // Define Histograms
@@ -105,7 +107,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
       "fsam");
 
   // Number of layers to read the edep from
-  int nlayers = 20;
+  int nlayers = 7;
 
   TGraphErrors gr_no_edep(nlayers);
   TGraphErrors gr_edep_mean(nlayers);
@@ -125,10 +127,12 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
       return layer_edep;
     };
 
-    auto d2 = d0.Define(fmt::format("Esim_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelHits"});
+    auto d2 = d0.Define(fmt::format("EsimImg_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelHits"})
+                  .Define(fmt::format("EsimScFi_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelScFiHits"})
+                  .Define(fmt::format("Esim_layer_{}",layer).c_str(), fmt::format("EsimImg_layer_{}+EsimScFi_layer_{}",layer,layer).c_str());
     std::cout << "Layer to process: " << layer << std::endl;
 
-    auto hEsim_layer = d2.Histo1D({fmt::format("hEsim_layer_{}",layer).c_str(),fmt::format("Energy Deposit in layer {}; Energy Deposit [Gev]; Events",layer).c_str(), 800, 0.0, 0.04}, fmt::format("Esim_layer_{}",layer));
+    auto hEsim_layer = d2.Histo1D({fmt::format("hEsim_layer_{}",layer).c_str(),fmt::format("Energy Deposit in layer {}; Energy Deposit [Gev]; Events",layer).c_str(), 200, 0.0, 0.04}, fmt::format("Esim_layer_{}",layer));
 
     clayer->cd(layer);
     gPad->SetLogy();

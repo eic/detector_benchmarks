@@ -78,3 +78,4 @@ void emcal_barrel_electrons(int n_events = 1e6, double e_start = 0.0, double e_e
   hepmc_output.close();
   std::cout << "Events parsed and written: " << events_parsed << std::endl;
 }
+

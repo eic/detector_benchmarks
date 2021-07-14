@@ -99,7 +99,9 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   // Define variables
   auto d1 = d0.Define("Ethr",   Ethr,       {"mcparticles"})
               .Define("nhits",  nhits,      {"EcalBarrelHits"})
-              .Define("Esim",   Esim,       {"EcalBarrelHits"})
+              .Define("EsimImg", Esim,      {"EcalBarrelHits"})
+              .Define("EsimScFi", Esim,      {"EcalBarrelScFiHits"})
+              .Define("Esim", "EsimImg+EsimScFi")
               .Define("fsam",   fsam,       {"Esim","Ethr"})
               .Define("pid",    getpid,     {"mcparticles"})
               .Define("dau",    getdau,     {"mcparticles"})

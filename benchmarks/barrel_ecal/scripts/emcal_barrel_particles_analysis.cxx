@@ -97,7 +97,10 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
                 .Define("EsimImg", Esim, {"EcalBarrelHits"})
                 .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
                 .Define("Esim", "EsimImg+EsimScFi")
-                .Define("fsam", fsam, {"Esim", "Ethr"});
+                .Define("fsam", fsam, {"Esim", "Ethr"})
+                .Define("fsamImg", fsam, {"EsimImg", "Ethr"})             
+                .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"});
+
 
   // Define Histograms
   auto hEthr = d1.Histo1D(
@@ -109,9 +112,21 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   auto hEsim = d1.Histo1D(
       {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
       "Esim");
+  auto hEsimImg = d1.Histo1D(
+      {"hEsimImg", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
+      "EsimImg");    
+  auto hEsimScFi = d1.Histo1D(
+      {"hEsimScFi", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
+      "EsimScFi");
   auto hfsam = d1.Histo1D(
-      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 800, 0.0, 0.2},
+      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
       "fsam");
+  auto hfsamImg = d1.Histo1D(
+      {"hfsamImg", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
+      "fsamImg");
+  auto hfsamScFi = d1.Histo1D(
+      {"hfsamScFi", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
+      "fsamScFi");
 
   addDetectorName(detector_name, hEthr.GetPtr());
   addDetectorName(detector_name, hEsim.GetPtr());
@@ -155,19 +170,48 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
 
   {
     TCanvas* c4 = new TCanvas("c4", "c4", 700, 500);
-    c4->SetLogy(1);
     auto h = hfsam->DrawCopy();
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
     double up_fit = h->GetMean() + 5*h->GetStdDev();
     double down_fit = h->GetMean() - 5*h->GetStdDev();
     h->Fit("gaus", "", "", down_fit, up_fit);
-    h->GetXaxis()->SetRangeUser(0.,up_fit);
+    h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
     fSam_mean = gaus->GetParameter(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c4,"fsam",particle_name);
+  }
+
+  {
+    TCanvas* c5 = new TCanvas("c5", "c5", 700, 500);
+    auto h = hfsamImg->DrawCopy();
+    h->SetLineWidth(2);
+    h->SetLineColor(kBlue);
+    double up_fit = h->GetMean() + 5*h->GetStdDev();
+    double down_fit = h->GetMean() - 5*h->GetStdDev();
+    h->Fit("gaus", "", "", down_fit, up_fit);
+    h->GetXaxis()->SetRangeUser(down_fit,up_fit);
+    TF1 *gaus = h->GetFunction("gaus");
+    gaus->SetLineWidth(2);
+    gaus->SetLineColor(kRed); 
+    save_canvas(c5,"fsamImg",particle_name);
+  }
+
+  {
+    TCanvas* c6 = new TCanvas("c6", "c6", 700, 500);
+    auto h = hfsamScFi->DrawCopy();
+    h->SetLineWidth(2);
+    h->SetLineColor(kBlue);
+    double up_fit = h->GetMean() + 5*h->GetStdDev();
+    double down_fit = h->GetMean() - 5*h->GetStdDev();
+    h->Fit("gaus", "", "", down_fit, up_fit);
+    h->GetXaxis()->SetRangeUser(down_fit,up_fit);
+    TF1 *gaus = h->GetFunction("gaus");
+    gaus->SetLineWidth(2);
+    gaus->SetLineColor(kRed); 
+    save_canvas(c6,"fsamScFi",particle_name);
   }
 
   j[particle_name] = {

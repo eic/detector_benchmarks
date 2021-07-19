@@ -1,0 +1,22 @@
+sim:timing:
+  extends: .det_benchmark
+  stage: simulate
+  timeout: 1 hours
+  script:
+    - bash benchmarks/timing/run_timing.sh -n "${NEVENTS}" -p "${PARTICLES}" -e "${ENERGIES}"
+  artifacts:
+    paths:
+      - results/
+  parallel:
+    matrix:
+      - PARTICLES: ["e-"]
+        ENERGIES: ["1*GeV"]
+        NEVENTS: ["1","100"]
+
+#collect_results:timing:
+#  extends: .det_benchmark
+#  stage: collect
+#  needs:
+#    - ["sim:timing"]
+#  script:
+#    - ls -lrht

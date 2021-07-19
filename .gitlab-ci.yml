@@ -86,6 +86,7 @@ include:
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/crystal_calorimeter/config.yml'
   - local: 'benchmarks/pid/config.yml'
+  - local: 'benchmarks/timing/config.yml'
 
 deploy_results:
   stage: deploy

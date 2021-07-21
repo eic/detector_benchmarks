@@ -23,7 +23,7 @@
 using namespace HepMC3;
 
 void emcal_barrel_particles_gen(int n_events = 1e6, double e_start = 0.0, double e_end = 20.0, std::string particle_name = "electron") {
-  std::string out_fname = fmt::format("./data/emcal_barrel_{}.hepmc", particle_name);
+  std::string out_fname = fmt::format("./data/{}", std::getenv("JUGGLER_GEN_FILE"));
   WriterAscii hepmc_output(out_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);

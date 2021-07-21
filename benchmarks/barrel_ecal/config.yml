@@ -32,6 +32,13 @@ sim:emcal_barrel_pions_electrons:
     - bash benchmarks/barrel_ecal/run_emcal_barrel_electrons.sh
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
 
+sim:emcal_barrel_pion_rejection:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_pion_rejection.sh electron
+    - bash benchmarks/barrel_ecal/run_emcal_barrel_pion_rejection.sh piminus
+
 calib:emcal_barrel_electrons:
   extends: .det_benchmark
   stage: calibrate
@@ -92,6 +99,17 @@ bench:emcal_barrel_pions_electrons:
     - rootls -t sim_output/sim_emcal_barrel_uniform_electrons.root
     - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_electrons_analysis.cxx+
 
+bench:emcal_barrel_pion_rejection:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:emcal_barrel_pion_rejection"]
+  script:
+    - ls -lhtR sim_output/
+    - rootls -t sim_output/sim_emcal_barrel_piRej_piminus.root
+    - rootls -t sim_output/sim_emcal_barrel_piRej_electron.root
+    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pion_rejection_analysis.cxx+
+
 collect_results:barrel_ecal:
   extends: .det_benchmark
   stage: collect
@@ -102,6 +120,7 @@ collect_results:barrel_ecal:
     - "bench:emcal_barrel_pions"
     - "bench:emcal_barrel_pi0"
     - "bench:emcal_barrel_pions_electrons"
+    - "bench:emcal_barrel_pion_rejection"
   script:
     - ls -lrht
     - echo " FIX ME" 

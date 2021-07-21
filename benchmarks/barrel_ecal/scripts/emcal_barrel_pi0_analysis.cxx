@@ -117,8 +117,6 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
-  // Gather Sampling fraction and mean Energy, ideally this will be taken from a json file 
-  samp_frac = hfsam->GetMean();
   const double meanE     = hEthr->GetMean(); 
 
   // Event Counts

@@ -60,17 +60,17 @@ if [[ ! -n "${JUGGLER_DETECTOR}" ]] ; then
   export JUGGLER_DETECTOR="athena"
 fi
 
-if [[ ! -n "${JUGGLER_DETECTOR_PATH}" ]] ; then
-  export JUGGLER_DETECTOR_PATH="/opt/detector/share/athena"
+if [[ ! -n "${DETECTOR_PATH}" ]] ; then
+  export DETECTOR_PATH="/opt/detector/share/athena"
 fi
 
 if [[ ! -n "${JUGGLER_INSTALL_PREFIX}" ]] ; then
   export JUGGLER_INSTALL_PREFIX="/usr/local"
 fi
 
-compact_path=${JUGGLER_DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml
+compact_path=${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml
 
-echo "JUGGLER_DETECTOR_PATH = ${JUGGLER_DETECTOR_PATH}"
+echo "DETECTOR_PATH = ${DETECTOR_PATH}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
 
 # Run geant4 simulations

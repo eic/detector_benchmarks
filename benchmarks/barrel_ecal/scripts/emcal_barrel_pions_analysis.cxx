@@ -9,9 +9,9 @@
 #include "dd4pod/Geant4ParticleCollection.h"
 #include "dd4pod/CalorimeterHitCollection.h"
 
-#include "benchmark.h"
-#include "mt.h"
-#include "util.h"
+#include "common_bench/benchmark.h"
+#include "common_bench/mt.h"
+#include "common_bench/util.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"

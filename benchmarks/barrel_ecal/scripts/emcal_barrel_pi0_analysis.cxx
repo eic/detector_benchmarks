@@ -9,9 +9,9 @@
 #include "dd4pod/Geant4ParticleCollection.h"
 #include "dd4pod/CalorimeterHitCollection.h"
 
-#include "benchmark.h"
-#include "mt.h"
-#include "util.h"
+#include "common_bench/benchmark.h"
+#include "common_bench/mt.h"
+#include "common_bench/util.h"
 
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
@@ -192,7 +192,7 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   
   double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  eic::util::Test pi0_energy_resolution{
+  common_bench::Test pi0_energy_resolution{
    {{"name", fmt::format("{}_energy_resolution", test_tag)},
    {"title", "Pi0 Energy resolution"},
    {"description",
@@ -233,5 +233,5 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
 
-  eic::util::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
+  common_bench::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
 }

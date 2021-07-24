@@ -38,10 +38,11 @@ common:setup:
   stage: config
   before_script:
     - |
-      if [[ -z "${COMMON_BENCH_VERSION}" ]] ; then
+      if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
         export COMMON_BENCH_VERSION="master" 
       fi
-      git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+      echo "COMMON_BENCH_VERSION = $COMMON_BENCH_VERSION" 
+      git clone -b "$COMMON_BENCH_VERSION" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
@@ -49,6 +50,7 @@ common:setup:
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
         echo "JUGGLER_DETECTOR_VERSION=$JUGGLER_DETECTOR_VERSION" >> juggler.env
+        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
       fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
 

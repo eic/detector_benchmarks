@@ -41,8 +41,8 @@ common:setup:
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
         export COMMON_BENCH_VERSION="master" 
       fi
-      echo "COMMON_BENCH_VERSION = $COMMON_BENCH_VERSION" 
-      git clone -b "$COMMON_BENCH_VERSION" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+      echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
+      git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then

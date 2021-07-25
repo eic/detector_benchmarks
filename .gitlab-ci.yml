@@ -100,6 +100,16 @@ deploy_results:
     - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter"]
   script:
     - echo "deploy results!"
+    - ls -1 results/* > results/detector_report.xml
+  artifacts:
+    expire_in: 15 days 
+    paths:
+      - results
+      - config
+      - juggler.env
+    reports:
+      junit: results/detector_report.xml
+
 
 benchmarks:reconstruction:
   stage: trigger
@@ -134,5 +144,6 @@ pages:
   artifacts:
     paths:
       - public
+
 
 

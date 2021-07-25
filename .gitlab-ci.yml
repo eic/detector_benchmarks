@@ -41,7 +41,6 @@ common:setup:
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
         export COMMON_BENCH_VERSION="master" 
       fi
-        export COMMON_BENCH_VERSION="docs" 
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
   script:

@@ -16,7 +16,7 @@ cal_bench:crystal_benchmark:
   needs:
     - ["cal_sim:crystal_emcal"]
   script:
-    - rootls -t sim_output/output_emcal_electrons.root
+    #- rootls -t sim_output/output_emcal_electrons.root
     - echo " Not yet complete"
       #- root -b -q benchmarks/cryxtal_calorimeter/simple_checking_crystal.cxx+
       #

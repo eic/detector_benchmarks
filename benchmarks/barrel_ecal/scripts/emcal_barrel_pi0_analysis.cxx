@@ -126,58 +126,58 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   // Draw Histograms
   TCanvas *c1 = new TCanvas("c1", "c1", 700, 500);
   c1->SetLogy(1);
-  hEthr->GetYaxis()->SetTitleOffset(1.4);
-  hEthr->SetLineWidth(2);
-  hEthr->SetLineColor(kBlue);
-  hEthr->DrawClone();
+  auto h1 = hEthr->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
   c1->SaveAs("results/emcal_barrel_pi0_Ethr.png");
   c1->SaveAs("results/emcal_barrel_pi0_Ethr.pdf");
 
   TCanvas *c2 = new TCanvas("c2", "c2", 700, 500);
   c2->SetLogy(1);
-  hNhits->GetYaxis()->SetTitleOffset(1.4);
-  hNhits->SetLineWidth(2);
-  hNhits->SetLineColor(kBlue);
-  hNhits->DrawClone();
+  h1 = hNhits->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
   c2->SaveAs("results/emcal_barrel_pi0_nhits.png");
   c2->SaveAs("results/emcal_barrel_pi0_nhits.pdf");
 
   TCanvas *c3 = new TCanvas("c3", "c3", 700, 500);
   c3->SetLogy(1);
-  hEsim->GetYaxis()->SetTitleOffset(1.4);
-  hEsim->SetLineWidth(2);
-  hEsim->SetLineColor(kBlue);
-  hEsim->DrawClone();
+  h1 = hEsim->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
   c3->SaveAs("results/emcal_barrel_pi0_Esim.png"); 
   c3->SaveAs("results/emcal_barrel_pi0_Esim.pdf");
 
   TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
   c4->SetLogy(1);
-  hfsam->GetYaxis()->SetTitleOffset(1.4);
-  hfsam->SetLineWidth(2);
-  hfsam->SetLineColor(kBlue);
-  hfsam->Fit("gaus","","",0.005,0.1);
-  hfsam->GetFunction("gaus")->SetLineWidth(2);
-  hfsam->GetFunction("gaus")->SetLineColor(kRed);
-  hfsam->DrawClone();
+  h1 = hfsam->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
+  h1->Fit("gaus","","",0.005,0.1);
+  h1->GetFunction("gaus")->SetLineWidth(2);
+  h1->GetFunction("gaus")->SetLineColor(kRed);
   c4->SaveAs("results/emcal_barrel_pi0_fsam.png");
   c4->SaveAs("results/emcal_barrel_pi0_fsam.pdf");
 
   TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
   c5->SetLogy(1);
-  hpid->GetYaxis()->SetTitleOffset(1.4);
-  hpid->SetLineWidth(2);
-  hpid->SetLineColor(kBlue);
-  hpid->DrawClone();
+  h1 = hpid->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
   c5->SaveAs("results/emcal_barrel_pi0_pid.png");
   c5->SaveAs("results/emcal_barrel_pi0_pid.pdf");
 
   TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
   c5->SetLogy(1);
-  hdau->GetYaxis()->SetTitleOffset(1.4);
-  hdau->SetLineWidth(2);
-  hdau->SetLineColor(kBlue);
-  hdau->DrawClone();
+  h1 = hdau->DrawCopy();
+  h1->GetYaxis()->SetTitleOffset(1.4);
+  h1->SetLineWidth(2);
+  h1->SetLineColor(kBlue);
   c6->SaveAs("results/emcal_barrel_pi0_dau.png");
   c6->SaveAs("results/emcal_barrel_pi0_dau.pdf");
 
@@ -216,20 +216,20 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   // Energy Resolution Histogram Plotting
   auto *cdE = new TCanvas("cdE", "cdE", 700, 500);
   cdE->SetLogy(1);
+  h1 = hdEcopy->DrawCopy();
   hdEcopy->GetYaxis()->SetTitleOffset(1.4);
   hdEcopy->SetLineWidth(2);
   hdEcopy->SetLineColor(kBlue);
   hdEcopy->GetFunction("gaus")->SetLineWidth(2);
   hdEcopy->GetFunction("gaus")->SetLineColor(kRed);
-  hdEcopy->DrawClone();
   cdE->SaveAs("results/emcal_barrel_pi0_dE.png");
   cdE->SaveAs("results/emcal_barrel_pi0_dE.pdf");
 
   auto *cdE_rel = new TCanvas("cdE_rel", "cdE_rel", 700, 500);
+  h1 = hdE_rel->DrawCopy();
   hdE_rel->GetYaxis()->SetTitleOffset(1.4);
   hdE_rel->SetLineWidth(2);
   hdE_rel->SetLineColor(kBlue);
-  hdE_rel->DrawClone();
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
   cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
 

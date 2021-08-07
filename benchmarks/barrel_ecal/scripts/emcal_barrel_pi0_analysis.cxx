@@ -117,121 +117,126 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
   auto hdau   = d1.Histo1D({"hdau",   "Number of Daughters; Number of Daughters; Count",   10,   0,      10},  "dau");
 
+  // put this line above GetMean below so it can be lazily evaluated with the histgorams.
+  auto nevents_thrown = d1.Count();
+
   const double meanE     = hEthr->GetMean(); 
 
   // Event Counts
-  auto nevents_thrown = d1.Count();
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
 
   // Draw Histograms
   TCanvas *c1 = new TCanvas("c1", "c1", 700, 500);
   c1->SetLogy(1);
+  fmt::print("0\n");
   auto h1 = hEthr->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->GetYaxis()->SetTitleOffset(1.4);
   h1->SetLineWidth(2);
   h1->SetLineColor(kBlue);
   c1->SaveAs("results/emcal_barrel_pi0_Ethr.png");
   c1->SaveAs("results/emcal_barrel_pi0_Ethr.pdf");
 
-  TCanvas *c2 = new TCanvas("c2", "c2", 700, 500);
-  c2->SetLogy(1);
-  h1 = hNhits->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
-  h1->SetLineWidth(2);
-  h1->SetLineColor(kBlue);
-  c2->SaveAs("results/emcal_barrel_pi0_nhits.png");
-  c2->SaveAs("results/emcal_barrel_pi0_nhits.pdf");
+  fmt::print("1\n");
 
-  TCanvas *c3 = new TCanvas("c3", "c3", 700, 500);
-  c3->SetLogy(1);
-  h1 = hEsim->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
-  h1->SetLineWidth(2);
-  h1->SetLineColor(kBlue);
-  c3->SaveAs("results/emcal_barrel_pi0_Esim.png"); 
-  c3->SaveAs("results/emcal_barrel_pi0_Esim.pdf");
+  //TCanvas *c2 = new TCanvas("c2", "c2", 700, 500);
+  //c2->SetLogy(1);
+  //h1 = hNhits->DrawCopy();
+  //h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->SetLineWidth(2);
+  //h1->SetLineColor(kBlue);
+  //c2->SaveAs("results/emcal_barrel_pi0_nhits.png");
+  //c2->SaveAs("results/emcal_barrel_pi0_nhits.pdf");
 
-  TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
-  c4->SetLogy(1);
-  h1 = hfsam->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
-  h1->SetLineWidth(2);
-  h1->SetLineColor(kBlue);
-  h1->Fit("gaus","","",0.005,0.1);
-  h1->GetFunction("gaus")->SetLineWidth(2);
-  h1->GetFunction("gaus")->SetLineColor(kRed);
-  c4->SaveAs("results/emcal_barrel_pi0_fsam.png");
-  c4->SaveAs("results/emcal_barrel_pi0_fsam.pdf");
+  //TCanvas *c3 = new TCanvas("c3", "c3", 700, 500);
+  //c3->SetLogy(1);
+  //h1 = hEsim->DrawCopy();
+  //h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->SetLineWidth(2);
+  //h1->SetLineColor(kBlue);
+  //c3->SaveAs("results/emcal_barrel_pi0_Esim.png"); 
+  //c3->SaveAs("results/emcal_barrel_pi0_Esim.pdf");
 
-  TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
-  c5->SetLogy(1);
-  h1 = hpid->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
-  h1->SetLineWidth(2);
-  h1->SetLineColor(kBlue);
-  c5->SaveAs("results/emcal_barrel_pi0_pid.png");
-  c5->SaveAs("results/emcal_barrel_pi0_pid.pdf");
+  //TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);
+  //c4->SetLogy(1);
+  //h1 = hfsam->DrawCopy();
+  //h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->SetLineWidth(2);
+  //h1->SetLineColor(kBlue);
+  //h1->Fit("gaus","","",0.005,0.1);
+  //h1->GetFunction("gaus")->SetLineWidth(2);
+  //h1->GetFunction("gaus")->SetLineColor(kRed);
+  //c4->SaveAs("results/emcal_barrel_pi0_fsam.png");
+  //c4->SaveAs("results/emcal_barrel_pi0_fsam.pdf");
 
-  TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
-  c5->SetLogy(1);
-  h1 = hdau->DrawCopy();
-  h1->GetYaxis()->SetTitleOffset(1.4);
-  h1->SetLineWidth(2);
-  h1->SetLineColor(kBlue);
-  c6->SaveAs("results/emcal_barrel_pi0_dau.png");
-  c6->SaveAs("results/emcal_barrel_pi0_dau.pdf");
+  //TCanvas *c5 = new TCanvas("c5", "c5", 700, 500);
+  //c5->SetLogy(1);
+  //h1 = hpid->DrawCopy();
+  //h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->SetLineWidth(2);
+  //h1->SetLineColor(kBlue);
+  //c5->SaveAs("results/emcal_barrel_pi0_pid.png");
+  //c5->SaveAs("results/emcal_barrel_pi0_pid.pdf");
 
-  // Energy Resolution Calculation
-  std::string test_tag = "Barrel_emcal_pi0";// TODO: Change test_tag to something else
-  std:string detEle    = "Barrel_emcal";
+  //TCanvas *c6 = new TCanvas("c6", "c6", 700, 500);
+  //c5->SetLogy(1);
+  //h1 = hdau->DrawCopy();
+  //h1->GetYaxis()->SetTitleOffset(1.4);
+  //h1->SetLineWidth(2);
+  //h1->SetLineColor(kBlue);
+  //c6->SaveAs("results/emcal_barrel_pi0_dau.png");
+  //c6->SaveAs("results/emcal_barrel_pi0_dau.pdf");
 
-  // Energy resolution in the barrel region (-1 < eta < 1)
-  // Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky
-  // sigma_E / E = 12% / E^0.5 convoluted with 2%
-  // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
-  
-  double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
+  //// Energy Resolution Calculation
+  //std::string test_tag = "Barrel_emcal_pi0";// TODO: Change test_tag to something else
+  //std:string detEle    = "Barrel_emcal";
 
-  common_bench::Test pi0_energy_resolution{
-   {{"name", fmt::format("{}_energy_resolution", test_tag)},
-   {"title", "Pi0 Energy resolution"},
-   {"description",
-    fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle)},
-   {"quantity", "resolution (in %)"},
-   {"target", std::to_string(resolutionTarget)}}
-  };
+  //// Energy resolution in the barrel region (-1 < eta < 1)
+  //// Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky
+  //// sigma_E / E = 12% / E^0.5 convoluted with 2%
+  //// sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
+  //
+  //double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  // Histograms and Fitting
-  auto hdE          = d1.Histo1D({"hdE",      "dE; dE[GeV]; Events",              100, -3.0, 3.0}, "dE");
-  auto hdE_rel      = d1.Histo1D({"hdE_rel",  "dE Relative; dE Relative; Events", 100, -3.0, 3.0}, "dE_rel");
-  auto hdEcopy      = hdE->DrawCopy();
-  hdEcopy->Fit("gaus", "", "", -3.0,  3.0);
-  double* res       = hdEcopy->GetFunction("gaus")->GetParameters();
-  double sigmaOverE = res[2] / meanE;
+  //common_bench::Test pi0_energy_resolution{
+  // {{"name", fmt::format("{}_energy_resolution", test_tag)},
+  // {"title", "Pi0 Energy resolution"},
+  // {"description",
+  //  fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle)},
+  // {"quantity", "resolution (in %)"},
+  // {"target", std::to_string(resolutionTarget)}}
+  //};
 
-  // Pass/Fail
-  sigmaOverE <= resolutionTarget ? pi0_energy_resolution.pass(sigmaOverE) : pi0_energy_resolution.fail(sigmaOverE);
-  std::printf("Energy Resolution is %f\n", res[2]);
+  //// Histograms and Fitting
+  //auto hdE          = d1.Histo1D({"hdE",      "dE; dE[GeV]; Events",              100, -3.0, 3.0}, "dE");
+  //auto hdE_rel      = d1.Histo1D({"hdE_rel",  "dE Relative; dE Relative; Events", 100, -3.0, 3.0}, "dE_rel");
+  //auto hdEcopy      = hdE->DrawCopy();
+  //hdEcopy->Fit("gaus", "", "", -3.0,  3.0);
+  //double* res       = hdEcopy->GetFunction("gaus")->GetParameters();
+  //double sigmaOverE = res[2] / meanE;
 
-  // Energy Resolution Histogram Plotting
-  auto *cdE = new TCanvas("cdE", "cdE", 700, 500);
-  cdE->SetLogy(1);
-  h1 = hdEcopy->DrawCopy();
-  hdEcopy->GetYaxis()->SetTitleOffset(1.4);
-  hdEcopy->SetLineWidth(2);
-  hdEcopy->SetLineColor(kBlue);
-  hdEcopy->GetFunction("gaus")->SetLineWidth(2);
-  hdEcopy->GetFunction("gaus")->SetLineColor(kRed);
-  cdE->SaveAs("results/emcal_barrel_pi0_dE.png");
-  cdE->SaveAs("results/emcal_barrel_pi0_dE.pdf");
+  //// Pass/Fail
+  //sigmaOverE <= resolutionTarget ? pi0_energy_resolution.pass(sigmaOverE) : pi0_energy_resolution.fail(sigmaOverE);
+  //std::printf("Energy Resolution is %f\n", res[2]);
 
-  auto *cdE_rel = new TCanvas("cdE_rel", "cdE_rel", 700, 500);
-  h1 = hdE_rel->DrawCopy();
-  hdE_rel->GetYaxis()->SetTitleOffset(1.4);
-  hdE_rel->SetLineWidth(2);
-  hdE_rel->SetLineColor(kBlue);
-  cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
-  cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
+  //// Energy Resolution Histogram Plotting
+  //auto *cdE = new TCanvas("cdE", "cdE", 700, 500);
+  //cdE->SetLogy(1);
+  //h1 = hdEcopy->DrawCopy();
+  //hdEcopy->GetYaxis()->SetTitleOffset(1.4);
+  //hdEcopy->SetLineWidth(2);
+  //hdEcopy->SetLineColor(kBlue);
+  //hdEcopy->GetFunction("gaus")->SetLineWidth(2);
+  //hdEcopy->GetFunction("gaus")->SetLineColor(kRed);
+  //cdE->SaveAs("results/emcal_barrel_pi0_dE.png");
+  //cdE->SaveAs("results/emcal_barrel_pi0_dE.pdf");
 
-  common_bench::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
+  //auto *cdE_rel = new TCanvas("cdE_rel", "cdE_rel", 700, 500);
+  //h1 = hdE_rel->DrawCopy();
+  //hdE_rel->GetYaxis()->SetTitleOffset(1.4);
+  //hdE_rel->SetLineWidth(2);
+  //hdE_rel->SetLineColor(kBlue);
+  //cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.png");
+  //cdE_rel->SaveAs("results/emcal_barrel_pi0_dE_rel.pdf");
+
+  //common_bench::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
 }

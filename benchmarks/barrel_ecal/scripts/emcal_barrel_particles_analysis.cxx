@@ -53,6 +53,8 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   // variables that will be saved in the JSON file
   double Ethr_mean;
   double fSam_mean;
+  double fSam_img_mean;
+  double fSam_scfi_mean;
 
   ROOT::EnableImplicitMT();
   std::string input_fname = fmt::format("sim_output/sim_emcal_barrel_{}.root", particle_name);
@@ -194,6 +196,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     h->Fit("gaus", "", "", down_fit, up_fit);
     h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
+    fSam_img_mean = gaus->GetParameter(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c5,"fsamImg",particle_name);
@@ -209,6 +212,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     h->Fit("gaus", "", "", down_fit, up_fit);
     h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
+    fSam_scfi_mean = gaus->GetParameter(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c6,"fsamScFi",particle_name);
@@ -217,7 +221,9 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   j[particle_name] = {
     {"particle_name", particle_name},
     {"thrown_energy", Ethr_mean},
-    {"sampling_fraction", fSam_mean}
+    {"sampling_fraction", fSam_mean},
+    {"sampling_fraction_img", fSam_img_mean},
+    {"sampling_fraction_scfi", fSam_scfi_mean}      
   };
   if (save_calib) {
     std::string calib_output_path = "results/emcal_barrel_calibration.json";

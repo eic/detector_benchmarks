@@ -10,7 +10,7 @@ if (( $JUGGLER_N_EVENTS < $MIN_N_EVENTS )); then
    echo "Setting JUGGLER_N_EVENTS to ${MIN_N_EVENTS}"
 fi
 #0.5 1 2 3 4 7 15 20
-for E in 0.5 1 2 3 4 5 7 10 15 20
+for E in 0.5 1 2 5 10
 do
    export E_START="$E"
    export E_END="$E"   

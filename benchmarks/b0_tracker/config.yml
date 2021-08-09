@@ -1,0 +1,25 @@
+sim:b0_tracker:
+  stage: simulate
+  extends: .det_benchmark
+  script:
+    - bash benchmarks/b0_tracker/forward_protons.sh
+
+bench:b0_tracker:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs:
+    - ["sim:roman_pot"]
+  script:
+    - echo "tracking analysis script here later"
+    #- root -b -q benchmarks/trackers/simple_tracking.cxx+
+
+results:b0_tracker:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - ["bench:b0_tracker"]
+  script:
+    - echo "Collecting results for B0 Tracker"
+
+
+

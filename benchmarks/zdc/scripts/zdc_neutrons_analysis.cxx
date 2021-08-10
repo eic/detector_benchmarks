@@ -38,7 +38,7 @@ void zdc_neutrons_analysis(const char* input_fname = "sim_output/sim_zdc_uniform
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
     auto p = input[2];
-    auto energy = TMath::Sqrt(p.psx * p.psx + p.psy * p.psy + p.psz * p.psz + p.mass * p.mass);
+    auto energy = TMath::Sqrt(p.ps.x * p.ps.x + p.ps.y * p.ps.y + p.ps.z * p.ps.z + p.mass * p.mass);
     return energy;
   };
 

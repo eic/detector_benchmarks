@@ -56,7 +56,7 @@ void emcal_barrel_pi0_analysis(const char* input_fname = "sim_output/sim_emcal_b
   // Thrown Energy [GeV]
   //double meanE = 5; // Calculated later
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass);
+    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
   };
 
   // Number of hits

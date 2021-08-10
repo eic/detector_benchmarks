@@ -106,23 +106,23 @@ void emcal_barrel_pion_rejection_analysis(
 
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass);
+    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
   };
 
   // Thrown Momentum [GeV]
   auto Pthr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz);
+    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z);
   };
 
   // Thrown Eta 
   auto Eta = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    double E  = TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy + input[2].psz*input[2].psz + input[2].mass*input[2].mass);
-    return 0.5*TMath::Log((E + input[2].psz) / (E - input[2].psz));
+    double E  = TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
+    return 0.5*TMath::Log((E + input[2].ps.z) / (E - input[2].ps.z));
   };
 
   // Thrown pT [GeV]
   auto pT = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].psx*input[2].psx + input[2].psy*input[2].psy);
+    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y);
   };
 
   // Number of hits

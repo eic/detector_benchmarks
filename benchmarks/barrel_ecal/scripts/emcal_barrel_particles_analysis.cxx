@@ -73,7 +73,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   // Thrown Energy [GeV]
   auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
     auto p = input[2];
-    auto energy = TMath::Sqrt(p.psx * p.psx + p.psy * p.psy + p.psz * p.psz + p.mass * p.mass);
+    auto energy = TMath::Sqrt(p.ps.x * p.ps.x + p.ps.y * p.ps.y + p.ps.z * p.ps.z + p.mass * p.mass);
     return energy;
   };
 

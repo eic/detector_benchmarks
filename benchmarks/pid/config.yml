@@ -1,12 +1,29 @@
-#stages:
-#  #- simulate
-#  - benchmarks
-pid_test_1_dummy_test:
-  stage: benchmarks
+sim:backward:
+  extends: .det_benchmark
+  stage: simulate
   script:
-    - bash benchmarks/pid/dummy_test.sh
-  artifacts:
-    paths: 
-      - results/
-  allow_failure: true
+    - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml --enableGun --gun.energy "5*GeV" --gun.particle "${PARTICLE}" --gun.thetaMin 130*deg --gun.thetaMax 177*deg --gun.distribution "cos(theta)" --outputFile sim_output/sim_pid_backward_${PARTICLE}_5GeV.root
+    - rootls -t sim_output/sim_pid_backward_${PARTICLE}_5GeV.root
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi+", "proton"]
+
+bench:mrich:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs: ["sim:backward"]
+  script:
+    - mkdir -p results/pid/backward/mrich/
+    - root -t -x -q -b "benchmarks/pid/scripts/mrich_analysis.cxx+(\"sim_output/sim_pid_backward_${PARTICLE}_5GeV.root\", \"${PARTICLE}\")"
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi+", "proton"]
+
+collect_results:pid:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - ["bench:mrich"]
+  script:
+    - ls -lrht
 

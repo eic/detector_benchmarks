@@ -35,8 +35,8 @@ void emcal_barrel_particles_gen(int n_events = 1e6, double e_start = 0.0, double
   // detector
   // https://indico.bnl.gov/event/7449/contributions/35966/attachments/27177/41430/EIC-DWG-Calo-03192020.pdf
   // See a figure on slide 26
-  double cos_theta_min = std::cos(M_PI * (45.0 / 180.0));
-  double cos_theta_max = std::cos(M_PI * (135.0 / 180.0));
+  double cos_theta_min = std::cos(M_PI * (89.0 / 180.0));
+  double cos_theta_max = std::cos(M_PI * (91.0 / 180.0));
 
   for (events_parsed = 0; events_parsed < n_events; events_parsed++) {
     // FourVector(px,py,pz,e,pdgid,status)

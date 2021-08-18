@@ -98,6 +98,7 @@ get_data:
     - ls -lrtha
 
 include: 
+  - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/roman_pots/config.yml'

@@ -93,33 +93,52 @@ int sim_track_hits(const char* fname = "sim_track_hits.root")
                  .Define("p_thrown", momentum, {"thrownP"})
                  .Define("theta_thrown", theta, {"thrownP"})
                  .Define("theta0", "theta_thrown[0]")
+                 .Define("N_VertexBarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexBarrelHits"})
+                 .Define("N_VertexEndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexEndcapHits"})
                  .Define("N_BarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerBarrelHits"})
                  .Define("N_EndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerEndcapHits"})
                  ;
 
-  auto hBarrel_x_vs_y = df0.Histo2D({"hBarrel_x_vs_y", "; x ; y ",   100, -900, 900,100, -900, 900 }, "TrackerBarrelHits.position.x", "TrackerBarrelHits.position.y");
-  auto hEndcap_x_vs_y = df0.Histo2D({"hEndcap_x_vs_y", "; x ; y ",   100, -900, 900,100, -900, 900 }, "TrackerEndcapHits.position.x", "TrackerEndcapHits.position.y");
-  //auto hvtxBarrel_x_vs_y = df0.Histo2D({"hvtxBarrel_x_vs_y", "; x ; y ",   100, -900, 900,100, -900, 900 }, "VertexBarrelHits.position.x", "VertexBarrelHits.position.y");
-  //auto hvtxEndcap_x_vs_y = df0.Histo2D({"hvtxEndcap_x_vs_y", "; x ; y ",   100, -900, 900,100, -900, 900 }, "VertexEndcaplHits.position.x", "VertexEndcapHits.position.y");
-  //auto hAllHits_x_vs_y = df0.Histo2D({"hAllHitsx_vs_y", "; x ; y ",   100, -900, 900,100, -900, 900 }, "allHits.position.x", "allHits.position.y");
+  auto hBarrel_x_vs_y = df0.Histo2D(
+      {"hBarrel_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
+      "TrackerBarrelHits.position.x", "TrackerBarrelHits.position.y");
+  auto hEndcap_x_vs_y = df0.Histo2D(
+      {"hEndcap_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
+      "TrackerEndcapHits.position.x", "TrackerEndcapHits.position.y");
+  auto hVertexBarrel_x_vs_y = df0.Histo2D(
+      {"hVertexBarrel_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
+      "VertexBarrelHits.position.x", "VertexBarrelHits.position.y");
+  auto hVertexEndcap_x_vs_y = df0.Histo2D(
+      {"hVertexEndcap_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
+      "VertexEndcapHits.position.x", "VertexEndcapHits.position.y");
 
-  auto hBarrel_x_vs_z = df0.Histo2D({"hBarrel_x_vs_z", "; z ; x ", 100, -900, 900,100, -900, 900 }, "TrackerBarrelHits.position.z" , "TrackerBarrelHits.position.y");
-  auto hEndcap_x_vs_z = df0.Histo2D({"hEndcap_x_vs_z", "; z ; x ", 100, -900, 900,100, -900, 900 }, "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.y");
-  //auto hvtxBarrel_x_vs_z = df0.Histo2D({"hvtxBarrel_x_vs_z", "; z ; x ", 100, -900, 900,100, -900, 900 }, "VertexBarrelHits.position.z"  , "VertexBarrelHits.position.y" );
-  //auto hvtxEndcap_x_vs_z = df0.Histo2D({"hvtxEndcap_x_vs_z", "; z ; x ", 100, -900, 900,100, -900, 900 }, "VertexEndcaplHits.position.z" , "VertexEndcapHits.position.y" );
-  //auto hAllHits_x_vs_z = df0.Histo2D({"hAllHitsx_vs_z","; z ; x ", 100, -900, 900,100, -900, 900 }, "allHits.position.z"           , "allHits.position.y"          );
+  auto hBarrel_x_vs_z = df0.Histo2D(
+      {"hBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.y");
+  auto hEndcap_x_vs_z = df0.Histo2D(
+      {"hEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.y");
+  auto hVertexBarrel_x_vs_z = df0.Histo2D(
+      {"hVertexBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "VertexBarrelHits.position.z", "VertexBarrelHits.position.y");
+  auto hVertexEndcap_x_vs_z = df0.Histo2D(
+      {"hVertexEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "VertexEndcapHits.position.z", "VertexEndcapHits.position.y");
 
   auto hBarrel_N_vs_theta = df0.Histo1D({"hBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelHits");
   auto hEndcap_N_vs_theta = df0.Histo1D({"hEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_EndcapHits");
-  //auto hVtxBarrel_N_vs_theta = df0.Histo1D({"hVtxBarrel_N_vs_theta", "; #theta [deg.]", 20, 0, 180 }, "theta0", "N_VtxBarrelHits");
+  auto hVertexBarrel_N_vs_theta = df0.Histo1D({"hVertexBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexBarrelHits");
+  auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
 
   auto hBarrel_Nhits  = df0.Histo1D({"hBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelHits");
   auto hEndcap_Nhits  = df0.Histo1D({"hEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_EndcapHits");
-  //auto hVtxBarrel_Nhits = df0.Histo1D({"hVtxBarrel_Nhits", "; #theta [deg.]", 20, 0, 20 },  "N_VtxBarrelHits");
+  auto hVertexBarrel_Nhits  = df0.Histo1D({"hVertexBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexBarrelHits");
+  auto hVertexEndcap_Nhits  = df0.Histo1D({"hVertexEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexEndcapHits");
 
   auto hBarrel_Ntheta = df0.Histo1D({"hBarrel_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
   auto hEndcap_Ntheta = df0.Histo1D({"hEndcap_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-  //auto hVtxBarrel_Ntheta = df0.Histo1D({"hVtxBarrel_Ntheta", "; #theta [deg.]", 20, 0, 180 }, "theta0");
+  auto hVertexBarrel_Ntheta = df0.Histo1D({"hVertexBarrel_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
+  auto hVertexEndcap_Ntheta = df0.Histo1D({"hVertexEndcap_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
 
   auto c = new TCanvas();
   auto hs = new THStack("n_hits","; #theta  ");
@@ -132,11 +151,16 @@ int sim_track_hits(const char* fname = "sim_track_hits.root")
   h1->Divide(h2);
   h1->SetLineColor(2);
   hs->Add(h1);
-  //h1 = (TH1D*) hVtxBarrel_vs_theta->Clone();
-  //h1->SetLineColor(4);
-  //h1->SetFillStyle(3001);
-  //h1->SetFillColor(4);
-  //hs->Add(h1);
+  h1 = (TH1D*) hVertexEndcap_N_vs_theta->Clone();
+  h2 = (TH1D*) hVertexEndcap_Ntheta->Clone();
+  h1->Divide(h2);
+  h1->SetLineColor(4);
+  hs->Add(h1);
+  h1 = (TH1D*) hVertexBarrel_N_vs_theta->Clone();
+  h2 = (TH1D*) hVertexBarrel_Ntheta->Clone();
+  h1->Divide(h2);
+  h1->SetLineColor(8);
+  hs->Add(h1);
   hs->Draw("nostack, hist");
   c->BuildLegend();
   c->SaveAs("results/tracking_detectors/sim_track_hits_n_hits_vs_theta.png");

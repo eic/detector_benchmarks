@@ -114,15 +114,28 @@ int sim_track_hits(const char* fname = "sim_track_hits.root")
 
   auto hBarrel_x_vs_z = df0.Histo2D(
       {"hBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.y");
+      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.x");
   auto hEndcap_x_vs_z = df0.Histo2D(
       {"hEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.y");
+      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.x");
   auto hVertexBarrel_x_vs_z = df0.Histo2D(
       {"hVertexBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "VertexBarrelHits.position.z", "VertexBarrelHits.position.y");
+      "VertexBarrelHits.position.z", "VertexBarrelHits.position.x");
   auto hVertexEndcap_x_vs_z = df0.Histo2D(
       {"hVertexEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "VertexEndcapHits.position.z", "VertexEndcapHits.position.x");
+
+  auto hBarrel_y_vs_z = df0.Histo2D(
+      {"hBarrel_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.y");
+  auto hEndcap_y_vs_z = df0.Histo2D(
+      {"hEndcap_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.y");
+  auto hVertexBarrel_y_vs_z = df0.Histo2D(
+      {"hVertexBarrel_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
+      "VertexBarrelHits.position.z", "VertexBarrelHits.position.y");
+  auto hVertexEndcap_y_vs_z = df0.Histo2D(
+      {"hVertexEndcap_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
       "VertexEndcapHits.position.z", "VertexEndcapHits.position.y");
 
   auto hBarrel_N_vs_theta = df0.Histo1D({"hBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelHits");
@@ -212,9 +225,9 @@ int sim_track_hits(const char* fname = "sim_track_hits.root")
   c->SaveAs("results/tracking_detectors/sim_track_hits_trkBarrel_xy.pdf");
 
   c = new TCanvas();
-  hBarrel_x_vs_y->DrawCopy("colz");
-  hEndcap_x_vs_y->DrawCopy("colz same");
-  //hvtxBarrel_x_vs_y->DrawCopy("colz same");
+  hEndcap_x_vs_y->DrawCopy("colz");
+  hVertexEndcap_x_vs_y->DrawCopy("colz same");
+  //hBarrel_x_vs_y->DrawCopy("colz same");
   //hvtxEndcap_x_vs_y->DrawCopy("colz same");
 
   c->SaveAs("results/tracking_detectors/sim_track_hits_Hits_xy.png");
@@ -225,5 +238,10 @@ int sim_track_hits(const char* fname = "sim_track_hits.root")
   hEndcap_x_vs_z->DrawCopy("colz same");
   c->SaveAs("results/tracking_detectors/sim_track_hits_Hits_xz.png");
   c->SaveAs("results/tracking_detectors/sim_track_hits_Hits_xz.pdf");
+
+  hBarrel_y_vs_z->DrawCopy("colz");
+  hEndcap_y_vs_z->DrawCopy("colz same");
+  c->SaveAs("results/tracking_detectors/sim_track_hits_Hits_yz.png");
+  c->SaveAs("results/tracking_detectors/sim_track_hits_Hits_yz.pdf");
   return 0;
 }

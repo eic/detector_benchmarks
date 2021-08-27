@@ -9,6 +9,9 @@
 #include <math.h>
 
 #include "TMath.h"
+#include "Math/Vector3D.h"
+#include "Math/Rotation3D.h"
+#include "Math/RotationY.h"
 
 #include "common_bench/particles.h"
 
@@ -20,7 +23,7 @@ using namespace HepMC3;
 void gen_forward_protons(int n_events = 100, 
                      const char* out_fname = "forward_protons.hepmc")
 {
-  double cos_theta_min = std::cos(1.0*(M_PI/180.0));
+  double cos_theta_min = std::cos(0.5*(M_PI/180.0));
   double cos_theta_max = std::cos(0.0*(M_PI/180.0));
 
   const double M_p = common_bench::particleMap.at(2212).mass;
@@ -44,13 +47,22 @@ void gen_forward_protons(int n_events = 100,
         FourVector(0.0, 0.0, 0.0, M_p), 2212, 4);
 
     // Define momentum
-    Double_t p     = r1->Uniform(1.0, 10.0);
+    Double_t p     = r1->Uniform(200.0, 275.0);
     Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
     Double_t costh = r1->Uniform(cos_theta_min, cos_theta_max);
     Double_t th    = std::acos(costh);
     Double_t px    = p * std::cos(phi) * std::sin(th);
     Double_t py    = p * std::sin(phi) * std::sin(th);
     Double_t pz    = p * std::cos(th);
+
+
+    ROOT::Math::XYZVector p0 = {px,py,pz};
+
+    //ROOT::Math::Rotation3D r = (-0.025);
+    ROOT::Math::RotationY r(-0.025);
+    auto p_rot = r*p0;
+
+
     // Generates random vectors, uniformly distributed over the surface of a
     // sphere of given radius, in this case momentum.
     // r1->Sphere(px, py, pz, p);
@@ -60,7 +72,7 @@ void gen_forward_protons(int n_events = 100,
     // type 1 is final state
     // pdgid 11 - electron 0.510 MeV/c^2
     GenParticlePtr p3 = std::make_shared<GenParticle>(
-        FourVector(px, py, pz, sqrt(p * p + (M_p * M_p))), 2212, 1);
+        FourVector(p_rot.x(), p_rot.y(), p_rot.z(), sqrt(p * p + (M_p * M_p))), 2212, 1);
 
     GenVertexPtr v1 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);

@@ -8,7 +8,7 @@ bench:b0_tracker:
   stage: benchmarks
   extends: .det_benchmark
   needs:
-    - ["sim:roman_pot"]
+    - ["sim:b0_tracker"]
   script:
     - echo "tracking analysis script here later"
     #- root -b -q benchmarks/trackers/simple_tracking.cxx+

@@ -15,7 +15,8 @@ See [common_bench](https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench/).
 
 ## Adding new benchmarks
 
-See `benchmarks` directory for examples.
+To get an idea of what to do look at an existing benchmark in the 
+[`benchmarks` directory](https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/tree/master/benchmarks).
 
 ## Running Locally
 

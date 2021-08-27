@@ -36,25 +36,67 @@ void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.root"
 
   ROOT::RDataFrame d0(*t);
 
-  auto hits_eta = [&](const std::vector<dd4pod::TrackerHitData>& hits) {
+  auto hits_theta = [&](const std::vector<dd4pod::TrackerHitData>& hits) {
     std::vector<double> result;
     for (const auto& h : hits) {
       ROOT::Math::XYZVector vec(h.position.x,h.position.y,h.position.z);
-      result.push_back(vec.eta());
-      std::cout << vec.eta() << "\n";
+      result.push_back(1000*vec.theta());
+      std::cout << 1000*vec.theta() << "\n";
     }
     return result;
   };
 
-  auto d1 = d0.Define("hits_eta", hits_eta, {"B0TrackerHits"});
+  auto local_position = [&](const std::vector<dd4pod::TrackerHitData>& hits) {
+    std::vector<std::array<double, 2>> result;
+    for (const auto& h : hits) {
 
-  auto h1 = d1.Histo1D({"h1", "hits_eta", 100, 0,20}, "hits_eta");
+      auto pos0 = (h.position);
+	  result.push_back({pos0.x , pos0.y});
+    }
+    return result;
+  };
+
+
+  auto x_pos = [&](const std::vector<std::array<double, 2>>& xypos) {
+    std::vector<double> result;
+    for (const auto& h : xypos) {
+
+		result.push_back(h.at(0));
+    }
+    return result;
+  };
+
+  auto y_pos = [&](const std::vector<std::array<double, 2>>& xypos) {
+    std::vector<double> result;
+    for (const auto& h : xypos) {
+
+        result.push_back(h.at(1));
+    }
+    return result;
+  };
+
+
+  auto d1 = d0.Define("nhits", hits_theta, {"B0TrackerHits"})
+			  .Define("xy_hit_pos", local_position, {"B0TrackerHits"})
+              .Define("x_pos", x_pos, {"xy_hit_pos"})
+              .Define("y_pos", y_pos, {"xy_hit_pos"});
+
+  auto h_local_pos = d1.Histo2D({"h_local_pos", ";x [mm]; y [mm] ", 100,  -100.0, -200.0, 100, -100.0, 100.0}, "x_pos", "y_pos");
+
+  auto d2 = d0.Define("hits_theta", hits_theta, {"B0TrackerHits"});
+
+  auto h1 = d2.Histo1D({"h1", "hits_theta", 100, 0,20}, "hits_theta");
   TCanvas* c = new TCanvas();
   h1->DrawCopy();
-  c->SaveAs("results/b0_tracker_hits_eta.png");
-  c->SaveAs("results/b0_tracker_hits_eta.pdf");
+  c->SaveAs("results/b0_tracker_hits_theta.png");
+  c->SaveAs("results/b0_tracker_hits_theta.pdf");
+  
+  h_local_pos->DrawCopy("colz");
+  c->SaveAs("results/b0_tracker_hits_occupancy_disk_1.png");
+  c->SaveAs("results/b0_tracker_hits_occupancy_disk_1.pdf");
+
   auto n1 = h1->GetMean();
-  std::cout << "Pseudorapidity of hits: " << n1 << std::endl;
+  std::cout << "Polar angle of hits: " << n1 << std::endl;
 
   //if (n1 < 5) {
   //        std::quick_exit(1);

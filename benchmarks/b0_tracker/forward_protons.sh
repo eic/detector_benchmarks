@@ -7,7 +7,7 @@ if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 
-  export JUGGLER_N_EVENTS=100
+  export JUGGLER_N_EVENTS=1000
 fi
 
 export FILE_NAME_TAG="forward_protons"

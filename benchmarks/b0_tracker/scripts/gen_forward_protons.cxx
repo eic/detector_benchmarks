@@ -20,11 +20,18 @@ using namespace HepMC3;
 /** Generate electrons in the central region.
  *  This is for testing detectors in the "barrel" region.
  */
-void gen_forward_protons(int n_events = 100, 
+void gen_forward_protons(int n_events = 1000, 
                      const char* out_fname = "forward_protons.hepmc")
 {
-  double cos_theta_min = std::cos(0.5*(M_PI/180.0));
+
+  double crossingAngle = -0.025; //radiansc
+
+  // generate protons in B0 acceptance - roughly 5 - 20 mrad
+  double cos_theta_min = std::cos(0.02);
   double cos_theta_max = std::cos(0.0*(M_PI/180.0));
+
+  double partEnergyMin = 270.0; // xL 0.98
+  double partEnergyMax = 275.0; // top beam energy
 
   const double M_p = common_bench::particleMap.at(2212).mass;
 
@@ -42,12 +49,12 @@ void gen_forward_protons(int n_events = 100,
     // pdgid 111 - pi0
     // pdgid 2212 - proton
     GenParticlePtr p1 =
-        std::make_shared<GenParticle>(FourVector(0.0, 0.0, 10.0, 10.0), 2212, 4);
+        std::make_shared<GenParticle>(FourVector(0.0, 0.0, partEnergyMax, partEnergyMax), 2212, 4);
     GenParticlePtr p2 = std::make_shared<GenParticle>(
         FourVector(0.0, 0.0, 0.0, M_p), 2212, 4);
 
     // Define momentum
-    Double_t p     = r1->Uniform(200.0, 275.0);
+    Double_t p     = r1->Uniform(partEnergyMin, partEnergyMax);
     Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
     Double_t costh = r1->Uniform(cos_theta_min, cos_theta_max);
     Double_t th    = std::acos(costh);
@@ -55,19 +62,11 @@ void gen_forward_protons(int n_events = 100,
     Double_t py    = p * std::sin(phi) * std::sin(th);
     Double_t pz    = p * std::cos(th);
 
-
     ROOT::Math::XYZVector p0 = {px,py,pz};
 
     //ROOT::Math::Rotation3D r = (-0.025);
     ROOT::Math::RotationY r(-0.025);
     auto p_rot = r*p0;
-
-
-    // Generates random vectors, uniformly distributed over the surface of a
-    // sphere of given radius, in this case momentum.
-    // r1->Sphere(px, py, pz, p);
-
-    //std::cout << std::sqrt(px*px + py*py + pz*pz) - p << " is zero? \n";
 
     // type 1 is final state
     // pdgid 11 - electron 0.510 MeV/c^2

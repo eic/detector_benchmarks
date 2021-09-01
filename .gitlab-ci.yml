@@ -107,11 +107,12 @@ include:
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
+  - local: 'benchmarks/others/config.yml'
 
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter"]
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter","collect_results:materialscan"]
   script:
     - echo "deploy results!"
 

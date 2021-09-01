@@ -1,0 +1,14 @@
+bench:materialscan:
+  stage: benchmarks
+  extends: .det_benchmark
+  script:
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 500.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/images/ && mv materialScan.png materialScan.pdf results/images/
+
+collect_results:materialscan:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["bench:materialscan"]
+  script:
+    - ls -lrht

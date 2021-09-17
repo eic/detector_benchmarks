@@ -18,6 +18,7 @@
 #include "TMath.h"
 
 #include <iostream>
+#include <fstream>
 #include <fmt/core.h>
 
 #include "hcal_barrel_common_functions.h"

@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <random>
 #include <fmt/core.h>

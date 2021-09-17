@@ -5,6 +5,7 @@
 
 #include "ROOT/RDataFrame.hxx"
 #include <iostream>
+#include <fstream>
 #include <fmt/core.h>
 
 #include "dd4pod/Geant4ParticleCollection.h"

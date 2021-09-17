@@ -5,6 +5,7 @@
 
 #include "ROOT/RDataFrame.hxx"
 #include <iostream>
+#include <fstream>
 #include <fmt/core.h>
 
 #include "dd4pod/Geant4ParticleCollection.h"
@@ -55,6 +56,9 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   double fSam_mean;
   double fSam_img_mean;
   double fSam_scfi_mean;
+  double fSam_mean_err;
+  double fSam_img_mean_err;
+  double fSam_scfi_mean_err;
 
   ROOT::EnableImplicitMT();
   std::string input_fname = fmt::format("sim_output/sim_emcal_barrel_{}.root", particle_name);
@@ -181,6 +185,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
     fSam_mean = gaus->GetParameter(1);
+    fSam_mean_err = gaus->GetParError(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c4,"fsam",particle_name);
@@ -197,6 +202,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
     fSam_img_mean = gaus->GetParameter(1);
+    fSam_img_mean_err = gaus->GetParError(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c5,"fsamImg",particle_name);
@@ -213,6 +219,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     h->GetXaxis()->SetRangeUser(down_fit,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
     fSam_scfi_mean = gaus->GetParameter(1);
+    fSam_scfi_mean_err = gaus->GetParError(1);
     gaus->SetLineWidth(2);
     gaus->SetLineColor(kRed); 
     save_canvas(c6,"fsamScFi",particle_name);
@@ -222,8 +229,11 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     {"particle_name", particle_name},
     {"thrown_energy", Ethr_mean},
     {"sampling_fraction", fSam_mean},
+    {"sampling_fraction_error", fSam_mean_err},
     {"sampling_fraction_img", fSam_img_mean},
-    {"sampling_fraction_scfi", fSam_scfi_mean}      
+    {"sampling_fraction_error_img", fSam_img_mean_err},
+    {"sampling_fraction_scfi", fSam_scfi_mean},
+    {"sampling_fraction_error_scfi", fSam_scfi_mean_err}      
   };
   if (save_calib) {
     std::string calib_output_path = "results/emcal_barrel_calibration.json";

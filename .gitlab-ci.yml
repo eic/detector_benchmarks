@@ -96,6 +96,10 @@ get_data:
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
     - ls -lrtha
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
 
 include: 
   - local: 'benchmarks/tracking_detectors/config.yml'

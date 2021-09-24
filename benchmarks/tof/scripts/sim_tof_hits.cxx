@@ -97,9 +97,9 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
                  .Define("N_VertexEndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexEndcapHits"})
                  .Define("N_BarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerBarrelHits"})
                  .Define("N_EndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerEndcapHits"})
-                 .Define("N_BarrelTofHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BarrelTofHits"})
-                 .Define("N_ForwardTofHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"ForwardTofHits"})
-                 .Define("N_BackwardTofHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BackwardTofHits"})
+                 .Define("N_BarrelTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BarrelTOFHits"})
+                 .Define("N_ForwardTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"ForwardTOFHits"})
+                 .Define("N_BackwardTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BackwardTOFHits"})
                  ;
 
   auto hBarrel_x_vs_y = df0.Histo2D(
@@ -116,13 +116,13 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
       "VertexEndcapHits.position.x", "VertexEndcapHits.position.y");
   auto hBarrelTof_x_vs_y = df0.Histo2D(
        {"hBarrelTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-       "BarrelTofHits.position.x", "BarrelTofHits.position.y");
+       "BarrelTOFHits.position.x", "BarrelTOFHits.position.y");
   auto hForwardTof_x_vs_y = df0.Histo2D(
        {"hForwardTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-       "ForwardTofHits.position.x", "ForwardTofHits.position.y");
+       "ForwardTOFHits.position.x", "ForwardTOFHits.position.y");
   auto hBackwardTof_x_vs_y = df0.Histo2D(
        {"hBackwardTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-       "BackwardTofHits.position.x", "BackwardTofHits.position.y");
+       "BackwardTOFHits.position.x", "BackwardTOFHits.position.y");
 
   auto hBarrel_x_vs_z = df0.Histo2D(
       {"hBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
@@ -138,13 +138,13 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
       "VertexEndcapHits.position.z", "VertexEndcapHits.position.x");
   auto hBarrelTof_x_vs_z = df0.Histo2D(
       {"hBarrelTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "BarrelTofHits.position.z", "BarrelTofHits.position.x");
+      "BarrelTOFHits.position.z", "BarrelTOFHits.position.x");
   auto hForwrardTof_x_vs_z = df0.Histo2D(
       {"hForwardTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "ForwardTofHits.position.z", "ForwardTofHits.position.x");
+      "ForwardTOFHits.position.z", "ForwardTOFHits.position.x");
   auto hBackwrardTof_x_vs_z = df0.Histo2D(
       {"hBackwardTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "BackwardTofHits.position.z", "BackwardTofHits.position.x");
+      "BackwardTOFHits.position.z", "BackwardTOFHits.position.x");
 
   auto hBarrel_y_vs_z = df0.Histo2D(
       {"hBarrel_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
@@ -160,29 +160,29 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
       "VertexEndcapHits.position.z", "VertexEndcapHits.position.y");
   auto hBarrelTof_y_vs_z = df0.Histo2D(
       {"hBarrelTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "BarrelTofHits.position.z", "BarrelTofHits.position.y");
+      "BarrelTOFHits.position.z", "BarrelTOFHits.position.y");
     auto hForwardTof_y_vs_z = df0.Histo2D(
         {"hForwardTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "ForwardTofHits.position.z", "ForwardTofHits.position.y");
+        "ForwardTOFHits.position.z", "ForwardTOFHits.position.y");
     auto hBackwardTof_y_vs_z = df0.Histo2D(
         {"hBackwardTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "BackwardTofHits.position.z", "BackwardTofHits.position.y");
+        "BackwardTOFHits.position.z", "BackwardTOFHits.position.y");
     
   auto hBarrel_N_vs_theta = df0.Histo1D({"hBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelHits");
   auto hEndcap_N_vs_theta = df0.Histo1D({"hEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_EndcapHits");
   auto hVertexBarrel_N_vs_theta = df0.Histo1D({"hVertexBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexBarrelHits");
   auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
-    auto hBarrelTof_N_vs_theta = df0.Histo1D({"hBarrelTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelTofHits");
-    auto hForwardTof_N_vs_theta = df0.Histo1D({"hForwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_ForwardTofHits");
-    auto hBackwardTof_N_vs_theta = df0.Histo1D({"hBackwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BackwardTofHits");
+    auto hBarrelTof_N_vs_theta = df0.Histo1D({"hBarrelTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelTOFHits");
+    auto hForwardTof_N_vs_theta = df0.Histo1D({"hForwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_ForwardTOFHits");
+    auto hBackwardTof_N_vs_theta = df0.Histo1D({"hBackwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BackwardTOFHits");
 
   auto hBarrel_Nhits  = df0.Histo1D({"hBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelHits");
   auto hEndcap_Nhits  = df0.Histo1D({"hEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_EndcapHits");
   auto hVertexBarrel_Nhits  = df0.Histo1D({"hVertexBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexBarrelHits");
   auto hVertexEndcap_Nhits  = df0.Histo1D({"hVertexEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexEndcapHits");
-    auto hBarrelTof_Nhits  = df0.Histo1D({"hBarrelTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelTofHits");
-    auto hForwardTof_Nhits  = df0.Histo1D({"hForwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_ForwardTofHits");
-    auto hBackwardTof_Nhits  = df0.Histo1D({"hBackwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BackwardTofHits");
+    auto hBarrelTof_Nhits  = df0.Histo1D({"hBarrelTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelTOFHits");
+    auto hForwardTof_Nhits  = df0.Histo1D({"hForwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_ForwardTOFHits");
+    auto hBackwardTof_Nhits  = df0.Histo1D({"hBackwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BackwardTOFHits");
 
   auto hBarrel_Ntheta = df0.Histo1D({"hBarrel_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
   auto hEndcap_Ntheta = df0.Histo1D({"hEndcap_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
@@ -255,6 +255,19 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
   c->BuildLegend();
   c->SaveAs("results/tof/sim_tof_hits_nhits.png");
   c->SaveAs("results/tof/sim_tof_hits_nhits.pdf");
+
+  c = new TCanvas();
+  hBarrelTOF_x_vs_y->DrawCopy("colz");
+  c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.png");
+  c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.pdf");
+  c = new TCanvas();
+  hForwardTOF_x_vs_y->DrawCopy("colz");
+  c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.png");
+  c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.pdf");
+  c = new TCanvas();
+  hBackwardTOF_x_vs_y->DrawCopy("colz");
+  c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.png");
+  c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.pdf");
 
   c = new TCanvas();
   hBarrel_x_vs_y->DrawCopy("colz");

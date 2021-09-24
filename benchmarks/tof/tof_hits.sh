@@ -57,6 +57,8 @@ if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then
   export JUGGLER_N_EVENTS=100
 fi
 
+export JUGGLER_N_EVENTS=10
+export JUGGLER_DETECTOR_VERSION="98-update-barrel-and-endcap-tof"
 export JUGGLER_FILE_NAME_TAG="tof_hits"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 
@@ -114,5 +116,6 @@ if [[ "${JUGGLER_N_EVENTS}" -lt "500" ]] ; then
     cp ${JUGGLER_SIM_FILE} results/.
   fi
 fi
+ls -ltr ${JUGGLER_SIM_FILE}
 
 

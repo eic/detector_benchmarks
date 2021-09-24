@@ -257,15 +257,15 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
   c->SaveAs("results/tof/sim_tof_hits_nhits.pdf");
 
   c = new TCanvas();
-  hBarrelTOF_x_vs_y->DrawCopy("colz");
+  hBarrelTof_x_vs_y->DrawCopy("colz");
   c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.png");
   c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.pdf");
   c = new TCanvas();
-  hForwardTOF_x_vs_y->DrawCopy("colz");
+  hForwardTof_x_vs_y->DrawCopy("colz");
   c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.png");
   c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.pdf");
   c = new TCanvas();
-  hBackwardTOF_x_vs_y->DrawCopy("colz");
+  hBackwardTof_x_vs_y->DrawCopy("colz");
   c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.png");
   c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.pdf");
 

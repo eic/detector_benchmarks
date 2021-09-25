@@ -147,9 +147,9 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
   auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
     
 
-    auto hBarrelTof_t_vs_p = df0.Histo2D(
-         {"hBarrelTof_t_vs_p", "; t ; p ", 100, 0, 1, 100, 0, 10},
-         "BarrelTOFHits.position.t", "BarrelTOFHits.momentum.t");
+    auto hBarrelTof_beta_vs_p = df0.Histo2D(
+         {"hBarrelTof_time_vs_length", "; time ; p ", 100, 0, 100, 100, 0, 100},
+         "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
 
     auto hBarrelTof_x_vs_y = df0.Histo2D(
          {"hBarrelTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},

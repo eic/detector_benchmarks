@@ -39,7 +39,7 @@ void gen_tof_hits(int n_events = 100,
       GenParticlePtr p2 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 0.0, 0.938), 2212, 4);
 
       // Define momentum
-      Double_t p     = r1->Uniform(1.0, 10.0);
+      Double_t p     = 0.5; //r1->Uniform(1, 10);
       Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
       Double_t costh = r1->Uniform(cos_theta_min, cos_theta_max);
       Double_t th    = std::acos(costh);
@@ -55,13 +55,22 @@ void gen_tof_hits(int n_events = 100,
       // type 1 is final state
       // pdgid 11 - electron 0.510 MeV/c^2
       GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.000511 * 0.000511))),
-                                                        ((ip % 2 == 0) ? 11 : -11), 1);
+                                                          ((ip % 2 == 0) ? 11 : -11), 1);
+      GenParticlePtr p4 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.938272 * 0.938272))),
+                                                          ((ip % 2 == 0) ? 2212 : -2212), 1);
+      GenParticlePtr p5 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.493677 * 0.493677))),
+                                                          ((ip % 2 == 0) ? 321 : -321), 1);
+      GenParticlePtr p6 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.139570 * 0.139570))),
+                                                          ((ip % 2 == 0) ? 211 : -211), 1);
 
       GenVertexPtr v1 = std::make_shared<GenVertex>();
       v1->add_particle_in(p1);
       v1->add_particle_in(p2);
 
       v1->add_particle_out(p3);
+      v1->add_particle_out(p4);
+      v1->add_particle_out(p5);
+      v1->add_particle_out(p6);
       evt.add_vertex(v1);
     }
 

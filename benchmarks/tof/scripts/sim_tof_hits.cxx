@@ -147,7 +147,7 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
   auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
     
 
-    auto hBarrelTof_beta_vs_p = df0.Histo2D(
+    auto hBarrelTof_time_vs_length = df0.Histo2D(
          {"hBarrelTof_time_vs_length", "; time ; p ", 100, 0, 100, 100, 0, 100},
          "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
 
@@ -290,7 +290,7 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
     
     
     c = new TCanvas();
-    hBarrelTof_t_vs_p->DrawCopy("colz");
+    hBarrelTof_time_vs_length->DrawCopy("colz");
     c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.png");
     c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.pdf");
     c = new TCanvas();

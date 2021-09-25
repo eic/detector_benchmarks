@@ -41,7 +41,7 @@ void gen_tof_hits(int n_events = 100,
       // Define momentum
       Double_t p     = 0.5; //r1->Uniform(1, 10);
       Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
-      Double_t costh = r1->Uniform(cos_theta_min, cos_theta_max);
+      Double_t costh = r1->Uniform(-0.707, 0.707); //r1->Uniform(cos_theta_min, cos_theta_max);
       Double_t th    = std::acos(costh);
       Double_t px    = p * std::cos(phi) * std::sin(th);
       Double_t py    = p * std::sin(phi) * std::sin(th);
@@ -80,7 +80,7 @@ void gen_tof_hits(int n_events = 100,
     }
 
     hepmc_output.write_event(evt);
-    if (events_parsed % 10000 == 0) {
+    if (events_parsed % 100 == 0) {
       std::cout << "Event: " << events_parsed << std::endl;
     }
     evt.clear();

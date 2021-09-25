@@ -32,7 +32,6 @@ stages:
   - benchmarks
   - collect
   - deploy
-  - trigger
 
 common:setup:
   stage: config
@@ -46,6 +45,7 @@ common:setup:
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
+        export JUGGLER_DETECTOR_VERSION="98-update-barrel-and-endcap-tof"
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
@@ -58,6 +58,7 @@ common:setup:
         if [[ "${JUGGLER_DETECTOR_VERSION}" == "" ]] ; then
           export JUGGLER_DETECTOR_VERSION="master" 
         fi
+        export JUGGLER_DETECTOR_VERSION="98-update-barrel-and-endcap-tof"
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
@@ -99,16 +100,7 @@ get_data:
 
 include: 
   - local: 'benchmarks/tracking_detectors/config.yml'
-  - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/barrel_hcal/config.yml'
-  - local: 'benchmarks/roman_pots/config.yml'
-  - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/crystal_calorimeter/config.yml'
-  - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/tof/config.yml'
-  - local: 'benchmarks/timing/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
-  - local: 'benchmarks/others/config.yml'
 
 deploy_results:
   stage: deploy

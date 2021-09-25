@@ -148,7 +148,7 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
     
 
     auto hBarrelTof_time_vs_length = df0.Histo2D(
-         {"hBarrelTof_time_vs_length", "; time ; p ", 100, 0, 100, 100, 0, 100},
+         {"hBarrelTof_time_vs_length", "; time ; p ", 100, 0, 30, 100, 0, 1},
          "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
 
     auto hBarrelTof_x_vs_y = df0.Histo2D(
@@ -291,8 +291,8 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
     
     c = new TCanvas();
     hBarrelTof_time_vs_length->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.pdf");
+    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.png");
+    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.pdf");
     c = new TCanvas();
     hBarrelTof_x_vs_y->DrawCopy("colz");
     c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.png");

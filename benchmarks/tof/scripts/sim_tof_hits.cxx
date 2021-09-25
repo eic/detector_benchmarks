@@ -148,7 +148,7 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
     
 
     auto hBarrelTof_time_vs_length = df0.Histo2D(
-         {"hBarrelTof_time_vs_length", "; time ; p ", 100, 0, 30, 100, 0, 1},
+         {"hBarrelTof_time_vs_length", "; time ; length ", 100, 0, 30, 100, 0, 1},
          "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
 
     auto hBarrelTof_x_vs_y = df0.Histo2D(

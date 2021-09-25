@@ -44,6 +44,7 @@ common:setup:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
         export JUGGLER_DETECTOR_VERSION="98-update-barrel-and-endcap-tof"
+        export JUGGLER_N_EVENTS        = 10000
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
@@ -57,6 +58,7 @@ common:setup:
           export JUGGLER_DETECTOR_VERSION="master" 
         fi
         export JUGGLER_DETECTOR_VERSION="98-update-barrel-and-endcap-tof"
+        export JUGGLER_N_EVENTS        = 10000
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env

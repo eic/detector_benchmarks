@@ -39,7 +39,7 @@ void gen_tof_hits(int n_events = 100,
       GenParticlePtr p2 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 0.0, 0.938), 2212, 4);
 
       // Define momentum
-      Double_t p     = r1->Uniform(0.1, 2);
+      Double_t p     = r1->Uniform(0.5, 2);
       Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
       Double_t costh = r1->Uniform(-0.05, 0.05); //r1->Uniform(cos_theta_min, cos_theta_max);
       Double_t th    = std::acos(costh);

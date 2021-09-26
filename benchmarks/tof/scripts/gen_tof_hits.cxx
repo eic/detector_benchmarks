@@ -80,7 +80,7 @@ void gen_tof_hits(int n_events = 100,
     }
 
     hepmc_output.write_event(evt);
-    if (events_parsed % 100 == 0) {
+    if (events_parsed % 10000 == 0) {
       std::cout << "Event: " << events_parsed << std::endl;
     }
     evt.clear();

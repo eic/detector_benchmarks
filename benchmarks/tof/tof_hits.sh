@@ -57,7 +57,7 @@ if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then
   export JUGGLER_N_EVENTS=100
 fi
 
-export JUGGLER_N_EVENTS=1000
+export JUGGLER_N_EVENTS=5
 export JUGGLER_FILE_NAME_TAG="tof_hits"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 

@@ -97,7 +97,7 @@ get_data:
     - ls -lrtha
 
 include: 
-  - local: 'benchmarks/tracking_detectors/config.yml'
+  #- local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tof/config.yml'
 
 

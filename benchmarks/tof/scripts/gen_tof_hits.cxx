@@ -35,43 +35,42 @@ void gen_tof_hits(int n_events = 100,
     // pdgid 111 - pi0
     // pdgid 2212 - proton
     Double_t p     = r1->Uniform(0.2, 2);
+    Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
+    Double_t th    = std::acos(costh);
+    Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
+    Double_t px    = p * std::cos(phi) * std::sin(th);
+    Double_t py    = p * std::sin(phi) * std::sin(th);
+    Double_t pz    = p * std::cos(th);
+
     for (int ip = 0; ip < n_parts; ip++) {
       GenParticlePtr p1 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 10.0, 10.0), 11, 4);
       GenParticlePtr p2 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 0.0, 0.938), 2212, 4);
 
       // Define momentum
-        Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
-        Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
-        Double_t th    = std::acos(costh);
-        Double_t px    = p * std::cos(phi) * std::sin(th);
-        Double_t py    = p * std::sin(phi) * std::sin(th);
-        Double_t pz    = p * std::cos(th);
+        phi   = r1->Uniform(0.0, 2.0 * M_PI);
+        px    = p * std::cos(phi) * std::sin(th);
+        py    = p * std::sin(phi) * std::sin(th);
+        pz    = p * std::cos(th);
         GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.000511 * 0.000511))),
                                                             ((ip % 2 == 0) ? 11 : -11), 1);
 
-        Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
-        Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
-        Double_t th    = std::acos(costh);
-        Double_t px    = p * std::cos(phi) * std::sin(th);
-        Double_t py    = p * std::sin(phi) * std::sin(th);
-        Double_t pz    = p * std::cos(th);
+        phi   = r1->Uniform(0.0, 2.0 * M_PI);
+        px    = p * std::cos(phi) * std::sin(th);
+        py    = p * std::sin(phi) * std::sin(th);
+        pz    = p * std::cos(th);
         GenParticlePtr p4 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.938272 * 0.938272))),
                                                           ((ip % 2 == 0) ? 2212 : -2212), 1);
 
-        Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
-        Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
-        Double_t th    = std::acos(costh);
-        Double_t px    = p * std::cos(phi) * std::sin(th);
-        Double_t py    = p * std::sin(phi) * std::sin(th);
-        Double_t pz    = p * std::cos(th);
+        phi   = r1->Uniform(0.0, 2.0 * M_PI);
+        px    = p * std::cos(phi) * std::sin(th);
+        py    = p * std::sin(phi) * std::sin(th);
+        pz    = p * std::cos(th);
         GenParticlePtr p5 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.493677 * 0.493677))),
                                                           ((ip % 2 == 0) ? 321 : -321), 1);
-        Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
-        Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
-        Double_t th    = std::acos(costh);
-        Double_t px    = p * std::cos(phi) * std::sin(th);
-        Double_t py    = p * std::sin(phi) * std::sin(th);
-        Double_t pz    = p * std::cos(th);
+        phi   = r1->Uniform(0.0, 2.0 * M_PI);
+        px    = p * std::cos(phi) * std::sin(th);
+        py    = p * std::sin(phi) * std::sin(th);
+        pz    = p * std::cos(th);
         GenParticlePtr p6 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.139570 * 0.139570))),
                                                           ((ip % 2 == 0) ? 211 : -211), 1);
 

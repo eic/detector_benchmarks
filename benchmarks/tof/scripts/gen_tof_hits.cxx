@@ -34,12 +34,12 @@ void gen_tof_hits(int n_events = 100,
     // pdgid 11 - electron
     // pdgid 111 - pi0
     // pdgid 2212 - proton
+    Double_t p     = r1->Uniform(0.2, 2);
     for (int ip = 0; ip < n_parts; ip++) {
       GenParticlePtr p1 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 10.0, 10.0), 11, 4);
       GenParticlePtr p2 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 0.0, 0.938), 2212, 4);
 
       // Define momentum
-      Double_t p     = r1->Uniform(0.2, 2);
       Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
       Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
       Double_t th    = std::acos(costh);

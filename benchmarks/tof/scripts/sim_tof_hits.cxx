@@ -96,7 +96,6 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
                  .Define("N_VertexBarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexBarrelHits"})
                  .Define("N_VertexEndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexEndcapHits"})
                  .Define("N_BarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerBarrelHits"})
-                 .Define("p_barrelhits", momentum, {"BarrelTOFHits.momentum"})
                  .Define("N_EndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerEndcapHits"})
                  .Define("N_BarrelTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BarrelTOFHits"})
                  .Define("N_ForwardTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"ForwardTOFHits"})
@@ -148,9 +147,9 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
   auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
     
 
-    auto hBarrelTof_time_vs_momentum = df0.Histo2D(
-         {"hBarrelTof_time_vs_momentum", "; time ; momentum ", 100, 0, 3, 100, 0, 5},
-         "BarrelTOFHits.truth.time", "p_barrelhits");
+    auto hBarrelTof_time_vs_length = df0.Histo2D(
+         {"hBarrelTof_time_vs_length", "; time ; length ", 100, 0, 10, 100, 0, 1},
+         "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
 
     auto hBarrelTof_x_vs_y = df0.Histo2D(
          {"hBarrelTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
@@ -291,9 +290,9 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root")
     
     
     c = new TCanvas();
-    hBarrelTof_time_vs_momentum->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tp.pdf");
+    hBarrelTof_time_vs_length->DrawCopy("colz");
+    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.png");
+    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.pdf");
     c = new TCanvas();
     hBarrelTof_x_vs_y->DrawCopy("colz");
     c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.png");

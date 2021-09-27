@@ -57,7 +57,7 @@ if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then
   export JUGGLER_N_EVENTS=100
 fi
 
-export JUGGLER_N_EVENTS=5
+export JUGGLER_N_EVENTS=100
 export JUGGLER_FILE_NAME_TAG="tof_hits"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 
@@ -111,7 +111,7 @@ fi
 root_filesize=$(stat --format=%s "${JUGGLER_SIM_FILE}")
 if [[ "${JUGGLER_N_EVENTS}" -lt "500" ]] ; then 
   # file must be less than 10 MB to upload
-  if [[ "${root_filesize}" -lt "10000000" ]] ; then 
+  if [[ "${root_filesize}" -lt "50000000" ]] ; then 
     cp ${JUGGLER_SIM_FILE} results/.
   fi
 fi

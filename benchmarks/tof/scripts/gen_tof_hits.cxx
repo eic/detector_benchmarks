@@ -34,13 +34,13 @@ void gen_tof_hits(int n_events = 100,
     // pdgid 11 - electron
     // pdgid 111 - pi0
     // pdgid 2212 - proton
-    Double_t p     = r1->Uniform(0.2, 2);
-    Double_t costh = 0; //r1->Uniform(cos_theta_min, cos_theta_max);
+    Double_t p     = r1->Uniform(0.2, 4);
+    Double_t costh = cos(9.385/180*3.1415926); //r1->Uniform(cos_theta_min, cos_theta_max);
     Double_t th    = std::acos(costh);
     Double_t phi   = r1->Uniform(0.0, 2.0 * M_PI);
     Double_t px    = p * std::cos(phi) * std::sin(th);
     Double_t py    = p * std::sin(phi) * std::sin(th);
-    Double_t pz    = p * std::cos(th);
+    Double_t pz    = (events_parsed % 2 == 0) ? p * std::cos(th) : -1 * p * std::cos(th);
 
     for (int ip = 0; ip < n_parts; ip++) {
       GenParticlePtr p1 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 10.0, 10.0), 11, 4);

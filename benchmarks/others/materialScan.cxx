@@ -48,15 +48,15 @@ void materialScan(
     double phi = 0.0)
 {
   // check inputs
-  if (etamin * etamax >= 0.0 || etamin > etamax || rmax <= 0.0) {
-    std::cout << "Error: ordered eta range around zero required" << std::endl;
+  if (etamin > etamax || rmax <= 0.0) {
+    std::cout << "Error: ordered eta range required" << std::endl;
     return -1;
   }
 
   // get material scans
   size_t total{0};
   std::vector<dd4hep::rec::MaterialVec> scan;
-  double x0{0}, y0{0}, z0{+0.001};
+  double x0{0}, y0{0}, z0{0};
   for (double eta = etamin; eta <= etamax + 0.5*etastep; eta += etastep) {
     double theta = 2.0 * atan(exp(-eta));
     double x = rmax * cos(phi) * sin(theta);
@@ -73,7 +73,7 @@ void materialScan(
   std::vector<TH1F> histograms;
   while (total > 0) {
     // find next layer, starting from center bin outwards
-    size_t eta0 = static_cast<unsigned int>(std::rint(abs(-etamin/etastep)));
+    size_t eta0 = static_cast<unsigned int>(std::rint(abs((etamax-etamin)/etastep/2)));
     for (size_t i = 0, j = eta0;
          i < scan.size();
          ++i, j += (2*eta0 < scan.size()? -1: +1) * (i <= 2*min(eta0,scan.size()-eta0-1)? (i%2==0? -i: +i): -1)) {

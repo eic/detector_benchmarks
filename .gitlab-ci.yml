@@ -110,6 +110,7 @@ include:
   - local: 'benchmarks/roman_pots/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/crystal_calorimeter/config.yml'
+  - local: 'benchmarks/material_maps/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'

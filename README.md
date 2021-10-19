@@ -35,7 +35,7 @@ export BEAMLINE_CONFIG=ip6       # ip6 is the default
 
 
 ```
-git@eicweb.phy.anl.gov:EIC/benchmarks/detector_benchmarks.git && cd detector_benchmarks
+git clone https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git && cd detector_benchmarks
 git clone https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup
 source setup/bin/env.sh && ./setup/bin/install_common.sh
 source .local/bin/env.sh && build_detector.sh

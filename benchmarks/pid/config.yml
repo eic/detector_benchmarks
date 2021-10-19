@@ -13,8 +13,30 @@ bench:mrich:
   stage: benchmarks
   needs: ["sim:backward"]
   script:
-    - mkdir -p results/pid/backward/mrich/
-    - root -t -x -q -b "benchmarks/pid/scripts/mrich_analysis.cxx+(\"sim_output/sim_pid_backward_${PARTICLE}_5GeV.root\", \"${PARTICLE}\")"
+    - |
+      if [[ ${JUGGLER_DETECTOR_VERSION} =~ acadia ]]; then
+        echo "Performing MRICH benchmarks for acadia"
+        mkdir -p results/pid/backward/mrich/
+        root -t -x -q -b "benchmarks/pid/scripts/mrich_analysis.cxx+(\"sim_output/sim_pid_backward_${PARTICLE}_5GeV.root\", \"${PARTICLE}\")"
+      else
+        echo "Skipping MRICH Benchmarks for non-acadia detector version ${JUGGLER_DETECTOR_VERSION}"
+      fi
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi+", "proton"]
+
+bench:erich:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs: ["sim:backward"]
+  script:
+    - |
+      if [[ ${JUGGLER_DETECTOR_VERSION} =~ acadia ]]; then
+        echo "Skipping ERICH benchmarks for acadia"
+      else
+        echo "Doing MRICH Benchmarks for ${JUGGLER_DETECTOR_VERSION}"
+        echo "FIXME: needs implementing"
+      fi
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi+", "proton"]
@@ -22,8 +44,7 @@ bench:mrich:
 collect_results:pid:
   extends: .det_benchmark
   stage: collect
-  needs: 
-    - ["bench:mrich"]
+  #needs: 
   script:
     - ls -lrht
 

@@ -7,4 +7,9 @@ Standard: Cpp11
 #SpaceBeforeParens: ControlStatements
 SpaceAfterControlStatementKeyword: true
 PointerBindsToType: true
+IncludeBlocks:   Preserve
+UseTab:          Never
+ColumnLimit:     120
+NamespaceIndentation: Inner
+AlignConsecutiveAssignments: true
 ...

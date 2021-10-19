@@ -2,6 +2,8 @@
 	// top-level include-dir
   gROOT->ProcessLine(".include include");
 
+  R__LOAD_LIBRARY(fmt)
+
 	// Setting for Graphs
 	gROOT->SetStyle("Plain");
 	gStyle->SetOptFit(1);

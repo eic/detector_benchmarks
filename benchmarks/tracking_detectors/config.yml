@@ -11,3 +11,5 @@ tracking_detectors:plot_hits:
     - ["tracking_detectors:sim_track_hits"]
   script:
     - bash benchmarks/tracking_detectors/track_hits.sh --analysis
+  # temporarily set to allow-to-fail as we prepare canyonlands FIXME
+  allow_failure: true

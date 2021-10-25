@@ -41,12 +41,15 @@ Color_t color(const Material& m) {
 }
 
 void materialScan(
-    double etamin = -2.0,
-    double etamax = +1.0,
-    double etastep = 0.2,
-    double rmax = 100.0,
-    double phi = 0.0)
-{
+    double etamin = -2.0, // minimum eta
+    double etamax = +1.0, // maximum eta
+    double etastep = 0.2, // steps in eta
+    double rmax = 100.0, // maximum radius to scan to
+    double phi = 0.0, // phi angle for material scan
+    double rhomax = 10000.0, // maximum distance from z axis
+    double znmax = 10000.0, // maximum negative endcap z plane (positive number)
+    double zpmax = 10000.0 // maximum positive endcap z plane (positive number)
+) {
   // check inputs
   if (etamin > etamax || rmax <= 0.0) {
     std::cout << "Error: ordered eta range required" << std::endl;
@@ -58,10 +61,11 @@ void materialScan(
   std::vector<dd4hep::rec::MaterialVec> scan;
   double x0{0}, y0{0}, z0{0};
   for (double eta = etamin; eta <= etamax + 0.5*etastep; eta += etastep) {
-    double theta = 2.0 * atan(exp(-eta));
-    double x = rmax * cos(phi) * sin(theta);
-    double y = rmax * sin(phi) * sin(theta);
-    double z = rmax * cos(theta);
+    double theta = 2.0 * (atan(1) - atan(exp(-eta)));
+    double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
+    double x = r * cos(theta) * cos(phi);
+    double y = r * cos(theta) * sin(phi);
+    double z = r * sin(theta); 
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     total += scan.back().size();
   }
@@ -101,7 +105,7 @@ void materialScan(
   std::cout << histograms.size() << " histograms created" << std::endl;
 
   // plot histograms as stack
-  THStack hs("hs",Form("Material Scan (max distance %.0f cm)",rmax));
+  THStack hs("hs",Form("Material Scan (r < %.0f cm, rho < %.0f cm, -%.0f cm < z < %.0f cm)", rmax, rhomax, znmax, zpmax));
   for (auto& h: histograms) {
     hs.Add(&h);
   }
@@ -112,7 +116,6 @@ void materialScan(
   hs.GetXaxis()->SetTitle("eta");
   hs.GetYaxis()->SetTitle("Fraction X0");
   hs.SetMinimum(2.5e-3);
-  hs.SetMaximum(100.);
   cs.SaveAs("materialScan.png");
   cs.SaveAs("materialScan.pdf");
 }

@@ -2,13 +2,33 @@ bench:materialscan:
   stage: benchmarks
   extends: .det_benchmark
   script:
-    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 500.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - mkdir results/images/ && mv materialScan.png materialScan.pdf results/images/
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/images/
+    - mv materialScan.png results/images/materialScan.png
+    - mv materialScan.pdf results/images/materialScan.pdf
+
+bench:materialscan:tracking:
+  stage: benchmarks
+  extends: .det_benchmark
+  script:
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 103., 191., 350.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/images/
+    - mv materialScan.png results/images/materialScanTracking.png
+    - mv materialScan.pdf results/images/materialScanTracking.pdf
+
+bench:materialscan:ecal:
+  stage: benchmarks
+  extends: .det_benchmark
+  script:
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 230., 355., 380.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/images/
+    - mv materialScan.png results/images/materialScanEcal.png
+    - mv materialScan.pdf results/images/materialScanEcal.pdf
 
 collect_results:materialscan:
   extends: .det_benchmark
   stage: collect
   needs:
-    - ["bench:materialscan"]
+    - ["bench:materialscan", "bench:materialscan:tracking"]
   script:
     - ls -lrht

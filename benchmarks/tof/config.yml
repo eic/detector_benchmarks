@@ -12,14 +12,3 @@ bench:tof:
   script:
     - bash benchmarks/tof/tof_hits.sh --analysis
 
-bench:materialscan:tof_phi:
-  extends: .det_benchmark
-  stage: benchmarks
-  script:
-    - echo ".x benchmarks/tof/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - ls results/tof
-    - mv results/tof/materialScan.png results/tof/materialScanPhi_NoTOF.png
-    - mv results/tof/materialScan.pdf results/tof/materialScanPhi_NoTOF.pdf
-    - echo ".x benchmarks/tof/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 58., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - mv results/tof/materialScan.png results/tof/materialScanPhi_TOF.png
-    - mv results/tof/materialScan.pdf results/tof/materialScanPhi_TOF.pdf

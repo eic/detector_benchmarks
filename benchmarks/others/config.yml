@@ -27,6 +27,19 @@ bench:materialscan:tof:
     - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 58., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
     - mv materialScan.png results/images/materialScanTOF.png
     - mv materialScan.pdf results/images/materialScanTOF.pdf
+    
+bench:materialscan:tof_phi:
+  stage: benchmarks
+  extends: .det_benchmark
+  script:
+    - echo ".x benchmarks/others/materialScanPhi.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/images/
+    - mv materialScanPhi.png results/images/materialScanPhi_NoTOF.png
+    - mv materialScanPhi.pdf results/images/materialScanPhi_NoTOF.pdf
+    - echo ".x benchmarks/other/materialScanPhi.cxx(-4.5, +4.5, 0.01, 750., 0.0, 58., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mv materialScanPhi.png results/images/materialScanPhi_TOF.png
+    - mv materialScanPhi.pdf results/images/materialScanPhi_TOF.pdf
+
 
 bench:materialscan:ecal:
   stage: benchmarks

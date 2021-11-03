@@ -40,7 +40,7 @@ Color_t color(const Material& m) {
   }
 }
 
-void materialScan(
+void materialScanPhi(
     double phimin = -3.15, // minimum eta
     double phimax = +3.15, // maximum eta
     double phistep = 0.05, // steps in eta
@@ -116,6 +116,6 @@ void materialScan(
   hs.GetXaxis()->SetTitle("phi");
   hs.GetYaxis()->SetTitle("Fraction X0");
   hs.SetMinimum(2.5e-3);
-  cs.SaveAs("results/tof/materialScan.png");
-  cs.SaveAs("results/tof/materialScan.pdf");
+  cs.SaveAs("materialScanPhi.png");
+  cs.SaveAs("materialScanPhi.pdf");
 }

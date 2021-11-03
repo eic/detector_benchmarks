@@ -1,20 +1,23 @@
 #include "ROOT/RDataFrame.hxx"
 #include "TCanvas.h"
-#include "TLegend.h"
 #include "TH1D.h"
+#include "TLegend.h"
 #include "TProfile.h"
 
+#include <cstdlib>
 #include <iostream>
 
 R__LOAD_LIBRARY(libeicd.so)
 R__LOAD_LIBRARY(libDD4pod.so)
 
+#include <fmt/format.h>
+
+#include "dd4pod/Geant4ParticleCollection.h"
 #include "dd4pod/TrackerHitCollection.h"
 #include "dd4pod/TrackerHitData.h"
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "eicd/TrackParametersCollection.h"
 #include "eicd/ClusterCollection.h"
 #include "eicd/ClusterData.h"
+#include "eicd/TrackParametersCollection.h"
 #include "eicd/TrackerHitCollection.h"
 
 using ROOT::RDataFrame;
@@ -23,13 +26,12 @@ using namespace ROOT::VecOps;
 auto p_track = [](std::vector<eic::TrackParametersData> const& in) {
   std::vector<double> result;
   for (size_t i = 0; i < in.size(); ++i) {
-    result.push_back(std::abs(1.0/(in[i].qOverP)));
+    result.push_back(std::abs(1.0 / (in[i].qOverP)));
   }
   return result;
 };
 
-
-std::vector<float> pt (std::vector<dd4pod::Geant4ParticleData> const& in){
+std::vector<float> pt(std::vector<dd4pod::Geant4ParticleData> const& in) {
   std::vector<float> result;
   for (size_t i = 0; i < in.size(); ++i) {
     result.push_back(std::sqrt(in[i].ps.x * in[i].ps.x + in[i].ps.y * in[i].ps.y));
@@ -40,14 +42,14 @@ std::vector<float> pt (std::vector<dd4pod::Geant4ParticleData> const& in){
 auto momentum = [](std::vector<ROOT::Math::PxPyPzMVector> const& in) {
   std::vector<double> result;
   for (size_t i = 0; i < in.size(); ++i) {
-   result.push_back(in[i].E());
+    result.push_back(in[i].E());
   }
   return result;
 };
 auto theta = [](std::vector<ROOT::Math::PxPyPzMVector> const& in) {
   std::vector<double> result;
   for (size_t i = 0; i < in.size(); ++i) {
-   result.push_back(in[i].Theta()*180/M_PI);
+    result.push_back(in[i].Theta() * 180 / M_PI);
   }
   return result;
 };
@@ -75,237 +77,126 @@ auto delta_p_over_p = [](const std::vector<double>& tracks, const std::vector<do
   std::vector<double> res;
   for (const auto& p1 : thrown) {
     for (const auto& p2 : tracks) {
-      res.push_back((p1 - p2)/p1);
+      res.push_back((p1 - p2) / p1);
     }
   }
   return res;
 };
 
-int sim_tof_hits(const char* fname = "sim_tof_hits.root")
-{
+// Create dataframe with extra definitions for hit multiplicities
+ROOT::RDF::RNode add_subsystems(ROOT::RDF::RNode df, std::vector<std::pair<std::string, std::string>> hitcols) {
+  if (hitcols.empty()) {
+    return df;
+  }
+  const auto [name, collection] = hitcols.back();
+  std::cout << " --> registering subsystem " << collection << "\n";
+  auto df2 = df.Define("N_" + name, [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size(); }, {collection});
+  hitcols.pop_back();
+  return add_subsystems(df2, hitcols);
+};
+
+int sim_tof_hits(const char* fname = "sim_tof_hits.root") {
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame df("events", fname);
+
+  // detect detector setup
+  std::string detector = "default";
+  if (const char* env_detector = std::getenv("JUGGLER_DETECTOR_VERSION")) {
+    if (detector.find("acadia") != std::string::npos) {
+      detector = "acadia";
+    } else if (detector.find("canyonlands") != std::string::npos) {
+      detector = "canyonlands";
+    }
+  }
+  std::cout << "sim_tof_hits: detector set to " << detector << std::endl;
+
+  // minimal hit collection setup
+  std::vector<std::pair<std::string, std::string>> hitCollections{{"vtx_barrel", "VertexBarrelHits"},
+                                                                  {"trk_barrel", "TrackerBarrelHits"},
+                                                                  {"tof_barrel", "TOFBarrelHits"},
+                                                                  {"trk_endcap", "TrackerEndcapHits"},
+                                                                  {"gem_endcap", "GEMTrackerEndcapHits"}};
+
+  // append extra hit collections based on detector setup
+  if (detector == "acadia") {
+    hitCollections.push_back({"vtx_endcap", "VertexEndcapHits"});
+  } else if (detector == "canyonlands" || detector == "default") {
+    hitCollections.push_back({"mm_barrel", "MPGDTrackerBarrelHits"});
+  }
 
   auto df0 = df.Define("isThrown", "mcparticles.genStatus == 1")
                  .Define("thrownParticles", "mcparticles[isThrown]")
                  .Define("thrownP", fourvec, {"thrownParticles"})
                  .Define("p_thrown", momentum, {"thrownP"})
                  .Define("theta_thrown", theta, {"thrownP"})
-                 .Define("theta0", "theta_thrown[0]")
-                 .Define("N_VertexBarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexBarrelHits"})
-                 .Define("N_VertexEndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"VertexEndcapHits"})
-                 .Define("N_BarrelHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerBarrelHits"})
-                 .Define("N_EndcapHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"TrackerEndcapHits"})
-                 .Define("N_BarrelTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BarrelTOFHits"})
-                 .Define("N_ForwardTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"ForwardTOFHits"})
-                 .Define("N_BackwardTOFHits", [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size();}, {"BackwardTOFHits"})
-                 ;
+                 .Define("theta0", "theta_thrown[0]");
+  auto df1 = add_subsystems(df0, hitCollections);
 
-  auto hBarrel_x_vs_y = df0.Histo2D(
-      {"hBarrel_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-      "TrackerBarrelHits.position.x", "TrackerBarrelHits.position.y");
-  auto hEndcap_x_vs_y = df0.Histo2D(
-      {"hEndcap_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-      "TrackerEndcapHits.position.x", "TrackerEndcapHits.position.y");
-  auto hVertexBarrel_x_vs_y = df0.Histo2D(
-      {"hVertexBarrel_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-      "VertexBarrelHits.position.x", "VertexBarrelHits.position.y");
-  auto hVertexEndcap_x_vs_y = df0.Histo2D(
-      {"hVertexEndcap_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-      "VertexEndcapHits.position.x", "VertexEndcapHits.position.y");
+  // get 1D and 2D histogram definitions
+  std::vector<decltype(df1.Histo2D({}, "", ""))> h2D;
+  std::vector<decltype(df1.Histo1D(""))> hnth;
+  std::vector<decltype(df1.Histo1D(""))> hn;
 
-  auto hBarrel_x_vs_z = df0.Histo2D(
-      {"hBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.x");
-  auto hEndcap_x_vs_z = df0.Histo2D(
-      {"hEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.x");
-  auto hVertexBarrel_x_vs_z = df0.Histo2D(
-      {"hVertexBarrel_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "VertexBarrelHits.position.z", "VertexBarrelHits.position.x");
-  auto hVertexEndcap_x_vs_z = df0.Histo2D(
-      {"hVertexEndcap_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "VertexEndcapHits.position.z", "VertexEndcapHits.position.x");
+  for (const auto& [name, col] : hitCollections) {
+    hnth.push_back(
+        df1.Histo1D({(name + "_nhits_vs_theta").c_str(), "; #theta [deg.]; ", 20, 0, 180}, "theta0", "N_" + name));
+    hn.push_back(df1.Histo1D({(name + "_nhits").c_str(), "; Nhits; #", 20, 0, 20}, "N_" + name));
+    h2D.push_back(df1.Histo2D({(name + "_x_vs_y").c_str(), "; x ; y ", 100, -600, 600, 100, -600, 600},
+                              col + ".position.x", col + ".position.y"));
+    h2D.push_back(df1.Histo2D({(name + "_x_vs_z").c_str(), "; z ; x ", 100, -1200, 1200, 100, -900, 900},
+                              col + ".position.z", col + ".position.x"));
+    h2D.push_back(df1.Histo2D({(name + "_time_vs_length").c_str(), "; time ; length ", 100, 0, 10, 100, 0, 1},
+           col + ".truth.time", col + ".length"));
 
-  auto hBarrel_y_vs_z = df0.Histo2D(
-      {"hBarrel_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerBarrelHits.position.z", "TrackerBarrelHits.position.y");
-  auto hEndcap_y_vs_z = df0.Histo2D(
-      {"hEndcap_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "TrackerEndcapHits.position.z", "TrackerEndcapHits.position.y");
-  auto hVertexBarrel_y_vs_z = df0.Histo2D(
-      {"hVertexBarrel_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "VertexBarrelHits.position.z", "VertexBarrelHits.position.y");
-  auto hVertexEndcap_y_vs_z = df0.Histo2D(
-      {"hVertexEndcap_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-      "VertexEndcapHits.position.z", "VertexEndcapHits.position.y");
-    
-  auto hBarrel_N_vs_theta = df0.Histo1D({"hBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelHits");
-  auto hEndcap_N_vs_theta = df0.Histo1D({"hEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_EndcapHits");
-  auto hVertexBarrel_N_vs_theta = df0.Histo1D({"hVertexBarrel_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexBarrelHits");
-  auto hVertexEndcap_N_vs_theta = df0.Histo1D({"hVertexEndcap_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_VertexEndcapHits");
-    
+  }
+  auto hth = df1.Histo1D({"theta0", "; #theta [deg.]", 20, 0, 180}, "theta0");
 
-    auto hBarrelTof_time_vs_length = df0.Histo2D(
-         {"hBarrelTof_time_vs_length", "; time ; length ", 100, 0, 10, 100, 0, 1},
-         "BarrelTOFHits.truth.time", "BarrelTOFHits.length");
+  // Draw multiplicity versus theta
+  {
+    TCanvas c;
+    THStack hs{"n_hits", "; #theta [deg.] "};
+    int idx = 1;
+    for (auto& h : hnth) {
+      h->Divide(&*hth);
+      h->SetLineColor(idx++);
+      hs.Add((TH1D*)h->Clone());
+    }
+    hs.Draw("nostack, hist");
+    c.BuildLegend();
+    c.SaveAs("results/tof/sim_tof_hits_n_hits_vs_theta.png");
+    c.SaveAs("results/tof/sim_tof_hits_n_hits_vs_theta.pdf");
+  }
+  // Draw nhits
+  {
+    TCanvas c;
+    THStack hs{"n_hits", "; NHits "};
+    int idx = 1;
+    for (auto& h : hn) {
+      h->SetLineColor(idx++);
+      hs.Add((TH1D*)h->Clone());
+    }
+    hs.Draw("nostack, hist");
+    c.BuildLegend();
+    c.SaveAs("results/tof/sim_tof_hits_n_hits.png");
+    c.SaveAs("results/tof/sim_tof_hits_n_hits.pdf");
+  }
 
-    auto hBarrelTof_x_vs_y = df0.Histo2D(
-         {"hBarrelTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-         "BarrelTOFHits.position.x", "BarrelTOFHits.position.y");
-    auto hForwardTof_x_vs_y = df0.Histo2D(
-         {"hForwardTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-         "ForwardTOFHits.position.x", "ForwardTOFHits.position.y");
-    auto hBackwardTof_x_vs_y = df0.Histo2D(
-         {"hBackwardTof_x_vs_y", "; x ; y ", 100, -600, 600, 100, -600, 600},
-         "BackwardTOFHits.position.x", "BackwardTOFHits.position.y");
+  // Draw total multiplicity versus theta
+  {
+    TCanvas c;
+    hth->DrawClone();
+    c.BuildLegend();
+    c.SaveAs("results/tof/sim_tof_hits_theta.png");
+    c.SaveAs("results/tof/sim_tof_hits_theta.pdf");
+  }
 
-    auto hBarrelTof_x_vs_z = df0.Histo2D(
-        {"hBarrelTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "BarrelTOFHits.position.z", "BarrelTOFHits.position.x");
-    auto hForwrardTof_x_vs_z = df0.Histo2D(
-        {"hForwardTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "ForwardTOFHits.position.z", "ForwardTOFHits.position.x");
-    auto hBackwrardTof_x_vs_z = df0.Histo2D(
-        {"hBackwardTof_x_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "BackwardTOFHits.position.z", "BackwardTOFHits.position.x");
-
-    auto hBarrelTof_y_vs_z = df0.Histo2D(
-        {"hBarrelTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-        "BarrelTOFHits.position.z", "BarrelTOFHits.position.y");
-      auto hForwardTof_y_vs_z = df0.Histo2D(
-          {"hForwardTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-          "ForwardTOFHits.position.z", "ForwardTOFHits.position.y");
-      auto hBackwardTof_y_vs_z = df0.Histo2D(
-          {"hBackwardTof_y_vs_z", "; z ; x ", 200, -1200, 1200, 100, -900, 900},
-          "BackwardTOFHits.position.z", "BackwardTOFHits.position.y");
-
-    auto hBarrelTof_N_vs_theta = df0.Histo1D({"hBarrelTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BarrelTOFHits");
-    auto hForwardTof_N_vs_theta = df0.Histo1D({"hForwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_ForwardTOFHits");
-    auto hBackwardTof_N_vs_theta = df0.Histo1D({"hBackwardTof_N_vs_theta", "; #theta [deg.]",   20, 0, 180 }, "theta0", "N_BackwardTOFHits");
-
-  auto hBarrel_Nhits  = df0.Histo1D({"hBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelHits");
-  auto hEndcap_Nhits  = df0.Histo1D({"hEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_EndcapHits");
-  auto hVertexBarrel_Nhits  = df0.Histo1D({"hVertexBarrel_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexBarrelHits");
-  auto hVertexEndcap_Nhits  = df0.Histo1D({"hVertexEndcap_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_VertexEndcapHits");
-
-  auto hBarrel_Ntheta = df0.Histo1D({"hBarrel_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-  auto hEndcap_Ntheta = df0.Histo1D({"hEndcap_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-  auto hVertexBarrel_Ntheta = df0.Histo1D({"hVertexBarrel_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-  auto hVertexEndcap_Ntheta = df0.Histo1D({"hVertexEndcap_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-
-    auto hBarrelTof_Nhits  = df0.Histo1D({"hBarrelTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BarrelTOFHits");
-    auto hForwardTof_Nhits  = df0.Histo1D({"hForwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_ForwardTOFHits");
-    auto hBackwardTof_Nhits  = df0.Histo1D({"hBackwardTof_Nhits", "; #theta [deg.]",   20, 0, 20 }, "N_BackwardTOFHits");
-    auto hBarrelTof_Ntheta = df0.Histo1D({"hBarrelTof_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-    auto hForwardTof_Ntheta = df0.Histo1D({"hForwardTof_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-    auto hBackwardTof_Ntheta = df0.Histo1D({"hBackwardTof_Ntheta", "; #theta [deg.]",   20, 0, 180 }, "theta0");
-
-  auto c = new TCanvas();
-  auto hs = new THStack("n_hits","; #theta  ");
-  auto h1 = (TH1D*) hBarrel_N_vs_theta->Clone();
-  auto h2 = (TH1D*) hBarrel_Ntheta->Clone();
-  h1->Divide(h2);
-  hs->Add(h1);
-  h1 = (TH1D*) hEndcap_N_vs_theta->Clone();
-  h2 = (TH1D*) hEndcap_Ntheta->Clone();
-  h1->Divide(h2);
-  h1->SetLineColor(2);
-  hs->Add(h1);
-  h1 = (TH1D*) hVertexEndcap_N_vs_theta->Clone();
-  h2 = (TH1D*) hVertexEndcap_Ntheta->Clone();
-  h1->Divide(h2);
-  h1->SetLineColor(4);
-  hs->Add(h1);
-  h1 = (TH1D*) hVertexBarrel_N_vs_theta->Clone();
-  h2 = (TH1D*) hVertexBarrel_Ntheta->Clone();
-  h1->Divide(h2);
-  h1->SetLineColor(8);
-  hs->Add(h1);
-  hs->Draw("nostack, hist");
-  c->BuildLegend();
-  c->SaveAs("results/tof/sim_tof_hits_n_hits_vs_theta.png");
-  c->SaveAs("results/tof/sim_tof_hits_n_hits_vs_theta.pdf");
-
-  c  = new TCanvas();
-  hs = new THStack("theta","; #theta  ");
-  h1 = (TH1D*) hBarrel_N_vs_theta->Clone();
-  h2 = (TH1D*) hBarrel_Ntheta->Clone();
-  //h1->Divide(h2);
-  hs->Add(h2);
-  h1 = (TH1D*) hEndcap_N_vs_theta->Clone();
-  h2 = (TH1D*) hEndcap_Ntheta->Clone();
-  //h1->Divide(h2);
-  h1->SetLineColor(2);
-  h2->SetLineColor(2);
-  hs->Add(h2);
-  //h1 = (TH1D*) hVtxBarrel_vs_theta->Clone();
-  //h1->SetLineColor(4);
-  //h1->SetFillStyle(3001);
-  //h1->SetFillColor(4);
-  //hs->Add(h1);
-  hs->Draw("nostack hist");
-  c->BuildLegend();
-  c->SaveAs("results/tof/sim_tof_hits_theta.png");
-  c->SaveAs("results/tof/sim_tof_hits_theta.pdf");
-
-  c  = new TCanvas();
-  hs = new THStack("hits","; hits  ");
-  h1 = (TH1D*) hBarrel_Nhits->Clone();
-  hs->Add(h1);
-  h1 = (TH1D*) hEndcap_Nhits->Clone();
-  h1->SetLineColor(2);
-  h2->SetLineColor(2);
-  hs->Add(h2);
-  //h1 = (TH1D*) hVtxBarrel_Nhits->Clone();
-  //h1->SetLineColor(4);
-  //h1->SetFillStyle(3001);
-  //h1->SetFillColor(4);
-  //hs->Add(h1);
-  //hs->Draw("nostack hist");
-  c->BuildLegend();
-  c->SaveAs("results/tof/sim_tof_hits_nhits.png");
-  c->SaveAs("results/tof/sim_tof_hits_nhits.pdf");
-
-  c = new TCanvas();
-  hEndcap_x_vs_y->DrawCopy("colz");
-  hVertexEndcap_x_vs_y->DrawCopy("colz same");
-  //hBarrel_x_vs_y->DrawCopy("colz same");
-  //hvtxEndcap_x_vs_y->DrawCopy("colz same");
-
-  c->SaveAs("results/tof/sim_tof_hits_Hits_xy.png");
-  c->SaveAs("results/tof/sim_tof_hits_Hits_xy.pdf");
-
-  //hAllHits_x_vs_z->DrawCopy("colz");
-  hBarrel_x_vs_z->DrawCopy("colz");
-  hEndcap_x_vs_z->DrawCopy("colz same");
-  c->SaveAs("results/tof/sim_tof_hits_Hits_xz.png");
-  c->SaveAs("results/tof/sim_tof_hits_Hits_xz.pdf");
-
-  hBarrel_y_vs_z->DrawCopy("colz");
-  hEndcap_y_vs_z->DrawCopy("colz same");
-  c->SaveAs("results/tof/sim_tof_hits_Hits_yz.png");
-  c->SaveAs("results/tof/sim_tof_hits_Hits_yz.pdf");
-    
-    
-    c = new TCanvas();
-    hBarrelTof_time_vs_length->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_tl.pdf");
-    c = new TCanvas();
-    hBarrelTof_x_vs_y->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofBarrel_xy.pdf");
-    c = new TCanvas();
-    hForwardTof_x_vs_y->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofForward_xy.pdf");
-    c = new TCanvas();
-    hBackwardTof_x_vs_y->DrawCopy("colz");
-    c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.png");
-    c->SaveAs("results/tof/sim_tof_hits_tofBackward_xy.pdf");
-
+  for (auto& h : h2D) {
+    TCanvas c;
+    h->DrawClone("colz");
+    c.SaveAs(fmt::format("results/tof/sim_tof_hits_{}.png", h->GetName()).c_str());
+    c.SaveAs(fmt::format("results/tof/sim_tof_hits_{}.pdf", h->GetName()).c_str());
+  }
 
   return 0;
 }

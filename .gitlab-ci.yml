@@ -32,9 +32,9 @@ stages:
   - simulate
   - calibrate
   - benchmarks
-  #- collect
-  #- deploy
-  #- trigger
+  - collect
+  - deploy
+  - trigger
 
 common:setup:
   stage: config
@@ -106,58 +106,58 @@ get_data:
       - runner_system_failure
 
 include: 
-  #- local: 'benchmarks/tracking_detectors/config.yml'
+  - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tof/config.yml'
-  #- local: 'benchmarks/barrel_ecal/config.yml'
-  #- local: 'benchmarks/barrel_hcal/config.yml'
-  #- local: 'benchmarks/roman_pots/config.yml'
-  #- local: 'benchmarks/zdc/config.yml'
-  #- local: 'benchmarks/crystal_calorimeter/config.yml'
-  #- local: 'benchmarks/material_maps/config.yml'
-  #- local: 'benchmarks/pid/config.yml'
-  #- local: 'benchmarks/timing/config.yml'
-  #- local: 'benchmarks/b0_tracker/config.yml'
-  #- local: 'benchmarks/others/config.yml'
+  - local: 'benchmarks/barrel_ecal/config.yml'
+  - local: 'benchmarks/barrel_hcal/config.yml'
+  - local: 'benchmarks/roman_pots/config.yml'
+  - local: 'benchmarks/zdc/config.yml'
+  - local: 'benchmarks/crystal_calorimeter/config.yml'
+  - local: 'benchmarks/material_maps/config.yml'
+  - local: 'benchmarks/pid/config.yml'
+  - local: 'benchmarks/timing/config.yml'
+  - local: 'benchmarks/b0_tracker/config.yml'
+  - local: 'benchmarks/others/config.yml'
 
-#deploy_results:
-#  stage: deploy
-#  needs:
-#    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter","collect_results:materialscan"]
-#  script:
-#    - echo "deploy results!"
+deploy_results:
+  stage: deploy
+  needs:
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter","collect_results:materialscan"]
+  script:
+    - echo "deploy results!"
 
-#benchmarks:reconstruction:
-#  stage: trigger
-#  variables:
-#    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
-#    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
-#  trigger:
-#    project: EIC/benchmarks/reconstruction_benchmarks
-#    strategy: depend
-#  needs: ["deploy_results"]
+benchmarks:reconstruction:
+  stage: trigger
+  variables:
+    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
+    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+  trigger:
+    project: EIC/benchmarks/reconstruction_benchmarks
+    strategy: depend
+  needs: ["deploy_results"]
 
-#benchmarks:physics:
-#  stage: trigger
-#  variables:
-#    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
-#    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
-#  trigger:
-#    project: EIC/benchmarks/physics_benchmarks
-#    strategy: depend
-#  needs: ["deploy_results"]
+benchmarks:physics:
+  stage: trigger
+  variables:
+    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
+    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+  trigger:
+    project: EIC/benchmarks/physics_benchmarks
+    strategy: depend
+  needs: ["deploy_results"]
 
-#pages:
-#  stage: deploy
-#  rules:
-#    - if: '$CI_COMMIT_BRANCH == "master" && $CI_SERVER_HOST != "eicweb.phy.anl.gov"'
-#  cache:
-#    paths:
-#      - node_modules/
-#  image: node:latest
-#  script:
-#    - mkdir public && cp doc/main.html public/index.html
-#  artifacts:
-#    paths:
-#      - public
+pages:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_SERVER_HOST != "eicweb.phy.anl.gov"'
+  cache:
+    paths:
+      - node_modules/
+  image: node:latest
+  script:
+    - mkdir public && cp doc/main.html public/index.html
+  artifacts:
+    paths:
+      - public
 
 

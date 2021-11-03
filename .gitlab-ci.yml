@@ -104,5 +104,5 @@ get_data:
 
 include: 
   - local: 'benchmarks/tof/config.yml'
-
+  - local: 'benchmarks/others/config.yml'
 

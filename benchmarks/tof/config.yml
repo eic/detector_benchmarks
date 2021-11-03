@@ -2,6 +2,7 @@ tof:sim_tof_hits:
   extends: .det_benchmark
   stage: simulate
   script:
+#    - bash benchmarks/tof/tof_hits.sh --sim-only
     - bash benchmarks/tof/btof_hits.sh --sim-only
 #    - bash benchmarks/tof/etof_hits.sh --sim-only
 
@@ -11,5 +12,6 @@ tof:plot_hits:
   needs:
     - ["tof:sim_tof_hits"]
   script:
+ #   - bash benchmarks/tof/tof_hits.sh --analysis
     - bash benchmarks/tof/btof_hits.sh --analysis
  #   - bash benchmarks/tof/etof_hits.sh --analysis

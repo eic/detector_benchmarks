@@ -69,7 +69,7 @@ void materialScanPhi(
     double y = r * cos(theta) * sin(phi);
     double z = r * sin(theta); 
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
-    //total += scan.back().size();
+    total += scan.back().size();
   }
 
   // start creating histograms for stacking:

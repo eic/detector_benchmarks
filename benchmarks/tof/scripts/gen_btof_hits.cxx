@@ -14,8 +14,8 @@ using namespace HepMC3;
 /** Generate multiple electrons/positron tracks in the central region.
  *  This is for testing detectors in the "barrel" region.
  */
-void gen_tof_hits(int n_events = 100,
-                         const char* out_fname = "tof_hits.hepmc",
+void gen_btof_hits(int n_events = 100,
+                         const char* out_fname = "btof_hits.hepmc",
                          int n_parts = 2)
 {
   double cos_theta_min = std::cos( 1.0*(M_PI/180.0));

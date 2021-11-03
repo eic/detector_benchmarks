@@ -67,7 +67,9 @@ void materialScanPhi(
     double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
     double x = r * cos(theta) * cos(phi);
     double y = r * cos(theta) * sin(phi);
-    double z = r * sin(theta); 
+    double z = r * sin(theta);
+      std::cout << x0 <<" "<< y0 <<" "<< z0 <<" "<< x <<" "<< y <<" "<< z <<" " << std::endl;
+
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     total += scan.back().size();
   }

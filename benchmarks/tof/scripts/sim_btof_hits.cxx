@@ -146,7 +146,7 @@ int sim_btof_hits(const char* fname = "sim_btof_hits.root") {
                               col + ".position.x", col + ".position.y"));
     h2D.push_back(df1.Histo2D({(name + "_x_vs_z").c_str(), "; z ; x ", 100, -1200, 1200, 100, -900, 900},
                               col + ".position.z", col + ".position.x"));
-    h2D.push_back(df1.Histo2D({(name + "_time_vs_length").c_str, "; time ; length ", 100, 0, 10, 100, 0, 1},
+    h2D.push_back(df1.Histo2D({(name + "_time_vs_length").c_str(), "; time ; length ", 100, 0, 10, 100, 0, 1},
            col + ".truth.time", col + ".length");
 
   }

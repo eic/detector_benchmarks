@@ -164,8 +164,8 @@ int sim_btof_hits(const char* fname = "sim_btof_hits.root") {
     }
     hs.Draw("nostack, hist");
     c.BuildLegend();
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_n_hits_vs_theta.png");
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_n_hits_vs_theta.pdf");
+    c.SaveAs("results/tof/sim_btof_hits_n_hits_vs_theta.png");
+    c.SaveAs("results/tof/sim_btof_hits_n_hits_vs_theta.pdf");
   }
   // Draw nhits
   {
@@ -178,8 +178,8 @@ int sim_btof_hits(const char* fname = "sim_btof_hits.root") {
     }
     hs.Draw("nostack, hist");
     c.BuildLegend();
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_n_hits.png");
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_n_hits.pdf");
+    c.SaveAs("results/tof/sim_btof_hits_n_hits.png");
+    c.SaveAs("results/tof/sim_btof_hits_n_hits.pdf");
   }
 
   // Draw total multiplicity versus theta
@@ -187,15 +187,15 @@ int sim_btof_hits(const char* fname = "sim_btof_hits.root") {
     TCanvas c;
     hth->DrawClone();
     c.BuildLegend();
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_theta.png");
-    c.SaveAs("results/tracking_detectors/sim_btof_hits_theta.pdf");
+    c.SaveAs("results/tof/sim_btof_hits_theta.png");
+    c.SaveAs("results/tof/sim_btof_hits_theta.pdf");
   }
 
   for (auto& h : h2D) {
     TCanvas c;
     h->DrawClone("colz");
-    c.SaveAs(fmt::format("results/tracking_detectors/sim_btof_hits_{}.png", h->GetName()).c_str());
-    c.SaveAs(fmt::format("results/tracking_detectors/sim_btof_hits_{}.pdf", h->GetName()).c_str());
+    c.SaveAs(fmt::format("results/tof/sim_btof_hits_{}.png", h->GetName()).c_str());
+    c.SaveAs(fmt::format("results/tof/sim_btof_hits_{}.pdf", h->GetName()).c_str());
   }
 
   return 0;

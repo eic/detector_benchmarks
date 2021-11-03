@@ -4,7 +4,7 @@ tof:sim_tof_hits:
   script:
     - bash benchmarks/tof/tof_hits.sh --sim-only
 
-tof:plot_hits:
+bench:tof:
   extends: .det_benchmark
   stage: benchmarks
   needs:

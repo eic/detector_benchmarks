@@ -4,17 +4,6 @@ tof:sim_tof_hits:
   script:
     - bash benchmarks/tof/tof_hits.sh --sim-only
 
-bench:materialscan:tof_phi:
-  extends: .det_benchmark
-  stage: benchmarks
-  script:
-    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - mv materialScanPhi.png results/tof/materialScanNoTOFPhi.png
-    - mv materialScanPhi.pdf results/tof/materialScanNoTOFPhi.pdf
-    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - mv materialScanPhi.png results/tof/materialScanTOFPhi.png
-    - mv materialScanPhi.pdf results/tof/materialScanTOFPhi.pdf
-
 bench:tof:
   extends: .det_benchmark
   stage: benchmarks
@@ -22,3 +11,14 @@ bench:tof:
     - ["tof:sim_tof_hits"]
   script:
     - bash benchmarks/tof/tof_hits.sh --analysis
+
+bench:materialscan:tof_phi:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - echo ".x benchmarks/tof/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mv materialScanPhi.png results/tof/materialScanPhi_NoTOF.png
+    - mv materialScanPhi.pdf results/tof/materialScanPhi_NoTOF.pdf
+    - echo ".x benchmarks/tof/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mv materialScanPhi.png results/tof/materialScanPhi_TOF.png
+    - mv materialScanPhi.pdf results/tof/materialScanPhi_TOF.pdf

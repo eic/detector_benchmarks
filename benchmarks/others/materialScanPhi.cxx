@@ -64,7 +64,9 @@ void materialScanPhi(
       std::cout << phi << std::endl;
 
     double theta = 2.0 * (atan(1) - atan(exp(-eta)));
+      std::cout << theta << std::endl;
     double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
+      std::cout << r << std::endl;
     double x = r * cos(theta) * cos(phi);
     double y = r * cos(theta) * sin(phi);
     double z = r * sin(theta);

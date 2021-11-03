@@ -43,7 +43,7 @@ Color_t color(const Material& m) {
 void materialScanPhi(
     double phimin = -3.15, // minimum eta
     double phimax = +3.15, // maximum eta
-    double phistep = 0.05, // steps in eta
+    double phistep = 0.1, // steps in eta
     double rmax = 100.0, // maximum radius to scan to
     double eta = 0.0, // phi angle for material scan
     double rhomax = 10000.0, // maximum distance from z axis
@@ -57,6 +57,7 @@ void materialScanPhi(
   }
 
   // get material scans
+    /*
   size_t total{0};
   std::vector<dd4hep::rec::MaterialVec> scan;
   double x0{0}, y0{0}, z0{0};
@@ -68,7 +69,7 @@ void materialScanPhi(
     double z = r * sin(theta); 
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     total += scan.back().size();
-  }
+  }*/
 
   // start creating histograms for stacking:
   // - start with first material layer at central eta bin

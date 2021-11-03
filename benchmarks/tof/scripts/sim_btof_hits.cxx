@@ -147,7 +147,7 @@ int sim_btof_hits(const char* fname = "sim_btof_hits.root") {
     h2D.push_back(df1.Histo2D({(name + "_x_vs_z").c_str(), "; z ; x ", 100, -1200, 1200, 100, -900, 900},
                               col + ".position.z", col + ".position.x"));
     h2D.push_back(df1.Histo2D({(name + "_time_vs_length").c_str(), "; time ; length ", 100, 0, 10, 100, 0, 1},
-           col + ".truth.time", col + ".length");
+           col + ".truth.time", col + ".length"));
 
   }
   auto hth = df1.Histo1D({"theta0", "; #theta [deg.]", 20, 0, 180}, "theta0");

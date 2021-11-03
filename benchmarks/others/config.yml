@@ -38,7 +38,6 @@ bench:materialscan:tof_phi:
     - mv materialScanPhi.png results/images/materialScanPhi_NoTOF.png
     - mv materialScanPhi.pdf results/images/materialScanPhi_NoTOF.pdf
     - echo ".x benchmarks/others/materialScanPhi.cxx(-3.15, +3.15, 0.05, 750., 0.0, 58., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - ls
     - mv materialScanPhi.png results/images/materialScanPhi_TOF.png
     - mv materialScanPhi.pdf results/images/materialScanPhi_TOF.pdf
 

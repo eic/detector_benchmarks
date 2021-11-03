@@ -16,21 +16,15 @@ bench:materialscan:tracking:
     - mv materialScan.png results/images/materialScanTracking.png
     - mv materialScan.pdf results/images/materialScanTracking.pdf
 
-bench:materialscan:notof:
-  stage: benchmarks
-  extends: .det_benchmark
-  script:
-    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 75., 75.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
-    - mkdir results/images/
-    - mv materialScan.png results/images/materialScanTOF.png
-    - mv materialScan.pdf results/images/materialScanTOF.pdf
-
 bench:materialscan:tof:
   stage: benchmarks
   extends: .det_benchmark
   script:
-    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 58., 75., 75.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 51., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
     - mkdir results/images/
+    - mv materialScan.png results/images/materialScanNoTOF.png
+    - mv materialScan.pdf results/images/materialScanNoTOF.pdf
+    - echo ".x benchmarks/others/materialScan.cxx(-4.5, +4.5, 0.01, 750., 0.0, 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
     - mv materialScan.png results/images/materialScanTOF.png
     - mv materialScan.pdf results/images/materialScanTOF.pdf
 

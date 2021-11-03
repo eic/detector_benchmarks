@@ -42,7 +42,7 @@ Color_t color(const Material& m) {
 
 void materialScan(
     double phimin = -3.15, // minimum eta
-    double phimax = +3.15 // maximum eta
+    double phimax = +3.15, // maximum eta
     double phistep = 0.05, // steps in eta
     double rmax = 100.0, // maximum radius to scan to
     double eta = 0.0, // phi angle for material scan
@@ -51,8 +51,8 @@ void materialScan(
     double zpmax = 10000.0 // maximum positive endcap z plane (positive number)
 ) {
   // check inputs
-  if (etamin > etamax || rmax <= 0.0) {
-    std::cout << "Error: ordered eta range required" << std::endl;
+  if (phimin > phimax || rmax <= 0.0) {
+    std::cout << "Error: ordered phi range required" << std::endl;
     return -1;
   }
 

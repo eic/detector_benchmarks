@@ -116,6 +116,6 @@ void materialScan(
   hs.GetXaxis()->SetTitle("phi");
   hs.GetYaxis()->SetTitle("Fraction X0");
   hs.SetMinimum(2.5e-3);
-  cs.SaveAs("materialScanPhi.png");
-  cs.SaveAs("materialScanPhi.pdf");
+  cs.SaveAs("materialScan.png");
+  cs.SaveAs("materialScan.pdf");
 }

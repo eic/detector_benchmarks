@@ -68,7 +68,7 @@ void materialScanPhi(
     double x = r * cos(theta) * cos(phi);
     double y = r * cos(theta) * sin(phi);
     double z = r * sin(theta); 
-    //scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
+    scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     //total += scan.back().size();
   }
 

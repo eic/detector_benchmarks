@@ -41,11 +41,11 @@ Color_t color(const Material& m) {
 }
 
 void materialScan(
-    double etamin = -2.0, // minimum eta
-    double etamax = +1.0, // maximum eta
-    double etastep = 0.2, // steps in eta
+    double phimin = -3.15, // minimum eta
+    double phimax = +3.15 // maximum eta
+    double phistep = 0.05, // steps in eta
     double rmax = 100.0, // maximum radius to scan to
-    double phi = 0.0, // phi angle for material scan
+    double eta = 0.0, // phi angle for material scan
     double rhomax = 10000.0, // maximum distance from z axis
     double znmax = 10000.0, // maximum negative endcap z plane (positive number)
     double zpmax = 10000.0 // maximum positive endcap z plane (positive number)
@@ -60,7 +60,7 @@ void materialScan(
   size_t total{0};
   std::vector<dd4hep::rec::MaterialVec> scan;
   double x0{0}, y0{0}, z0{0};
-  for (double eta = etamin; eta <= etamax + 0.5*etastep; eta += etastep) {
+  for (double phi = phimin; phi <= phimax + 0.5*phistep; phi += phistep) {
     double theta = 2.0 * (atan(1) - atan(exp(-eta)));
     double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
     double x = r * cos(theta) * cos(phi);
@@ -77,14 +77,14 @@ void materialScan(
   std::vector<TH1F> histograms;
   while (total > 0) {
     // find next layer, starting from center bin outwards
-    size_t eta0 = static_cast<unsigned int>(std::rint(abs((etamax-etamin)/etastep/2)));
-    for (size_t i = 0, j = eta0;
+    size_t phi0 = static_cast<unsigned int>(std::rint(abs((phimax-phimin)/phistep/2)));
+    for (size_t i = 0, j = phi0;
          i < scan.size();
-         ++i, j += (2*eta0 < scan.size()? -1: +1) * (i <= 2*min(eta0,scan.size()-eta0-1)? (i%2==0? -i: +i): -1)) {
+         ++i, j += (2*phi0 < scan.size()? -1: +1) * (i <= 2*min(phi0,scan.size()-phi0-1)? (i%2==0? -i: +i): -1)) {
       if (scan.at(j).size() == 0) continue;
       // define layer
       auto layer_anchor = scan.at(j).at(0);
-      histograms.emplace_back(Form("h%zu",layer++),layer_anchor.first.name(),scan.size(),etamin,etamax);
+      histograms.emplace_back(Form("h%zu",layer++),layer_anchor.first.name(),scan.size(),phimin,phimax);
       //histograms.back().SetLineColor(color(layer_anchor.first));
       histograms.back().SetFillColor(color(layer_anchor.first));
       // add all bins to this layer
@@ -113,9 +113,9 @@ void materialScan(
   auto pad = cs.cd();
   pad->SetLogy();
   hs.Draw();
-  hs.GetXaxis()->SetTitle("eta");
+  hs.GetXaxis()->SetTitle("phi");
   hs.GetYaxis()->SetTitle("Fraction X0");
   hs.SetMinimum(2.5e-3);
-  cs.SaveAs("materialScan.png");
-  cs.SaveAs("materialScan.pdf");
+  cs.SaveAs("materialScanPhi.png");
+  cs.SaveAs("materialScanPhi.pdf");
 }

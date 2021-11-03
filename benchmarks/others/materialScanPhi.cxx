@@ -57,11 +57,12 @@ void materialScanPhi(
   }
 
   // get material scans
-    /*
   size_t total{0};
   std::vector<dd4hep::rec::MaterialVec> scan;
   double x0{0}, y0{0}, z0{0};
   for (double phi = phimin; phi <= phimax + 0.5*phistep; phi += phistep) {
+      std::cout << phi << std::endl;
+
     double theta = 2.0 * (atan(1) - atan(exp(-eta)));
     double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
     double x = r * cos(theta) * cos(phi);
@@ -69,7 +70,7 @@ void materialScanPhi(
     double z = r * sin(theta); 
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     total += scan.back().size();
-  }*/
+  }
 
   // start creating histograms for stacking:
   // - start with first material layer at central eta bin

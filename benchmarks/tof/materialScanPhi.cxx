@@ -26,7 +26,7 @@ void materialScanPhi(
     double phimin = -3.15, // minimum eta
     double phimax = +3.15, // maximum eta
     double phistep = 0.1, // steps in eta
-    double rmin = 0.0, // minium radius to scan from
+    double rmin = 0.00, // minium radius to scan from
     double rmax = 100.0, // maximum radius to scan to
     double eta = 0.0, // eta for material scan
     double rhomin = 0.0, // minimum distance from z axis

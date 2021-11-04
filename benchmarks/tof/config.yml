@@ -17,10 +17,10 @@ bench:materialscan:tofonly:
   extends: .det_benchmark
   script:
     - mkdir results/tof/
-    - echo ".x benchmarks/tof/materialScanPhi.cxx(-3.15, +3.15, 0.001, 48, 60.2, 0.0001, 48, 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - echo ".x benchmarks/tof/materialScanPhi.cxx(-3.15, +3.15, 0.001, 48, 60.2, 0.0001, 48., 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
     - mv materialScanPhi.png results/tof/materialScanPhi_TOFOnly.png
     - mv materialScanPhi.pdf results/tof/materialScanPhi_TOFOnly.pdf
-    - echo ".x benchmarks/tof/materialScanPhi.cxx(-0.15, +0.15, 0.001, 48, 60.2, 0.0001, 48, 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - echo ".x benchmarks/tof/materialScanPhi.cxx(-0.15, +0.15, 0.001, 48, 60.2, 0.0001, 48., 60., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
     - mv materialScanPhi.png results/tof/materialScanPhi_TOFOnlyZoom.png
     - mv materialScanPhi.pdf results/tof/materialScanPhi_TOFOnlyZoom.pdf
 

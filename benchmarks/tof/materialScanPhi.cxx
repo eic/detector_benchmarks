@@ -97,7 +97,7 @@ void materialScanPhi(
   std::cout << histograms.size() << " histograms created" << std::endl;
 
   // plot histograms as stack
-  THStack hs("hs",Form("Material Scan (r < %.0f cm, rho < %.0f cm, -%.0f cm < z < %.0f cm)", rmax, rhomax, znmax, zpmax));
+  THStack hs("hs",Form("Material Scan (%.0f cm < rho < %.0f cm, -%.0f cm < z < %.0f cm)", rhomin, rhomax, znmax, zpmax));
   for (auto& h: histograms) {
     hs.Add(&h);
   }

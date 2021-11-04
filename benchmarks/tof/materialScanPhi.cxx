@@ -15,7 +15,7 @@ Color_t color(const Material& m) {
   else if (m.name() == std::string("CarbonFoam"))      return kGray;
   else if (m.name() == std::string("CFRPMix"))         return kGray;
   else if (m.name() == std::string("CFRPMix2"))        return kGray;
-  else if (m.name() == std::string("Air"))             return kWhie;
+  else if (m.name() == std::string("Air"))             return kWhite;
   else if (m.name() == std::string("Vacuum"))          return kWhite;
   else {
     std::cout << "Unknown material: " << m.name() << std::endl;

@@ -45,7 +45,7 @@ void materialScanPhi(
     double phimax = +3.15, // maximum eta
     double phistep = 0.1, // steps in eta
     double rmax = 100.0, // maximum radius to scan to
-    double eta = 0.0, // phi angle for material scan
+    double eta = 0.0, // eta for material scan
     double rhomax = 10000.0, // maximum distance from z axis
     double znmax = 10000.0, // maximum negative endcap z plane (positive number)
     double zpmax = 10000.0 // maximum positive endcap z plane (positive number)

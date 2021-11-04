@@ -9,30 +9,12 @@
 
 Color_t color(const Material& m) {
   if      (m.name() == std::string("Silicon"))         return kGray;
-  else if (m.name() == std::string("Aluminum"))        return kAzure;
-  else if (m.name() == std::string("CarbonFiber"))     return kGray;
-  else if (m.name() == std::string("Beryllium"))       return kGreen;
-  else if (m.name() == std::string("Gold"))            return kYellow;
-  else if (m.name() == std::string("Mylar"))           return kGreen;
   else if (m.name() == std::string("Kapton"))          return kGreen;
-  else if (m.name() == std::string("Copper"))          return kGreen;
-  else if (m.name() == std::string("C2F6_DRICH"))      return kOrange;
-  else if (m.name() == std::string("Ar10CO2"))         return kOrange;
-  else if (m.name() == std::string("Aerogel"))         return kPink;
-  else if (m.name() == std::string("AerogelOptical"))  return kPink;
-  else if (m.name() == std::string("Aerogel_DRICH"))   return kPink;
-  else if (m.name() == std::string("Lead"))            return kBlack;
-  else if (m.name() == std::string("Steel235"))        return kGray+2;
-  else if (m.name() == std::string("TungstenDens24"))  return kBlack;
-  else if (m.name() == std::string("Polystyrene"))     return kGray;
-  else if (m.name() == std::string("PolystyreneFoam")) return kGray;
-  else if (m.name() == std::string("Epoxy"))           return kGray;
-  else if (m.name() == std::string("PlasticScint"))    return kGray;
-  else if (m.name() == std::string("AcrylicOptical"))  return kGray;
-  else if (m.name() == std::string("Acrylic_DRICH"))   return kGray;
-  else if (m.name() == std::string("Quartz"))          return kViolet;
-  else if (m.name() == std::string("Air"))             return kBlue;
-  else if (m.name() == std::string("AirOptical"))      return kBlue;
+  else if (m.name() == std::string("Aluminum"))        return kAzure;
+  else if (m.name() == std::string("NOVEC7200"))       return kAzure;
+  else if (m.name() == std::string("CarbonFoam"))      return kGray;
+  else if (m.name() == std::string("CFPRMix"))         return kGray;
+  else if (m.name() == std::string("CFPRMix2"))        return kGray;
   else if (m.name() == std::string("Vacuum"))          return kWhite;
   else {
     std::cout << "Unknown material: " << m.name() << std::endl;

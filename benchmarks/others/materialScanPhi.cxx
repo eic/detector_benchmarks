@@ -79,7 +79,7 @@ void materialScanPhi(
   // start creating histograms for stacking:
   // - start with first material layer at central eta bin
   // - pop front layers first positive
-/*  size_t layer = 0;
+  size_t layer = 0;
   std::vector<TH1F> histograms;
   while (total > 0) {
     // find next layer, starting from center bin outwards
@@ -109,9 +109,9 @@ void materialScanPhi(
     }
   }
   std::cout << histograms.size() << " histograms created" << std::endl;
-*/
+
   // plot histograms as stack
-/*  THStack hs("hs",Form("Material Scan (r < %.0f cm, rho < %.0f cm, -%.0f cm < z < %.0f cm)", rmax, rhomax, znmax, zpmax));
+  THStack hs("hs",Form("Material Scan (r < %.0f cm, rho < %.0f cm, -%.0f cm < z < %.0f cm)", rmax, rhomax, znmax, zpmax));
   for (auto& h: histograms) {
     hs.Add(&h);
   }
@@ -124,5 +124,5 @@ void materialScanPhi(
   hs.SetMinimum(2.5e-3);
   cs.SaveAs("materialScanPhi.png");
   cs.SaveAs("materialScanPhi.pdf");
-*/
+
 }

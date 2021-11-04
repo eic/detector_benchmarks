@@ -8,14 +8,14 @@
 #include <THStack.h>
 
 Color_t color(const Material& m) {
-  if      (m.name() == std::string("Silicon"))         return kGray;
-  else if (m.name() == std::string("Kapton"))          return kGreen;
-  else if (m.name() == std::string("Aluminum"))        return kAzure;
-  else if (m.name() == std::string("NOVEC7200"))       return kAzure;
+  if      (m.name() == std::string("Silicon"))         return kBlue;
+  else if (m.name() == std::string("Kapton"))          return kOrange;
+  else if (m.name() == std::string("Aluminum"))        return kRed;
+  else if (m.name() == std::string("NOVEC7200"))       return kRed;
   else if (m.name() == std::string("CarbonFoam"))      return kGray;
   else if (m.name() == std::string("CFRPMix"))         return kGray;
   else if (m.name() == std::string("CFRPMix2"))        return kGray;
-  else if (m.name() == std::string("Air"))             return kWhite;
+  else if (m.name() == std::string("Air"))             return kWhie;
   else if (m.name() == std::string("Vacuum"))          return kWhite;
   else {
     std::cout << "Unknown material: " << m.name() << std::endl;
@@ -107,7 +107,8 @@ void materialScanPhi(
   hs.Draw();
   hs.GetXaxis()->SetTitle("phi");
   hs.GetYaxis()->SetTitle("Fraction X0");
-  hs.SetMinimum(2.5e-3);
+  hs.SetMinimum(4e-3);
+  hs.SetMaximum(4e-2);
   cs.SaveAs("materialScanPhi.png");
   cs.SaveAs("materialScanPhi.pdf");
 

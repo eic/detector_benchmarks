@@ -12,3 +12,12 @@ bench:tof:
   script:
     - bash benchmarks/tof/tof_hits.sh --analysis
 
+bench:materialscan:tofonly:
+  stage: benchmarks
+  extends: .det_benchmark
+  script:
+    - echo ".x benchmarks/tof/materialScanPhi.cxx(-3.15, +3.15, 0.002, 750., 51.0, 58., 120., 120.)" | materialScan ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml -interactive
+    - mkdir results/tof/
+    - mv materialScanPhi.png results/tof/materialScanPhi_TOFOnly.png
+    - mv materialScanPhi.pdf results/tof/materialScanPhi_TOFOnly.pdf
+    

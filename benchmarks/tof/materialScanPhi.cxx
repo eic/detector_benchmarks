@@ -44,8 +44,10 @@ void materialScanPhi(
     double phimin = -3.15, // minimum eta
     double phimax = +3.15, // maximum eta
     double phistep = 0.1, // steps in eta
+    double rmin = 0.0; // minium radius to scan from
     double rmax = 100.0, // maximum radius to scan to
     double eta = 0.0, // eta for material scan
+    double rhomin = 0.0, // minimum distance from z axis
     double rhomax = 10000.0, // maximum distance from z axis
     double znmax = 10000.0, // maximum negative endcap z plane (positive number)
     double zpmax = 10000.0 // maximum positive endcap z plane (positive number)
@@ -61,16 +63,17 @@ void materialScanPhi(
   std::vector<dd4hep::rec::MaterialVec> scan;
   double x0{0}, y0{0}, z0{0};
   for (double phi = phimin; phi <= phimax + 0.5*phistep; phi += phistep) {
-      std::cout << phi << std::endl;
 
     double theta = 2.0 * (atan(1) - atan(exp(-eta)));
-      std::cout << theta << std::endl;
+    double r0 = max(rmin, rhomin / cos(theta));
+    double x0 = r0 * cos(theta) * cos(phi);
+    double y0 = r0 * cos(theta) * sin(phi);
+    double z0 = r0 * sin(theta);
+
     double r = min((theta > 0? zpmax: -znmax) / sin(theta), min(rmax, rhomax / cos(theta)));
-      std::cout << r << std::endl;
     double x = r * cos(theta) * cos(phi);
     double y = r * cos(theta) * sin(phi);
     double z = r * sin(theta);
-      std::cout << x0 <<" "<< y0 <<" "<< z0 <<" "<< x <<" "<< y <<" "<< z <<" " << std::endl;
 
     scan.emplace_back(gMaterialScan->scan(x0,y0,z0,x,y,z));
     total += scan.back().size();
@@ -122,7 +125,6 @@ void materialScanPhi(
   hs.GetXaxis()->SetTitle("phi");
   hs.GetYaxis()->SetTitle("Fraction X0");
   hs.SetMinimum(2.5e-3);
-  hs.SetMaximum(8e-2);
   cs.SaveAs("materialScanPhi.png");
   cs.SaveAs("materialScanPhi.pdf");
 

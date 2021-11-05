@@ -112,11 +112,12 @@ int sim_tof_hits(const char* fname = "sim_tof_hits.root") {
   std::cout << "sim_tof_hits: detector set to " << detector << std::endl;
 
   // minimal hit collection setup
-  std::vector<std::pair<std::string, std::string>> hitCollections{{"vtx_barrel", "VertexBarrelHits"},
-                                                                  {"trk_barrel", "TrackerBarrelHits"},
-                                                                  {"tof_barrel", "TOFBarrelHits"},
-                                                                  {"trk_endcap", "TrackerEndcapHits"},
-                                                                  {"gem_endcap", "GEMTrackerEndcapHits"}};
+    std::vector<std::pair<std::string, std::string>> hitCollections{{"tof_barrel", "TOFBarrelHits"}};
+                                                                  //{"vtx_barrel", "VertexBarrelHits"},
+                                                                  //{"trk_barrel", "TrackerBarrelHits"},
+                                                                  //{"tof_barrel", "TOFBarrelHits"},
+                                                                  //{"trk_endcap", "TrackerEndcapHits"},
+                                                                  //{"gem_endcap", "GEMTrackerEndcapHits"}};
 
   // append extra hit collections based on detector setup
   if (detector == "acadia") {

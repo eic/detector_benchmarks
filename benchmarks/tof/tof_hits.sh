@@ -110,9 +110,9 @@ fi
 
 root_filesize=$(stat --format=%s "${JUGGLER_SIM_FILE}")
 echo "filesize" $filesize
-if [[ "${JUGGLER_N_EVENTS}" -lt "1100" ]] ; then 
+if [[ "${JUGGLER_N_EVENTS}" -lt "3100" ]] ; then
   # file must be less than 10 MB to upload
-  if [[ "${root_filesize}" -lt "2000000000" ]] ; then
+  if [[ "${root_filesize}" -lt "1000000000" ]] ; then
     cp ${JUGGLER_SIM_FILE} results/.
   fi
 fi

@@ -16,7 +16,7 @@ using namespace HepMC3;
  */
 void gen_tof_hits(int n_events = 100,
                          const char* out_fname = "tof_hits.hepmc",
-                         int n_parts = 2)
+                         int n_parts = 4)
 {
   double cos_theta_min = std::cos( 1.0*(M_PI/180.0));
   double cos_theta_max = std::cos(189.0*(M_PI/180.0));

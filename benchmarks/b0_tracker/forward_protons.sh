@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source .local/bin/env.sh
-
 if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
   export JUGGLER_DETECTOR="topside"
 fi
@@ -43,7 +41,7 @@ mkdir -p results
 
 rootls -t ${JUGGLER_SIM_FILE}
 # Plot the input events
-root -b -q "benchmarks/b0_tracker/scripts/b0_tracker_hits.cxx(\"${JUGGLER_SIM_FILE}\")"
+root -b -q "benchmarks/b0_tracker/analysis/b0_tracker_hits.cxx+(\"${JUGGLER_SIM_FILE}\")"
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running script: events"
   exit 1

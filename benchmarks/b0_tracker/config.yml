@@ -2,6 +2,7 @@ sim:b0_tracker:
   stage: simulate
   extends: .det_benchmark
   script:
+    - compile_analyses.py b0_tracker
     - bash benchmarks/b0_tracker/forward_protons.sh
 
 bench:b0_tracker:

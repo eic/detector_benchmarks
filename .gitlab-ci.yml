@@ -108,6 +108,7 @@ get_data:
 include: 
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tof/config.yml'
+  - local: 'benchmarks/tof/config_forward.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/roman_pots/config.yml'

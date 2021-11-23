@@ -1,0 +1,14 @@
+tof:sim_tof_forward_hits:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/tof/tof_forward_hits.sh --sim-only
+
+bench:tof_forward:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["tof:sim_tof_forward_hits"]
+  script:
+    - bash benchmarks/tof/tof_forward_hits.sh --analysis
+

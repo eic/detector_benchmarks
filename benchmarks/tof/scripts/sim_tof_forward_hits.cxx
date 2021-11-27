@@ -112,7 +112,7 @@ int sim_tof_forward_hits(const char* fname = "sim_tof_forward_hits.root") {
   std::cout << "sim_tof_forward_hits: detector set to " << detector << std::endl;
 
   // minimal hit collection setup
-    std::vector<std::pair<std::string, std::string>> hitCollections{{"tof_forward", "TOFForwardHits"}};
+    std::vector<std::pair<std::string, std::string>> hitCollections{{"tof_forward", "TOFEndcapHits"}};
                                                                   //{"vtx_barrel", "VertexBarrelHits"},
                                                                   //{"trk_barrel", "TrackerBarrelHits"},
                                                                   //{"tof_barrel", "TOFBarrelHits"},

@@ -48,7 +48,7 @@ common:setup:
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        export JUGGLER_DETECTOR_VERSION="131-update-tof-for-deathvalley"
+        export JUGGLER_DETECTOR_VERSION="test_tof_zy"
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
@@ -61,7 +61,7 @@ common:setup:
         if [[ "${JUGGLER_DETECTOR_VERSION}" == "" ]] ; then
           export JUGGLER_DETECTOR_VERSION="master" 
         fi
-        export JUGGLER_DETECTOR_VERSION="131-update-tof-for-deathvalley"
+        export JUGGLER_DETECTOR_VERSION="test_tof_zy"
         echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
         echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
         echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env

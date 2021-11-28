@@ -58,7 +58,7 @@ if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then
 fi
 
 export JUGGLER_N_EVENTS=100
-export JUGGLER_FILE_NAME_TAG="tof_forward_hits"
+export JUGGLER_FILE_NAME_TAG="tof_backward_hits"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 
 export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${JUGGLER_FILE_NAME_TAG}.root"
@@ -71,7 +71,7 @@ if [ -z "${ANALYSIS_ONLY}" ] ; then
 
   echo "Generating Events"
   ## generate the input events
-  root -b -q "benchmarks/tof/scripts/gen_tof_forward_hits.cxx(${JUGGLER_N_EVENTS}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
+  root -b -q "benchmarks/tof/scripts/gen_tof_backward_hits.cxx(${JUGGLER_N_EVENTS}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
   if [[ "$?" -ne "0" ]] ; then
     echo "ERROR running script"
     exit 1
@@ -100,7 +100,7 @@ if [ -z "${SIM_ONLY}" ] ; then
 
   mkdir -p results/tof
   rootls -t ${JUGGLER_SIM_FILE}
-  root -b -q "benchmarks/tof/scripts/sim_tof_forward_hits.cxx(\"${JUGGLER_SIM_FILE}\")"
+  root -b -q "benchmarks/tof/scripts/sim_tof_backward_hits.cxx(\"${JUGGLER_SIM_FILE}\")"
   if [[ "$?" -ne "0" ]] ; then
     echo "ERROR running root script"
     exit 1

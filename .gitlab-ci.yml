@@ -128,6 +128,7 @@ benchmarks:reconstruction:
   variables:
     JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
     JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
   trigger:
     project: EIC/benchmarks/reconstruction_benchmarks
     strategy: depend
@@ -138,6 +139,7 @@ benchmarks:physics:
   variables:
     JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
     JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
+    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
   trigger:
     project: EIC/benchmarks/physics_benchmarks
     strategy: depend

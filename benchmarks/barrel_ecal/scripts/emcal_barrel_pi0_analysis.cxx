@@ -6,8 +6,8 @@
 #include "ROOT/RDataFrame.hxx"
 #include <iostream>
 
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "dd4pod/CalorimeterHitCollection.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimCalorimeterHitCollection.h"
 
 #include "common_bench/benchmark.h"
 #include "common_bench/mt.h"
@@ -30,8 +30,8 @@ using namespace ROOT::VecOps;
 using json = nlohmann::json;
 
 void emcal_barrel_pi0_analysis(
-                                const char* input_fname = "sim_output/sim_emcal_barrel_pi0.root"
-                                //const char* input_fname = "../sim_output/sim_emcal_barrel_uniform_pi0.root"
+                                const char* input_fname = "sim_output/sim_emcal_barrel_pi0.edm4hep.root"
+                                //const char* input_fname = "../sim_output/sim_emcal_barrel_uniform_pi0.edm4hep.root"
                                 )
 {
   // Setting for graphs
@@ -56,18 +56,18 @@ void emcal_barrel_pi0_analysis(
   double samp_frac = j["electron"]["sampling_fraction"];
 
   // Thrown Energy [GeV]
-  auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
+  auto Ethr = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z + input[2].mass*input[2].mass);
   };
 
   // Number of hits
-  auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
+  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {return (int) evt.size(); };
 
   // Energy deposition [GeV]
-  auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim = [](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt){
-      total_edep += i.energyDeposit;
+      total_edep += i.energy;
     }
     return total_edep;
   };
@@ -88,24 +88,24 @@ void emcal_barrel_pi0_analysis(
   };
 
   // Returns the pdgID of the particle
-  auto getpid = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return input[2].pdgID;
+  auto getpid = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return input[2].PDG;
   };
 
   // Returns number of particle daughters
-  auto getdau = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+  auto getdau = [](std::vector<edm4hep::MCParticleData> const& input) {
     return input[2].daughters_begin;
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr",       Ethr,          {"mcparticles"})
+  auto d1 = d0.Define("Ethr",       Ethr,          {"MCParticles"})
               .Define("nhits",      nhits,         {"EcalBarrelHits"})
               .Define("EsimImg",    Esim,          {"EcalBarrelHits"})
               .Define("EsimScFi",   Esim,          {"EcalBarrelScFiHits"})
               .Define("Esim",                      "EsimImg+EsimScFi")
               .Define("fsam",       fsam,          {"Esim","Ethr"})
-              .Define("pid",        getpid,        {"mcparticles"})
-              .Define("dau",        getdau,        {"mcparticles"})
+              .Define("pid",        getpid,        {"MCParticles"})
+              .Define("dau",        getdau,        {"MCParticles"})
               .Define("dE",         eResol,        {"Esim","Ethr"})
               .Define("dE_rel",     eResol_rel,    {"Esim","Ethr"})
               ;

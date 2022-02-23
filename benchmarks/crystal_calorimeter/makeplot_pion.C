@@ -15,7 +15,7 @@ int makeplot_pion(void)
   gStyle->SetPadLeftMargin(0.14);
 
   // Input ROOT file
-  TFile *f = new TFile("sim_output/rec_crystal_pion_output.root","read");
+  TFile *f = new TFile("sim_output/rec_crystal_pion_output.edm4hep.root","read");
   TTree *t = (TTree *)f->Get("events");
 
   // Set Branch status and addressed

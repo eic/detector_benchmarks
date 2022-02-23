@@ -8,7 +8,7 @@ cal_sim:crystal_pion:
   extends: .det_benchmark
   stage: simulate
   script:
-    - npsim --runType batch --numberOfEvents 100 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.root
+    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.edm4hep.root
 
 cal_bench:crystal_benchmark:
   extends: .det_benchmark
@@ -16,7 +16,7 @@ cal_bench:crystal_benchmark:
   needs:
     - ["cal_sim:crystal_emcal"]
   script:
-    #- rootls -t sim_output/output_emcal_electrons.root
+    #- rootls -t sim_output/output_emcal_electrons.edm4hep.root
     - echo " Not yet complete"
       #- root -b -q benchmarks/cryxtal_calorimeter/simple_checking_crystal.cxx+
       #

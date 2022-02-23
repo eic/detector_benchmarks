@@ -42,7 +42,7 @@ bench:hcal_barrel_protons:
     - ["sim:hcal_barrel_protons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_hcal_barrel_proton.root
+    - rootls -t sim_output/sim_hcal_barrel_proton.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("proton")'
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_energy_scan_analysis.cxx+("proton")'
 
@@ -53,7 +53,7 @@ bench:hcal_barrel_muons:
     - ["sim:hcal_barrel_muons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_hcal_barrel_muon.root
+    - rootls -t sim_output/sim_hcal_barrel_muon.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("muon")'
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_energy_scan_analysis.cxx+("muon")'
 
@@ -64,7 +64,7 @@ bench:hcal_barrel_antimuons:
     - ["sim:hcal_barrel_antimuons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_hcal_barrel_antimuon.root
+    - rootls -t sim_output/sim_hcal_barrel_antimuon.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("antimuon")'
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_energy_scan_analysis.cxx+("antimuon")'
 
@@ -75,13 +75,13 @@ bench:hcal_barrel_kaons:
     - ["sim:hcal_barrel_kaons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_hcal_barrel_kplus.root
+    - rootls -t sim_output/sim_hcal_barrel_kplus.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("kplus")'
-    - rootls -t sim_output/sim_hcal_barrel_kminus.root
+    - rootls -t sim_output/sim_hcal_barrel_kminus.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("kminus")'
-    - rootls -t sim_output/sim_hcal_barrel_kshort.root
+    - rootls -t sim_output/sim_hcal_barrel_kshort.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("kshort")'
-    - rootls -t sim_output/sim_hcal_barrel_klong.root
+    - rootls -t sim_output/sim_hcal_barrel_klong.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("klong")'
 
 bench:hcal_barrel_pions:
@@ -91,9 +91,9 @@ bench:hcal_barrel_pions:
     - ["sim:hcal_barrel_pions"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_hcal_barrel_piplus.root
+    - rootls -t sim_output/sim_hcal_barrel_piplus.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("piplus")'
-    - rootls -t sim_output/sim_hcal_barrel_piminus.root
+    - rootls -t sim_output/sim_hcal_barrel_piminus.edm4hep.root
     - root -b -q 'benchmarks/barrel_hcal/scripts/hcal_barrel_particles_analysis.cxx+("piminus")'
 
 collect_results:barrel_hcal:

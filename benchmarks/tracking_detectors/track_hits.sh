@@ -60,7 +60,7 @@ fi
 export JUGGLER_FILE_NAME_TAG="track_hits"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 
-export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${JUGGLER_FILE_NAME_TAG}.root"
+export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${JUGGLER_FILE_NAME_TAG}.edm4hep.root"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
@@ -78,8 +78,9 @@ if [ -z "${ANALYSIS_ONLY}" ] ; then
 
   echo "Running geant4 simulation"
   ## run geant4 simulations
-  npsim --runType batch \
+  ddsim --runType batch \
     --part.minimalKineticEnergy 1000*GeV  \
+    --filter.tracker edep0 \
     -v WARNING \
     --numberOfEvents ${JUGGLER_N_EVENTS} \
     --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
@@ -99,7 +100,7 @@ if [ -z "${SIM_ONLY}" ] ; then
 
   mkdir -p results/tracking_detectors
   rootls -t ${JUGGLER_SIM_FILE}
-  root -b -q "benchmarks/tracking_detectors/scripts/sim_track_hits.cxx(\"${JUGGLER_SIM_FILE}\")"
+  root -b -q "benchmarks/tracking_detectors/analysis/sim_track_hits.cxx+(\"${JUGGLER_SIM_FILE}\")"
   if [[ "$?" -ne "0" ]] ; then
     echo "ERROR running root script"
     exit 1

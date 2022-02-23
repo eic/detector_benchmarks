@@ -20,7 +20,7 @@
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-void mrich_analysis(const char* input_fname = "sim_output/sim_pid_backward_e-_5GeV.root", const char* input_pname = "e-")
+void mrich_analysis(const char* input_fname = "sim_output/sim_pid_backward_e-_5GeV.edm4hep.root", const char* input_pname = "e-")
 {
   // Setting for graphs
   gROOT->SetStyle("Plain");

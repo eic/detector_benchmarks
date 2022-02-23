@@ -20,7 +20,7 @@ do
    mkdir -p "$path_rootfiles"
    mkdir -p "$path_plots"
    ls -lthaR sim_output/
-   mv "sim_output/sim_emcal_barrel_${PARTICLE}.root" "$path_rootfiles"
+   mv "sim_output/sim_emcal_barrel_${PARTICLE}.edm4hep.root" "$path_rootfiles"
 done
 
 export JUGGLER_N_EVENTS=$ORIGINAL_JUGGLER_N_EVENTS

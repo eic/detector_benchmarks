@@ -18,7 +18,7 @@ fi
 export JUGGLER_FILE_NAME_TAG="emcal_barrel_uniform_electrons"
 export JUGGLER_GEN_FILE="${JUGGLER_FILE_NAME_TAG}.hepmc"
 
-export JUGGLER_SIM_FILE="sim_${JUGGLER_FILE_NAME_TAG}.root"
+export JUGGLER_SIM_FILE="sim_${JUGGLER_FILE_NAME_TAG}.edm4hep.root"
 export JUGGLER_REC_FILE="rec_${JUGGLER_FILE_NAME_TAG}.root"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
@@ -38,9 +38,10 @@ if [[ "$?" -ne "0" ]] ; then
 fi
 
 # Run geant4 simulations
-npsim --runType batch \
+ddsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \
+      --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
       --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
       --inputFiles ${JUGGLER_FILE_NAME_TAG}.hepmc \

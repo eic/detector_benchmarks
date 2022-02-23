@@ -5,7 +5,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 #include "TChain.h"
 #include <random>
 
-void simple_checking_crystal(const char* fname = "sim_output/output_emcal_electrons.root"){
+void simple_checking_crystal(const char* fname = "sim_output/output_emcal_electrons.edm4hep.root"){
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   double degree = TMath::Pi()/180.0;
 

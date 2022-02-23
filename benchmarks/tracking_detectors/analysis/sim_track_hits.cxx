@@ -3,6 +3,8 @@
 #include "TH1D.h"
 #include "TLegend.h"
 #include "TProfile.h"
+#include "THStack.h"
+#include "Math/Vector4D.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -12,11 +14,9 @@ R__LOAD_LIBRARY(libDD4pod.so)
 
 #include <fmt/format.h>
 
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "dd4pod/TrackerHitCollection.h"
-#include "dd4pod/TrackerHitData.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimTrackerHitCollection.h"
 #include "eicd/ClusterCollection.h"
-#include "eicd/ClusterData.h"
 #include "eicd/TrackParametersCollection.h"
 #include "eicd/TrackerHitCollection.h"
 
@@ -31,10 +31,10 @@ auto p_track = [](std::vector<eic::TrackParametersData> const& in) {
   return result;
 };
 
-std::vector<float> pt(std::vector<dd4pod::Geant4ParticleData> const& in) {
+std::vector<float> pt(std::vector<edm4hep::MCParticleData> const& in) {
   std::vector<float> result;
   for (size_t i = 0; i < in.size(); ++i) {
-    result.push_back(std::sqrt(in[i].ps.x * in[i].ps.x + in[i].ps.y * in[i].ps.y));
+    result.push_back(std::sqrt(in[i].momentum.x * in[i].momentum.x + in[i].momentum.y * in[i].momentum.y));
   }
   return result;
 }
@@ -53,11 +53,11 @@ auto theta = [](std::vector<ROOT::Math::PxPyPzMVector> const& in) {
   }
   return result;
 };
-auto fourvec = [](ROOT::VecOps::RVec<dd4pod::Geant4ParticleData> const& in) {
+auto fourvec = [](ROOT::VecOps::RVec<edm4hep::MCParticleData> const& in) {
   std::vector<ROOT::Math::PxPyPzMVector> result;
   ROOT::Math::PxPyPzMVector lv;
   for (size_t i = 0; i < in.size(); ++i) {
-    lv.SetCoordinates(in[i].ps.x, in[i].ps.y, in[i].ps.z, in[i].mass);
+    lv.SetCoordinates(in[i].momentum.x, in[i].momentum.y, in[i].momentum.z, in[i].mass);
     result.push_back(lv);
   }
   return result;
@@ -90,12 +90,12 @@ ROOT::RDF::RNode add_subsystems(ROOT::RDF::RNode df, std::vector<std::pair<std::
   }
   const auto [name, collection] = hitcols.back();
   std::cout << " --> registering subsystem " << collection << "\n";
-  auto df2 = df.Define("N_" + name, [](std::vector<dd4pod::TrackerHitData> hits) { return hits.size(); }, {collection});
+  auto df2 = df.Define("N_" + name, [](std::vector<edm4hep::SimTrackerHitData> hits) { return hits.size(); }, {collection});
   hitcols.pop_back();
   return add_subsystems(df2, hitcols);
 };
 
-int sim_track_hits(const char* fname = "sim_track_hits.root") {
+int sim_track_hits(const char* fname = "sim_track_hits.edm4hep.root") {
 
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame df("events", fname);
@@ -114,18 +114,18 @@ int sim_track_hits(const char* fname = "sim_track_hits.root") {
   // minimal hit collection setup
   std::vector<std::pair<std::string, std::string>> hitCollections{{"vtx_barrel", "VertexBarrelHits"},
                                                                   {"trk_barrel", "TrackerBarrelHits"},
-                                                                  {"trk_endcap", "TrackerEndcapHits"},
-                                                                  {"gem_endcap", "GEMTrackerEndcapHits"}};
+                                                                  {"trk_endcap", "TrackerEndcapHits1"},
+                                                                  {"gem_endcap", "GEMTrackerEndcapHits1"}};
 
   // append extra hit collections based on detector setup
   if (detector == "acadia") {
-    hitCollections.push_back({"vtx_endcap", "VertexEndcapHits"});
+    hitCollections.push_back({"vtx_endcap", "VertexEndcapHits1"});
   } else if (detector == "canyonlands" || detector == "default") {
-    hitCollections.push_back({"mm_barrel", "MPGDTrackerBarrelHits"});
+    hitCollections.push_back({"mm_barrel", "MPGDTrackerBarrelHits1"});
   }
 
-  auto df0 = df.Define("isThrown", "mcparticles.genStatus == 1")
-                 .Define("thrownParticles", "mcparticles[isThrown]")
+  auto df0 = df.Define("isThrown", "MCParticles.generatorStatus == 1")
+                 .Define("thrownParticles", "MCParticles[isThrown]")
                  .Define("thrownP", fourvec, {"thrownParticles"})
                  .Define("p_thrown", momentum, {"thrownP"})
                  .Define("theta_thrown", theta, {"thrownP"})

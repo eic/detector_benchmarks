@@ -75,15 +75,16 @@ echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
 
 # Run geant4 simulations
 output_dir="data/timing/${particle}/${energy/\*/}"
-output_file="sim_${nevents}.root"
+output_file="sim_${nevents}.edm4hep.root"
 mkdir -p ${output_dir}
 timing_dir="results/timing/${particle}/${energy/\*/}"
 timing_file="time_${nevents}events.log"
-npsim_file="npsim_${nevents}events.log"
+ddsim_file="npsim_${nevents}events.log"
 mkdir -p ${timing_dir}
 /usr/bin/time -v -o ${timing_dir}/time_${nevents}events.log \
-  npsim --runType batch \
+  ddsim --runType batch \
       --printLevel WARNING \
+      --filter.tracker edep0 \
       --numberOfEvents ${nevents} \
       --enableGun \
       --gun.energy "${energy}" \
@@ -94,7 +95,7 @@ mkdir -p ${timing_dir}
       --part.minimalKineticEnergy "1*TeV" \
       --compactFile ${compact_path} \
       --outputFile ${output_dir}/${output_file} \
-    2>&1 > ${timing_dir}/${npsim_file}
+    2>&1 > ${timing_dir}/${ddsim_file}
 echo "For ${nevents} events:"
 cat ${timing_dir}/${timing_file}
 

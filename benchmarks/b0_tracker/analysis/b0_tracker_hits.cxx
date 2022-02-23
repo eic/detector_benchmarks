@@ -26,7 +26,7 @@ R__LOAD_LIBRARY(libfmt.so)
 
 #include "dd4pod/TrackerHitCollection.h"
 
-void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.root"){
+void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.edm4hep.root"){
 
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   double degree = TMath::Pi()/180.0;

@@ -10,9 +10,10 @@ fi
 
 ddsim --runType batch -N 300 \
 
-npsim --runType batch \
+ddsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \
+      --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
       --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
 	--inputFiles ./data/forward_ions.hepmc \

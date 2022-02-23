@@ -40,9 +40,9 @@ calib:emcal_barrel_electrons:
     - ["sim:emcal_barrel_electrons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_electron.root
+    - rootls -t sim_output/sim_emcal_barrel_electron.edm4hep.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron", true)'
-    - mv sim_output/sim_emcal_barrel_electron.root results/.
+    - mv sim_output/sim_emcal_barrel_electron.edm4hep.root results/.
     - echo "JSON file(s) from analysis:" ; cat results/*.json
 
 bench:emcal_barrel_pions:
@@ -77,9 +77,9 @@ bench:emcal_barrel_photons:
     - ["sim:emcal_barrel_photons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_photon.root
+    - rootls -t sim_output/sim_emcal_barrel_photon.edm4hep.root
     - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon", false)'
-    - mv sim_output/sim_emcal_barrel_photon.root results/.
+    - mv sim_output/sim_emcal_barrel_photon.edm4hep.root results/.
     - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")' ; fi
 
 bench:emcal_barrel_pion_rejection:
@@ -89,8 +89,8 @@ bench:emcal_barrel_pion_rejection:
     - ["sim:emcal_barrel_pion_rejection"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_piRej_piminus.root
-    - rootls -t sim_output/sim_emcal_barrel_piRej_electron.root
+    - rootls -t sim_output/sim_emcal_barrel_piRej_piminus.edm4hep.root
+    - rootls -t sim_output/sim_emcal_barrel_piRej_electron.edm4hep.root
     - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pion_rejection_analysis.cxx+
 
 collect_results:barrel_ecal:

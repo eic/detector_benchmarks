@@ -35,7 +35,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 #include <iostream>
 #include "TStyle.h"
 
-void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_photons.root"){
+void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_photons.edm4hep.root"){
 
   // Setting for graphs
   gROOT->SetStyle("Plain");
@@ -47,7 +47,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   gStyle->SetPadGridY(1);
   gStyle->SetPadLeftMargin(0.14);
 
-  TChain* t = new TChain("EVENT");
+  TChain* t = new TChain("events");
   t->Add(fname);
 
   ROOT::RDataFrame d0(*t);//, {"ZDCHits","MCParticles"});
@@ -152,7 +152,7 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
 
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();
 
-  d1.Snapshot("info_EVENT","sim_output/info_zdc_photons.root");
+  d1.Snapshot("info_EVENT","sim_output/info_zdc_photons.edm4hep.root");
   std::cout << *n0 << " events with nonzero hits\n";
 
   TCanvas *c1 = new TCanvas("c1","c1",800,600);

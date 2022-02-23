@@ -15,7 +15,7 @@ do
    mkdir -p "$path_rootfiles"
    mkdir -p "$path_plots"
    ls -lthaR sim_output/
-   mv "sim_output/sim_hcal_barrel_${PARTICLE}.root" "$path_rootfiles"
+   mv "sim_output/sim_hcal_barrel_${PARTICLE}.edm4hep.root" "$path_rootfiles"
 done
 
 ls -lthaR sim_output

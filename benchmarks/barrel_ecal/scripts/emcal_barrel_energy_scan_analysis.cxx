@@ -8,8 +8,8 @@
 #include <iostream>
 #include <fmt/core.h>
 
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "dd4pod/CalorimeterHitCollection.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimCalorimeterHitCollection.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -50,25 +50,25 @@ void save_canvas(TCanvas* c, std::string var_label, std::string E_label, std::st
 
 std::tuple <double, double, double, double> extract_sampling_fraction_parameters(std::string particle_label, std::string E_label, dd4hep::Detector& detector)
 {
-  std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.root", E_label, particle_label);
+  std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.edm4hep.root", E_label, particle_label);
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
 
   // Thrown Energy [GeV]
-  auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+  auto Ethr = [](std::vector<edm4hep::MCParticleData> const& input) {
     auto p = input[2];
-    auto energy = TMath::Sqrt(p.ps.x * p.ps.x + p.ps.y * p.ps.y + p.ps.z * p.ps.z + p.mass * p.mass);
+    auto energy = TMath::Sqrt(p.momentum.x * p.momentum.x + p.momentum.y * p.momentum.y + p.momentum.z * p.momentum.z + p.mass * p.mass);
     return energy;
   };
 
   // Number of hits
-  auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
+  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {return (int) evt.size(); };
 
   // Energy deposition [GeV]
-  auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim = [](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt)
-      total_edep += i.energyDeposit;
+      total_edep += i.energy;
     return total_edep;
   };
 
@@ -84,7 +84,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
   fmt::print(" layer index is {}.\n", layer_index);
 
   // Define variables
-  auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
+  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
                 .Define("nhits", nhits, {"EcalBarrelHits"})
                 .Define("EsimImg", Esim, {"EcalBarrelHits"})
                 .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
@@ -117,11 +117,11 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
   clayer->Divide(4,5);
 
   for(int layer=1; layer<nlayers+1; layer++) {
-    auto Esim_layer = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+    auto Esim_layer = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
       auto layer_edep = 0.0;
       for (const auto& i: evt) {
         if (decoder->get(i.cellID, layer_index) == layer) {
-          layer_edep += i.energyDeposit;
+          layer_edep += i.energy;
         }
       }
       return layer_edep;

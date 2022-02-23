@@ -8,8 +8,8 @@
 #include <fstream>
 #include <fmt/core.h>
 
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "dd4pod/CalorimeterHitCollection.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimCalorimeterHitCollection.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -49,24 +49,24 @@ void hcal_barrel_particles_analysis(std::string particle_name = "electron")
   gStyle->SetPadRightMargin(0.14);
 
   ROOT::EnableImplicitMT();
-  std::string input_fname = fmt::format("sim_output/sim_hcal_barrel_{}.root", particle_name);
+  std::string input_fname = fmt::format("sim_output/sim_hcal_barrel_{}.edm4hep.root", particle_name);
   ROOT::RDataFrame d0("events", input_fname);
 
   // Thrown Energy [GeV]
-  auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
+  auto Ethr = [](std::vector<edm4hep::MCParticleData> const& input) {
     auto p = input[2];
-    auto energy = TMath::Sqrt(p.ps.x * p.ps.x + p.ps.y * p.ps.y + p.ps.z * p.ps.z + p.mass * p.mass);
+    auto energy = TMath::Sqrt(p.momentum.x * p.momentum.x + p.momentum.y * p.momentum.y + p.momentum.z * p.momentum.z + p.mass * p.mass);
     return energy;
   };
 
   // Number of hits
-  auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
+  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {return (int) evt.size(); };
 
   // Energy deposition [GeV]
-  auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim = [](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt)
-      total_edep += i.energyDeposit;
+      total_edep += i.energy;
     return total_edep;
   };
 
@@ -76,7 +76,7 @@ void hcal_barrel_particles_analysis(std::string particle_name = "electron")
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr", Ethr, {"mcparticles"})
+  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
                 .Define("nhits", nhits, {"HcalBarrelHits"})
                 .Define("Esim", Esim, {"HcalBarrelHits"})
                 .Define("fsam", fsam, {"Esim", "Ethr"});

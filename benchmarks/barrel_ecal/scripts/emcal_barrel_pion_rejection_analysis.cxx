@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <string>
 
-#include "dd4pod/Geant4ParticleCollection.h"
-#include "dd4pod/CalorimeterHitCollection.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimCalorimeterHitCollection.h"
 
 #include "common_bench/benchmark.h"
 #include "common_bench/mt.h"
@@ -48,8 +48,8 @@ using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
 void emcal_barrel_pion_rejection_analysis(
-                                          const char* input_fname1 = "sim_output/sim_emcal_barrel_piRej_electron.root",
-                                          const char* input_fname2 = "sim_output/sim_emcal_barrel_piRej_piminus.root"
+                                          const char* input_fname1 = "sim_output/sim_emcal_barrel_piRej_electron.edm4hep.root",
+                                          const char* input_fname2 = "sim_output/sim_emcal_barrel_piRej_piminus.edm4hep.root"
                                           )
 {
   // Error Ignore Level Set
@@ -105,44 +105,44 @@ void emcal_barrel_pion_rejection_analysis(
   auto layer_indexScFi = decoderScFi->index("layer");
 
   // Thrown Energy [GeV]
-  auto Ethr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
+  auto Ethr = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z + input[2].mass*input[2].mass);
   };
 
   // Thrown Momentum [GeV]
-  auto Pthr = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z);
+  auto Pthr = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z);
   };
 
   // Thrown Eta 
-  auto Eta = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    double E  = TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y + input[2].ps.z*input[2].ps.z + input[2].mass*input[2].mass);
-    return 0.5*TMath::Log((E + input[2].ps.z) / (E - input[2].ps.z));
+  auto Eta = [](std::vector<edm4hep::MCParticleData> const& input) {
+    double E  = TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z + input[2].mass*input[2].mass);
+    return 0.5*TMath::Log((E + input[2].momentum.z) / (E - input[2].momentum.z));
   };
 
   // Thrown pT [GeV]
-  auto pT = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return TMath::Sqrt(input[2].ps.x*input[2].ps.x + input[2].ps.y*input[2].ps.y);
+  auto pT = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y);
   };
 
   // Number of hits
-  auto nhits = [] (const std::vector<dd4pod::CalorimeterHitData>& evt) {return (int) evt.size(); };
+  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {return (int) evt.size(); };
 
   // Energy deposition [GeV]
-  auto Esim = [](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim = [](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     double total_edep = 0.0;
     for (const auto& i: evt){
-      total_edep += i.energyDeposit;
+      total_edep += i.energy;
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 2 layers
-  auto Esim_dep2 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep2 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 3 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
@@ -150,87 +150,87 @@ void emcal_barrel_pion_rejection_analysis(
 
   // Energy deposititon [GeV] in the first 3 layers
   // Same as Esim_front from previous codes
-  auto Esim_dep3 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep3 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 4 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 4 layers
-  auto Esim_dep4 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep4 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 5 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 5 layers
-  auto Esim_dep5 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep5 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 6 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 6 layers
-  auto Esim_dep6 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep6 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 7 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 6 layers
-  auto Esim_dep6_ScFi = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep6_ScFi = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoderScFi->get(i.cellID, layer_indexScFi) < 7 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       } 
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 7 layers
-  auto Esim_dep7 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep7 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 8 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
     // Energy deposititon [GeV] in the first 8 layers
-  auto Esim_dep8 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep8 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 9 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
   };
 
   // Energy deposititon [GeV] in the first 9 layers
-  auto Esim_dep9 = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep9 = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     auto total_edep = 0.0;
     for (const auto& i: evt) {
       if( decoder->get(i.cellID, layer_index) < 10 ){
-        total_edep += i.energyDeposit;
+        total_edep += i.energy;
       }
     }
     return total_edep;
@@ -238,10 +238,10 @@ void emcal_barrel_pion_rejection_analysis(
 
   // Energy deposititon [GeV], returns array
   // Note Layer_index = 0 does not exist at the wrting of this code
-  auto Esim_dep = [=](const std::vector<dd4pod::CalorimeterHitData>& evt) {
+  auto Esim_dep = [=](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
     std::vector<double>res(20);
     for (const auto& i: evt) {
-      res[decoder->get(i.cellID, layer_index)] += i.energyDeposit;
+      res[decoder->get(i.cellID, layer_index)] += i.energy;
     }
     return res;
   };
@@ -271,24 +271,24 @@ void emcal_barrel_pion_rejection_analysis(
     return E_front / mom;
   };
 
-  // Returns the pdgID of the particle
-  auto getpid = [](std::vector<dd4pod::Geant4ParticleData> const& input) {
-    return input[2].pdgID;
+  // Returns the PDG of the particle
+  auto getpid = [](std::vector<edm4hep::MCParticleData> const& input) {
+    return input[2].PDG;
   };
 
   // Returns number of particle daughters
-  auto getdau = [](std::vector<dd4pod::Geant4ParticleData> const& input){
+  auto getdau = [](std::vector<edm4hep::MCParticleData> const& input){
     return input[2].daughters_begin;
   };
 
   // Filter function to get electrons
-  auto is_electron = [](std::vector<dd4pod::Geant4ParticleData> const& input){
-    return (input[2].pdgID == 11 ? true : false);
+  auto is_electron = [](std::vector<edm4hep::MCParticleData> const& input){
+    return (input[2].PDG == 11 ? true : false);
   };
 
   // Filter function to get just negative pions
-  auto is_piMinus = [](std::vector<dd4pod::Geant4ParticleData> const& input){
-    return (input[2].pdgID == -211 ? true : false);
+  auto is_piMinus = [](std::vector<edm4hep::MCParticleData> const& input){
+    return (input[2].PDG == -211 ? true : false);
   };
 
   // Filter function Edeposit
@@ -302,8 +302,8 @@ void emcal_barrel_pion_rejection_analysis(
 
 
   // Define variables
-  auto d1 = d0.Define("Ethr",            Ethr,                  {"mcparticles"})
-              .Define("Pthr",            Pthr,                  {"mcparticles"})
+  auto d1 = d0.Define("Ethr",            Ethr,                  {"MCParticles"})
+              .Define("Pthr",            Pthr,                  {"MCParticles"})
               .Define("nhits",           nhits,                 {"EcalBarrelHits"})
               .Define("Esim",            Esim,                  {"EcalBarrelHits"})
               .Define("EsimScFi",        Esim,                  {"EcalBarrelScFiHits"})
@@ -312,7 +312,7 @@ void emcal_barrel_pion_rejection_analysis(
               .Define("EsimTot",                                "EsimScFi+Esim")
               .Define("EsimTotOverP",    fEp,                   {"EsimTot", "Pthr"})
               .Define("fsam",            fsam,                  {"Esim","Ethr"})
-              .Define("pid",             getpid,                {"mcparticles"})
+              .Define("pid",             getpid,                {"MCParticles"})
               .Define("EDep",            Esim_dep,              {"EcalBarrelHits"})
               .Define("EDepSum",         Esim_dep_sum,          {"EDep"})
               .Define("EDepN",           Esim_depN,             {"EDep"})
@@ -323,8 +323,8 @@ void emcal_barrel_pion_rejection_analysis(
               .Define("EDep6",           Esim_dep6,             {"EcalBarrelHits"})
               .Define("EDep6OverP",      fEp,                   {"EDep6", "Pthr"})
               .Define("EOverP",          fEp,                   {"EDep3", "Pthr"})
-              .Define("Eta",             Eta,                   {"mcparticles"})
-              .Define("pT",              pT,                    {"mcparticles"})
+              .Define("Eta",             Eta,                   {"MCParticles"})
+              .Define("pT",              pT,                    {"MCParticles"})
               .Define("EDepOverP",       fEp,                   {"EDepN", "Pthr"})
               .Define("EDepOverPT",      fEp,                   {"EDepN", "pT"})
               .Define("EDepSumOverP",    fEp,                   {"EDepSum", "Pthr"})
@@ -335,8 +335,8 @@ void emcal_barrel_pion_rejection_analysis(
   // Particle Filters
   dep_min = 1;
   dep_max = 6;
-  auto d_ele = d1.Filter(is_electron, {"mcparticles"});
-  auto d_pim = d1.Filter(is_piMinus,  {"mcparticles"});
+  auto d_ele = d1.Filter(is_electron, {"MCParticles"});
+  auto d_pim = d1.Filter(is_piMinus,  {"MCParticles"});
 
   // Cut Filter
   std::string currentCut = "(EDep6OverP>2.5e-3)&&(EDep6>5e-3)";// Good athena cut, that is changed by cutEE later

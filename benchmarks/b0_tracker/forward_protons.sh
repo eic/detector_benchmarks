@@ -10,7 +10,7 @@ fi
 
 export FILE_NAME_TAG="forward_protons"
 export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${FILE_NAME_TAG}.hepmc"
-export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${FILE_NAME_TAG}.root"
+export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${FILE_NAME_TAG}.edm4hep.root"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
@@ -23,9 +23,10 @@ if [[ "$?" -ne "0" ]] ; then
 fi
 
 # Run geant4 simulations
-npsim --runType batch \
+ddsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \
+      --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
       --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
       --inputFiles ${FILE_NAME_TAG}.hepmc \

@@ -29,13 +29,15 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 //#include "lcio2/TrackerRawDataData.h"
 //#include "lcio2/TrackerRawData.h"
 
-void simple_tracking(const char* fname = "./sim_output/roman_pot_out.root"){
+#include "edm4hep/SimTrackerHitData.h"
+
+void simple_tracking(const char* fname = "./sim_output/roman_pot_out.edm4hep.root"){
 
   ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
   //using namespace lcio2;
   double degree = TMath::Pi()/180.0;
 
-  TChain* t = new TChain("EVENT");
+  TChain* t = new TChain("events");
   t->Add(fname);
 
   ROOT::RDataFrame d0(*t);//, {"GEMTrackerHintits","MCParticles"});
@@ -56,7 +58,7 @@ void simple_tracking(const char* fname = "./sim_output/roman_pot_out.root"){
   //dd4hep::rec::SurfaceManager& surfMan = *detector.extension<dd4hep::rec::SurfaceManager>() ;
   //auto surfMap = surfMan.map( "world" ) ;
   
-  auto nhits = [] (std::vector<dd4hep::sim::Geant4Tracker::Hit*>& hits){ return (int) hits.size(); };
+  auto nhits = [] (std::vector<edm4hep::SimTrackerHitData>& hits){ return (int) hits.size(); };
   //auto hit_position = [&](const std::vector<dd4hep::sim::Geant4Tracker::Hit*>& hits){
   //for(const auto& h: hits){
   //  //std::cout << (h->position/10.0) << std::endl;

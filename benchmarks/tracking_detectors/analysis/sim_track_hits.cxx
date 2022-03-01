@@ -23,7 +23,7 @@ R__LOAD_LIBRARY(libDD4pod.so)
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-auto p_track = [](std::vector<eic::TrackParametersData> const& in) {
+auto p_track = [](std::vector<eicd::TrackParametersData> const& in) {
   std::vector<double> result;
   for (size_t i = 0; i < in.size(); ++i) {
     result.push_back(std::abs(1.0 / (in[i].qOverP)));

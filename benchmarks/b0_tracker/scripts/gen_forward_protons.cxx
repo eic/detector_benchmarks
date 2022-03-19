@@ -12,6 +12,7 @@
 #include "Math/Vector3D.h"
 #include "Math/Rotation3D.h"
 #include "Math/RotationY.h"
+#include "TRandom.h"
 
 #include "common_bench/particles.h"
 

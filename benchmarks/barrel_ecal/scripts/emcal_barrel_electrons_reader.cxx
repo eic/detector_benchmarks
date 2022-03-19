@@ -8,9 +8,15 @@
 #include "HepMC3/ReaderAscii.h"
 #include "HepMC3/WriterAscii.h"
 
-#include "TH1F.h"
-#include "TStyle.h"
 #include <iostream>
+
+#include "TROOT.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TMath.h"
+#include "TStyle.h"
+#include "TCanvas.h"
 
 using namespace HepMC3;
 

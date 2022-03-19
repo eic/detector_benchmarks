@@ -4,10 +4,12 @@
 #include "HepMC3/Print.h"
 
 #include <iostream>
-#include<random>
-#include<cmath>
+#include <random>
+#include <cmath>
 #include <math.h>
-#include <TMath.h>
+
+#include "TMath.h"
+#include "TRandom.h"
 
 using namespace HepMC3;
 

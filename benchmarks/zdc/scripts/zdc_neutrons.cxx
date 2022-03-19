@@ -8,11 +8,13 @@
 #include "HepMC3/ReaderAscii.h"
 #include "HepMC3/WriterAscii.h"
 
-#include <TMath.h>
 #include <cmath>
 #include <iostream>
 #include <math.h>
 #include <random>
+
+#include "TMath.h"
+#include "TRandom.h"
 
 using namespace HepMC3;
 

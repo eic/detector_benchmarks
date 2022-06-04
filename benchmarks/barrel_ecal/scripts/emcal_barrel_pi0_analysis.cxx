@@ -98,17 +98,30 @@ void emcal_barrel_pi0_analysis(
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr",       Ethr,          {"MCParticles"})
-              .Define("nhits",      nhits,         {"EcalBarrelHits"})
-              .Define("EsimImg",    Esim,          {"EcalBarrelHits"})
-              .Define("EsimScFi",   Esim,          {"EcalBarrelScFiHits"})
-              .Define("Esim",                      "EsimImg+EsimScFi")
-              .Define("fsam",       fsam,          {"Esim","Ethr"})
-              .Define("pid",        getpid,        {"MCParticles"})
-              .Define("dau",        getdau,        {"MCParticles"})
-              .Define("dE",         eResol,        {"Esim","Ethr"})
-              .Define("dE_rel",     eResol_rel,    {"Esim","Ethr"})
-              ;
+  auto d1 = ROOT::RDF::RNode(
+    d0.Define("Ethr", Ethr, {"MCParticles"})
+      .Define("pid", getpid, {"MCParticles"})
+      .Define("dau", getdau, {"MCParticles"})
+      .Define("nhits", nhits, {"EcalBarrelHits"})
+  );
+
+  auto Ethr_max = 7.5;
+  auto fsam_est = 1.0;
+  if (d1.HasColumn("EcalBarrelScFiHits")) {
+    d1 = d1.Define("EsimImg", Esim, {"EcalBarrelHits"})
+           .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+           .Define("Esim", "EsimImg+EsimScFi")
+           .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
+           .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_est = 0.1;
+  } else {
+    d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_est = 1.0;
+  }
+  d1 = d1.Define("dE",         eResol,        {"Esim","Ethr"})
+         .Define("dE_rel",     eResol_rel,    {"Esim","Ethr"});
 
   // Define Histograms
   std::vector <std::string> titleStr = {
@@ -118,7 +131,7 @@ void emcal_barrel_pi0_analysis(
                                         "dE Relative; dE Relative; Events"
   };
 
-  std::vector<std::vector<double>> range = {{0, 7.5}, {0, 2000}, {0, 2}, {-3, 3}};
+  std::vector<std::vector<double>> range = {{0, Ethr_max}, {0, 2000}, {0, fsam_est * Ethr_max}, {-3, 3}};
   std::vector<std::string> col           = {"Ethr",   "nhits",   "Esim", "dE_rel"}; 
 
   double meanE  = 5; 
@@ -145,11 +158,11 @@ void emcal_barrel_pi0_analysis(
               "Sampling Fraction; Sampling Fraction; Events",
               "dE; dE[GeV]; Events"
   };
-  range = {{0,0.15}, {-3, 3}};
+  range = {{0,fsam_est}, {-3, 3}};
   col   = {"fsam",   "dE"}; 
   nCol  = range.size();
   std::printf("Here %d\n", 10);
-  std::vector<std::vector<double>> fitRange = {{0.005, 0.1}, {-3, 3}};
+  std::vector<std::vector<double>> fitRange = {{0.005, fsam_est}, {-3, 3}};
   double sigmaOverE = 0;
 
   auto hr = d1.Histo1D({"histr", titleStr[0].c_str(), 150, range[0][0], range[0][1]}, col[0].c_str());

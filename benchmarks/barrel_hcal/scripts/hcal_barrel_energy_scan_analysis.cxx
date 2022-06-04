@@ -80,19 +80,28 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
                 .Define("Esim", Esim, {"EcalBarrelHits"})
                 .Define("fsam", fsam, {"Esim", "Ethr"});
 
+  // Define assumptions
+  auto Ethr_max = 25.0;
+  auto fsam_estimate = 1.0;
+  if (d1.HasColumn("EcalBarrelScFiHits")) {
+    fsam_estimate = 0.1;
+  } else {
+    fsam_estimate = 1.0;
+  }
+
   // Define Histograms
   auto hEthr = d1.Histo1D(
-      {"hEthr", "Thrown Energy; Thrown Energy [GeV]; Events", 100, 0.0, 25.0},
+      {"hEthr", "Thrown Energy; Thrown Energy [GeV]; Events", 100, 0.0, Ethr_max},
       "Ethr");
   auto hNhits =
       d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events",
                   100, 0.0, 2000.0},
                  "nhits");
   auto hEsim = d1.Histo1D(
-      {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
+      {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, fsam_estimate * Ethr_max},
       "Esim");
   auto hfsam = d1.Histo1D(
-      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 200, 0.0, 0.05},
+      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 200, 0.0, 2.0 * fsam_estimate},
       "fsam");
 
   // Event Counts

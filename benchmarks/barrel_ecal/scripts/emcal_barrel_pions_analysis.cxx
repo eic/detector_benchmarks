@@ -87,20 +87,34 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
-                .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("EsimImg", Esim, {"EcalBarrelHits"})
-                .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
-                .Define("Esim", "EsimImg+EsimScFi")
-                .Define("fsam", fsam, {"Esim", "Ethr"})
-                .Define("pid",    getpid,     {"MCParticles"});
+  auto d1 = ROOT::RDF::RNode(
+    d0.Define("Ethr", Ethr, {"MCParticles"})
+      .Define("nhits", nhits, {"EcalBarrelHits"})
+      .Define("pid",    getpid,     {"MCParticles"})
+  );
+
+  auto Ethr_max = 7.5;
+  auto fsam_est = 1.0;
+  if (d1.HasColumn("EcalBarrelScFiHits")) {
+    d1 = d1.Define("EsimImg", Esim, {"EcalBarrelHits"})
+           .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+           .Define("Esim", "EsimImg+EsimScFi")
+           .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
+           .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_est = 0.1;
+  } else {
+    d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_est = 1.0;
+  }
 
   // Define Histograms
-  auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0,    7.5}, "Ethr");
-  auto hNhits = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100,  0.0, 2000.0}, "nhits");
-  auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,    1.0}, "Esim");
-  auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0,    0.1}, "fsam");
-  auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,   220}, "pid");
+  auto hEthr  = d1.Histo1D({"hEthr",  "Thrown Energy; Thrown Energy [GeV]; Events",        100,  0.0, Ethr_max}, "Ethr");
+  auto hNhits = d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100,  0.0,   2000.0}, "nhits");
+  auto hEsim  = d1.Histo1D({"hEsim",  "Energy Deposit; Energy Deposit [GeV]; Events",      100,  0.0,      1.0}, "Esim");
+  auto hfsam  = d1.Histo1D({"hfsam",  "Sampling Fraction; Sampling Fraction; Events",      100,  0.0, fsam_est}, "fsam");
+  auto hpid   = d1.Histo1D({"hpid",   "PID; PID; Count",                                   100,  -220,     220}, "pid");
 
   // Event Counts
   auto nevents_thrown      = d1.Count();

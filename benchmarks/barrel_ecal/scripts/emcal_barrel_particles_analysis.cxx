@@ -82,7 +82,9 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   };
 
   // Number of hits
-  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {return (int) evt.size(); };
+  auto nhits = [] (const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
+    return (int) evt.size();
+  };
 
   // Energy deposition [GeV]
   auto Esim = [](const std::vector<edm4hep::SimCalorimeterHitData>& evt) {
@@ -98,41 +100,59 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
-                .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("EsimImg", Esim, {"EcalBarrelHits"})
-                .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
-                .Define("Esim", "EsimImg+EsimScFi")
-                .Define("fsam", fsam, {"Esim", "Ethr"})
-                .Define("fsamImg", fsam, {"EsimImg", "Ethr"})             
-                .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"});
+  auto d1 = ROOT::RDF::RNode(
+    d0.Define("Ethr", Ethr, {"MCParticles"})
+      .Define("nhits", nhits, {"EcalBarrelHits"})
+  );
+
+  // Define optional variables
+  auto fsam_estimate = 1.0;
+  if (d1.HasColumn("EcalBarrelScFiHits")) {
+    d1 = d1.Define("EsimImg", Esim, {"EcalBarrelHits"})
+           .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
+           .Define("Esim", "EsimImg+EsimScFi")
+           .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
+           .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_estimate = 0.1;
+  } else {
+    d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
+    fsam_estimate = 1.0;
+  }
 
 
   // Define Histograms
+  auto Ethr_max = 25.0;
   auto hEthr = d1.Histo1D(
-      {"hEthr", "Thrown Energy; Thrown Energy [GeV]; Events", 100, 0.0, 25.0},
+      {"hEthr", "Thrown Energy; Thrown Energy [GeV]; Events", 100, 0.0, Ethr_max},
       "Ethr");
   auto hNhits =
       d1.Histo1D({"hNhits", "Number of hits per events; Number of hits; Events", 100, 0.0, 2000.0},
       "nhits");
   auto hEsim = d1.Histo1D(
-      {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
+      {"hEsim", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, fsam_estimate * Ethr_max},
       "Esim");
-  auto hEsimImg = d1.Histo1D(
-      {"hEsimImg", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
-      "EsimImg");    
-  auto hEsimScFi = d1.Histo1D(
-      {"hEsimScFi", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, 0.5},
-      "EsimScFi");
   auto hfsam = d1.Histo1D(
-      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
+      {"hfsam", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 2.0 * fsam_estimate},
       "fsam");
-  auto hfsamImg = d1.Histo1D(
-      {"hfsamImg", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
+
+  // Define optional histograms
+  ROOT::RDF::RResultPtr<::TH1D> hEsimImg, hEsimScFi, hfsamImg, hfsamScFi;
+  if (d0.HasColumn("EcalBarrelScFiHits")) {
+    hEsimImg = d1.Histo1D(
+      {"hEsimImg", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, fsam_estimate * Ethr_max},
+      "EsimImg");
+    hEsimScFi = d1.Histo1D(
+      {"hEsimScFi", "Energy Deposit; Energy Deposit [GeV]; Events", 500, 0.0, fsam_estimate * Ethr_max},
+      "EsimScFi");
+    hfsamImg = d1.Histo1D(
+      {"hfsamImg", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 2.0 * fsam_estimate},
       "fsamImg");
-  auto hfsamScFi = d1.Histo1D(
-      {"hfsamScFi", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 0.2},
+    hfsamScFi = d1.Histo1D(
+      {"hfsamScFi", "Sampling Fraction; Sampling Fraction; Events", 400, 0.0, 2.0 * fsam_estimate},
       "fsamScFi");
+  }
 
   addDetectorName(detector_name, hEthr.GetPtr());
   addDetectorName(detector_name, hEsim.GetPtr());
@@ -143,7 +163,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   std::cout << "Number of Thrown Events: " << (*nevents_thrown) << "\n";
 
   // Draw Histograms
-  {
+  if (hEthr.IsReady()) {
     TCanvas* c1 = new TCanvas("c1", "c1", 700, 500);
     c1->SetLogy(1);
     auto h = hEthr->DrawCopy();
@@ -153,7 +173,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     save_canvas(c1,"Ethr",particle_name);
   }
 
-  {
+  if (hNhits.IsReady()) {
     TCanvas* c2 = new TCanvas("c2", "c2", 700, 500);
     c2->SetLogy(1);
     auto h = hNhits->DrawCopy();
@@ -162,7 +182,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     save_canvas(c2,"nhits",particle_name);
   }
 
-  {
+  if (hEsim.IsReady()) {
     TCanvas* c3 = new TCanvas("c3", "c3", 700, 500);
     c3->SetLogy(1);
     auto h = hEsim->DrawCopy();
@@ -174,7 +194,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     save_canvas(c3,"Esim",particle_name);
   }
 
-  {
+  if (hfsam.IsReady()) {
     TCanvas* c4 = new TCanvas("c4", "c4", 700, 500);
     auto h = hfsam->DrawCopy();
     h->SetLineWidth(2);
@@ -191,7 +211,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     save_canvas(c4,"fsam",particle_name);
   }
 
-  {
+  if (hfsamImg.IsReady()) {
     TCanvas* c5 = new TCanvas("c5", "c5", 700, 500);
     auto h = hfsamImg->DrawCopy();
     h->SetLineWidth(2);
@@ -208,7 +228,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     save_canvas(c5,"fsamImg",particle_name);
   }
 
-  {
+  if (hfsamScFi.IsReady()) {
     TCanvas* c6 = new TCanvas("c6", "c6", 700, 500);
     auto h = hfsamScFi->DrawCopy();
     h->SetLineWidth(2);

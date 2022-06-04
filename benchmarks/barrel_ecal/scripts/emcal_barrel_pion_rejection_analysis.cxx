@@ -69,6 +69,12 @@ void emcal_barrel_pion_rejection_analysis(
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", {input_fname1, input_fname2});
 
+  // Script requires EcalBarrelScFiHits
+  if (! d0.HasColumn("EcalBarrelScFiHits")) {
+    std::cout << "EcalBarrelScFiHits is required" << std::endl;
+    return;
+  }
+
   // Environment Variables
   std::string detector_path = "";
   std::string detector_name = "athena";//athena

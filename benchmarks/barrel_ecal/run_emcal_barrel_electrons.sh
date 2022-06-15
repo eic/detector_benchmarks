@@ -1,5 +1,5 @@
 #!/bin/bash
-source strict-mode.s
+source strict-mode.sh
 
 if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
   export JUGGLER_DETECTOR="topside"

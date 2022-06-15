@@ -1,4 +1,5 @@
 #!/bin/bash
+source strict-mode.sh
 
 if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
   export JUGGLER_DETECTOR="athena"

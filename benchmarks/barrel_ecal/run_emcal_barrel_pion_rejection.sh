@@ -50,7 +50,7 @@ ddsim --runType batch \
       --part.minimalKineticEnergy 0.5*GeV  \
       --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
-      --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
+      --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml \
       --inputFiles data/${JUGGLER_FILE_NAME_TAG}.hepmc \
       --outputFile sim_output/${JUGGLER_SIM_FILE}
 

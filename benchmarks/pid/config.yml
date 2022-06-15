@@ -2,7 +2,7 @@ sim:backward:
   extends: .det_benchmark
   stage: simulate
   script:
-    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml --enableGun --gun.energy "5*GeV" --gun.particle "${PARTICLE}" --gun.thetaMin 130*deg --gun.thetaMax 177*deg --gun.distribution "cos(theta)" --outputFile sim_output/sim_pid_backward_${PARTICLE}_5GeV.edm4hep.root
+    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml --enableGun --gun.energy "5*GeV" --gun.particle "${PARTICLE}" --gun.thetaMin 130*deg --gun.thetaMax 177*deg --gun.distribution "cos(theta)" --outputFile sim_output/sim_pid_backward_${PARTICLE}_5GeV.edm4hep.root
     - rootls -t sim_output/sim_pid_backward_${PARTICLE}_5GeV.edm4hep.root
   parallel:
     matrix:
@@ -12,7 +12,7 @@ sim:forward:
   extends: .det_benchmark
   stage: simulate
   script:
-    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml --enableGun --gun.energy "5*GeV" --gun.particle "${PARTICLE}" --gun.thetaMin 3*deg --gun.thetaMax 50*deg --gun.distribution "cos(theta)" --outputFile sim_output/sim_pid_forward_${PARTICLE}_5GeV.edm4hep.root
+    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml --enableGun --gun.energy "5*GeV" --gun.particle "${PARTICLE}" --gun.thetaMin 3*deg --gun.thetaMax 50*deg --gun.distribution "cos(theta)" --outputFile sim_output/sim_pid_forward_${PARTICLE}_5GeV.edm4hep.root
     - rootls -t sim_output/sim_pid_forward_${PARTICLE}_5GeV.edm4hep.root
   parallel:
     matrix:

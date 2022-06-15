@@ -272,8 +272,8 @@ void emcal_barrel_energy_scan_analysis(std::string particle_label = "electron")
   if(std::getenv("DETECTOR_PATH")) {
     detector_path = std::getenv("DETECTOR_PATH");
   }
-  if(std::getenv("JUGGLER_DETECTOR")) {
-    detector_name = std::getenv("JUGGLER_DETECTOR");
+  if(std::getenv("JUGGLER_DETECTOR_CONFIG")) {
+    detector_name = std::getenv("JUGGLER_DETECTOR_CONFIG");
   }
 
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();

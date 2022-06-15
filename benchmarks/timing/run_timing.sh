@@ -68,7 +68,7 @@ if [[ ! -n "${JUGGLER_INSTALL_PREFIX}" ]] ; then
   export JUGGLER_INSTALL_PREFIX="/usr/local"
 fi
 
-compact_path=${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml
+compact_path=${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml
 
 echo "DETECTOR_PATH = ${DETECTOR_PATH}"
 echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"

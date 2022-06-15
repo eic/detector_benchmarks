@@ -83,7 +83,7 @@ if [ -z "${ANALYSIS_ONLY}" ] ; then
     --filter.tracker edep0 \
     -v WARNING \
     --numberOfEvents ${JUGGLER_N_EVENTS} \
-    --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR}.xml \
+    --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml \
     --inputFiles  ${JUGGLER_FILE_NAME_TAG}.hepmc \
     --outputFile  ${JUGGLER_SIM_FILE}
   if [[ "$?" -ne "0" ]] ; then

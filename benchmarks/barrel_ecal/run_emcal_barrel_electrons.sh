@@ -1,7 +1,7 @@
 #!/bin/bash
+source strict-mode.s
 
-if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
-  export JUGGLER_DETECTOR="topside"
+h  export JUGGLER_DETECTOR="topside"
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 

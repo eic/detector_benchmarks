@@ -2,7 +2,10 @@ sim:zdc:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/zdc/run_zdc_neutrons.sh
+    - bash benchmarks/zdc/run_zdc_particles.sh --particle $PARTICLE
+  parallel:
+    matrix:
+      - PARTICLE: ["neutron", "photon"]
 
 bench:zdc_benchmark:
   extends: .det_benchmark
@@ -10,7 +13,10 @@ bench:zdc_benchmark:
   needs: 
     - ["sim:zdc"]
   script:
-    - root -b -q benchmarks/zdc/scripts/zdc_neutrons_analysis.cxx+
+    - root -b -q benchmarks/zdc/scripts/zdc_analysis.cxx+
+  parallel:
+    matrix:
+      - PARTICLE: ["neutron", "photon"]
 
 collect_results:zdc:
   extends: .det_benchmark

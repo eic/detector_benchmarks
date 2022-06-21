@@ -38,7 +38,7 @@ if [[ "$?" -ne "0" ]] ; then
 fi
 
 # Directory for plots
-mkdir -p results
+mkdir -p results/far_forward/b0
 
 rootls -t ${JUGGLER_SIM_FILE}
 # Plot the input events

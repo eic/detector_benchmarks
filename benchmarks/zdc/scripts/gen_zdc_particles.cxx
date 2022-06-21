@@ -16,15 +16,21 @@
 #include "TMath.h"
 #include "TRandom.h"
 
+#include <Math/Vector3D.h>
+#include <Math/RotationY.h>
+
 using namespace HepMC3;
 
-void zdc_neutrons(int n_events = 1e6, double e_start = 0.0, double e_end = 30.0, const char* out_fname = "./data/zdc_neutrons.hepmc") {
+void gen_zdc_particles(int n_events = 1e6, const std::string& particle = "neutron", double p_start = 0.0, double p_end = 30.0, const std::string& out_fname = "./data/zdc_neutrons.hepmc") {
   WriterAscii hepmc_output(out_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);
 
   // Random number generator
   TRandom* r1 = new TRandom();
+
+  // Set crossing angle [rad]
+  double crossing_angle = -0.025;
 
   // Constraining the solid angle, but larger than that subtended by the
   // detector
@@ -44,21 +50,35 @@ void zdc_neutrons(int n_events = 1e6, double e_start = 0.0, double e_end = 30.0,
     GenParticlePtr p2 = std::make_shared<GenParticle>(FourVector(0.0, 0.0, 0.0, 0.938), 2212, 4);
 
     // Define momentum
-    Double_t p        = r1->Uniform(e_start, e_end);
+    Double_t p_mag    = r1->Uniform(p_start, p_end);
     Double_t phi      = r1->Uniform(0.0, 2.0 * M_PI);
     Double_t costheta = r1->Uniform(cos_theta_min, cos_theta_max);
     Double_t theta    = std::acos(costheta);
-    Double_t px       = p * std::cos(phi) * std::sin(theta);
-    Double_t py       = p * std::sin(phi) * std::sin(theta);
-    Double_t pz       = p * std::cos(theta);
+    Double_t p0_x     = p_mag * std::cos(phi) * std::sin(theta);
+    Double_t p0_y     = p_mag * std::sin(phi) * std::sin(theta);
+    Double_t p0_z     = p_mag * std::cos(theta);
 
-    // Generates random vectors, uniformly distributed over the surface of a
-    // sphere of given radius, in this case momentum.
-    // r1->Sphere(px, py, pz, p);
+    // Rotate the vector in Y by crossing angle when particles are being generated
+    ROOT::Math::XYZVector p0{p0_x, p0_y, p0_z};
+    ROOT::Math::RotationY r(crossing_angle);
+    auto p = r * p0;
+    auto px = p.X();
+    auto py = p.Y();
+    auto pz = p.Z();
 
     // type 1 is final state
     // pdgid 11 - electron 0.510 MeV/c^2
-    GenParticlePtr p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, sqrt(p * p + (0.939 * 0.939))), 2112, 1);
+    // pdgid 22 - photon massless
+    // pdgid 2112 - neutron 939.565 MeV/c^2
+    GenParticlePtr p3;
+    if (particle == "neutron") {
+      p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, std::hypot(p_mag, 0.939565)), 2112, 1);
+    } else if (particle == "photon") {
+      p3 = std::make_shared<GenParticle>(FourVector(px, py, pz, p_mag), 22, 1);
+    } else {
+      std::cout << "Particle type " << particle << " not recognized!" << std::endl;
+      exit(-1);
+    }
 
     GenVertexPtr v1 = std::make_shared<GenVertex>();
     v1->add_particle_in(p1);

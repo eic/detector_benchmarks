@@ -38,16 +38,18 @@ if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 
-  export JUGGLER_N_EVENTS=1000
+  export JUGGLER_N_EVENTS=5000
 fi
 
+#a place where I can run my events when I want to. - AMJ
+#export JUGGLER_N_EVENTS=1000
 
 if [[ ! -n  "${E_start}" ]] ; then
-  export E_start=5.0
+  export E_start=125.0
 fi
 
 if [[ ! -n  "${E_end}" ]] ; then
-  export E_end=5.0
+  export E_end=145.0
 fi
 
 export JUGGLER_FILE_NAME_TAG="zdc_${PARTICLE}"

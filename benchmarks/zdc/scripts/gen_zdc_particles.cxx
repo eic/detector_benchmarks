@@ -21,7 +21,7 @@
 
 using namespace HepMC3;
 
-void gen_zdc_particles(int n_events = 1e6, const std::string& particle = "neutron", double p_start = 0.0, double p_end = 30.0, const std::string& out_fname = "./data/zdc_neutrons.hepmc") {
+void gen_zdc_particles(int n_events = 1e6, const std::string& particle = "neutron", double p_start = 125.0, double p_end = 145.0, const std::string& out_fname = "./data/zdc_neutrons.hepmc") {
   WriterAscii hepmc_output(out_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);
@@ -36,8 +36,8 @@ void gen_zdc_particles(int n_events = 1e6, const std::string& particle = "neutro
   // detector
   // https://indico.bnl.gov/event/7449/contributions/35966/attachments/27177/41430/EIC-DWG-Calo-03192020.pdf
   // See a figure on slide 26
-  double cos_theta_min = std::cos(M_PI * (0.0 / 180.0));
-  double cos_theta_max = std::cos(M_PI * (5.0 / 180.0));
+  double cos_theta_min = std::cos(0.0);
+  double cos_theta_max = std::cos(0.005);
 
   for (events_parsed = 0; events_parsed < n_events; events_parsed++) {
     // FourVector(px,py,pz,e,pdgid,status)

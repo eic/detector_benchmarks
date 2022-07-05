@@ -150,6 +150,8 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   auto h5 = d1.Histo1D({"h5", "detector ID; detector ID; Events", 3,-0.5,2.5}, "detID");
   auto h6 = d1.Histo1D({"h6", "volume ID; volume ID; Events", 100,0,50000000}, "volID");
 
+  auto h7 = d1.Histo2D({"h7", "hit position Y vs. X histogram; hit position X [mm]; hit position Y [mm]", 100,-30,30, 100, -30, 30}, "hit_x_position", "hit_y_position");
+
   auto n0 = d1.Filter([](int n){ return (n>0); },{"nhits"}).Count();
 
   d1.Snapshot("info_EVENT","sim_output/info_zdc_photons.edm4hep.root");
@@ -208,6 +210,10 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
   h6->SetLineColor(kBlack);
   h6->DrawClone();
   c4->SaveAs("sim_output/detID_volID_histo_zdc_photons.png");
+
+  TCanvas *c5 = new TCanvas("c5","c5", 500, 500);
+  h7->Draw("COLZ");
+  c5->SaveAs("results/far_forward/zdc/zdc_x_y_hit_map.png");
 
   if(*n0<1) {
     std::quick_exit(1);

@@ -8,6 +8,8 @@
 
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
+#include "eicd/CalorimeterHitCollection.h"
+#include "eicd/CalorimeterHitData.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -60,6 +62,30 @@ void analysis_zdc_particles(
     return sampled / thrown;
   };
 
+  // Hit position X
+  auto hit_x_position = [&] (const std::vector<edm4hep::SimCalorimeterHitData>& hits) {
+	std::vector<double> result;
+	for(const auto& h: hits)
+		result.push_back(h.position.x); //mm
+  return result; 
+  };
+
+  // Hit position Y
+  auto hit_y_position = [&] (const std::vector<edm4hep::SimCalorimeterHitData>& hits) {
+        std::vector<double> result;
+        for(const auto& h: hits)
+		result.push_back(h.position.y); //mm
+  return result;
+  };
+
+  // Hit position Z
+  auto hit_z_position = [&] (const std::vector<edm4hep::SimCalorimeterHitData>& hits) {
+        std::vector<double> result;
+        for(const auto& h: hits)
+		result.push_back(h.position.z); //mm
+  return result;
+  };
+
   // Define variables
   auto d1 = d0
     .Define("Ethr", Ethr, {"MCParticles"})
@@ -69,6 +95,8 @@ void analysis_zdc_particles(
     .Define("nhits_Hcal", nhits, {"ZDCHcalHits"})
     .Define("Esim_Hcal", Esim, {"ZDCHcalHits"})
     .Define("fsam_Hcal", fsam, {"Esim_Hcal", "Ethr"})
+    .Define("hit_x_position", hit_x_position, {"ZDCHcalHits"})
+	  .Define("hit_y_position", hit_y_position, {"ZDCHcalHits"})
   ;
 
   // Define Histograms
@@ -95,6 +123,9 @@ void analysis_zdc_particles(
   auto hfsam_Hcal = d1.Histo1D(
       {"hfsam_Hcal", "Hcal Sampling Fraction; Hcal Sampling Fraction; Events", 100, 0.0, 0.1},
       "fsam_Hcal");
+
+  auto hXY_HitMap_Hcal = d1.Histo2D({"hXY_HitMap_Hcal", "hit position Y vs. X histogram; hit position X [mm]; hit position Y [mm]", 8,-1300,-500, 8, -400, 400}, "hit_x_position", "hit_y_position");
+
 
   // Event Counts
   auto nevents_thrown = d1.Count();
@@ -186,5 +217,11 @@ void analysis_zdc_particles(
     //h->GetFunction("gaus")->SetLineColor(kRed);
     c4->SaveAs(TString(results_path + "/zdc_fsam_Hcal.png"));
     c4->SaveAs(TString(results_path + "/zdc_fsam_Hcal.pdf"));
+  }
+  {
+    TCanvas* c5 = new TCanvas("c5", "c5", 600, 500);
+    hXY_HitMap_Hcal->Draw("COLZ");
+    c5->SaveAs(TString(results_path + "/zdc_xy_map_Hcal.png"));
+    c5->SaveAs(TString(results_path + "/zdc_xy_map_Hcal.pdf"));
   }
 }

@@ -33,8 +33,8 @@ do
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ ! -n  "${JUGGLER_DETECTOR}" ]] ; then 
-  export JUGGLER_DETECTOR="topside"
+if [[ ! -n  "${DETECTOR}" ]] ; then 
+  export DETECTOR="topside"
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 
@@ -62,7 +62,7 @@ export RESULTS_PATH="results/far_forward/zdc/"
 mkdir -p "${RESULTS_PATH}"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
-echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
+echo "DETECTOR = ${DETECTOR}"
 
 # Generate the input events
 root -b -q "benchmarks/zdc/scripts/gen_zdc_particles.cxx+(${JUGGLER_N_EVENTS}, \"${PARTICLE}\", ${E_start}, ${E_end}, \"${JUGGLER_FILE_NAME_TAG}.hepmc\")"
@@ -77,7 +77,7 @@ ddsim --runType batch \
       --part.minimalKineticEnergy 0.5*GeV  \
       --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
-      --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml \
+      --compactFile ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml \
       --inputFiles ${JUGGLER_FILE_NAME_TAG}.hepmc \
       --outputFile ${JUGGLER_SIM_FILE}
 if [[ "$?" -ne "0" ]] ; then

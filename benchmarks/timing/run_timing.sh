@@ -56,8 +56,8 @@ if [[ ! -n  "${energy}" ]] ; then
   energy="1*GeV"
 fi
 
-if [[ ! -n "${JUGGLER_DETECTOR}" ]] ; then
-  export JUGGLER_DETECTOR="athena"
+if [[ ! -n "${DETECTOR}" ]] ; then
+  export DETECTOR="athena"
 fi
 
 if [[ ! -n "${DETECTOR_PATH}" ]] ; then
@@ -68,10 +68,10 @@ if [[ ! -n "${JUGGLER_INSTALL_PREFIX}" ]] ; then
   export JUGGLER_INSTALL_PREFIX="/usr/local"
 fi
 
-compact_path=${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml
+compact_path=${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml
 
 echo "DETECTOR_PATH = ${DETECTOR_PATH}"
-echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
+echo "DETECTOR = ${DETECTOR}"
 
 # Run geant4 simulations
 output_dir="data/timing/${particle}/${energy/\*/}"

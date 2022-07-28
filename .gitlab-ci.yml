@@ -48,31 +48,31 @@ common:setup:
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
-        echo "JUGGLER_DETECTOR_CONFIG  = ${JUGGLER_DETECTOR_CONFIG}"
-        echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
-        echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
-        echo "JUGGLER_DETECTOR_CONFIG=$JUGGLER_DETECTOR_CONFIG" >> juggler.env
-        echo "JUGGLER_DETECTOR_VERSION=$JUGGLER_DETECTOR_VERSION" >> juggler.env
-        echo "JUGGLER_DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
-        echo "JUGGLER_DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
+        echo "DETECTOR         = ${DETECTOR}"
+        echo "DETECTOR_CONFIG  = ${DETECTOR_CONFIG}"
+        echo "DETECTOR_VERSION = ${DETECTOR_VERSION}"
+        echo "DETECTOR=$DETECTOR" >> juggler.env
+        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
+        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
+        echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
+        echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
         echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
       else 
-        if [[ "${JUGGLER_DETECTOR}" == "" ]] ; then
-          export JUGGLER_DETECTOR="ecce" 
+        if [[ "${DETECTOR}" == "" ]] ; then
+          export DETECTOR="ecce" 
         fi
-        if [[ "${JUGGLER_DETECTOR_CONFIG}" == "" ]] ; then
-          export JUGGLER_DETECTOR_CONFIG="ecce"
+        if [[ "${DETECTOR_CONFIG}" == "" ]] ; then
+          export DETECTOR_CONFIG="ecce"
         fi
-        if [[ "${JUGGLER_DETECTOR_VERSION}" == "" ]] ; then
-          export JUGGLER_DETECTOR_VERSION="main" 
+        if [[ "${DETECTOR_VERSION}" == "" ]] ; then
+          export DETECTOR_VERSION="main" 
         fi
-        echo "JUGGLER_DETECTOR         = ${JUGGLER_DETECTOR}"
-        echo "JUGGLER_DETECTOR_CONFIG  = ${JUGGLER_DETECTOR_CONFIG}"
-        echo "JUGGLER_DETECTOR_VERSION = ${JUGGLER_DETECTOR_VERSION}"
-        echo "JUGGLER_DETECTOR=$JUGGLER_DETECTOR" >> juggler.env
-        echo "JUGGLER_DETECTOR_CONFIG=$JUGGLER_DETECTOR_CONFIG" >> juggler.env
-        echo "JUGGLER_DETECTOR_VERSION=$JUGGLER_DETECTOR_VERSION" >> juggler.env
+        echo "DETECTOR         = ${DETECTOR}"
+        echo "DETECTOR_CONFIG  = ${DETECTOR_CONFIG}"
+        echo "DETECTOR_VERSION = ${DETECTOR_VERSION}"
+        echo "DETECTOR=$DETECTOR" >> juggler.env
+        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
+        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
         echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
       fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
@@ -135,11 +135,11 @@ deploy_results:
 benchmarks:reconstruction:
   stage: trigger
   variables:
-    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
-    JUGGLER_DETECTOR_CONFIG: "$JUGGLER_DETECTOR_CONFIG"
-    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
-    JUGGLER_DETECTOR_DEPLOY_TOKEN_USERNAME: "${JUGGLER_DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    JUGGLER_DETECTOR_DEPLOY_TOKEN_PASSWORD: "${JUGGLER_DETECTOR_DEPLOY_TOKEN_PASSWORD}"
+    DETECTOR: "$DETECTOR"
+    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
+    DETECTOR_VERSION: "$DETECTOR_VERSION"
+    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
+    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
   trigger:
     project: EIC/benchmarks/reconstruction_benchmarks
@@ -149,11 +149,11 @@ benchmarks:reconstruction:
 benchmarks:physics:
   stage: trigger
   variables:
-    JUGGLER_DETECTOR: "$JUGGLER_DETECTOR"
-    JUGGLER_DETECTOR_CONFIG: "$JUGGLER_DETECTOR_CONFIG"
-    JUGGLER_DETECTOR_VERSION: "$JUGGLER_DETECTOR_VERSION"
-    JUGGLER_DETECTOR_DEPLOY_TOKEN_USERNAME: "${JUGGLER_DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    JUGGLER_DETECTOR_DEPLOY_TOKEN_PASSWORD: "${JUGGLER_DETECTOR_DEPLOY_TOKEN_PASSWORD}"
+    DETECTOR: "$DETECTOR"
+    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
+    DETECTOR_VERSION: "$DETECTOR_VERSION"
+    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
+    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
   trigger:
     project: EIC/benchmarks/physics_benchmarks

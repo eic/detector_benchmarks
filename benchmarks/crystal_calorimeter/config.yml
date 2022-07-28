@@ -8,7 +8,7 @@ cal_sim:crystal_pion:
   extends: .det_benchmark
   stage: simulate
   script:
-    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.edm4hep.root
+    - ddsim --runType batch --numberOfEvents 100 --filter.tracker edep0 --compactFile ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml --inputFiles  data/emcal_electrons.hepmc  --outputFile  sim_output/output_emcal_electrons.edm4hep.root
 
 cal_bench:crystal_benchmark:
   extends: .det_benchmark

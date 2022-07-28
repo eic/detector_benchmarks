@@ -102,7 +102,7 @@ int sim_track_hits(const char* fname = "sim_track_hits.edm4hep.root") {
 
   // detect detector setup
   std::string detector = "default";
-  if (const char* env_detector = std::getenv("JUGGLER_DETECTOR_VERSION")) {
+  if (const char* env_detector = std::getenv("DETECTOR_VERSION")) {
     if (detector.find("acadia") != std::string::npos) {
       detector = "acadia";
     } else if (detector.find("canyonlands") != std::string::npos) {

@@ -46,8 +46,8 @@ print_env.sh
 
 ## To run the reconstruction, we need the following global variables:
 ## - JUGGLER_INSTALL_PREFIX:   Install prefix for Juggler (simu/recon)
-## - JUGGLER_DETECTOR:         the detector package we want to use for this benchmark
-## - JUGGLER_DETECTOR_VERSION: the detector package we want to use for this benchmark
+## - DETECTOR:         the detector package we want to use for this benchmark
+## - DETECTOR_VERSION: the detector package we want to use for this benchmark
 ## - DETECTOR_PATH:            full path to the detector definitions
 ##
 ## You can ready options/env.sh for more in-depth explanations of the variables
@@ -63,7 +63,7 @@ export JUGGLER_GEN_FILE="${LOCAL_DATA_PATH}/${JUGGLER_FILE_NAME_TAG}.hepmc"
 export JUGGLER_SIM_FILE="${LOCAL_DATA_PATH}/sim_${JUGGLER_FILE_NAME_TAG}.edm4hep.root"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
-echo "JUGGLER_DETECTOR = ${JUGGLER_DETECTOR}"
+echo "DETECTOR = ${DETECTOR}"
 
 
 if [ -z "${ANALYSIS_ONLY}" ] ; then
@@ -83,7 +83,7 @@ if [ -z "${ANALYSIS_ONLY}" ] ; then
     --filter.tracker edep0 \
     -v WARNING \
     --numberOfEvents ${JUGGLER_N_EVENTS} \
-    --compactFile ${DETECTOR_PATH}/${JUGGLER_DETECTOR_CONFIG}.xml \
+    --compactFile ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml \
     --inputFiles  ${JUGGLER_FILE_NAME_TAG}.hepmc \
     --outputFile  ${JUGGLER_SIM_FILE}
   if [[ "$?" -ne "0" ]] ; then

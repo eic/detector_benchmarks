@@ -81,8 +81,8 @@ void emcal_barrel_pion_rejection_analysis(
   if(std::getenv("DETECTOR_PATH")) {
     detector_path = std::getenv("DETECTOR_PATH");
   }
-  if(std::getenv("JUGGLER_DETECTOR_CONFIG")) {
-    detector_name = std::getenv("JUGGLER_DETECTOR_CONFIG");
+  if(std::getenv("DETECTOR_CONFIG")) {
+    detector_name = std::getenv("DETECTOR_CONFIG");
   }
 
   /*

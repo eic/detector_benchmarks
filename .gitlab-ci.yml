@@ -62,7 +62,7 @@ common:setup:
           export DETECTOR="ecce" 
         fi
         if [[ "${DETECTOR_CONFIG}" == "" ]] ; then
-          export DETECTOR_CONFIG="ecce"
+          export DETECTOR_CONFIG="${DETECTOR}"
         fi
         if [[ "${DETECTOR_VERSION}" == "" ]] ; then
           export DETECTOR_VERSION="main" 

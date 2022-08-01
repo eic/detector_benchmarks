@@ -26,6 +26,7 @@ default:
       dotenv: juggler.env
 
 stages:
+  - status-pending
   - config
   - initialize
   - data_init
@@ -35,6 +36,24 @@ stages:
   - collect
   - deploy
   - trigger
+  - status-success
+
+benchmarks:detector:pending:
+  stage: status-pending
+  script:
+    - |
+      if [ -n "${GITHUB_SHA}" ] ; then
+        curl \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \ 
+          -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
+          https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA} \
+          -d '{"state":"pending", \
+               "target_url":"${CI_PIPELINE_URL}", \
+               "description":"The detector benchmarks are running...", \
+               "context":"eicweb/detector_benchmarks" \
+               }' ;
+      fi
 
 common:setup:
   stage: config
@@ -131,6 +150,25 @@ deploy_results:
     - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter","collect_results:materialscan"]
   script:
     - echo "deploy results!"
+
+benchmarks:detector:success:
+  stage: status-success
+  needs:
+    - ["deploy_results"]
+  script:
+    - |
+      if [ -n "${GITHUB_SHA}" ] ; then
+        curl \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \ 
+          -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
+          https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA} \
+          -d '{"state":"success", \
+               "target_url":"${CI_PIPELINE_URL}", \
+               "description":"The detector benchmarks succeeded!", \
+               "context":"eicweb/detector_benchmarks" \
+               }' ;
+      fi
 
 benchmarks:reconstruction:
   stage: trigger

@@ -36,25 +36,32 @@ stages:
   - collect
   - deploy
   - trigger
-  - status-success
+  - status-report
 
-benchmarks:detector:pending:
-  stage: status-pending
+.status:
   script:
     - |
       if [ -n "${GITHUB_SHA}" ] ; then
-        echo https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}
         curl \
           -X POST \
-          -H "Accept: application/vnd.github+json" \ 
+          -H "Accept: application/vnd.github+json" \
           -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
-          https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA} \
-          -d '{"state":"pending", \
-               "target_url":"${CI_PIPELINE_URL}", \
-               "description":"The detector benchmarks are running...", \
-               "context":"eicweb/detector_benchmarks" \
-               }' ;
+          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+          -d '{"state":"'"${STATE}"'",
+               "target_url":"'"${CI_PIPELINE_URL}"'",
+               "description":"'"${DESCRIPTION}"'",
+               "context":"eicweb/detector_benchmarks"
+              }' ;
       fi
+
+
+benchmarks:detector:pending:
+  stage: status-pending
+  extends: .status
+  variables:
+    STATE: "pending"
+    DESCRIPTION: "The detector benchmarks are running..."
+  when: always
 
 common:setup:
   stage: config
@@ -153,23 +160,24 @@ deploy_results:
     - echo "deploy results!"
 
 benchmarks:detector:success:
-  stage: status-success
+  stage: status-report
   needs:
     - ["deploy_results"]
-  script:
-    - |
-      if [ -n "${GITHUB_SHA}" ] ; then
-        curl \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \ 
-          -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
-          https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA} \
-          -d '{"state":"success", \
-               "target_url":"${CI_PIPELINE_URL}", \
-               "description":"The detector benchmarks succeeded!", \
-               "context":"eicweb/detector_benchmarks" \
-               }' ;
-      fi
+  extends: .status
+  variables:
+    STATE: "success"
+    DESCRIPTION: "The detector benchmarks succeeded!"
+  when: on_success
+
+benchmarks:detector:failure:
+  stage: status-report
+  needs:
+    - ["deploy_results"]
+  extends: .status
+  variables:
+    STATE: "failure"
+    DESCRIPTION: "The detector benchmarks failed!"
+  when: on_failure
 
 benchmarks:reconstruction:
   stage: trigger

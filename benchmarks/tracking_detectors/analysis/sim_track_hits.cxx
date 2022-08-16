@@ -113,16 +113,17 @@ int sim_track_hits(const char* fname = "sim_track_hits.edm4hep.root") {
 
   // minimal hit collection setup
   std::vector<std::pair<std::string, std::string>> hitCollections{{"vtx_barrel", "VertexBarrelHits"},
-                                                                  {"trk_barrel", "TrackerBarrelHits"},
-                                                                  {"trk_endcap", "TrackerEndcapHits1"},
-                                                                  {"gem_endcap", "GEMTrackerEndcapHits1"}};
-
-  // append extra hit collections based on detector setup
-  if (detector == "acadia") {
-    hitCollections.push_back({"vtx_endcap", "VertexEndcapHits1"});
-  } else if (detector == "canyonlands" || detector == "default") {
-    hitCollections.push_back({"mm_barrel", "MPGDTrackerBarrelHits1"});
-  }
+                                                                  {"trk_barrel_outer", "OuterSiBarrelHits"},
+                                                                  {"trk_barrel_sagitta", "SagittaSiBarrelHits"},
+                                                                  {"trk_endcap_p_inner", "InnerTrackerEndcapPHits"},
+                                                                  {"trk_endcap_p_middle", "MiddleTrackerEndcapPHits"},
+                                                                  {"trk_endcap_p_outer", "OuterTrackerEndcapPHits"},
+                                                                  {"trk_endcap_n_inner", "InnerTrackerEndcapNHits"},
+                                                                  {"trk_endcap_n_middle", "MiddleTrackerEndcapNHits"},
+                                                                  {"trk_endcap_n_outer", "OuterTrackerEndcapNHits"},
+                                                                  {"mpgd_barrel_outer", "OuterMPGDBarrelHits"},
+                                                                  {"mpgd_barrel_inner", "InnerMPGDBarrelHits"}
+  };
 
   auto df0 = df.Define("isThrown", "MCParticles.generatorStatus == 1")
                  .Define("thrownParticles", "MCParticles[isThrown]")

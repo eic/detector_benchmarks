@@ -75,18 +75,20 @@ common:setup:
   script:
     - |
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        echo "DETECTOR         = ${DETECTOR}"
-        echo "DETECTOR_CONFIG  = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION = ${DETECTOR_VERSION}"
+        echo "DETECTOR               = ${DETECTOR}"
+        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
+        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
+        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
         echo "DETECTOR=$DETECTOR" >> juggler.env
         echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
         echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
+        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
         echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
         echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
         echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
       else 
         if [[ "${DETECTOR}" == "" ]] ; then
-          export DETECTOR="ecce" 
+          export DETECTOR="epic" 
         fi
         if [[ "${DETECTOR_CONFIG}" == "" ]] ; then
           export DETECTOR_CONFIG="${DETECTOR}"
@@ -94,12 +96,17 @@ common:setup:
         if [[ "${DETECTOR_VERSION}" == "" ]] ; then
           export DETECTOR_VERSION="main" 
         fi
-        echo "DETECTOR         = ${DETECTOR}"
-        echo "DETECTOR_CONFIG  = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION = ${DETECTOR_VERSION}"
+        if [[ "${DETECTOR_REPOSITORYURL}" == "" ]] ; then
+          export DETECTOR_REPOSITORYURL="https://github.com/eic/${DETECTOR}"
+        fi
+        echo "DETECTOR               = ${DETECTOR}"
+        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
+        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
+        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
         echo "DETECTOR=$DETECTOR" >> juggler.env
         echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
         echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
+        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
         echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
       fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
@@ -183,6 +190,7 @@ benchmarks:reconstruction:
   stage: trigger
   variables:
     GITHUB_SHA: "${GITHUB_SHA}"
+    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
     DETECTOR: "$DETECTOR"
     DETECTOR_CONFIG: "$DETECTOR_CONFIG"
     DETECTOR_VERSION: "$DETECTOR_VERSION"
@@ -199,6 +207,7 @@ benchmarks:physics:
   stage: trigger
   variables:
     GITHUB_SHA: "${GITHUB_SHA}"
+    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
     DETECTOR: "$DETECTOR"
     DETECTOR_CONFIG: "$DETECTOR_CONFIG"
     DETECTOR_VERSION: "$DETECTOR_VERSION"

@@ -50,7 +50,7 @@ stages:
           -d '{"state":"'"${STATE}"'",
                "target_url":"'"${CI_PIPELINE_URL}"'",
                "description":"'"${DESCRIPTION}"'",
-               "context":"eicweb/detector_benchmarks"
+               "context":"eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')",
               }' ;
       fi
 

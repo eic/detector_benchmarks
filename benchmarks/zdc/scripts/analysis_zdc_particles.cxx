@@ -8,8 +8,8 @@
 
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
-#include "eicd/CalorimeterHitCollection.h"
-#include "eicd/CalorimeterHitData.h"
+#include "edm4eicCalorimeterHitCollection.h"
+#include "edm4eicCalorimeterHitData.h"
 
 #include "TCanvas.h"
 #include "TStyle.h"

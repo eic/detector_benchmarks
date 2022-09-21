@@ -9,21 +9,21 @@
 #include <cstdlib>
 #include <iostream>
 
-R__LOAD_LIBRARY(libeicd.so)
+R__LOAD_LIBRARY(libedm4eic.so)
 R__LOAD_LIBRARY(libDD4pod.so)
 
 #include <fmt/format.h>
 
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
-#include "eicd/ClusterCollection.h"
-#include "eicd/TrackParametersCollection.h"
-#include "eicd/TrackerHitCollection.h"
+#include "edm4eic/ClusterCollection.h"
+#include "edm4eic/TrackParametersCollection.h"
+#include "edm4eic/TrackerHitCollection.h"
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-auto p_track = [](std::vector<eicd::TrackParametersData> const& in) {
+auto p_track = [](std::vector<edm4eic::TrackParametersData> const& in) {
   std::vector<double> result;
   for (size_t i = 0; i < in.size(); ++i) {
     result.push_back(std::abs(1.0 / (in[i].qOverP)));

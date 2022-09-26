@@ -49,7 +49,7 @@ stages:
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
           -d '{"state":"'"${STATE}"'",
                "target_url":"'"${CI_PIPELINE_URL}"'",
-               "description":"'"${DESCRIPTION}"'",
+               "description":"'"${DESCRIPTION} $(TZ=America/New_York date)"'",
                "context":"eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')"
               }' ;
       fi
@@ -60,7 +60,7 @@ benchmarks:detector:pending:
   extends: .status
   variables:
     STATE: "pending"
-    DESCRIPTION: "The detector benchmarks are running..."
+    DESCRIPTION: "Started..."
   when: always
 
 common:setup:
@@ -171,7 +171,7 @@ benchmarks:detector:success:
   extends: .status
   variables:
     STATE: "success"
-    DESCRIPTION: "The detector benchmarks succeeded!"
+    DESCRIPTION: "Succeeded!"
   when: on_success
 
 benchmarks:detector:failure:
@@ -179,7 +179,7 @@ benchmarks:detector:failure:
   extends: .status
   variables:
     STATE: "failure"
-    DESCRIPTION: "The detector benchmarks failed!"
+    DESCRIPTION: "Failed!"
   when: on_failure
 
 benchmarks:reconstruction:

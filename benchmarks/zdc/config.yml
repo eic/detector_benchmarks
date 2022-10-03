@@ -6,6 +6,7 @@ sim:zdc:
   parallel:
     matrix:
       - PARTICLE: ["neutron", "photon"]
+  allow_failure: true
 
 bench:zdc_benchmark:
   extends: .det_benchmark
@@ -17,6 +18,7 @@ bench:zdc_benchmark:
   parallel:
     matrix:
       - PARTICLE: ["neutron", "photon"]
+  allow_failure: true
 
 collect_results:zdc:
   extends: .det_benchmark
@@ -25,3 +27,4 @@ collect_results:zdc:
     - ["bench:zdc_benchmark"]
   script:
     - ls -lrht
+  allow_failure: true

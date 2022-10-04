@@ -11,7 +11,7 @@ material_maps:
     - ActsExampleMaterialRecordingDD4hep -j 1 -n ${JUGGLER_N_EVENTS} --dd4hep-input ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml --output-root 
     - test -f geant4_material_tracks.root
     - root -l -b -q -e "TChain T(\"material-tracks\"); T.Add(\"geant4_material_tracks.root\"); cout << T.GetEntries() << \" entries\" << endl; gApplication->Terminate(T.GetEntries()-${JUGGLER_N_EVENTS});"
-    - ActsExampleMaterialMappingDD4hep -j 1 -n ${JUGGLER_N_EVENTS} --dd4hep-input ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml --input-root true --input-files geant4_material_tracks.root --mat-input-type file --mat-input-file geometry-map.json --output-root --output-json --output-cbor --mat-output-file material-maps --mat-mapping-surfaces true --mat-mapping-volumes true --mat-mapping-volume-stepsize 1
+    - ActsExampleMaterialMappingDD4hep -j 1 -n ${JUGGLER_N_EVENTS} --dd4hep-input ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml --input-root true --input-files geant4_material_tracks.root --mat-input-type file --mat-input-file geometry-map.json --output-root --output-json --output-cbor --mat-output-file material-maps --mat-mapping-surfaces true --mat-mapping-read-surfaces false --mat-mapping-volumes true --mat-mapping-volume-stepsize 1
     - test -f material-maps.json
     - ActsExampleMaterialValidationDD4hep -j 1 -n ${JUGGLER_N_EVENTS} --dd4hep-input ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml --mat-input-type file --mat-input-file material-maps.json --output-root --mat-output-file val-mat-map --prop-z0-sigma 0.0 --prop-d0-sigma 0.0
     - ls -al

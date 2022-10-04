@@ -114,7 +114,7 @@ void emcal_barrel_pi0_analysis(
            .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
            .Define("fsamScFi", fsam, {"EsimScFi", "Ethr"})
            .Define("fsam", fsam, {"Esim", "Ethr"});
-    fsam_est = 0.1;
+    fsam_est = 1.2*samp_frac;
   } else {
     d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
            .Define("fsam", fsam, {"Esim", "Ethr"});

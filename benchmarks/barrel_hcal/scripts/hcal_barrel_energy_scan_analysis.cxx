@@ -75,17 +75,20 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
   };
 
   // Define variables
-  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
-                .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("Esim", Esim, {"EcalBarrelHits"})
-                .Define("fsam", fsam, {"Esim", "Ethr"});
+  auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"});
 
   // Define assumptions
   auto Ethr_max = 25.0;
   auto fsam_estimate = 1.0;
   if (d1.HasColumn("EcalBarrelScFiHits")) {
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelImagingHits"})
+           .Define("Esim", Esim, {"EcalBarrelImagingHits"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_estimate = 0.1;
   } else {
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelSciGlassHits"})
+           .Define("Esim", Esim, {"EcalBarrelSciGlassHits"})
+           .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_estimate = 1.0;
   }
 

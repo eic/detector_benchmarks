@@ -102,13 +102,13 @@ void emcal_barrel_pi0_analysis(
     d0.Define("Ethr", Ethr, {"MCParticles"})
       .Define("pid", getpid, {"MCParticles"})
       .Define("dau", getdau, {"MCParticles"})
-      .Define("nhits", nhits, {"EcalBarrelHits"})
   );
 
   auto Ethr_max = 7.5;
   auto fsam_est = 1.0;
   if (d1.HasColumn("EcalBarrelScFiHits")) {
-    d1 = d1.Define("EsimImg", Esim, {"EcalBarrelHits"})
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelImagingHits"})
+           .Define("EsimImg", Esim, {"EcalBarrelImagingHits"})
            .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
            .Define("Esim", "EsimImg+EsimScFi")
            .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
@@ -116,7 +116,8 @@ void emcal_barrel_pi0_analysis(
            .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_est = 1.2*samp_frac;
   } else {
-    d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelSciGlassHits"})
+           .Define("Esim", Esim, {"EcalBarrelSciGlassHits"})
            .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_est = 1.0;
   }

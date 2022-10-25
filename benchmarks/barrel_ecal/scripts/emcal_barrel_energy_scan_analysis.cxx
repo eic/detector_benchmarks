@@ -78,15 +78,15 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
   };
 
   // Energy deposited in layers 
-  auto decoder = detector.readout("EcalBarrelHits").idSpec().decoder();
+  auto decoder = detector.readout("EcalBarrelImagingHits").idSpec().decoder();
   fmt::print("{}\n", decoder->fieldDescription());
   auto layer_index = decoder->index("layer");
   fmt::print(" layer index is {}.\n", layer_index);
 
   // Define variables
   auto d1 = d0.Define("Ethr", Ethr, {"MCParticles"})
-                .Define("nhits", nhits, {"EcalBarrelHits"})
-                .Define("EsimImg", Esim, {"EcalBarrelHits"})
+                .Define("nhits", nhits, {"EcalBarrelImagingHits"})
+                .Define("EsimImg", Esim, {"EcalBarrelImagingHits"})
                 .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
                 .Define("Esim", "EsimImg+EsimScFi")
                 .Define("fsam", fsam, {"Esim", "Ethr"});
@@ -127,7 +127,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
       return layer_edep;
     };
 
-    auto d2 = d0.Define(fmt::format("EsimImg_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelHits"})
+    auto d2 = d0.Define(fmt::format("EsimImg_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelImagingHits"})
                   .Define(fmt::format("EsimScFi_layer_{}",layer).c_str(), Esim_layer, {"EcalBarrelScFiHits"})
                   .Define(fmt::format("Esim_layer_{}",layer).c_str(), fmt::format("EsimImg_layer_{}+EsimScFi_layer_{}",layer,layer).c_str());
     std::cout << "Layer to process: " << layer << std::endl;

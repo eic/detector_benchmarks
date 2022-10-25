@@ -105,7 +105,7 @@ void emcal_barrel_pion_rejection_analysis(
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
   detector.fromCompact(fmt::format("{}/{}.xml", detector_path, detector_name));
 
-  auto decoder         = detector.readout("EcalBarrelHits").idSpec().decoder();
+  auto decoder         = detector.readout("EcalBarrelImagingHits").idSpec().decoder();
   auto decoderScFi     = detector.readout("EcalBarrelScFiHits").idSpec().decoder();
   auto layer_index     = decoder->index("layer");
   auto layer_indexScFi = decoderScFi->index("layer");
@@ -310,8 +310,8 @@ void emcal_barrel_pion_rejection_analysis(
   // Define variables
   auto d1 = d0.Define("Ethr",            Ethr,                  {"MCParticles"})
               .Define("Pthr",            Pthr,                  {"MCParticles"})
-              .Define("nhits",           nhits,                 {"EcalBarrelHits"})
-              .Define("Esim",            Esim,                  {"EcalBarrelHits"})
+              .Define("nhits",           nhits,                 {"EcalBarrelImagingHits"})
+              .Define("Esim",            Esim,                  {"EcalBarrelImagingHits"})
               .Define("EsimScFi",        Esim,                  {"EcalBarrelScFiHits"})
               .Define("EsimOverP",       fEp,                   {"Esim", "Pthr"})
               .Define("EsimScFiOverP",   fEp,                   {"EsimScFi", "Pthr"})
@@ -319,14 +319,14 @@ void emcal_barrel_pion_rejection_analysis(
               .Define("EsimTotOverP",    fEp,                   {"EsimTot", "Pthr"})
               .Define("fsam",            fsam,                  {"Esim","Ethr"})
               .Define("pid",             getpid,                {"MCParticles"})
-              .Define("EDep",            Esim_dep,              {"EcalBarrelHits"})
+              .Define("EDep",            Esim_dep,              {"EcalBarrelImagingHits"})
               .Define("EDepSum",         Esim_dep_sum,          {"EDep"})
               .Define("EDepN",           Esim_depN,             {"EDep"})
-              .Define("EDep2",           Esim_dep2,             {"EcalBarrelHits"})
-              .Define("EDep3",           Esim_dep3,             {"EcalBarrelHits"})
-              .Define("EDep4",           Esim_dep4,             {"EcalBarrelHits"})
-              .Define("EDep5",           Esim_dep5,             {"EcalBarrelHits"})
-              .Define("EDep6",           Esim_dep6,             {"EcalBarrelHits"})
+              .Define("EDep2",           Esim_dep2,             {"EcalBarrelImagingHits"})
+              .Define("EDep3",           Esim_dep3,             {"EcalBarrelImagingHits"})
+              .Define("EDep4",           Esim_dep4,             {"EcalBarrelImagingHits"})
+              .Define("EDep5",           Esim_dep5,             {"EcalBarrelImagingHits"})
+              .Define("EDep6",           Esim_dep6,             {"EcalBarrelImagingHits"})
               .Define("EDep6OverP",      fEp,                   {"EDep6", "Pthr"})
               .Define("EOverP",          fEp,                   {"EDep3", "Pthr"})
               .Define("Eta",             Eta,                   {"MCParticles"})

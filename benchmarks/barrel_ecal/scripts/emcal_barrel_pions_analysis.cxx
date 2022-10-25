@@ -89,14 +89,14 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   // Define variables
   auto d1 = ROOT::RDF::RNode(
     d0.Define("Ethr", Ethr, {"MCParticles"})
-      .Define("nhits", nhits, {"EcalBarrelHits"})
       .Define("pid",    getpid,     {"MCParticles"})
   );
 
   auto Ethr_max = 7.5;
   auto fsam_est = 1.0;
   if (d1.HasColumn("EcalBarrelScFiHits")) {
-    d1 = d1.Define("EsimImg", Esim, {"EcalBarrelHits"})
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelImagingHits"})
+           .Define("EsimImg", Esim, {"EcalBarrelImagingHits"})
            .Define("EsimScFi", Esim, {"EcalBarrelScFiHits"})
            .Define("Esim", "EsimImg+EsimScFi")
            .Define("fsamImg", fsam, {"EsimImg", "Ethr"})
@@ -104,7 +104,8 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
            .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_est = 0.1;
   } else {
-    d1 = d1.Define("Esim", Esim, {"EcalBarrelHits"})
+    d1 = d1.Define("nhits", nhits, {"EcalBarrelSciGlassHits"})
+           .Define("Esim", Esim, {"EcalBarrelSciGlassHits"})
            .Define("fsam", fsam, {"Esim", "Ethr"});
     fsam_est = 1.0;
   }

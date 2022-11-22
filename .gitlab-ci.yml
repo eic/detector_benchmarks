@@ -150,9 +150,7 @@ include:
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
-  - local: 'benchmarks/roman_pots/config.yml'
   - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/crystal_calorimeter/config.yml'
   - local: 'benchmarks/material_maps/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
@@ -162,7 +160,7 @@ include:
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:crystal_calorimeter","collect_results:materialscan"]
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:materialscan"]
   script:
     - echo "deploy results!"
 

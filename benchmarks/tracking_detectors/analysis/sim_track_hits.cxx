@@ -10,7 +10,6 @@
 #include <iostream>
 
 R__LOAD_LIBRARY(libedm4eic.so)
-R__LOAD_LIBRARY(libDD4pod.so)
 
 #include <fmt/format.h>
 

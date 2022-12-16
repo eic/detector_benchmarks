@@ -199,7 +199,7 @@ void emcal_barrel_pi0_analysis(
  
   // Energy Resolution Calculation
   std::string test_tag = "Barrel_emcal_pi0";// TODO: Change test_tag to something else
-  std:string detEle    = "Barrel_emcal";
+  std::string detEle   = "Barrel_emcal";
 
   // Energy resolution in the barrel region (-1 < eta < 1)
   // Taken from : Initial considerations for EMCal of the EIC detector by A. Bazilevsky

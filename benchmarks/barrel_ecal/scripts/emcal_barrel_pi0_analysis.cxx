@@ -190,9 +190,13 @@ void emcal_barrel_pi0_analysis(
   h3->SetLineWidth(2);
   h3->SetLineColor(kBlue);
   auto fit = h3->Fit("gaus","","", fitRange[1][0], fitRange[1][1]);
-  double* res = h3->GetFunction("gaus")->GetParameters();
-  sigmaOverE  = res[2] / meanE;
-  
+  if (fit == 0) {
+    double* res = h3->GetFunction("gaus")->GetParameters();
+    sigmaOverE  = res[2] / meanE;
+  } else {
+    std::printf("Fit failed\n");
+    sigmaOverE  = h3->GetStdDev() / h3->GetMean();
+  }
   c1->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.png", col[1])).c_str());
   c1->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.pdf", col[1])).c_str());
   std::printf("Resolution %d\n", 1);

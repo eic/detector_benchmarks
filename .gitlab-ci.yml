@@ -132,7 +132,7 @@ get_data:
     - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
 
 .det_benchmark:
-  image: eicweb.phy.anl.gov:4567/eic/juggler/juggler:$JUGGLER_TAG
+  image: eicweb.phy.anl.gov:4567/containers/eic_container/jug_xl:$JUGGLER_TAG
   needs:
     - ["get_data","common:detector"]
   before_script:

@@ -5,7 +5,7 @@ if [[ ! -n  "${DETECTOR}" ]] ; then
 fi
 
 if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then 
-  export JUGGLER_N_EVENTS=100
+  export JUGGLER_N_EVENTS=10000
 fi
 
 if [[ ! -n  "${E_START}" ]] ; then

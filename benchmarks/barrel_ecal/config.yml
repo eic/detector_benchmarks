@@ -16,7 +16,7 @@ sim:emcal_barrel_electrons:
   stage: simulate
   script:
     - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh electron ; fi
-    - export JUGGLER_N_EVENTS=400
+    - export JUGGLER_N_EVENTS=10000
     - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
 
 sim:emcal_barrel_photons:

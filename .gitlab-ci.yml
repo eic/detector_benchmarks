@@ -21,9 +21,9 @@ default:
       - .local/share
       - results
       - config
-      - juggler.env
+      - .env
     reports:
-      dotenv: juggler.env
+      dotenv: .env
 
 stages:
   - status-pending
@@ -79,13 +79,13 @@ common:setup:
         echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
         echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
         echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
+        echo "DETECTOR=$DETECTOR" >> .env
+        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> .env
+        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> .env
+        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> .env
+        echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> .env
+        echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> .env
+        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> .env
       else 
         if [[ "${DETECTOR}" == "" ]] ; then
           export DETECTOR="epic" 
@@ -103,11 +103,11 @@ common:setup:
         echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
         echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
         echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
+        echo "DETECTOR=$DETECTOR" >> .env
+        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> .env
+        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> .env
+        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> .env
+        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> .env
       fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
 
@@ -126,7 +126,6 @@ get_data:
   stage: data_init
   needs: ["common:detector"]
   script:
-    - source .local/bin/env.sh
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
     - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
@@ -135,7 +134,6 @@ get_data:
   needs:
     - ["get_data","common:detector"]
   before_script:
-    - source .local/bin/env.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
@@ -226,5 +224,3 @@ pages:
   artifacts:
     paths:
       - public
-
-

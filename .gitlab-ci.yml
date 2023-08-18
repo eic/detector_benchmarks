@@ -126,7 +126,7 @@ get_data:
   stage: data_init
   needs: ["common:detector"]
   script:
-    - source .env
+    - source .local/bin/env.sh
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
     - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
@@ -135,7 +135,7 @@ get_data:
   needs:
     - ["get_data","common:detector"]
   before_script:
-    - source .env
+    - source .local/bin/env.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data

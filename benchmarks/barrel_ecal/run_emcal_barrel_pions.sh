@@ -8,10 +8,6 @@ if [[ ! -n  "${JUGGLER_N_EVENTS}" ]] ; then
   export JUGGLER_N_EVENTS=1000
 fi
 
-if [[ ! -n  "${JUGGLER_INSTALL_PREFIX}" ]] ; then 
-  export JUGGLER_INSTALL_PREFIX="/usr/local"
-fi
-
 if [[ ! -n  "${E_start}" ]] ; then
   export E_start=5.0
 fi

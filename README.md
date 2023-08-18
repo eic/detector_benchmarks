@@ -28,9 +28,7 @@ Note juggler is not needed for `detector_benchmarks` because it is not used but 
 
 First set some environment variables.
 ```
-# export JUGGLER_INSTALL_PREFIX=$HOME/stow/juggler # not needed for detector_benchmarks
 export DETECTOR=epic             # epic is the default
-export BEAMLINE_CONFIG=ip6       # ip6 is the default
 ```
 
 

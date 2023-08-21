@@ -52,19 +52,19 @@ void materialScanEta(
   // check inputs
   if (etamin > etamax) {
     std::cout << "Error: ordered eta range required" << std::endl;
-    return -1;
+    return;
   }
   if (rhomax <= 0.0) {
     std::cout << "Error: positive rhomax required" << std::endl;
-    return -1;
+    return;
   }
   if (znmax <= 0.0) {
     std::cout << "Error: positive znmax required" << std::endl;
-    return -1;
+    return;
   }
   if (zpmax <= 0.0) {
     std::cout << "Error: positive zpmax required" << std::endl;
-    return -1;
+    return;
   }
 
   // get material scans

@@ -22,6 +22,7 @@ default:
       - results
       - config
       - juggler.env
+      - summary.txt
     reports:
       dotenv: juggler.env
 
@@ -162,6 +163,7 @@ deploy_results:
     - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:materialscan"]
   script:
     - echo "deploy results!"
+    - find results -print | tee summary.txt
 
 benchmarks:detector:success:
   stage: status-report

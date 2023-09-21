@@ -20,10 +20,14 @@
   
 using namespace TMVA;
  
+// The training currently requires files which only contained a single DIS scattered electron to have been simulated e.g. generated using GETaLM
+// The scattered electron must be the 3rd particle in the file after the two beam particles
+// At least one track reconstructed by EIC algorithms in the LOWQ2 tagger is needed.
+
 void TaggerRegressionEICrecon(
 			      TString inDataNames   = "/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab*_recon.edm4hep.root",
 			      TString outDataName   = "/scratch/EIC/Results/ML-Out/trainedData.root",
-			      TString outWeightName = "dataset/weights/weights.xml"
+			      TString inWeightName  = "dataset/weights/LowQ2Reconstruction_DNN.weights.xml"
 			      )
 {
  
@@ -41,7 +45,7 @@ void TaggerRegressionEICrecon(
   TFile* outputFile = TFile::Open( outDataName, "RECREATE" );
  
   // Create the factory object. Later you can choose the methods
-  TString typeName = "RealHits";
+  TString typeName = "LowQ2Reconstruction";
    
   TMVA::Factory *factory = new TMVA::Factory( typeName, outputFile,
 					      "!V:!Silent:Color:DrawProgressBar:AnalysisType=Regression" );
@@ -60,10 +64,12 @@ void TaggerRegressionEICrecon(
   
   // Regression target particle 3-momentum, normalised to beam energy.
   // Takes second particle, in the test data this is the scattered electron
-  // TODO add energy and array element information to be read directly from datafile - EMD4eic and EICrecon changes. 
-  dataloader->AddTarget( "MCParticles[2].momentum.x/18" );
-  dataloader->AddTarget( "MCParticles[2].momentum.y/18" );
-  dataloader->AddTarget( "MCParticles[2].momentum.z/18" );
+  // TODO add energy and array element information to be read directly from datafile - EMD4eic and EICrecon changes.
+  TString mcParticleName = "MCParticles[2]";
+  TString mcBeamEnergy   = "18";
+  dataloader->AddTarget( mcParticleName+".momentum.x/"+mcBeamEnergy );
+  dataloader->AddTarget( mcParticleName+".momentum.y/"+mcBeamEnergy );
+  dataloader->AddTarget( mcParticleName+".momentum.z/"+mcBeamEnergy );
  
   std::cout << "--- TMVARegression           : Using input files: " << inDataNames << std::endl;
  
@@ -71,7 +77,7 @@ void TaggerRegressionEICrecon(
  
   TChain* regChain = new TChain("events");
   regChain->Add(inDataNames);
-  regChain->SetEntries(8000); //Set smaller sample for tests
+  //regChain->SetEntries(8000); // Set smaller sample for tests
   
   // global event weights per tree (see below for setting event-wise weights)
   Double_t regWeight  = 1.0;
@@ -81,22 +87,30 @@ void TaggerRegressionEICrecon(
  
   // This would set individual event weights (the variables defined in the
   // expression need to exist in the original TTree)
-  // dataloader->SetWeightExpression( "1/(eE)", "Regression" );
+  // dataloader->SetWeightExpression( "1/(eE)", "Regression" ); // If MC event weights are kept use these
   // Apply additional cuts on the data
-  TCut mycut = "@LowQ2Tracks.size()==1"; //Make sure there's one reconstructed track in event
+  TCut mycut = "@LowQ2Tracks.size()==1"; // Make sure there's one reconstructed track in event
    
-  dataloader->PrepareTrainingAndTestTree(mycut,"nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:NormMode=NumEvents:!V");
+  dataloader->PrepareTrainingAndTestTree(mycut,"nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:SplitSeed=1:NormMode=NumEvents:!V");
 
   // TODO - Optimise layout and training more
   TString layoutString("Layout=TANH|1024,TANH|128,TANH|64,TANH|32,LINEAR");
   
   TString trainingStrategyString("TrainingStrategy=");
-  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=20,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
-  //  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
+  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
   
+  TString nnOptions("!H:V:ErrorStrategy=SUMOFSQUARES:WeightInitialization=XAVIERUNIFORM:RandomSeed=1234");
+
+  // Use GPU if possible on the machine
+  TString architectureString("Architecture=GPU");
+
   // Transformation of data prior to training layers - decorrelate and normalise whole dataset
-  TString nnOptions("!H:V:ErrorStrategy=SUMOFSQUARES:VarTransform=D,N:WeightInitialization=XAVIERUNIFORM:Architecture=GPU");
+  TString transformString("VarTransform=D,N");
   
+  nnOptions.Append(":");
+  nnOptions.Append(architectureString);
+  nnOptions.Append(":");
+  nnOptions.Append(transformString);
   nnOptions.Append(":");
   nnOptions.Append(layoutString);
   nnOptions.Append(":");
@@ -104,15 +118,16 @@ void TaggerRegressionEICrecon(
   
   TMVA::MethodDNN* method = (MethodDNN*)factory->BookMethod(dataloader, TMVA::Types::kDL, methodName, nnOptions); // NN
   
-  //std::istream xmlFile(xmlFileName);
+  // If loading previous model for further training
   if(loadWeights){
     TMVA::Reader *reader = new TMVA::Reader( "!Color:!Silent" );
-    reader->BookMVA( methodName, outWeightName);
+    reader->BookMVA( methodName, inWeightName );
     TMVA::MethodDNN* kl = dynamic_cast<TMVA::MethodDNN*>(reader->FindMVA(methodName));
     method = kl;
   }
+
+
   // --------------------------------------------------------------------------------------------------
-  
   // Now you can tell the factory to train, test, and evaluate the MVAs
   
   // Train MVAs using the set of training events

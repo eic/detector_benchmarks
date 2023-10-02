@@ -1,5 +1,10 @@
 image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 
+variables:
+  DETECTOR: epic
+  DETECTOR_CONFIG: epic_craterlake
+  DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -75,6 +80,9 @@ common:setup:
       git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
   script:
     - |
+      echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
+      echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
+      echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
       if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
         echo "DETECTOR               = ${DETECTOR}"
         echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
@@ -193,6 +201,9 @@ benchmarks:reconstruction:
     DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
     DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
+    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
+    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
+    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
   trigger:
     project: EIC/benchmarks/reconstruction_benchmarks
     strategy: depend
@@ -210,6 +221,9 @@ benchmarks:physics:
     DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
     DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
+    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
+    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
+    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
   trigger:
     project: EIC/benchmarks/physics_benchmarks
     strategy: depend

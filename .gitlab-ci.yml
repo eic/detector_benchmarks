@@ -83,27 +83,6 @@ common:setup:
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-      if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        echo "DETECTOR               = ${DETECTOR}"
-        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
-        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
-      else 
-        echo "DETECTOR               = ${DETECTOR}"
-        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
-        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
-      fi
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
 
 

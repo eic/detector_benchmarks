@@ -72,14 +72,13 @@ benchmarks:detector:pending:
 common:setup:
   stage: config
   before_script:
+  script:
     - |
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
         export COMMON_BENCH_VERSION="master" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
-  script:
-    - |
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"

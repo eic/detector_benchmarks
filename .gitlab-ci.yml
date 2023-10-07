@@ -26,10 +26,10 @@ default:
       - .local/share
       - results
       - config
-      - juggler.env
+      - .env
       - summary.txt
     reports:
-      dotenv: juggler.env
+      dotenv: .env
 
 stages:
   - status-pending
@@ -78,6 +78,7 @@ common:setup:
         export COMMON_BENCH_VERSION="master" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
+      echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
       git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"

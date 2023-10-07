@@ -157,6 +157,8 @@ benchmarks:detector:failure:
 benchmarks:reconstruction:
   stage: trigger
   variables:
+    GITHUB_SHA: "${GITHUB_SHA}"
+    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
     DETECTOR: "$DETECTOR"
     DETECTOR_CONFIG: "$DETECTOR_CONFIG"
     DETECTOR_VERSION: "$DETECTOR_VERSION"
@@ -175,6 +177,8 @@ benchmarks:reconstruction:
 benchmarks:physics:
   stage: trigger
   variables:
+    GITHUB_SHA: "${GITHUB_SHA}"
+    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
     DETECTOR: "$DETECTOR"
     DETECTOR_CONFIG: "$DETECTOR_CONFIG"
     DETECTOR_VERSION: "$DETECTOR_VERSION"

@@ -4,6 +4,8 @@ variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
   DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
+  GITHUB_SHA: ''
+  GITHUB_REPOSITORY: ''
 
 workflow:
   rules:

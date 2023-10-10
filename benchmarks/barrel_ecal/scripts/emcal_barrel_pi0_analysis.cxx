@@ -49,9 +49,8 @@ void emcal_barrel_pi0_analysis(
   ROOT::RDataFrame d0("events", input_fname);
 
   // Sampling Fraction grabbed from json file
-  // Note that this value is derived from electrons
   json j;
-  std::ifstream prev_steps_ifstream("results/emcal_barrel_calibration.json");
+  std::ifstream prev_steps_ifstream("results/emcal_barrel_electron_calibration.json");
   prev_steps_ifstream >> j;
   double samp_frac = j["electron"]["sampling_fraction"];
 

@@ -257,7 +257,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     {"sampling_fraction_error_scfi", fSam_scfi_mean_err}      
   };
   if (save_calib) {
-    std::string calib_output_path = "results/emcal_barrel_calibration.json";
+    std::string calib_output_path = fmt::format("results/emcal_barrel_{}_calibration.json", particle_name);
     std::cout << "Saving calibration results to " << calib_output_path << std::endl;
     std::ofstream o(calib_output_path);
     o << std::setw(4) << j << std::endl;

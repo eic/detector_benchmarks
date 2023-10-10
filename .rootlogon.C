@@ -3,6 +3,7 @@
   gROOT->ProcessLine(".include include");
 
   R__LOAD_LIBRARY(fmt)
+  R__LOAD_LIBRARY(HepMC3)
 
   // Setting for Graphs
   gROOT->SetStyle("Plain");

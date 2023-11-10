@@ -3,7 +3,8 @@ DETECTOR_PATH = os.environ["DETECTOR_PATH"]
 
 rule emcal_barrel_particles_gen:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_particles_gen.cxx",
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_particles_gen.cxx"),
     params:
         JUGGLER_N_EVENTS = 100,
     output:
@@ -67,7 +68,8 @@ ln {input} {output}
 
 rule emcal_barrel_particles_analysis:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx",
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_particles_analysis.cxx"),
         sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
     wildcard_constraints:
         PARTICLE="(electron|photon|piplus|piminus)", # avoid clash with "pions"
@@ -88,13 +90,13 @@ rule emcal_barrel_particles_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '../{input.script}+("{wildcards.PARTICLE}", true)'
+root -l -b -q '{input.script}+("{wildcards.PARTICLE}", true)'
 """
 
 
 rule emcal_barrel_pions_analysis:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx",
+        script=workflow.source_path("scripts/emcal_barrel_pions_analysis.cxx"),
         sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piplus_energies5.0_5.0.edm4hep.root",
     output:
         expand(
@@ -105,13 +107,13 @@ rule emcal_barrel_pions_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '../{input.script}+("../{input.sim}")'
+root -l -b -q '{input.script}+("../{input.sim}")'
 """
 
 
 rule emcal_barrel_pi0_analysis:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_pi0_analysis.cxx",
+        script=workflow.source_path("scripts/emcal_barrel_pi0_analysis.cxx"),
         sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_pi0_energies5.0_5.0.edm4hep.root",
         fsam="{DETECTOR_CONFIG}/results/emcal_barrel_electron_calibration.json",
     output:
@@ -124,7 +126,7 @@ rule emcal_barrel_pi0_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '../{input.script}+("../{input.sim}")'
+root -l -b -q '{input.script}+("../{input.sim}")'
 """
 
 
@@ -143,7 +145,7 @@ rule emcal_energy_scan:
 
 rule emcal_barrel_particles_energy_scan_analysis:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx",
+        script=workflow.source_path("scripts/emcal_barrel_energy_scan_analysis.cxx"),
         scan_points="{DETECTOR_CONFIG}/sim_output/emcal_barrel_energy_scan_points_{PARTICLE}.txt",
     output:
         "{DETECTOR_CONFIG}/results/energy_scan/emcal_barrel_{PARTICLE}_fsam_scan.png",
@@ -156,13 +158,14 @@ rule emcal_barrel_particles_energy_scan_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '../{input.script}+("{wildcards.PARTICLE}")'
+root -l -b -q '{input.script}+("{wildcards.PARTICLE}")'
 """
 
 
 rule emcal_barrel_pion_rejection_analysis:
     input:
-        script="benchmarks/barrel_ecal/scripts/emcal_barrel_pion_rejection_analysis.cxx",
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_pion_rejection_analysis.cxx"),
         electron="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.root",
         piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root",
     output:
@@ -190,5 +193,5 @@ rule emcal_barrel_pion_rejection_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '../{input.script}+("../{input.electron}", "../{input.piminus}")'
+root -l -b -q '{input.script}+("../{input.electron}", "../{input.piminus}")'
 """

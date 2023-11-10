@@ -2,36 +2,34 @@ sim:emcal_barrel_pions:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piplus
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh piminus
+    - snakemake --cores 1 $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_{piplus,piminus}_energies5.0_5.0.edm4hep.root
 
 sim:emcal_barrel_pi0:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh pi0
+    - snakemake --cores 1 $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_pi0_energies5.0_5.0.edm4hep.root
 
 sim:emcal_barrel_electrons:
   extends: .det_benchmark
   stage: simulate
   script:
-    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh electron ; fi
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then snakemake --cores $DETECTOR_CONFIG/results/energy_scan/emcal_barrel_electron_fsam_scan.png; fi
     - export JUGGLER_N_EVENTS=400
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh electron
+    - snakemake --cores 1 $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_electron_energies5.0_5.0.edm4hep.root
 
 sim:emcal_barrel_photons:
   extends: .det_benchmark
   stage: simulate
   script:
-    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then bash benchmarks/barrel_ecal/run_emcal_barrel_energy_scan.sh photon ; fi
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_particles.sh photon
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then snakemake --cores $DETECTOR_CONFIG/results/energy_scan/emcal_barrel_proton_fsam_scan.png; fi
+    - snakemake --cores 1 $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_photon_energies5.0_5.0.edm4hep.root
 
 sim:emcal_barrel_pion_rejection:
   extends: .det_benchmark
   stage: simulate
   script:
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_pion_rejection.sh electron
-    - bash benchmarks/barrel_ecal/run_emcal_barrel_pion_rejection.sh piminus
+    - snakemake --cores 1 $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_{piminus,electron}_energies1.0_18.0.edm4hep.root
 
 calib:emcal_barrel_electrons:
   extends: .det_benchmark
@@ -40,8 +38,8 @@ calib:emcal_barrel_electrons:
     - ["sim:emcal_barrel_electrons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_electron.edm4hep.root
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("electron", true)'
+    - rootls -t sim_output/sim_emcal_barrel_electron_energies5.0_5.0.edm4hep.root
+    - snakemake --cores 1 $DETECTOR_CONFIG/results/emcal_barrel_electron_calibration.json
     - mv sim_output/sim_emcal_barrel_electron.edm4hep.root results/.
     - echo "JSON file(s) from analysis:" ; cat results/*.json
 
@@ -51,7 +49,7 @@ bench:emcal_barrel_pions:
   needs:
     - ["sim:emcal_barrel_pions"]
   script:
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pions_analysis.cxx+
+    - snakemake --cores 1 $DETECTOR_CONFIG/results/emcal_barrel_pions_Ethr.png
 
 bench:emcal_barrel_electrons_scan:
   extends: .det_benchmark
@@ -59,7 +57,7 @@ bench:emcal_barrel_electrons_scan:
   needs:
     - ["sim:emcal_barrel_electrons"]
   script:
-    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("electron")' ; fi
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then snakemake --cores 1 $DETECTOR_CONFIG/results/energy_scan/emcal_barrel_electron_fsam_scan.png; fi
 
 bench:emcal_barrel_pi0:
   extends: .det_benchmark
@@ -68,7 +66,7 @@ bench:emcal_barrel_pi0:
     - ["sim:emcal_barrel_pi0", "calib:emcal_barrel_electrons"]
   script:
     - echo "JSON file(s) from analysis:" ; cat results/*.json
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pi0_analysis.cxx+
+    - snakemake --cores 1 epic_craterlake/results/Barrel_emcal_pi0.json
 
 bench:emcal_barrel_photons:
   extends: .det_benchmark
@@ -77,10 +75,10 @@ bench:emcal_barrel_photons:
     - ["sim:emcal_barrel_photons"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_photon.edm4hep.root
-    - root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_particles_analysis.cxx+("photon", false)'
+    - rootls -t sim_output/sim_emcal_barrel_photon_energies5.0_5.0.edm4hep.root
+    - snakemake --cores 1 $DETECTOR_CONFIG/results/emcal_barrel_photon_calibration.json
     - mv sim_output/sim_emcal_barrel_photon.edm4hep.root results/.
-    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then root -b -q 'benchmarks/barrel_ecal/scripts/emcal_barrel_energy_scan_analysis.cxx+("photon")' ; fi
+    - if [[ "$RUN_EXTENDED_BENCHMARK" == "true" ]] ; then snakemake --cores $DETECTOR_CONFIG/results/energy_scan/emcal_barrel_proton_fsam_scan.png; fi
 
 bench:emcal_barrel_pion_rejection:
   extends: .det_benchmark
@@ -89,9 +87,9 @@ bench:emcal_barrel_pion_rejection:
     - ["sim:emcal_barrel_pion_rejection"]
   script:
     - ls -lhtR sim_output/
-    - rootls -t sim_output/sim_emcal_barrel_piRej_piminus.edm4hep.root
-    - rootls -t sim_output/sim_emcal_barrel_piRej_electron.edm4hep.root
-    - root -b -q benchmarks/barrel_ecal/scripts/emcal_barrel_pion_rejection_analysis.cxx+
+    - rootls -t $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root
+    - rootls -t $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.root
+    - snakemake --cores 1 $DETECTOR_CONFIG/results/Barrel_emcal_pion_rej.json
 
 collect_results:barrel_ecal:
   extends: .det_benchmark

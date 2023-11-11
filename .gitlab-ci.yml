@@ -120,6 +120,7 @@ get_data:
     # snakemake support
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - ls -lrtha
   retry:
     max: 2

@@ -117,6 +117,9 @@ get_data:
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
+    # snakemake support
+    - mkdir "${DETECTOR_CONFIG}"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ls -lrtha
   retry:
     max: 2

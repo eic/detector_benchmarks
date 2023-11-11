@@ -47,6 +47,7 @@ stages:
   - status-report
 
 .status:
+  image: curlimages/curl:latest
   script:
     - |
       if [ -n "${GITHUB_SHA}" ] ; then

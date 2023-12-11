@@ -1,0 +1,36 @@
+name: Mirror and Trigger EICweb
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Mirror
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+    - name: Push to EICweb
+      uses: action-pack/gitlab-sync@d8d7956922770fc89e45dd7f0151fdeed5aad72e
+      with:
+        url: ${{ secrets.GITLAB_URL }}
+        token: ${{ secrets.GITLAB_TOKEN }}
+        username: ${{ secrets.GITLAB_USERNAME }}
+    - name: Trigger EICweb
+      uses: eic/trigger-gitlab-ci@v2
+      with:
+        url: https://eicweb.phy.anl.gov
+        project_id: 399
+        token: ${{ secrets.EICWEB_DETECTOR_BENCHMARK_TRIGGER }}
+        ref_name: ${{ github.event.pull_request.head.ref || github.ref }}
+        with:
+          GITHUB_REPOSITORY=${{ github.repository }}
+          GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
+          GITHUB_PR=${{ github.event.pull_request.number }}

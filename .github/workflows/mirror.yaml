@@ -32,7 +32,7 @@ jobs:
       with:
         url: https://eicweb.phy.anl.gov
         project_id: 399
-        token: ${{ secrets.EICWEB_DETECTOR_BENCHMARK_TRIGGER }}
+        token: ${{ secrets.EICWEB_DETECTOR_BENCHMARKS_TRIGGER }}
         ref_name: ${{ github.event.pull_request.head.ref || github.ref }}
         variables:
           GITHUB_REPOSITORY=${{ github.repository }}

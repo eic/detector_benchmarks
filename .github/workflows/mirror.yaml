@@ -22,7 +22,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Push to EICweb
-      uses: eic/gitlab-sync@skipci
+      uses: eic/gitlab-sync@master
       with:
         url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
         token: ${{ secrets.GITLAB_TOKEN }}

@@ -24,7 +24,7 @@ jobs:
     - name: Push to EICweb
       uses: action-pack/gitlab-sync@d8d7956922770fc89e45dd7f0151fdeed5aad72e
       with:
-        url: ${{ secrets.GITLAB_URL }}
+        url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/
         token: ${{ secrets.GITLAB_TOKEN }}
         username: ${{ secrets.GITLAB_USERNAME }}
     - name: Trigger EICweb

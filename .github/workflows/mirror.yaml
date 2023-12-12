@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build:
-    name: Mirror
+    name: Mirror and Trigger EICweb
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -22,11 +22,12 @@ jobs:
       with:
         fetch-depth: 0
     - name: Push to EICweb
-      uses: action-pack/gitlab-sync@d8d7956922770fc89e45dd7f0151fdeed5aad72e
+      uses: eic/gitlab-sync@skipci
       with:
         url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
         token: ${{ secrets.GITLAB_TOKEN }}
         username: ${{ secrets.GITLAB_USERNAME }}
+        ciskip: true
     - name: Trigger EICweb
       uses: eic/trigger-gitlab-ci@v2
       with:

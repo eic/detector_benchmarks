@@ -24,7 +24,7 @@ jobs:
     - name: Push to EICweb
       uses: action-pack/gitlab-sync@d8d7956922770fc89e45dd7f0151fdeed5aad72e
       with:
-        url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/
+        url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
         token: ${{ secrets.GITLAB_TOKEN }}
         username: ${{ secrets.GITLAB_USERNAME }}
     - name: Trigger EICweb
@@ -34,7 +34,7 @@ jobs:
         project_id: 399
         token: ${{ secrets.EICWEB_DETECTOR_BENCHMARK_TRIGGER }}
         ref_name: ${{ github.event.pull_request.head.ref || github.ref }}
-        with:
+        variables:
           GITHUB_REPOSITORY=${{ github.repository }}
           GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_PR=${{ github.event.pull_request.number }}

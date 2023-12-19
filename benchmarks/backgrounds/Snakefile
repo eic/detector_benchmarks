@@ -1,0 +1,85 @@
+import os
+
+from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
+
+
+S3 = S3RemoteProvider(
+    endpoint_url="https://dtn01.sdcc.bnl.gov:9000",
+    access_key_id=os.environ["S3_ACCESS_KEY"],
+    secret_access_key=os.environ["S3_SECRET_KEY"],
+)
+
+
+rule backgrounds_get:
+    input:
+        S3.remote("eictest/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc"),
+        S3.remote("eictest/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc"),
+        S3.remote("eictest/EPIC/FULL/23.11.0/epic_craterlake/DIS/NC/10x100/minQ2=10/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root"),
+    output:
+        "input/backgrounds/beam_gas_electron.hepmc",
+        "input/backgrounds/beam_gas_proton.hepmc",
+        dis_sim="input/backgrounds/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root",
+    run:
+        for src, dst in zip(input, output):
+            os.link(src, dst)
+
+
+rule backgrounds_sim:
+    input:
+        "input/backgrounds/beam_gas_{BEAM}.hepmc",
+    output:
+        "sim/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root",
+    log:
+        "sim/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root.log",
+    params:
+        N_EVENTS=100
+    shell:
+        """
+ddsim \
+  --runType batch \
+  --part.minimalKineticEnergy 100*GeV  \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --inputFiles {input} \
+  --outputFile {output}
+"""
+
+
+rule backgrounds_org2py:
+    input:
+        notebook=workflow.source_path("ecal_backwards.org"),
+        converter=workflow.source_path("./org2py.awk"),
+    output:
+        "ecal_backwards.py"
+    shell:
+        """
+awk -f {input.converter} {input.notebook} > {output}
+"""
+
+DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+
+rule backgrounds_ecal_backwards:
+    input:
+        matplotlibrc=".matplotlibrc",
+        script="ecal_backwards.py",
+        electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
+        electron_beam_gas_sim="sim/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
+        physics_signal_sim=rules.backgrounds_get.output.dis_sim,
+        proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
+        proton_beam_gas_sim="sim/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
+    output:
+        directory("results/backgrounds/backwards_ecal")
+    shell:
+        """
+env \
+MATPLOTLIBRC={input.matplotlibrc} \
+ELECTRON_BEAM_GAS_GEN=$(realpath {input.electron_beam_gas_gen}) \
+ELECTRON_BEAM_GAS_SIM=$(realpath {input.electron_beam_gas_sim}) \
+PHYSICS_PROCESS_SIM=$(realpath {input.physics_signal_sim}) \
+PROTON_BEAM_GAS_GEN=$(realpath {input.proton_beam_gas_gen}) \
+PROTON_BEAM_GAS_SIM=$(realpath {input.proton_beam_gas_sim}) \
+OUTPUT_DIR={output} \
+python {input.script}
+"""

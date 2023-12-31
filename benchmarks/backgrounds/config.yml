@@ -11,6 +11,8 @@ bench:backgrounds_emcal_backwards:
   needs:
     - ["sim:backgrounds"]
   script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backgrounds/requirements.txt
     - snakemake --cores 1 backgrounds_ecal_backwards
 
 collect_results:backgrounds:

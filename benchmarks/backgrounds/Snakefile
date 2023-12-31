@@ -28,9 +28,9 @@ rule backgrounds_sim:
     input:
         "input/backgrounds/beam_gas_{BEAM}.hepmc",
     output:
-        "sim/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root",
+        "sim_output/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root",
     log:
-        "sim/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root.log",
+        "sim_output/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root.log",
     params:
         N_EVENTS=100
     shell:
@@ -65,10 +65,10 @@ rule backgrounds_ecal_backwards:
         matplotlibrc=".matplotlibrc",
         script="ecal_backwards.py",
         electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
-        electron_beam_gas_sim="sim/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
+        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
         physics_signal_sim=rules.backgrounds_get.output.dis_sim,
         proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
-        proton_beam_gas_sim="sim/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
+        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
     output:
         directory("results/backgrounds/backwards_ecal")
     shell:

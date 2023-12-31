@@ -1,7 +1,6 @@
 name: Mirror and Trigger EICweb
 
 on:
-  pull_request:
   push:
   workflow_dispatch:
 

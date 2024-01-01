@@ -3,7 +3,7 @@ sim:backgrounds:
   stage: simulate
   script:
     - snakemake --cores 1 backgrounds_get
-    - snakemake --cores 1 sim/$DETECTOR_CONFIG/beam_gas_{electron,proton}.edm4hep.root
+    - snakemake --cores 1 sim_output/$DETECTOR_CONFIG/beam_gas_{electron,proton}.edm4hep.root
 
 bench:backgrounds_emcal_backwards:
   extends: .det_benchmark

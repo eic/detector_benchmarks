@@ -10,18 +10,31 @@ S3 = S3RemoteProvider(
 )
 
 
-rule backgrounds_get:
+rule backgrounds_get_beam_gas_electron:
     input:
         S3.remote("eictest/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc"),
-        S3.remote("eictest/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc"),
-        S3.remote("eictest/EPIC/FULL/23.11.0/epic_craterlake/DIS/NC/10x100/minQ2=10/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root"),
     output:
         "input/backgrounds/beam_gas_electron.hepmc",
+    run:
+        os.link(input[0], output[0])
+
+
+rule backgrounds_get_beam_gas_proton:
+    input:
+        S3.remote("eictest/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc"),
+    output:
         "input/backgrounds/beam_gas_proton.hepmc",
+    run:
+        os.link(input[0], output[0])
+
+
+rule backgrounds_get_DIS:
+    input:
+        S3.remote("eictest/EPIC/FULL/23.11.0/epic_craterlake/DIS/NC/10x100/minQ2=10/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root"),
+    output:
         dis_sim="input/backgrounds/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root",
     run:
-        for src, dst in zip(input, output):
-            os.link(src, dst)
+        os.link(input[0], output[0])
 
 
 rule backgrounds_sim:
@@ -66,7 +79,7 @@ rule backgrounds_ecal_backwards:
         script="ecal_backwards.py",
         electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
         electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
-        physics_signal_sim=rules.backgrounds_get.output.dis_sim,
+        physics_signal_sim=rules.backgrounds_get_DIS.output[0],
         proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
         proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
     output:

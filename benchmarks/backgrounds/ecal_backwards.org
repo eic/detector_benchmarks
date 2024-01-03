@@ -209,7 +209,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         for ix, vals in enumerate([xs, ys]):
             centers = np.unique(vals)
             diffs = centers[1:] - centers[:-1]
-            bin_widths[ix] = np.min(diffs[diffs > 0])
+            bin_widths[ix] = np.min(diffs[diffs > 0]) if np.sum(diffs > 0) > 0 else 1.
             print(f"bin_widths[{ix}]", bin_widths[ix])
 
         bins = {

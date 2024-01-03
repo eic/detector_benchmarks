@@ -71,8 +71,15 @@ rule backgrounds_ecal_backwards:
         proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
     output:
         directory("results/backgrounds/backwards_ecal")
+    threads: workflow.cores
     shell:
         """
+PORT=$RANDOM
+dask scheduler --port $PORT &
+export DASK_SCHEDULER=localhost:$PORT
+SCHEDULER_PID=$!
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 &
+WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
 ELECTRON_BEAM_GAS_GEN=$(realpath {input.electron_beam_gas_gen}) \
@@ -82,4 +89,5 @@ PROTON_BEAM_GAS_GEN=$(realpath {input.proton_beam_gas_gen}) \
 PROTON_BEAM_GAS_SIM=$(realpath {input.proton_beam_gas_sim}) \
 OUTPUT_DIR={output} \
 python {input.script}
+kill $WORKER_PID $SCHEDULER_PID
 """

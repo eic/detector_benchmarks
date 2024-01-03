@@ -21,7 +21,7 @@ import pyhepmc
 #+begin_src jupyter-python :results silent
 from dask.distributed import Client
 
-client = Client(processes=False)
+client = Client(os.environ.get("DASK_SCHEDULER", "localhost:8786"))
 #+end_src
 
 * Plotting setup

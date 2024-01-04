@@ -118,18 +118,18 @@ datasets = {
     # https://wiki.bnl.gov/EPIC/index.php?title=Electron_Beam_Gas
     "electron beam gas 10 GeV": {
         "vertices": vertices_electron_beam_gas,
-        "events": uproot.dask({ELECTRON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=512),
+        "events": uproot.dask({ELECTRON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, step_size="128 MB"),
         "cmap": "cool",
         "rate": 3.2e6, # Hz
     },
     "DIS 10x100, $Q^2 > 1$ GeV${}^2$": {
-        "events": uproot.dask({PHYSICS_PROCESS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=512),
+        "events": uproot.dask({PHYSICS_PROCESS_SIM: "events"}, filter_name=filter_name, step_size="128 MB"),
         "rate": 184e3, # Hz
     },
     # https://wiki.bnl.gov/EPIC/index.php?title=Hadron_Beam_Gas
     "proton beam gas 100 GeV": {
         "vertices": vertices_proton_beam_gas,
-        "events": uproot.dask({PROTON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=512),
+        "events": uproot.dask({PROTON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, step_size="128 MB"),
         "cmap": "summer",
         "rate": 31.9e3, # Hz
     },

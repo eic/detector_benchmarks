@@ -2,6 +2,8 @@ sim:backgrounds:
   extends: .det_benchmark
   stage: simulate
   script:
+    - mkdir $LOCAL_DATA_PATH/input
+    - ln -s $LOCAL_DATA_PATH/input input
     - snakemake --cores 2 sim_output/$DETECTOR_CONFIG/beam_gas_{electron,proton}.edm4hep.root
 
 bench:backgrounds_emcal_backwards:
@@ -10,6 +12,8 @@ bench:backgrounds_emcal_backwards:
   needs:
     - ["sim:backgrounds"]
   script:
+    - mkdir $LOCAL_DATA_PATH/input
+    - ln -s $LOCAL_DATA_PATH/input input
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backgrounds/requirements.txt
     - snakemake --cores 8 backgrounds_ecal_backwards

@@ -16,7 +16,7 @@ rule backgrounds_get_beam_gas_electron:
     output:
         "input/backgrounds/beam_gas_electron.hepmc",
     run:
-        os.link(input[0], output[0])
+        os.rename(input[0], output[0])
 
 
 rule backgrounds_get_beam_gas_proton:
@@ -25,7 +25,7 @@ rule backgrounds_get_beam_gas_proton:
     output:
         "input/backgrounds/beam_gas_proton.hepmc",
     run:
-        os.link(input[0], output[0])
+        os.rename(input[0], output[0])
 
 
 rule backgrounds_get_DIS:
@@ -34,7 +34,7 @@ rule backgrounds_get_DIS:
     output:
         dis_sim="input/backgrounds/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root",
     run:
-        os.link(input[0], output[0])
+        os.rename(input[0], output[0])
 
 
 rule backgrounds_sim:

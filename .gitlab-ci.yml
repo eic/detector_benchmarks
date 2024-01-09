@@ -137,6 +137,7 @@ include:
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/others/config.yml'
+  - local: 'benchmarks/backwards_ecal/config.yml'
 
 deploy_results:
   stage: deploy

@@ -22,7 +22,7 @@ std::map<TString,std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2Resu
 
 
 // Create dataframe from input file(s)
-RNode initialise( string fileName = "/scratch/EIC/ReconOut/tempEvents10x100-compare.root" ){
+RNode initialise( string fileName ){
 
   ROOT::RDataFrame d0("events",fileName);
   return d0;
@@ -31,7 +31,7 @@ RNode initialise( string fileName = "/scratch/EIC/ReconOut/tempEvents10x100-comp
 
 
 // Format and write plots
-void writePlots( TString outName = "LOWQ2Benchmarks.root"){
+void writePlots( TString outName ){
 
   TFile* rootfile = new TFile(outName,"RECREATE");
   auto benchmarkdir = rootfile->mkdir("LOWQ2");
@@ -65,9 +65,10 @@ void writePlots( TString outName = "LOWQ2Benchmarks.root"){
 }
 
 // Main method
-void LOWQ2Benchmarks(){
+void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0_small.edm4hep.root",
+		      TString outName = "LOWQ2Benchmarks.root" ){
 
-  auto node = initialise();
+  auto node = initialise( inName );
 
   RVecS colNames = node.GetColumnNames();
 
@@ -79,6 +80,10 @@ void LOWQ2Benchmarks(){
     histMap["ClusterDistributions"] =  createClusterPlots(node);
   }
 
-  writePlots();
+  if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
+    histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
+  }
+
+  writePlots( outName );
 
 }

@@ -1,0 +1,22 @@
+sim:ecal_backwards_electron:
+  extends: .det_benchmark 
+  stage: simulate
+  script:
+    - echo "I will be simulating some electron events here!"
+    - echo "0.511 MeV" >> $LOCAL_DATA_PATH/electron_mass
+
+sim:ecal_backwards_photon:
+  extends: .det_benchmark 
+  stage: simulate
+  script:
+    - echo "I will be simulating some photon events here!"
+
+bench:ecal_backwards_resolution:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:ecal_backwards_electron", "sim:ecal_backwards_photon"]
+  script:
+    - echo "I will be analyzing events here!"
+    - echo "Our intelligence reports that the electron mass is $(cat $LOCAL_DATA_PATH/electron_mass)"
+

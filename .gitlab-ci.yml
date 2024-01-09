@@ -130,6 +130,7 @@ get_data:
 include: 
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
+  - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/material_maps/config.yml'

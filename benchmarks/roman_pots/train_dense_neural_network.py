@@ -125,19 +125,19 @@ def run_experiment(hyperparameters):
                                size_output=hyperparameters.size_output_pz, 
                                n_layers=hyperparameters.n_layers_pz,
                                size_first_hidden_layer=hyperparameters.size_first_hidden_layer_pz,
-                               multiplier=hyperparameters.muliplier_pz,
+                               multiplier=hyperparameters.multiplier_pz,
                                leak_rate=hyperparameters.leak_rate_pz)
   initial_model_py = NeuralNet(size_input=hyperparameters.size_input_py,
                                size_output=hyperparameters.size_output_py, 
                                n_layers=hyperparameters.n_layers_py,
                                size_first_hidden_layer=hyperparameters.size_first_hidden_layer_py,
-                               multiplier=hyperparameters.muliplier_py,
+                               multiplier=hyperparameters.multiplier_py,
                                leak_rate=hyperparameters.leak_rate_py)
   initial_model_px = NeuralNet(size_input=hyperparameters.size_input_px,
                                size_output=hyperparameters.size_output_px, 
                                n_layers=hyperparameters.n_layers_px,
                                size_first_hidden_layer=hyperparameters.size_first_hidden_layer_px,
-                               multiplier=hyperparameters.muliplier_px,
+                               multiplier=hyperparameters.multiplier_px,
                                leak_rate=hyperparameters.leak_rate_px)
   
   # Train models

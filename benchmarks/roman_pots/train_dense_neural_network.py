@@ -158,7 +158,7 @@ if __name__ == "__main__":
                    '--num_epochs_py', '--learning_rate_py', '--size_input_py', '--size_output_py', '--n_layers_py', '--size_first_hidden_layer_py', '--multiplier_py', 'leak_rate_py',
                    '--num_epochs_px', '--learning_rate_px', '--size_input_px', '--size_output_px', '--n_layers_px', '--size_first_hidden_layer_px', '--multiplier_px', 'leak_rate_px']
   for hyperparameter in hyperparameters_list:
-    parser.add_arguments(hyperparameter)
+    parser.add_argument(hyperparameter)
   hyperparameters = parser.parse_args(['@'+str(sys.argv[1])])
   run_experiment(hyperparameters)
 

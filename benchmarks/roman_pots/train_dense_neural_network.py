@@ -154,9 +154,9 @@ def run_experiment(input_files, target_files, hyperparameters):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
   hyperparameters_list = ['--input_files', '--target_files', '--num_training_inputs', 
-                   '--num_epochs_pz', '--learning_rate_pz', '--size_input_pz', '--size_output_pz', '--n_layers_pz', '--size_first_hidden_layer_pz', '--multiplier_pz', 'leak_rate_pz',
-                   '--num_epochs_py', '--learning_rate_py', '--size_input_py', '--size_output_py', '--n_layers_py', '--size_first_hidden_layer_py', '--multiplier_py', 'leak_rate_py',
-                   '--num_epochs_px', '--learning_rate_px', '--size_input_px', '--size_output_px', '--n_layers_px', '--size_first_hidden_layer_px', '--multiplier_px', 'leak_rate_px']
+                   '--num_epochs_pz', '--learning_rate_pz', '--size_input_pz', '--size_output_pz', '--n_layers_pz', '--size_first_hidden_layer_pz', '--multiplier_pz', '--leak_rate_pz',
+                   '--num_epochs_py', '--learning_rate_py', '--size_input_py', '--size_output_py', '--n_layers_py', '--size_first_hidden_layer_py', '--multiplier_py', '--leak_rate_py',
+                   '--num_epochs_px', '--learning_rate_px', '--size_input_px', '--size_output_px', '--n_layers_px', '--size_first_hidden_layer_px', '--multiplier_px', '--leak_rate_px']
   for hyperparameter in hyperparameters_list:
     parser.add_argument(hyperparameter)
   hyperparameters = parser.parse_args(['@'+str(sys.argv[1])])

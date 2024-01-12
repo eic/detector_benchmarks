@@ -16,29 +16,28 @@ else:
   print("GPU not found. Using CPU.")
 
 class NeuralNet(nn.Module):
-  def __init__(self, size_input, size_output, n_layers, size_firsthiddenlayer=128, multiplier=0.5, leak_rate=0.025):
-    super().__init__()
-    self.fc = []
-    self.relu = []
-    self.n_layers = n_layers
-    self.fc.append(nn.Linear(size_input,size_firsthiddenlayer))
-    self.relu.append(nn.LeakyReLU(leak_rate))
-    for i in range(1,n_layers-1):
-      size_currenthiddenlayer = int(size_firsthiddenlayer*multiplier**i)
-      self.fc.append(nn.Linear(int(size_currenthiddenlayer/multiplier), size_currenthiddenlayer))
-      self.relu.append(nn.LeakyReLU(leak_rate))
-    self.fc.append(nn.Linear(size_currenthiddenlayer, size_output))
-    self.fc=nn.ParameterList(self.fc)
-    self.relu=nn.ParameterList(self.relu)
-    print("Create a network with the linear layers "+str(self.fc))
-    print("and leaky relu activation layers "+str(self.relu))
+    def __init__(self, size_input, size_output, n_layers, size_first_hidden_layer=128, multiplier=0.5, leak_rate=0.025):
+        super().__init__()
+        self.layers = nn.ModuleList()
+
+        size_current_hidden_layer = size_first_hidden_layer
+
+        self.layers.append(nn.Linear(size_input, size_current_hidden_layer))
+        for i in range(n_layers - 2):
+            self.layers.append(nn.LeakyReLU(leak_rate))
+            self.layers.append(nn.Linear(size_current_hidden_layer, int(size_current_hidden_layer * multiplier)))
+            size_current_hidden_layer = int(size_current_hidden_layer * multiplier)
+        self.layers.append(nn.LeakyReLU(leak_rate))
+        self.layers.append(nn.Linear(size_current_hidden_layer, size_output))
+
+        print("Create a network with the following layers:")
+        for layer in self.layers:
+            print(layer)
 
     def forward(self, x):
-      for i in range(0,self.n_layers-1):
-        x = self.fc[i](x)
-        x = self.relu[i](x)
-      x = self.fc[self.n_layers-1](x)
-      return x
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 def standardize(tensor):
   mean = torch.mean(tensor, axis=0)

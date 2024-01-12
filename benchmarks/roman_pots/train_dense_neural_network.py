@@ -39,11 +39,11 @@ class NeuralNet(nn.Module):
             x = layer(x)
         return x
 
-def standardize(tensor):
-  mean = torch.mean(tensor, axis=0)
-  std = torch.std(tensor, axis=0)
-  standardized_tensor = (tensor - mean) / std
-  return standardized_tensor
+def standardize(x):
+  mean = torch.mean(x, axis=0)
+  std = torch.std(x, axis=0)
+  standardized_tensor = (x - mean) / std
+  return standardized_tensor, mean, std
 
 def train_model(input_tensor, target_tensor, model):
 

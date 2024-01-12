@@ -92,7 +92,7 @@ def train_model(input_tensor, target_tensor, model, num_epochs, learning_rate):
 
   return model
 
-def run_experiment(input_files, target_files, hyperparameters):
+def run_experiment(hyperparameters):
   
   # Load input and target training data in tensors
   training_RP_pos = pd.DataFrame()

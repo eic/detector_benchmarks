@@ -98,7 +98,7 @@ def run_experiment(hyperparameters):
   training_RP_pos = pd.DataFrame()
   training_MC_mom = pd.DataFrame()
 
-  for i in range(1,num_training_inputs+1):
+  for i in range(1,int(hyperparameters.num_training_inputs)+1):
     temp_training_RP_pos = pd.read_csv(hyperparameters.input_files+str(i)+'.txt', delimiter='\t', header=None)
     training_RP_pos = pd.concat([training_RP_pos, temp_training_RP_pos], ignore_index=True)
     temp_training_MC_mom = pd.read_csv(hyperparameters.target_files+str(i)+'.txt', delimiter='\t', header=None)

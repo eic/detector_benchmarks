@@ -77,7 +77,7 @@ def train_model(input_tensor, target_tensor, model, num_epochs, learning_rate):
 
     # Print progress
     if (epoch + 1) % 10 == 0:
-      print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.3e}')
+      print("Epoch "+str(epoch+1)+"/"+str(num_epochs)+", Loss: "+"{0:0.10f}".format(loss.item()))
 
   # Plot the loss values
   plt.plot(range(1, num_epochs+1), losses)

@@ -121,29 +121,29 @@ def run_experiment(hyperparameters):
   target_px = training_MC_mom_tensor[:,0].unsqueeze(1)
 
   # Initialize models
-  initial_model_pz = NeuralNet(size_input=hyperparameters.size_input_pz,
-                               size_output=hyperparameters.size_output_pz, 
-                               n_layers=hyperparameters.n_layers_pz,
-                               size_first_hidden_layer=hyperparameters.size_first_hidden_layer_pz,
-                               multiplier=hyperparameters.multiplier_pz,
-                               leak_rate=hyperparameters.leak_rate_pz)
-  initial_model_py = NeuralNet(size_input=hyperparameters.size_input_py,
-                               size_output=hyperparameters.size_output_py, 
-                               n_layers=hyperparameters.n_layers_py,
-                               size_first_hidden_layer=hyperparameters.size_first_hidden_layer_py,
-                               multiplier=hyperparameters.multiplier_py,
-                               leak_rate=hyperparameters.leak_rate_py)
-  initial_model_px = NeuralNet(size_input=hyperparameters.size_input_px,
-                               size_output=hyperparameters.size_output_px, 
-                               n_layers=hyperparameters.n_layers_px,
-                               size_first_hidden_layer=hyperparameters.size_first_hidden_layer_px,
-                               multiplier=hyperparameters.multiplier_px,
-                               leak_rate=hyperparameters.leak_rate_px)
+  initial_model_pz = NeuralNet(size_input=int(hyperparameters.size_input_pz),
+                               size_output=int(hyperparameters.size_output_pz), 
+                               n_layers=int(hyperparameters.n_layers_pz),
+                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_pz),
+                               multiplier=float(hyperparameters.multiplier_pz),
+                               leak_rate=float(hyperparameters.leak_rate_pz))
+  initial_model_py = NeuralNet(size_input=int(hyperparameters.size_input_py),
+                               size_output=int(hyperparameters.size_output_py), 
+                               n_layers=int(hyperparameters.n_layers_py),
+                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_py),
+                               multiplier=float(hyperparameters.multiplier_py),
+                               leak_rate=float(hyperparameters.leak_rate_py))
+  initial_model_px = NeuralNet(size_input=int(hyperparameters.size_input_px),
+                               size_output=int(hyperparameters.size_output_px), 
+                               n_layers=int(hyperparameters.n_layers_px),
+                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_px),
+                               multiplier=float(hyperparameters.multiplier_px),
+                               leak_rate=float(hyperparameters.leak_rate_px))
   
   # Train models
-  model_pz = train_model(scaled_source_pz, target_pz, initial_model_pz, num_epochs=hyperparameters.num_epochs_pz, learning_rate=hyperparameters.learning_rate_pz)
-  model_py = train_model(scaled_source_py, target_py, initial_model_py, num_epochs=hyperparameters.num_epochs_py, learning_rate=hyperparameters.learning_rate_py)
-  model_px = train_model(scaled_source_px, target_px, initial_model_px, num_epochs=hyperparameters.num_epochs_px, learning_rate=hyperparameters.learning_rate_px)
+  model_pz = train_model(scaled_source_pz, target_pz, initial_model_pz, num_epochs=int(hyperparameters.num_epochs_pz), learning_rate=float(hyperparameters.learning_rate_pz))
+  model_py = train_model(scaled_source_py, target_py, initial_model_py, num_epochs=int(hyperparameters.num_epochs_py), learning_rate=float(hyperparameters.learning_rate_py))
+  model_px = train_model(scaled_source_px, target_px, initial_model_px, num_epochs=int(hyperparameters.num_epochs_px), learning_rate=float(hyperparameters.learning_rate_px))
 
   # Save models
   torch.jit.script(model_pz).save('model_pz.pt')

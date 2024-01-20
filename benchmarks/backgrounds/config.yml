@@ -12,7 +12,6 @@ bench:backgrounds_emcal_backwards:
   needs:
     - ["sim:backgrounds"]
   script:
-    - mkdir $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backgrounds/requirements.txt

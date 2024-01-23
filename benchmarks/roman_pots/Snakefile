@@ -5,7 +5,7 @@ DETECTOR_PATH = os.environ["DETECTOR_PATH"]
 DETECTOR_VERSION = os.environ["DETECTOR_VERSION"]
 SUBSYSTEM = "roman_pots"
 BENCHMARK = "dense_neural_network"
-DETECTOR_CONFIG = ["epic_craterlake", "epic_brycecanyon"]
+DETECTOR_CONFIG = ["epic_ip6"]
 NUM_TRAINING_INPUTS = [100,10]
 NUM_EPOCHS_PZ = [10, 100, 1000]
 LEARNING_RATE_PZ = [10,5]
@@ -42,8 +42,8 @@ MODEL_VERSION = [
     )
 ]
 INPUT_STEERING_FILE = "steering_file.py"
-NFILES = range(1,3)
-NEVENTS_PER_FILE = 10
+NFILES = range(1,11)
+NEVENTS_PER_FILE = 100
 
 rule all:
   input:

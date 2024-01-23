@@ -50,6 +50,9 @@ rule all:
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
            detector_config=DETECTOR_CONFIG,
            index=NFILES),
+    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
+           detector_config=DETECTOR_CONFIG,
+           index=NFILES),
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.txt",
            detector_config=DETECTOR_CONFIG,
            model_version=MODEL_VERSION)
@@ -65,6 +68,20 @@ rule roman_pots_generate_events:
     for detector_config, index in product(DETECTOR_CONFIG, NFILES):
       os.system("npsim --steeringFile "+str(INPUT_STEERING_FILE)+" --compactFile "+str(DETECTOR_PATH)+"/"+str(detector_config)+".xml --outputFile results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(index)+".edm4hep.root -N "+str(NEVENTS_PER_FILE))
     
+rule preprocess_model_training_data:
+  input:
+    data = expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
+           detector_config=DETECTOR_CONFIG,
+           index=NFILES),
+    script = "preprocess_model_training_data.cxx"
+  output:
+    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
+           detector_config=DETECTOR_CONFIG,
+           index=NFILES)
+  run:
+    for f_input in input.data:
+      os.system("root -q -b "+str(input.script)+"\"(\\\""+str(f_input)+"\\\",\\\""+str(f_input.replace(".edm4hep.root",".txt").replace("raw_data","processed_data"))+"\\\")\"")
+     
 
 
 rule roman_pots_generate_neural_network_configs:

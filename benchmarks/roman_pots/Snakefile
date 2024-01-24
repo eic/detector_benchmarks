@@ -180,7 +180,6 @@ rule roman_pots_train_neural_networks:
 
   run:
     for detector_config, model_version in product(DETECTOR_CONFIG,MODEL_VERSION):
-      os.system("mkdir -p results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models")
       os.system("python "+str(input.script)+" results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".txt")
       os.system("mv model_pz_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".pt results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/")
       os.system("mv model_py_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".pt results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/")

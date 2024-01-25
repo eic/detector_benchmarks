@@ -45,17 +45,23 @@ MODEL_VERSION = [
 ]
 INPUT_STEERING_FILE = "steering_file.py"
 
-rule all:
+rule all1:
   input:
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
            detector_config=DETECTOR_CONFIG,
            index=NFILES),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
-           detector_config=DETECTOR_CONFIG,
-           index=NFILES),
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.txt",
            detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
+           model_version=MODEL_VERSION)
+
+rule all2:
+  input:
+    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
+           detector_config=DETECTOR_CONFIG,
+           index=NFILES)
+ 
+rule all3:
+  input:
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
            detector_config=DETECTOR_CONFIG,
            model_version=MODEL_VERSION),
@@ -74,8 +80,6 @@ rule all:
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_px_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
            detector_config=DETECTOR_CONFIG,
            model_version=MODEL_VERSION)
-
-
 
 rule roman_pots_generate_events:
   input:

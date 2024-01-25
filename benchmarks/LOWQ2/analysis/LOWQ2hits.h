@@ -1,7 +1,7 @@
 #pragma once
 
 #include "functors.h"
-#include "DD4hep/Detector.h" // Add the missing include
+#include "DD4hep/Detector.h"
 
 // Define alias
 using RNode       = ROOT::RDF::RNode;
@@ -10,7 +10,7 @@ using H2ResultPtr = ROOT::RDF::RResultPtr<TH2D>;
 using RVecI       = ROOT::VecOps::RVec<int>;
 
 // Lazy execution methods
-std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHitPlots( RNode d1, string compactName = "/home/simong/EIC/epic/epic_18x275.xml" ){
+std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHitPlots( RNode d1){
 
   int xChip = 448;
   int yChip = 512;
@@ -25,23 +25,12 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
   std::map<TString,H2ResultPtr> hHists2D;
     
 
-  dd4hep::Detector& detector = dd4hep::Detector::getInstance();
-  detector.fromCompact(compactName);
-  //-----------------------------------------
-  // Hit detector IDs
-  //-----------------------------------------
-  auto ids = detector.readout("TaggerTrackerHits").idSpec().fields();
-  for(auto &[key,id]: ids){
-    TString colName = key+"ID";
-    d1 = d1.Define(colName,getSubID(key,detector),{"TaggerTrackerHits"});
-  }
+  d1 = d1.Define("boardID",   [xChip](RVecI xID){ return (xID + 3*xChip) / (2 * xChip); },{"xID"})
+         .Define("xChipID",   [xChip](RVecI xID){ return (xID + 3*xChip) / (xChip); },{"xID"})
+         .Define("xColumnID", [xChip](RVecI xID){ return (xID + 3*xChip) / 2; },{"xID"})
+         .Define("yChipID",   [yChip](RVecI yID){ return (yID + 2.75*yChip) / (yChip); },{"yID"});
 
-  d1 = d1.Define("boardID",[xChip](RVecI xID){ return (xID + 3*xChip) / (2 * xChip); },{"xID"})
-        .Define("xChipID", [xChip](RVecI xID){ return (xID + 3*xChip) / (xChip); },{"xID"})
-        .Define("xColumnID", [xChip](RVecI xID){ return (xID + 3*xChip) / 2; },{"xID"})
-        .Define("yChipID", [yChip](RVecI yID){ return (yID + 3*yChip) / (yChip); },{"yID"});
-
-  hHists1D["hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID", 3,     0,    3   }, "moduleID");
+  hHists1D["hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID;Module ID", 2,     1,    3   }, "moduleID");
 
   // Module Loop
   for(int i=1; i<=2; i++){
@@ -62,7 +51,7 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
     auto d2 = d1.Define("ModuleFilter",[i](RVecI modID){return modID==i;},{"moduleID"})
       .Define(layerName,"layerID[ModuleFilter]");
         
-    hHists1D[layerHistName]  = d2.Histo1D({layerHistName,   layerHistName,  4,     0,    4   }, layerName );
+    hHists1D[moduleTag+"/"+layerHistName]  = d2.Histo1D({layerHistName,   layerHistName+";Layer ID",  4,     0,    4   }, layerName );
     
     // Layer Loop
     for(int j=0; j<=3; j++){
@@ -100,24 +89,24 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
 
       
     
-      hHists1D[xHistName]    = d3.Histo1D({xHistName,   xHistName,  xRange, xMin, xMax   }, xName );
-      hHists1D[yHistName]    = d3.Histo1D({yHistName,   yHistName,  yRange, yMin, yMax   }, yName );
+      hHists1D[moduleTag+"/"+layerTag+"/"+xHistName]    = d3.Histo1D({xHistName,   xHistName+";x pixel column",  xRange, xMin, xMax   }, xName );
+      hHists1D[moduleTag+"/"+layerTag+"/"+yHistName]    = d3.Histo1D({yHistName,   yHistName+";y pixel column",  yRange, yMin, yMax   }, yName );
             
-      hHists2D[xyHistName]   = d3.Histo2D({xyHistName,  xyHistName, xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName );
+      hHists2D[moduleTag+"/"+layerTag+"/"+xyHistName]   = d3.Histo2D({xyHistName,  xyHistName+";x pixel;y pixel", xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName );
       
-      hHists1D[sizeHistName] = d3.Histo1D({sizeHistName,   sizeHistName,  100, 0, 100   }, layerSizeName );
+      hHists1D[moduleTag+"/"+layerTag+"/"+sizeHistName] = d3.Histo1D({sizeHistName,   sizeHistName+";hits per event",  100, 0, 100   }, layerSizeName );
 
       // Plot number of hits per boardID for each layer
       TString boardIDHistName = "hBoardID" +moduleTag + layerTag;
-      hHists1D[boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName, 3, 0, 3}, boardName);
+      hHists1D[moduleTag+"/"+layerTag+"/"+boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName+";board ID", 3, 0, 3}, boardName);
       
       // Plot number of hits per chipID for each layer
       TString chipIDHistName = "hChipID" +moduleTag + layerTag;
-      hHists2D[chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName, 6, 0, 6, 6, 0, 6}, xChipName, yChipName);
+      hHists2D[moduleTag+"/"+layerTag+"/"+chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip", 6, 0, 6, 6, 0, 6}, xChipName, yChipName);
 
       // Plot number of hits per chipID for each layer
       TString xColumnIDHistName = "hxColumnID" +moduleTag + layerTag;
-      hHists2D[xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName, 3*xChip, 0, 3.0*xChip, 6, 0, 6}, xColumnName, yChipName);
+      hHists2D[moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Chip", 3*xChip, 0, 3.0*xChip, 6, 0, 6}, xColumnName, yChipName);
       
 
     }

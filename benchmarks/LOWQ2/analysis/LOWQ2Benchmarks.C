@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "LOWQ2hits.h"
 #include "LOWQ2acceptance.h"
+// #include "LOWQ2rates.h"
 #include "LOWQ2clusters.h"
 
 // Define alias
@@ -30,7 +31,6 @@ RNode initialise( string fileName ){
 
 }
 
-
 // Format and write plots
 void writePlots( TString outName ){
 
@@ -42,21 +42,68 @@ void writePlots( TString outName ){
     auto histsdir   = benchmarkdir->mkdir(bmkey)->cd();
 
     for(auto &[key,hist]: hists.first){
-      hist->Write();
+      TDirectory* currentDir = gDirectory;
+      std::stringstream ss(key.Data());
+      std::string part;
+      TDirectory* dir = currentDir;
+      std::vector<std::string> parts;
+      while (std::getline(ss, part, '/')) {
+        parts.push_back(part);
+      }
+      for (size_t i = 0; i < parts.size(); ++i) {
+        if (i == parts.size() - 1) {
+          // This is the last part, write the histogram
+          hist->Write(parts[i].c_str());
+        } else {
+          // This is not the last part, create or get the directory
+          if (!dir->GetDirectory(parts[i].c_str())) {
+            dir = dir->mkdir(parts[i].c_str());
+          } else {
+            dir = dir->GetDirectory(parts[i].c_str());
+          }
+          dir->cd();
+        }
+      }
+      currentDir->cd();
+      // hist->Write(key);
     }
     
     for(auto &[key,hist]: hists.second){
       
-      // Make projection of 2D pixel binned histogram
-      auto nBins      = hist->GetNcells();
-      TString pixelFluxName = TString(hist->GetTitle())+"Flux";
-      TH1D* pixelFlux = new TH1D(pixelFluxName,pixelFluxName,20,0,20);
-      for(int i=0; i<nBins; i++){
-	pixelFlux->Fill(hist->GetBinContent(i));
+      TDirectory* currentDir = gDirectory;
+      std::stringstream ss(key.Data());
+      std::string part;
+      TDirectory* dir = currentDir;
+      std::vector<std::string> parts;
+      while (std::getline(ss, part, '/')) {
+        parts.push_back(part);
       }
-      
-      hist->Write();
-      pixelFlux->Write();
+      for (size_t i = 0; i < parts.size(); ++i) {
+        if (i == parts.size() - 1) {
+          // This is the last part, write the histogram      
+          // hist->Write(parts[i].c_str());
+              
+          // Make projection of 2D pixel binned histogram
+          auto nBins      = hist->GetNcells();
+          TString pixelFluxName = TString(parts[i].c_str())+"Flux";
+          TH1D* pixelFlux = new TH1D(pixelFluxName,pixelFluxName,20,0,20);
+          for(int i=0; i<nBins; i++){
+            pixelFlux->Fill(hist->GetBinContent(i));
+          }
+              
+          hist->Write();
+          pixelFlux->Write();
+        } else {
+          // This is not the last part, create or get the directory
+          if (!dir->GetDirectory(parts[i].c_str())) {
+            dir = dir->mkdir(parts[i].c_str());
+          } else {
+            dir = dir->GetDirectory(parts[i].c_str());
+          }
+          dir->cd();
+        }
+      }
+      currentDir->cd();
       
     }
   }
@@ -73,11 +120,29 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
 
   RVecS colNames = node.GetColumnNames();
 
-  if(Any(colNames=="TaggerTrackerHits")){
-    histMap["SimDistributions"] = createHitPlots(node);
+  std::string readoutName = "TaggerTrackerHits";
+
+  if(Any(colNames==readoutName)){
+    std::string compactName = "/home/simong/EIC/epic/epic_18x275.xml";
+    dd4hep::Detector& detector = dd4hep::Detector::getInstance();
+    detector.fromCompact(compactName);
+    //-----------------------------------------
+    // Hit detector IDs
+    //-----------------------------------------
+    auto ids = detector.readout(readoutName).idSpec().fields();
+    for(auto &[key,id]: ids){
+      TString colName = key+"ID";
+      node = node.Define(colName,getSubID(key,detector),{readoutName});
+    }
   }
 
-  if(Any(colNames=="TaggerTrackerHits") && Any(colNames=="MCParticles")){  
+  //Create Plots
+  if(Any(colNames==readoutName)){
+    histMap["SimDistributions"]  = createHitPlots(node);
+    
+  }
+
+  if(Any(colNames==readoutName) && Any(colNames=="MCParticles")){  
     histMap["AcceptanceDistributions"] = createAcceptancePlots(node);
   }
 
@@ -87,6 +152,13 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
 
   // if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
   //   histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
+  // }
+
+  //Postprocess plots
+  
+  // check histMap["SimDistributions"] exists
+  // if (histMap.count("SimDistributions") > 0) {
+  //   histMap["RateDistributions"] = createRatePlots(histMap["SimDistributions"], 0.0001);
   // }
 
   writePlots( outName );

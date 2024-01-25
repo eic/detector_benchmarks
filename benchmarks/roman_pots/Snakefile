@@ -85,7 +85,7 @@ rule roman_pots_generate_events:
            index=NFILES)
   run:
     for detector_config, index in product(DETECTOR_CONFIG, NFILES):
-      os.system("npsim --steeringFile "+str(INPUT_STEERING_FILE)+" --compactFile "+str(DETECTOR_PATH)+"/"+str(detector_config)+".xml --outputFile results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(index)+".edm4hep.root -N "+str(NEVENTS_PER_FILE))
+      os.system("npsim --steeringFile "+str(INPUT_STEERING_FILE)+" --compactFile "+str(DETECTOR_PATH)+"/"+str(detector_config)+".xml --outputFile results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(index)+".edm4hep.root -N "+str(NEVENTS_PER_FILE[0]))
     
 rule preprocess_model_training_data:
   input:

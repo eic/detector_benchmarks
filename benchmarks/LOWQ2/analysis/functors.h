@@ -1,8 +1,8 @@
 #include "DD4hep/Detector.h"
 #include "DDRec/CellIDPositionConverter.h"
 #include "edm4hep/MCParticleCollection.h"
-#include "edm4hep/SimTrackerHitCollection.h"
-#include "edm4hep/SimCalorimeterHitCollection.h"
+#include "edm4hep/SimTrackerHit.h"
+#include "edm4hep/SimCalorimeterHit.h"
 
 //-----------------------------------------------------------------------------------------
 // Grab Component functor

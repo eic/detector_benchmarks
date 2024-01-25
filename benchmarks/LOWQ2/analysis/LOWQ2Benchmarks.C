@@ -5,6 +5,7 @@
 #include "TH1.h"
 #include "TFile.h"
 #include "LOWQ2hits.h"
+#include "LOWQ2acceptance.h"
 #include "LOWQ2clusters.h"
 
 // Define alias
@@ -76,13 +77,17 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
     histMap["SimDistributions"] = createHitPlots(node);
   }
 
+  if(Any(colNames=="TaggerTrackerHits") && Any(colNames=="MCParticles")){  
+    histMap["AcceptanceDistributions"] = createAcceptancePlots(node);
+  }
+
   if(Any(colNames=="TaggerTrackerClusterPositions")){  
     histMap["ClusterDistributions"] =  createClusterPlots(node);
   }
 
-  if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
-    histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
-  }
+  // if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
+  //   histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
+  // }
 
   writePlots( outName );
 

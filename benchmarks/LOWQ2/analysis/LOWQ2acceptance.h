@@ -2,9 +2,10 @@
 
 // #include "functors.h"
 
-  #include <ROOT/RDF/RInterface.hxx>
+  #include "ROOT/RDF/RInterface.hxx"
   #include <TH1D.h>
   #include <TH2D.h>
+  #include "ROOT/RVec.hxx"
 
 // Define alias
 using RNode       = ROOT::RDF::RNode;
@@ -49,7 +50,7 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
         //  .Define("primTheta",[](std::vector<edm4hep::MCParticle> part){return part[4].getMomentum().getTheta()},"{MCParticles}");
 
   std::map<TString, std::string_view> filters;
-  filters["Raw"]  = "true";
+  filters["All"]  = "true";
   filters["Any"]  = "TaggerTrackerHits.size() > 0";
   filters["Mod1"] = "moduleID[moduleID==1].size()>0";
   filters["Mod2"] = "moduleID[moduleID==2].size()>0";
@@ -95,29 +96,28 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
   
     int counts = *filterNode.Count();
     filterCounts.push_back(counts);
-    if (filter.first == "Raw") {
+    if (filter.first == "All") {
       rawCount = counts;
     }
   }
     
-  // Create a dataframe with one entry for each filter
+  // Number of filters
   int Nfilters = filterCounts.size();
+  RVecI entryInt = ROOT::VecOps::Range(Nfilters);
+
+  // Fraction of events passing each filter
+  RVecD fractions = filterCounts/static_cast<double>(rawCount);
+  
   ROOT::RDataFrame df(Nfilters);
+  auto dfWithCounts = df.Define("entry", [entryInt](ULong64_t entry) { return (double)entryInt[(int)entry]; }, {"rdfentry_"})
+       .Define("count", [filterCounts](ULong64_t entry) { return (double)filterCounts[(int)entry]; }, {"rdfentry_"})
+       .Define("fraction", [fractions](ULong64_t entry) { return (double)fractions[(int)entry]; }, {"rdfentry_"});
 
-  // Create a vector of counts and fractions
-  RVecD fractions = filterCounts/rawCount;
-
-  // Define the columns "count" and "fraction" in the dataframe
-  auto dfWithCounts = df.Define("count", [&filterCounts](ULong64_t entry) { return filterCounts[entry]; }, {"rdfentry_"})
-                        .Define("fraction", [&fractions](ULong64_t entry) { return fractions[entry]; }, {"rdfentry_"});
-
-  // Create the histograms
-  auto hTotalCounts = dfWithCounts.Histo1D({"hTotalCounts", "Total Counts;Filter;Count", Nfilters, 0,  static_cast<double>(Nfilters)}, "rdfentry_","count");
-  auto hFractions   = dfWithCounts.Histo1D({"hFractions", "Fractions;Filter;Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "rdfentry_","fraction");
-
-  // Add the histograms to the map
-  hHists1D["TotalCounts"] = hTotalCounts;
-  hHists1D["Fractions"]   = hFractions;
+  // Use the new column in the histograms
+  hHists1D["TotalCounts"] = dfWithCounts.Histo1D({"hTotalCounts", "Total Counts;Filter;Count", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","count");
+  hHists1D["Fractions"]   = dfWithCounts.Histo1D({"hFractions", "Fractions;Filter;Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","fraction");
+  hHists1D["TotalCounts"]->Sumw2(false);
+  hHists1D["Fractions"]->Sumw2(false);
 
   return {hHists1D,hHists2D};
 }

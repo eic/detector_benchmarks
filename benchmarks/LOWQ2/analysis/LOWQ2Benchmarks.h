@@ -6,8 +6,8 @@
 #include "TFile.h"
 #include "LOWQ2hits.h"
 #include "LOWQ2acceptance.h"
-// #include "LOWQ2rates.h"
 #include "LOWQ2clusters.h"
+#include "LOWQ2reconstruction.h"
 
 // Define alias
 using RNode       = ROOT::RDF::RNode;
@@ -17,10 +17,9 @@ using H2ResultPtr = ROOT::RDF::RResultPtr<TH2D>;
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RVecI       = ROOT::VecOps::RVec<int>;
 
-// std::map<TString,H1ResultPtr> hHists1D;
-// std::map<TString,H2ResultPtr> hHists2D;
-
 std::map<TString,std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>>> histMap;
+
+
 
 
 // Create dataframe from input file(s)
@@ -86,10 +85,15 @@ void writePlots( TString outName ){
           // Make projection of 2D pixel binned histogram
           auto nBins      = hist->GetNcells();
           TString pixelFluxName = TString(parts[i].c_str())+"Flux";
-          TH1D* pixelFlux = new TH1D(pixelFluxName,pixelFluxName,20,0,20);
+          //Get maximum bin content to set range
+          double maxBinContent = hist->GetMaximum();
+          double logMax = log10(maxBinContent);
+
+          TH1D* pixelFlux = new TH1D(pixelFluxName,pixelFluxName,100,0,logMax);
           for(int i=0; i<nBins; i++){
-            pixelFlux->Fill(hist->GetBinContent(i));
+            pixelFlux->Fill(log10(hist->GetBinContent(i)));
           }
+          pixelFlux->GetXaxis()->SetTitle("log(N_{hits})");
               
           hist->Write();
           pixelFlux->Write();
@@ -112,9 +116,8 @@ void writePlots( TString outName ){
 
 }
 
-// Main method
-void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0_small.edm4hep.root",
-		      TString outName = "LOWQ2Benchmarks.root" ){
+void LOWQ2Benchmarks( string inName = "/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root",
+		      TString outName = "LOWQ2QRRates.root", dd4hep::Detector& detector=dd4hep::Detector::getInstance(), double eventRate=0.0 ){
 
   auto node = initialise( inName );
 
@@ -123,9 +126,6 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
   std::string readoutName = "TaggerTrackerHits";
 
   if(Any(colNames==readoutName)){
-    std::string compactName = "/home/simong/EIC/epic/epic_18x275.xml";
-    dd4hep::Detector& detector = dd4hep::Detector::getInstance();
-    detector.fromCompact(compactName);
     //-----------------------------------------
     // Hit detector IDs
     //-----------------------------------------
@@ -138,11 +138,11 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
 
   //Create Plots
   if(Any(colNames==readoutName)){
-    histMap["SimDistributions"]  = createHitPlots(node);
+    histMap["SimDistributions"]  = createHitPlots(node,eventRate);
     
   }
 
-  if(Any(colNames==readoutName) && Any(colNames=="MCParticles")){  
+  if((Any(colNames==readoutName) || Any(colNames=="InclusiveKinematicsElectron"))  && Any(colNames=="MCParticles")){  
     histMap["AcceptanceDistributions"] = createAcceptancePlots(node);
   }
 
@@ -150,16 +150,9 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/ReconOut/recon_qr_10x100_ab0
     histMap["ClusterDistributions"] =  createClusterPlots(node);
   }
 
-  // if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
-  //   histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
-  // }
-
-  //Postprocess plots
-  
-  // check histMap["SimDistributions"] exists
-  // if (histMap.count("SimDistributions") > 0) {
-  //   histMap["RateDistributions"] = createRatePlots(histMap["SimDistributions"], 0.0001);
-  // }
+  if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
+    histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
+  }
 
   writePlots( outName );
 

@@ -1,4 +1,4 @@
- #pragma once
+#pragma once
 
 // #include "functors.h"
 
@@ -13,6 +13,7 @@ using H1ResultPtr = ROOT::RDF::RResultPtr<TH1D>;
 using H2ResultPtr = ROOT::RDF::RResultPtr<TH2D>;
 using RVecI       = ROOT::VecOps::RVec<int>;
 using RVecD       = ROOT::VecOps::RVec<double>;
+using RVecS       = ROOT::VecOps::RVec<string>;
 
 // Lazy execution methods
 std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcceptancePlots( RNode d1 ){
@@ -20,7 +21,7 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
   std::map<TString,H1ResultPtr> hHists1D;
   std::map<TString,H2ResultPtr> hHists2D;
   
-  int ePrimID = 2;
+  int ePrimID = 4;
   int pBeamID = 1;
   int eBeamID = 0;
 
@@ -49,21 +50,30 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
         .Define("W2","(pBeam+eBeam-primMom).M2()");
         //  .Define("primTheta",[](std::vector<edm4hep::MCParticle> part){return part[4].getMomentum().getTheta()},"{MCParticles}");
 
+  RVecS colNames = d1.GetColumnNames();
   std::map<TString, std::string_view> filters;
   filters["All"]  = "true";
-  filters["Any"]  = "TaggerTrackerHits.size() > 0";
-  filters["Mod1"] = "moduleID[moduleID==1].size()>0";
-  filters["Mod2"] = "moduleID[moduleID==2].size()>0";
   filters["ThetaCut"] = "primTheta<11";
+  if(Any(colNames=="TaggerTrackerHits")){
+    filters["Any"]  = "TaggerTrackerHits.size() > 0";
+    filters["Mod1"] = "moduleID[moduleID==1].size()>0";
+    filters["Mod2"] = "moduleID[moduleID==2].size()>0";
+  }
+
+  if(Any(colNames=="LowQ2Tracks")){
+    filters["Reconstructed"] = "LowQ2Tracks.size()>0";
+  }
 
   //Store the counts for each filter
   RVecI filterCounts;
   int rawCount = 0;
+  TString filtersName = "";
 
   for (auto& filter : filters)
   {
     RNode filterNode = d1.Filter(filter.second);
     TString rawString = filter.first;
+    filtersName += rawString + "_";
     TString energyHistName = "h" + rawString + "Energy";
     TString thetaHistName = "h" + rawString + "Theta";
     TString etaHistName = "h" + rawString + "Eta";
@@ -95,12 +105,14 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
   
   
     int counts = *filterNode.Count();
-    filterCounts.push_back(counts);
+    filterCounts.push_back(counts);    
     if (filter.first == "All") {
       rawCount = counts;
     }
   }
-    
+
+  filtersName = filtersName(0,filtersName.Length()-1);
+
   // Number of filters
   int Nfilters = filterCounts.size();
   RVecI entryInt = ROOT::VecOps::Range(Nfilters);
@@ -114,8 +126,8 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
        .Define("fraction", [fractions](ULong64_t entry) { return (double)fractions[(int)entry]; }, {"rdfentry_"});
 
   // Use the new column in the histograms
-  hHists1D["TotalCounts"] = dfWithCounts.Histo1D({"hTotalCounts", "Total Counts;Filter;Count", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","count");
-  hHists1D["Fractions"]   = dfWithCounts.Histo1D({"hFractions", "Fractions;Filter;Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","fraction");
+  hHists1D["TotalCounts"] = dfWithCounts.Histo1D({"hTotalCounts", "Total Counts;"+filtersName+";Count", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","count");
+  hHists1D["Fractions"]   = dfWithCounts.Histo1D({"hFractions", "Fractions;"+filtersName+";Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","fraction");
   hHists1D["TotalCounts"]->Sumw2(false);
   hHists1D["Fractions"]->Sumw2(false);
 

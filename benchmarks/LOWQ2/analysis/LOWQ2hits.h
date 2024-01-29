@@ -35,8 +35,8 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
          .Define("eventWeight", [eventWeight](){return eventWeight;},{});
 
 
-  hHists1D["hits/hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID;Module ID", 2,     1,    3   }, "moduleID");
-  hHists1D["rate/hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID;Module ID", 2,     1,    3   }, "moduleID", "eventWeight");
+  hHists1D["hits/hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID;Module ID;Counts", 2,     1,    3   }, "moduleID");
+  hHists1D["rate/hmoduleID"] = d1.Histo1D({"hmoduleID",  "hmoduleID;Module ID;Rate [Hz]", 2,     1,    3   }, "moduleID", "eventWeight");
   hHists1D["rate/hmoduleID"]->Sumw2(false);
 
   // Module Loop
@@ -58,8 +58,8 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
     auto d2 = d1.Define("ModuleFilter",[i](RVecI modID){return modID==i;},{"moduleID"})
       .Define(layerName,"layerID[ModuleFilter]");
         
-    hHists1D["hits/"+moduleTag+"/"+layerHistName]  = d2.Histo1D({layerHistName,   layerHistName+";Layer ID",  4,     0,    4   }, layerName );
-    hHists1D["rate/"+moduleTag+"/"+layerHistName]  = d2.Histo1D({layerHistName,   layerHistName+";Layer ID",  4,     0,    4   }, layerName, "eventWeight");
+    hHists1D["hits/"+moduleTag+"/"+layerHistName]  = d2.Histo1D({layerHistName,   layerHistName+";Layer ID;Counts",  4,     0,    4   }, layerName );
+    hHists1D["rate/"+moduleTag+"/"+layerHistName]  = d2.Histo1D({layerHistName,   layerHistName+";Layer ID;Rate [Hz]",  4,     0,    4   }, layerName, "eventWeight");
     hHists1D["rate/"+moduleTag+"/"+layerHistName]->Sumw2(false);
     
     // Layer Loop
@@ -101,16 +101,16 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
 
       
     
-      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+xHistName]    = d3.Histo1D({xHistName,   xHistName+";x pixel column",  xRange, xMin, xMax   }, xName );
-      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+xHistName]    = d3.Histo1D({xHistName,   xHistName+";x pixel column",  xRange, xMin, xMax   }, xName, "eventWeight");
+      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+xHistName]    = d3.Histo1D({xHistName,   xHistName+";x pixel column;Counts",  xRange, xMin, xMax   }, xName );
+      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+xHistName]    = d3.Histo1D({xHistName,   xHistName+";x pixel column;Rate [Hz]",  xRange, xMin, xMax   }, xName, "eventWeight");
       hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+xHistName]->Sumw2(false);
 
-      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+yHistName]    = d3.Histo1D({yHistName,   yHistName+";y pixel column",  yRange, yMin, yMax   }, yName );
-      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+yHistName]    = d3.Histo1D({yHistName,   yHistName+";y pixel column",  yRange, yMin, yMax   }, yName, "eventWeight");
+      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+yHistName]    = d3.Histo1D({yHistName,   yHistName+";y pixel column;Counts",  yRange, yMin, yMax   }, yName );
+      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+yHistName]    = d3.Histo1D({yHistName,   yHistName+";y pixel column;Rate [Hz]",  yRange, yMin, yMax   }, yName, "eventWeight");
       hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+yHistName]->Sumw2(false);
             
-      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+xyHistName]   = d3.Histo2D({xyHistName,  xyHistName+";x pixel;y pixel", xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName );
-      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xyHistName]   = d3.Histo2D({xyHistName,  xyHistName+";x pixel;y pixel", xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName, "eventWeight");
+      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+xyHistName]   = d3.Histo2D({xyHistName,  xyHistName+";x pixel;y pixel;Counts", xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName );
+      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xyHistName]   = d3.Histo2D({xyHistName,  xyHistName+";x pixel;y pixel;Rate [Hz]", xRange, xMin, xMax, yRange, yMin, yMax}, xName, yName, "eventWeight");
       hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xyHistName]->Sumw2(false);
       
       hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+sizeHistName] = d3.Histo1D({sizeHistName,   sizeHistName+";hits per event",  100, 0, 100   }, layerSizeName );
@@ -119,20 +119,20 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createHit
 
       // Plot number of hits per boardID for each layer
       TString boardIDHistName = "hBoardID" +moduleTag + layerTag;
-      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName+";board ID", 3, 0, 3}, boardName);
-      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName+";board ID", 3, 0, 3}, boardName, "eventWeight");
+      hHists1D["hits/"+moduleTag+"/"+layerTag+"/"+boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName+";board ID;Counts", 3, 0, 3}, boardName);
+      hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+boardIDHistName] = d3.Histo1D({boardIDHistName, boardIDHistName+";board ID;Rate [Hz]", 3, 0, 3}, boardName, "eventWeight");
       hHists1D["rate/"+moduleTag+"/"+layerTag+"/"+boardIDHistName]->Sumw2(false);
       
       // Plot number of hits per chipID for each layer
       TString chipIDHistName = "hChipID" +moduleTag + layerTag;
-      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip", 6, 0, 6, 6, 0, 6}, xChipName, yChipName);
-      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip", 6, 0, 6, 6, 0, 6}, xChipName, yChipName, "eventWeight");
+      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip;Counts", 6, 0, 6, 6, 0, 6}, xChipName, yChipName);
+      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+chipIDHistName] = d3.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip;Rate [Hz]", 6, 0, 6, 6, 0, 6}, xChipName, yChipName, "eventWeight");
       hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+chipIDHistName]->Sumw2(false);
 
       // Plot number of hits per chipID for each layer
       TString xColumnIDHistName = "hxColumnID" +moduleTag + layerTag;
-      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Half Chip", 3*xChip, 0, 3.0*xChip, 12, 0, 12}, xColumnName, yHalfChipName);
-      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Half Chip", 3*xChip, 0, 3.0*xChip, 12, 0, 12}, xColumnName, yHalfChipName, "eventWeight");
+      hHists2D["hits/"+moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Half Chip;Counts", 3*xChip, 0, 3.0*xChip, 12, 0, 12}, xColumnName, yHalfChipName);
+      hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d3.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Half Chip;Rate [Hz]", 3*xChip, 0, 3.0*xChip, 12, 0, 12}, xColumnName, yHalfChipName, "eventWeight");
       hHists2D["rate/"+moduleTag+"/"+layerTag+"/"+xColumnIDHistName]->Sumw2(false);
       
     }

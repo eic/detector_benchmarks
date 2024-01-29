@@ -9,7 +9,7 @@ using RVecI       = ROOT::VecOps::RVec<int>;
 // Lazy execution methods
 std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createReconstructionPlots( RNode d1 ){
 
-  int ePrimID = 4;
+  int ePrimID = 2;
   int pBeamID = 1;
   int eBeamID = 0;
   
@@ -32,18 +32,21 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createRec
         .Define("primPx","primMom.Px()")
         .Define("primPy","primMom.Py()")
         .Define("primPz","primMom.Pz()")
-        .Define("primTheta","1000*(TMath::Pi()-primMom.Theta())")
+        .Define("primTheta","(TMath::Pi()-primMom.Theta())")
+        .Define("primTheta_mrad","1000*primTheta")
         .Define("primEta","primMom.Eta()")
         .Define("scatteredV","eBeam-primMom")
         .Define("Q2","-scatteredV.M2()")
         .Define("logQ2","log10(Q2)")
         .Define("x","Q2/(2*scatteredV.Dot(pBeam))")
         .Define("logx","log10(x)")
-        .Define("primPhi","primMom.Phi()")
+        .Define("primPhi","primMom.Phi() * TMath::RadToDeg()")
         .Define("W2","(pBeam+eBeam-primMom).M2()")
-        .Define("reconTheta","(double)LowQ2TrackParameters[0].theta")
+        .Define("reconTheta","(double)(LowQ2TrackParameters[0].theta)")
+        .Define("reconTheta_mrad","1000.0*reconTheta)")
         .Define("reconPhi","(double)LowQ2TrackParameters[0].phi")
-        .Define("reconP","(double)(LowQ2TrackParameters[0].qOverP*LowQ2TrackParameters[0].charge)")
+        .Define("reconPhi_deg","reconPhi * TMath::RadToDeg()")
+        .Define("reconP","(18./10.)*(double)(1/(LowQ2TrackParameters[0].qOverP*LowQ2TrackParameters[0].charge))")
         .Define("reconMom",[](double p, double theta, double phi){return ROOT::Math::PxPyPzMVector(p*sin(theta)*cos(phi),p*sin(theta)*sin(phi),p*cos(theta),0.000511);},{"reconP","reconTheta","reconPhi"})
         .Define("reconE","reconMom.E()")
         .Define("reconScatteredV","eBeam-reconMom")
@@ -55,42 +58,76 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createRec
         .Define("reconPx","(double)reconMom.Px()")
         .Define("reconPy","(double)reconMom.Py()")
         .Define("reconPz","(double)reconMom.Pz()")
-        .Define("thetaRes","reconTheta-primTheta")
+        .Define("thetaRes","1000*(reconTheta-primTheta)")
         .Define("phiRes","reconPhi-primPhi")
-        .Define("ERes","reconMom.E()-primE")
-        .Define("Q2Res","reconQ2-Q2")
+        .Define("ERes","(reconMom.E()-primE)/primE")
+        .Define("Q2Res","reconlogQ2-logQ2")
         .Define("XRes","reconX-x")
         .Define("W2Res","reconW2-W2");
         
-        
+      
+    
+  double thetaMin = 0; // mrad
+  double thetaMax = 100; // mrad
+  double phiMin = -180; // deg
+  double phiMax = 180; // deg
+  double pxMin = -0.2; // GeV
+  double pxMax = 0.2; // GeV
+  double pyMin = -0.2; // GeV
+  double pyMax = 0.2; // GeV
+  double pzMin = 0; // GeV
+  double pzMax = 18; // GeV
+  double eMin = 0; // GeV
+  double eMax = 18; // GeV
+  double logQ2Min = -8.5; // GeV^2
+  double logQ2Max = 0; // GeV^2
+  double logxMin = -11;
+  double logxMax = 0;
+  double w2Min = 0; // GeV^2
+  double w2Max = 0.5; // GeV^2
+  double thetaResMin = -50; // mrad
+  double thetaResMax = 50; // mrad
+  double phiResMin = -45; // deg
+  double phiResMax = 45; // deg
+  double eResMin = -0.1; // GeV
+  double eResMax = 0.1; // GeV
+  double q2ResMin = -0.01; // GeV^2
+  double q2ResMax = 0.01; // GeV^2
+  double xResMin = -0.1;
+  double xResMax = 0.1;
+  double w2ResMin = -0.1; // GeV^2
+  double w2ResMax = 0.1; // GeV^2
 
-  hHists2D["reconThetaVsPrimTheta"] = d1.Histo2D({"reconThetaVsPrimTheta","reconThetaVsPrimTheta;#theta_{prim} [mrad];#theta_{recon} [mrad]",100,0,100,100,0,100},"primTheta","reconTheta");
-  
-  hHists2D["reconPhiVsPrimPhi"] = d1.Histo2D({"reconPhiVsPrimPhi","reconPhiVsPrimPhi;#phi_{prim} [rad];#phi_{recon} [rad]",100,-TMath::Pi(),TMath::Pi(),100,-TMath::Pi(),TMath::Pi()},"primPhi","reconPhi");
+  int bins1D = 400;
+  int bins2D = 200;
 
-  hHists2D["reconPxVsPrimPx"] = d1.Histo2D({"reconPxVsPrimPx","reconPxVsPrimPx;p_{x,prim} [GeV];p_{x,recon} [GeV]",100,-0.5,0.5,100,-0.5,0.5},"primPx","reconPx");
-  hHists2D["reconPyVsPrimPy"] = d1.Histo2D({"reconPyVsPrimPy","reconPyVsPrimPy;p_{y,prim} [GeV];p_{y,recon} [GeV]",100,-0.5,0.5,100,-0.5,0.5},"primPy","reconPy");
-  hHists2D["reconPzVsPrimPz"] = d1.Histo2D({"reconPzVsPrimPz","reconPzVsPrimPz;p_{z,prim} [GeV];p_{z,recon} [GeV]",100,0,0.5,100,0,0.5},"primPz","reconPz");
-  hHists2D["reconEVsPrimE"]   = d1.Histo2D({"reconEVsPrimE","reconEVsPrimE;E_{prim} [GeV];E_{recon} [GeV]",100,0,0.5,100,0,0.5},"primE","reconE");
-  hHists2D["reconQ2VsPrimQ2"] = d1.Histo2D({"reconQ2VsPrimQ2","reconQ2VsPrimQ2;Q^{2}_{prim} [GeV^{2}];Q^{2}_{recon} [GeV^{2}]",100,0,0.5,100,0,0.5},"Q2","reconQ2");
-  hHists2D["reconXVsPrimX"]   = d1.Histo2D({"reconXVsPrimX","reconXVsPrimX;x_{prim};x_{recon}",100,0,0.5,100,0,0.5},"x","reconX");
-  hHists2D["reconW2VsPrimW2"] = d1.Histo2D({"reconW2VsPrimW2","reconW2VsPrimW2;W^{2}_{prim} [GeV^{2}];W^{2}_{recon} [GeV^{2}]",100,0,0.5,100,0,0.5},"W2","reconW2");
+  hHists2D["reconThetaVsPrimTheta"] = d1.Histo2D({"reconThetaVsPrimTheta","reconThetaVsPrimTheta;#theta_{prim} [mrad];#theta_{recon} [mrad]",bins2D,thetaMin,thetaMax,bins2D,thetaMin,thetaMax},"primTheta_mrad","reconTheta_mrad");
+  hHists2D["reconPhiVsPrimPhi"] = d1.Histo2D({"reconPhiVsPrimPhi","reconPhiVsPrimPhi;#phi_{prim} [deg];#phi_{recon} [deg]",bins2D,phiMin,phiMax,bins2D,phiMin,phiMax},"primPhi","reconPhi");
 
-  hHists1D["thetaRes"] = d1.Histo1D({"thetaRes","thetaRes;#theta_{recon}-#theta_{prim} [mrad]",100,-50,50},"thetaRes");
-  hHists1D["phiRes"]   = d1.Histo1D({"phiRes","phiRes;#phi_{recon}-#phi_{prim} [rad]",100,-0.1,0.1},"phiRes");
-  hHists1D["ERes"]     = d1.Histo1D({"ERes","ERes;E_{recon}-E_{prim} [GeV]",100,-0.1,0.1},"ERes");
-  hHists1D["Q2Res"]    = d1.Histo1D({"Q2Res","Q2Res;Q^{2}_{recon}-Q^{2}_{prim} [GeV^{2}]",100,-0.1,0.1},"Q2Res");
-  hHists1D["XRes"]     = d1.Histo1D({"XRes","XRes;x_{recon}-x_{prim}",100,-0.1,0.1},"XRes");
-  hHists1D["W2Res"]    = d1.Histo1D({"W2Res","W2Res;W^{2}_{recon}-W^{2}_{prim} [GeV^{2}]",100,-0.1,0.1},"W2Res");
+  hHists2D["reconPxVsPrimPx"] = d1.Histo2D({"reconPxVsPrimPx","reconPxVsPrimPx;p_{x,prim} [GeV];p_{x,recon} [GeV]",bins2D,pxMin,pxMax,bins2D,pxMin,pxMax},"primPx","reconPx");
+  hHists2D["reconPyVsPrimPy"] = d1.Histo2D({"reconPyVsPrimPy","reconPyVsPrimPy;p_{y,prim} [GeV];p_{y,recon} [GeV]",bins2D,pyMin,pyMax,bins2D,pyMin,pyMax},"primPy","reconPy");
+  hHists2D["reconPzVsPrimPz"] = d1.Histo2D({"reconPzVsPrimPz","reconPzVsPrimPz;p_{z,prim} [GeV];p_{z,recon} [GeV]",bins2D,pzMin,pzMax,bins2D,pzMin,pzMax},"primPz","reconPz");
+  hHists2D["reconEVsPrimE"]   = d1.Histo2D({"reconEVsPrimE","reconEVsPrimE;E_{prim} [GeV];E_{recon} [GeV]",bins2D,eMin,eMax,bins2D,eMin,eMax},"primE","reconE");
+  hHists2D["reconQ2VsPrimQ2"] = d1.Histo2D({"reconQ2VsPrimQ2","reconQ2VsPrimQ2;log(Q^{2}_{prim}) [GeV^{2}];log(Q^{2}_{recon}) [GeV^{2}]",bins2D,logQ2Min,logQ2Max,bins2D,logQ2Min,logQ2Max},"logQ2","reconlogQ2");
+  hHists2D["reconXVsPrimX"]   = d1.Histo2D({"reconXVsPrimX","reconXVsPrimX;log(x_{prim});log(x_{recon})",bins2D,logxMin,logxMax,bins2D,logxMin,logxMax},"logx","reconlogx");
+  hHists2D["reconW2VsPrimW2"] = d1.Histo2D({"reconW2VsPrimW2","reconW2VsPrimW2;W^{2}_{prim} [GeV^{2}];W^{2}_{recon} [GeV^{2}]",bins2D,w2Min,w2Max,bins2D,w2Min,w2Max},"W2","reconW2");
 
-  hHists1D["thetaResVsE"] = d1.Histo1D({"thetaResVsE","thetaResVsE;E_{prim} [GeV];#theta_{recon}-#theta_{prim} [mrad]",100,0,0.5},"primE","thetaRes");
-  hHists1D["phiResVsE"]   = d1.Histo1D({"phiResVsE","phiResVsE;E_{prim} [GeV];#phi_{recon}-#phi_{prim} [rad]",100,0,0.5},"primE","phiRes");
-  hHists1D["EResVsE"]     = d1.Histo1D({"EResVsE","EResVsE;E_{prim} [GeV];E_{recon}-E_{prim} [GeV]",100,0,0.5},"primE","ERes");
-  hHists1D["Q2ResVsE"]    = d1.Histo1D({"Q2ResVsE","Q2ResVsE;E_{prim} [GeV];Q^{2}_{recon}-Q^{2}_{prim} [GeV^{2}]",100,0,0.5},"primE","Q2Res");
+  hHists1D["thetaRes"] = d1.Histo1D({"thetaRes","thetaRes;#theta_{recon}-#theta_{prim} [mrad]",bins1D,thetaResMin,thetaResMax},"thetaRes_mrad");
+  hHists1D["phiRes"]   = d1.Histo1D({"phiRes","phiRes;#phi_{recon}-#phi_{prim} [rad]",bins1D,phiResMin,phiResMax},"phiRes");
+  hHists1D["ERes"]     = d1.Histo1D({"ERes","ERes;E_{recon}-E_{prim} [GeV]",bins1D,eResMin,eResMax},"ERes");
+  hHists1D["Q2Res"]    = d1.Histo1D({"Q2Res","Q2Res;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}]",100,q2ResMin,q2ResMax},"Q2Res");
+  hHists1D["XRes"]     = d1.Histo1D({"XRes","XRes;log(x_{recon})-log(x_{prim})",100,xResMin,xResMax},"XRes");
+  hHists1D["W2Res"]    = d1.Histo1D({"W2Res","W2Res;W^{2}_{recon}-W^{2}_{prim} [GeV^{2}]",100,w2ResMin,w2ResMax},"W2Res");
+
+  hHists2D["thetaResVsE"] = d1.Histo2D({"thetaResVsE", "thetaResVsE;#theta_{recon}-#theta_{prim} [mrad];E_{prim} [GeV]", 100, thetaResMin, thetaResMax, 100, eMin, eMax}, "thetaRes_mrad", "primE");
+  hHists2D["phiResVsE"]   = d1.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", 100, phiResMin, phiResMax, 100, eMin, eMax}, "phiRes", "primE");
+  hHists2D["EResVsE"]     = d1.Histo2D({"EResVsE", "EResVsE;E_{recon}-E_{prim} [GeV];E_{prim} [GeV]", 100, eResMin, eResMax, 100, eMin, eMax}, "ERes", "primE");
+  hHists2D["Q2ResVsE"]    = d1.Histo2D({"Q2ResVsE", "Q2ResVsE;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}];E_{prim} [GeV]", 100, q2ResMin, q2ResMax, 100, eMin, eMax}, "Q2Res", "primE");
 
   //Plot showing where the phi resolution is less than 30 degrees in terms of E and theta
-  //hHists2D["phiResVsETheta"] = d1.Histo2D({"phiResVsETheta","phiResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad]",100,0,0.5,100,0,100},"primE","primTheta",[](double phiRes){return fabs(phiRes)<0.5;},{"phiRes-primPhi"});
+  //hHists2D["phiResVsETheta"] = d1.Histo2D({"phiResVsETheta","phiResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad]",100,eMin,eMax,100,thetaMin,thetaMax},"primE","primTheta",[](double phiRes){return fabs(phiRes)<0.5;},{"phiRes-primPhi"});
 
-  return {hHists1D,hHists2D};
- 
+  return {hHists1D, hHists2D};  
+  
 }
+

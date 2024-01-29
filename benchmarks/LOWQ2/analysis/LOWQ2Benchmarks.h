@@ -52,6 +52,7 @@ void writePlots( TString outName ){
       for (size_t i = 0; i < parts.size(); ++i) {
         if (i == parts.size() - 1) {
           // This is the last part, write the histogram
+          hist->SetMinimum(0);
           hist->Write(parts[i].c_str());
         } else {
           // This is not the last part, create or get the directory

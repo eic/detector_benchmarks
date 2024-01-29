@@ -43,7 +43,7 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createRec
         .Define("primPhi","primMom.Phi() * TMath::RadToDeg()")
         .Define("W2","(pBeam+eBeam-primMom).M2()")
         .Define("reconTheta","(double)(LowQ2TrackParameters[0].theta)")
-        .Define("reconTheta_mrad","1000.0*reconTheta)")
+        .Define("reconTheta_mrad","1000.0*reconTheta")
         .Define("reconPhi","(double)LowQ2TrackParameters[0].phi")
         .Define("reconPhi_deg","reconPhi * TMath::RadToDeg()")
         .Define("reconP","(18./10.)*(double)(1/(LowQ2TrackParameters[0].qOverP*LowQ2TrackParameters[0].charge))")
@@ -58,7 +58,7 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createRec
         .Define("reconPx","(double)reconMom.Px()")
         .Define("reconPy","(double)reconMom.Py()")
         .Define("reconPz","(double)reconMom.Pz()")
-        .Define("thetaRes","1000*(reconTheta-primTheta)")
+        .Define("thetaRes","1000.0*(reconTheta-primTheta)")
         .Define("phiRes","reconPhi-primPhi")
         .Define("ERes","(reconMom.E()-primE)/primE")
         .Define("Q2Res","reconlogQ2-logQ2")
@@ -115,14 +115,21 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createRec
   hHists1D["thetaRes"] = d1.Histo1D({"thetaRes","thetaRes;#theta_{recon}-#theta_{prim} [mrad]",bins1D,thetaResMin,thetaResMax},"thetaRes_mrad");
   hHists1D["phiRes"]   = d1.Histo1D({"phiRes","phiRes;#phi_{recon}-#phi_{prim} [rad]",bins1D,phiResMin,phiResMax},"phiRes");
   hHists1D["ERes"]     = d1.Histo1D({"ERes","ERes;E_{recon}-E_{prim} [GeV]",bins1D,eResMin,eResMax},"ERes");
-  hHists1D["Q2Res"]    = d1.Histo1D({"Q2Res","Q2Res;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}]",100,q2ResMin,q2ResMax},"Q2Res");
-  hHists1D["XRes"]     = d1.Histo1D({"XRes","XRes;log(x_{recon})-log(x_{prim})",100,xResMin,xResMax},"XRes");
-  hHists1D["W2Res"]    = d1.Histo1D({"W2Res","W2Res;W^{2}_{recon}-W^{2}_{prim} [GeV^{2}]",100,w2ResMin,w2ResMax},"W2Res");
+  hHists1D["Q2Res"]    = d1.Histo1D({"Q2Res","Q2Res;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}]",bins1D,q2ResMin,q2ResMax},"Q2Res");
+  hHists1D["XRes"]     = d1.Histo1D({"XRes","XRes;log(x_{recon})-log(x_{prim})",bins1D,xResMin,xResMax},"XRes");
+  hHists1D["W2Res"]    = d1.Histo1D({"W2Res","W2Res;W^{2}_{recon}-W^{2}_{prim} [GeV^{2}]",bins1D,w2ResMin,w2ResMax},"W2Res");
 
-  hHists2D["thetaResVsE"] = d1.Histo2D({"thetaResVsE", "thetaResVsE;#theta_{recon}-#theta_{prim} [mrad];E_{prim} [GeV]", 100, thetaResMin, thetaResMax, 100, eMin, eMax}, "thetaRes_mrad", "primE");
-  hHists2D["phiResVsE"]   = d1.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", 100, phiResMin, phiResMax, 100, eMin, eMax}, "phiRes", "primE");
-  hHists2D["EResVsE"]     = d1.Histo2D({"EResVsE", "EResVsE;E_{recon}-E_{prim} [GeV];E_{prim} [GeV]", 100, eResMin, eResMax, 100, eMin, eMax}, "ERes", "primE");
-  hHists2D["Q2ResVsE"]    = d1.Histo2D({"Q2ResVsE", "Q2ResVsE;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}];E_{prim} [GeV]", 100, q2ResMin, q2ResMax, 100, eMin, eMax}, "Q2Res", "primE");
+  hHists2D["thetaResVsE"] = d1.Histo2D({"thetaResVsE", "thetaResVsE;#theta_{recon}-#theta_{prim} [mrad];E_{prim} [GeV]", bins2D, thetaResMin, thetaResMax, bins2D, eMin, eMax}, "thetaRes_mrad", "primE");
+  hHists2D["phiResVsE"]   = d1.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", bins2D, phiResMin, phiResMax, bins2D, eMin, eMax}, "phiRes", "primE");
+  hHists2D["EResVsE"]     = d1.Histo2D({"EResVsE", "EResVsE;E_{recon}-E_{prim} [GeV];E_{prim} [GeV]", bins2D, eResMin, eResMax, bins2D, eMin, eMax}, "ERes", "primE");
+  hHists2D["Q2ResVsE"]    = d1.Histo2D({"Q2ResVsE", "Q2ResVsE;log(Q^{2}_{recon})-log(Q^{2}_{prim}) [GeV^{2}];E_{prim} [GeV]", bins2D, q2ResMin, q2ResMax, bins2D, eMin, eMax}, "Q2Res", "primE");
+
+  hHists2D["phiResVsTheta"] = d1.Histo2D({"phiResVsTheta", "phiResVsTheta;#phi_{recon}-#phi_{prim} [rad];#theta_{prim} [mrad]", bins2D, phiResMin, phiResMax, bins2D, thetaMin, thetaMax}, "phiRes", "primTheta_mrad");
+
+  auto d2 = d1.Filter("reconTheta_mrad<2");
+
+  hHists2D["thetacut/phiResVsE"]     = d2.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", bins2D, phiResMin, phiResMax, bins2D, eMin, eMax}, "phiRes", "primE");
+  hHists2D["thetacut/reconPhiVsPrimPhi"] = d2.Histo2D({"reconPhiVsPrimPhi","reconPhiVsPrimPhi;#phi_{prim} [deg];#phi_{recon} [deg]",bins2D,phiMin,phiMax,bins2D,phiMin,phiMax},"primPhi","reconPhi");
 
   //Plot showing where the phi resolution is less than 30 degrees in terms of E and theta
   //hHists2D["phiResVsETheta"] = d1.Histo2D({"phiResVsETheta","phiResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad]",100,eMin,eMax,100,thetaMin,thetaMax},"primE","primTheta",[](double phiRes){return fabs(phiRes)<0.5;},{"phiRes-primPhi"});

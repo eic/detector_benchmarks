@@ -43,24 +43,20 @@ MODEL_VERSION = [
         NUM_EPOCHS_PX, LEARNING_RATE_PX, SIZE_INPUT_PX, SIZE_OUTPUT_PX, N_LAYERS_PX, SIZE_FIRST_HIDDEN_LAYER_PX, MULTIPLIER_PX, LEAK_RATE_PX
     )
 ]
-INPUT_STEERING_FILE = "steering_file.py"
 
-rule all1:
+rule target_generate:
   input:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root",
+           detector_config=DETECTOR_CONFIG,
+           index=NFILES),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.txt",
            detector_config=DETECTOR_CONFIG,
            index=NFILES),
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.txt",
            detector_config=DETECTOR_CONFIG,
            model_version=MODEL_VERSION)
 
-rule all2:
-  input:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
-           detector_config=DETECTOR_CONFIG,
-           index=NFILES)
- 
-rule all3:
+rule target_train:
   input:
     expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
            detector_config=DETECTOR_CONFIG,
@@ -82,28 +78,31 @@ rule all3:
            model_version=MODEL_VERSION)
 
 rule roman_pots_generate_events:
+    input:
+        script="steering_file.py"
+    params:
+        detector_path=DETECTOR_PATH,
+        nevents_per_file=NEVENTS_PER_FILE
+    output:
+        "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root"
+    shell:
+      """
+      npsim --steeringFile {input.script} \
+            --compactFile {params.detector_path}/{wildcards.detector_config}.xml \
+            --outputFile {output} \
+            -N {params.nevents_per_file}
+      """
+
+rule roman_pots_preprocess_model_training_data:
   input:
-  output:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
-           detector_config=DETECTOR_CONFIG,
-           index=NFILES)
-  run:
-    for detector_config, index in product(DETECTOR_CONFIG, NFILES):
-      os.system("npsim --steeringFile "+str(INPUT_STEERING_FILE)+" --compactFile "+str(DETECTOR_PATH)+"/"+str(detector_config)+".xml --outputFile results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(index)+".edm4hep.root -N "+str(NEVENTS_PER_FILE[0]))
-    
-rule preprocess_model_training_data:
-  input:
-    data = expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/raw_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.edm4hep.root",
-           detector_config=DETECTOR_CONFIG,
-           index=NFILES),
+    data = "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root",
     script = "preprocess_model_training_data.cxx"
   output:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_{detector_config}_{index}.txt",
-           detector_config=DETECTOR_CONFIG,
-           index=NFILES)
-  run:
-    for f_input in input.data:
-      os.system("root -q -b "+str(input.script)+"\"(\\\""+str(f_input)+"\\\",\\\""+str(f_input.replace(".edm4hep.root",".txt").replace("raw_data","processed_data"))+"\\\")\"")
+    "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.txt"
+  shell:
+    """
+    root -q -b {input.script}\"(\\\"{input.data}\\\",\\\"{output}\\\")\"
+    """
      
 rule roman_pots_generate_neural_network_configs:
   input:   

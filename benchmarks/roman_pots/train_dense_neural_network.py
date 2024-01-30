@@ -8,6 +8,8 @@ import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib.pyplot as plt
 import argparse
 import sys
+import hashlib
+
 torch.set_default_dtype(torch.float32)
 
 if torch.cuda.is_available():
@@ -47,30 +49,13 @@ def standardize(x):
   standardized_tensor = (x - mean) / std
   return standardized_tensor, mean, std
 
-def train_model(name, input_tensor, target_tensor, model, hyperparameters):
-  # Set hyperparameters
-  match name:
-    case "model_pz":
-      num_epochs = int(hyperparameters.num_epochs_pz)
-      learning_rate = float(hyperparameters.learning_rate_pz)
-    case "model_py":
-      num_epochs = int(hyperparameters.num_epochs_py)
-      learning_rate = float(hyperparameters.learning_rate_py)
-    case "model_px":
-      num_epochs = int(hyperparameters.num_epochs_px)
-      learning_rate = float(hyperparameters.learning_rate_px)
-    case _:
-      print("No model name provided. Return without further processing")
-      return
-  print("Set number of epochs and learning rate to "+str(num_epochs)+" and "+str(learning_rate)+" for "+str(name)+" training.")
-
-
+def train_model(input_tensor, target_tensor, model, hyperparameters):
   # Send model to device
   model=model.to(device)
   
   # Define the loss function and optimizer
   criterion = torch.nn.HuberLoss(reduction='mean', delta=1.0)
-  optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+  optimizer = torch.optim.Adam(model.parameters(), lr=hyperparameters.learning_rate)
 
   # Create a learning rate scheduler
   scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,'min',patience=100,cooldown=100,factor=0.5,threshold=1e-4,verbose=True)
@@ -79,7 +64,7 @@ def train_model(name, input_tensor, target_tensor, model, hyperparameters):
   losses = []
 
   # Train the model
-  for epoch in range(num_epochs):
+  for epoch in range(hyperparameters.num_epochs):
     # Forward pass
     inputs, targets = input_tensor.to(device), target_tensor.to(device)
     predictions = model(inputs)
@@ -98,18 +83,18 @@ def train_model(name, input_tensor, target_tensor, model, hyperparameters):
 
     # Print progress
     if (epoch + 1) % 10 == 0:
-      print("Epoch "+str(epoch+1)+"/"+str(num_epochs)+", Loss: "+"{0:0.10f}".format(loss.item()))
+      print("Epoch "+str(epoch+1)+"/"+str(hyperparameters.num_epochs)+", Loss: "+"{0:0.10f}".format(loss.item()))
 
   # Plot the loss values
   plt.figure()
-  plt.plot(range(1, num_epochs+1), losses)
+  plt.plot(range(1, hyperparameters.num_epochs+1), losses)
   plt.xlabel('Epoch')
   plt.ylabel('Loss')
   plt.title('Loss as a Function of Epoch')
   plt.yscale('log')
-  plt.savefig("LossVsEpoch_"+name+"_"+str(hyperparameters.model_version)+".png")
+  plt.savefig(hyperparameters.model_dir+"/LossVsEpoch_"+hyperparameters.model_name+".png")
 
-  torch.jit.script(model).save(name+"_"+str(hyperparameters.model_version)+".pt")
+  torch.jit.script(model).save(hyperparameters.model_dir+"/"+hyperparameters.model_name+".pt")
   return
 
 def run_experiment(hyperparameters):
@@ -117,63 +102,62 @@ def run_experiment(hyperparameters):
   # Load training data in tensors
   training_data = pd.DataFrame()
 
-  for i in range(1,int(hyperparameters.num_training_inputs)+1):
-    temp_training_data = pd.read_csv(hyperparameters.input_files+str(i)+'.txt', delimiter='\t', header=None)
+  for i in hyperparameters.input_files:
+    temp_training_data = pd.read_csv(i, delimiter='\t', header=None)
     training_data = pd.concat([training_data, temp_training_data], ignore_index=True)
 
   training_RP_pos_tensor = torch.tensor(training_data.iloc[:,3:7].values, dtype=torch.float32)
   training_MC_mom_tensor = torch.tensor(training_data.iloc[:,0:3].values, dtype=torch.float32)
 
   # Standardize training data
-  source_pz = training_RP_pos_tensor
-  scaled_source_pz, mean_source_pz, std_source_pz = standardize(source_pz)
-  target_pz = training_MC_mom_tensor[:,2].unsqueeze(1)
+  match hyperparameters.model_name:
+    case "model_pz":
+      source = training_RP_pos_tensor
+      scaled_source, mean_source, std_source = standardize(source)
+      target = training_MC_mom_tensor[:,2].unsqueeze(1)
+    
+    case "model_py":
+      source = torch.cat((training_RP_pos_tensor[:,2:4], training_MC_mom_tensor[:,2].unsqueeze(1)), 1)
+      scaled_source, mean_source, std_source = standardize(source)
+      target = training_MC_mom_tensor[:,1].unsqueeze(1)
+   
+    case "model_px":
+      source = torch.cat((training_RP_pos_tensor[:,0:2], training_MC_mom_tensor[:,2].unsqueeze(1)), 1)
+      scaled_source, mean_source, std_source = standardize(source)
+      target = training_MC_mom_tensor[:,0].unsqueeze(1)
 
-  source_py = torch.cat((training_RP_pos_tensor[:,2:4], training_MC_mom_tensor[:,2].unsqueeze(1)), 1)
-  scaled_source_py, mean_source_py, std_source_py = standardize(source_py)
-  target_py = training_MC_mom_tensor[:,1].unsqueeze(1)
-
-  source_px = torch.cat((training_RP_pos_tensor[:,0:2], training_MC_mom_tensor[:,2].unsqueeze(1)), 1)
-  scaled_source_px, mean_source_px, std_source_px = standardize(source_px)
-  target_px = training_MC_mom_tensor[:,0].unsqueeze(1)
+    case _:
+      print("No model name provided. Stop further processing")
+      return
 
   # Initialize models
-  initial_model_pz = NeuralNet(size_input=int(hyperparameters.size_input_pz),
-                               size_output=int(hyperparameters.size_output_pz), 
-                               n_layers=int(hyperparameters.n_layers_pz),
-                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_pz),
-                               multiplier=float(hyperparameters.multiplier_pz),
-                               leak_rate=float(hyperparameters.leak_rate_pz))
-  initial_model_py = NeuralNet(size_input=int(hyperparameters.size_input_py),
-                               size_output=int(hyperparameters.size_output_py), 
-                               n_layers=int(hyperparameters.n_layers_py),
-                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_py),
-                               multiplier=float(hyperparameters.multiplier_py),
-                               leak_rate=float(hyperparameters.leak_rate_py))
-  initial_model_px = NeuralNet(size_input=int(hyperparameters.size_input_px),
-                               size_output=int(hyperparameters.size_output_px), 
-                               n_layers=int(hyperparameters.n_layers_px),
-                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer_px),
-                               multiplier=float(hyperparameters.multiplier_px),
-                               leak_rate=float(hyperparameters.leak_rate_px))
-  
+  initial_model = NeuralNet(size_input=int(hyperparameters.size_input),
+                               size_output=int(hyperparameters.size_output), 
+                               n_layers=int(hyperparameters.n_layers),
+                               size_first_hidden_layer=int(hyperparameters.size_first_hidden_layer),
+                               multiplier=float(hyperparameters.multiplier),
+                               leak_rate=float(hyperparameters.leak_rate)) 
+ 
   # Train models
-  train_model("model_pz", scaled_source_pz, target_pz, initial_model_pz, hyperparameters)
-  train_model("model_py", scaled_source_py, target_py, initial_model_py, hyperparameters)
-  train_model("model_px", scaled_source_px, target_px, initial_model_px, hyperparameters)
-
+  train_model(scaled_source, target, initial_model, hyperparameters)
+  
   # Print end statement
-  print("Training completed using "+str(int(hyperparameters.nevents_per_file)*int(hyperparameters.num_training_inputs))+" generated events.")
+  print("Training completed using "+str(len(hyperparameters.input_files))+" files with "+str(training_RP_pos_tensor.shape[0])+" eligible events")
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-  hyperparameters_list = ['--input_files', '--model_version', '--nevents_per_file', '--num_training_inputs', 
-                   '--num_epochs_pz', '--learning_rate_pz', '--size_input_pz', '--size_output_pz', '--n_layers_pz', '--size_first_hidden_layer_pz', '--multiplier_pz', '--leak_rate_pz',
-                   '--num_epochs_py', '--learning_rate_py', '--size_input_py', '--size_output_py', '--n_layers_py', '--size_first_hidden_layer_py', '--multiplier_py', '--leak_rate_py',
-                   '--num_epochs_px', '--learning_rate_px', '--size_input_px', '--size_output_px', '--n_layers_px', '--size_first_hidden_layer_px', '--multiplier_px', '--leak_rate_px']
-  for hyperparameter in hyperparameters_list:
-    parser.add_argument(hyperparameter)
-  hyperparameters = parser.parse_args(['@'+str(sys.argv[1])])
+  parser = argparse.ArgumentParser(description="Train neural network model for roman pots")
+  parser.add_argument('--input_files', type=str, nargs='+', required=True, help='Specify a location of input files.')  
+  parser.add_argument('--model_name', type=str, required=True, help='Specify model name.')
+  parser.add_argument('--model_dir', type=str, required=True, help='Specify location to save model')
+  parser.add_argument('--num_epochs', type=int, required=True, help='Specify number of epochs')
+  parser.add_argument('--learning_rate', type=float, required=True, help='Specify learning rate')
+  parser.add_argument('--size_input', type=int, required=True, help='Specify input size')
+  parser.add_argument('--size_output', type=int, required=True, help='Specify output size')
+  parser.add_argument('--n_layers', type=int, required=True, help='Specify number of layers')
+  parser.add_argument('--size_first_hidden_layer', type=int, required=True, help='Size of first hidden layer')
+  parser.add_argument('--multiplier', type=float, required=True, help='Specify mutilplier to calculate size of subsequent hidden layers')
+  parser.add_argument('--leak_rate', type=float, required=True, help='Specify leak rate')
+  hyperparameters = parser.parse_args()
   run_experiment(hyperparameters)
 
 

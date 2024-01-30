@@ -1,197 +1,195 @@
 from itertools import product
-import hashlib
 
 DETECTOR_PATH = os.environ["DETECTOR_PATH"]
 DETECTOR_VERSION = os.environ["DETECTOR_VERSION"]
 SUBSYSTEM = "roman_pots"
 BENCHMARK = "dense_neural_network"
-DETECTOR_CONFIG = ["epic_ip6"]
-NUM_EPOCHS_PZ = [100]
-LEARNING_RATE_PZ = [0.01]
-SIZE_INPUT_PZ = [4]
-SIZE_OUTPUT_PZ = [1]
-N_LAYERS_PZ = [3,6]
-SIZE_FIRST_HIDDEN_LAYER_PZ = [128]
-MULTIPLIER_PZ = [0.5]
-LEAK_RATE_PZ = [0.025]
-NUM_EPOCHS_PY = [100]
-LEARNING_RATE_PY = [0.01]
-SIZE_INPUT_PY = [3]
-SIZE_OUTPUT_PY = [1]
-N_LAYERS_PY = [3,6]
-SIZE_FIRST_HIDDEN_LAYER_PY = [128]
-MULTIPLIER_PY = [0.5]
-LEAK_RATE_PY = [0.025]
-NUM_EPOCHS_PX = [100]
-LEARNING_RATE_PX = [0.01]
-SIZE_INPUT_PX = [3]
-SIZE_OUTPUT_PX = [1]
-N_LAYERS_PX = [3,7]
-SIZE_FIRST_HIDDEN_LAYER_PX = [128]
-MULTIPLIER_PX = [0.5]
-LEAK_RATE_PX = [0.025]
-MAX_HASH = 6
-NFILES = range(1,11)
-NEVENTS_PER_FILE = [100]
-NUM_TRAINING_INPUTS = [int(0.5*max(NFILES)),int(0.7*max(NFILES))]
-MODEL_VERSION = [
-    hashlib.sha512("_".join(map(str,x)).encode()).hexdigest()[:MAX_HASH]
-    for x in product(
-        NEVENTS_PER_FILE, NUM_TRAINING_INPUTS,
-        NUM_EPOCHS_PZ, LEARNING_RATE_PZ, SIZE_INPUT_PZ, SIZE_OUTPUT_PZ, N_LAYERS_PZ, SIZE_FIRST_HIDDEN_LAYER_PZ, MULTIPLIER_PZ, LEAK_RATE_PZ,
-        NUM_EPOCHS_PY, LEARNING_RATE_PY, SIZE_INPUT_PY, SIZE_OUTPUT_PY, N_LAYERS_PY, SIZE_FIRST_HIDDEN_LAYER_PY, MULTIPLIER_PY, LEAK_RATE_PY,
-        NUM_EPOCHS_PX, LEARNING_RATE_PX, SIZE_INPUT_PX, SIZE_OUTPUT_PX, N_LAYERS_PX, SIZE_FIRST_HIDDEN_LAYER_PX, MULTIPLIER_PX, LEAK_RATE_PX
-    )
-]
+DETECTOR_CONFIG = "epic_ip6"
+NEVENTS_PER_FILE = 5
+NFILES = range(1,6)
+MODEL_PZ = {
+  'num_epochs' : [100],
+  'learning_rate' : [0.01],
+  'size_input' : [4],
+  'size_output': [1],
+  'n_layers' : [3,6],
+  'size_first_hidden_layer' : [128],
+  'multiplier' : [0.5],
+  'leak_rate' : [0.025],
+}
+MODEL_PY = {
+  'num_epochs' : [100],
+  'learning_rate' : [0.01],
+  'size_input' : [3],
+  'size_output': [1],
+  'n_layers' : [3,6],
+  'size_first_hidden_layer' : [128],
+  'multiplier' : [0.5],
+  'leak_rate' : [0.025]
+}
+MODEL_PX = {
+  'num_epochs' : [100],
+  'learning_rate' : [0.01],
+  'size_input' : [3],
+  'size_output': [1],
+  'n_layers' : [3,7],
+  'size_first_hidden_layer' : [128],
+  'multiplier' : [0.5],
+  'leak_rate' : [0.025]
+}
 
-rule target_generate:
+rule all:
   input:
-    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root",
-           detector_config=DETECTOR_CONFIG,
+    expand("results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.edm4hep.root",           
            index=NFILES),
-    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.txt",
-           detector_config=DETECTOR_CONFIG,
+    expand("results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.txt",
            index=NFILES),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.txt",
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_pz/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_pz.pt",
            detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION)
+           num_epochs=MODEL_PZ["num_epochs"],
+           learning_rate=MODEL_PZ["learning_rate"],
+           size_input=MODEL_PZ["size_input"],
+           size_output=MODEL_PZ["size_output"],
+           n_layers=MODEL_PZ["n_layers"],
+           size_first_hidden_layer=MODEL_PZ["size_first_hidden_layer"],
+           multiplier=MODEL_PZ["multiplier"],
+           leak_rate=MODEL_PZ["leak_rate"]
+           ),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_pz/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_pz.png",
+           detector_config=DETECTOR_CONFIG,
+           num_epochs=MODEL_PZ["num_epochs"],
+           learning_rate=MODEL_PZ["learning_rate"],
+           size_input=MODEL_PZ["size_input"],
+           size_output=MODEL_PZ["size_output"],
+           n_layers=MODEL_PZ["n_layers"],
+           size_first_hidden_layer=MODEL_PZ["size_first_hidden_layer"],
+           multiplier=MODEL_PZ["multiplier"],
+           leak_rate=MODEL_PZ["leak_rate"]
+           ),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_py/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_py.pt",
+           detector_config=DETECTOR_CONFIG,
+           num_epochs=MODEL_PY["num_epochs"],
+           learning_rate=MODEL_PY["learning_rate"],
+           size_input=MODEL_PY["size_input"],
+           size_output=MODEL_PY["size_output"],
+           n_layers=MODEL_PY["n_layers"],
+           size_first_hidden_layer=MODEL_PY["size_first_hidden_layer"],
+           multiplier=MODEL_PY["multiplier"],
+           leak_rate=MODEL_PY["leak_rate"]
+           ),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_py/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_py.png",
+           detector_config=DETECTOR_CONFIG,
+           num_epochs=MODEL_PY["num_epochs"],
+           learning_rate=MODEL_PY["learning_rate"],
+           size_input=MODEL_PY["size_input"],
+           size_output=MODEL_PY["size_output"],
+           n_layers=MODEL_PY["n_layers"],
+           size_first_hidden_layer=MODEL_PY["size_first_hidden_layer"],
+           multiplier=MODEL_PY["multiplier"],
+           leak_rate=MODEL_PY["leak_rate"]
+           ),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_px/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_px.pt",
+           detector_config=DETECTOR_CONFIG,
+           num_epochs=MODEL_PX["num_epochs"],
+           learning_rate=MODEL_PX["learning_rate"],
+           size_input=MODEL_PX["size_input"],
+           size_output=MODEL_PX["size_output"],
+           n_layers=MODEL_PX["n_layers"],
+           size_first_hidden_layer=MODEL_PX["size_first_hidden_layer"],
+           multiplier=MODEL_PX["multiplier"],
+           leak_rate=MODEL_PX["leak_rate"]
+           ),
+    expand("results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_px/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_px.png",
+           detector_config=DETECTOR_CONFIG,
+           num_epochs=MODEL_PX["num_epochs"],
+           learning_rate=MODEL_PX["learning_rate"],
+           size_input=MODEL_PX["size_input"],
+           size_output=MODEL_PX["size_output"],
+           n_layers=MODEL_PX["n_layers"],
+           size_first_hidden_layer=MODEL_PX["size_first_hidden_layer"],
+           multiplier=MODEL_PX["multiplier"],
+           leak_rate=MODEL_PX["leak_rate"]
+           )
+ 
 
-rule target_train:
-  input:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_py_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_px_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_py_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_px_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION)
+
 
 rule roman_pots_generate_events:
     input:
         script="steering_file.py"
     params:
         detector_path=DETECTOR_PATH,
-        nevents_per_file=NEVENTS_PER_FILE
+        nevents_per_file=NEVENTS_PER_FILE,
+        detector_config=DETECTOR_CONFIG
     output:
-        "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root"
+        "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.edm4hep.root"
     shell:
       """
       npsim --steeringFile {input.script} \
-            --compactFile {params.detector_path}/{wildcards.detector_config}.xml \
+            --compactFile {params.detector_path}/{params.detector_config}.xml \
             --outputFile {output} \
             -N {params.nevents_per_file}
       """
 
 rule roman_pots_preprocess_model_training_data:
   input:
-    data = "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.edm4hep.root",
+    data = "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/raw_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.edm4hep.root",
     script = "preprocess_model_training_data.cxx"
   output:
-    "results/"+DETECTOR_VERSION+"/{detector_config}/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_{detector_config}_{index}.txt"
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.txt"
   shell:
     """
     root -q -b {input.script}\"(\\\"{input.data}\\\",\\\"{output}\\\")\"
     """
      
-rule roman_pots_generate_neural_network_configs:
-  input:   
-  output:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.txt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION)        
-  run:
-    for detector_config, nevents_per_file, num_training_inputs, \
-    num_epochs_pz, learning_rate_pz, size_input_pz, size_output_pz, n_layers_pz, size_first_hidden_layer_pz, multiplier_pz, leak_rate_pz, \ 
-    num_epochs_py, learning_rate_py, size_input_py, size_output_py, n_layers_py, size_first_hidden_layer_py, multiplier_py, leak_rate_py, \
-    num_epochs_px, learning_rate_px, size_input_px, size_output_px, n_layers_px, size_first_hidden_layer_px, multiplier_px, leak_rate_px in \
-    product(DETECTOR_CONFIG, NEVENTS_PER_FILE, NUM_TRAINING_INPUTS,
-    NUM_EPOCHS_PZ, LEARNING_RATE_PZ, SIZE_INPUT_PZ, SIZE_OUTPUT_PZ, N_LAYERS_PZ, SIZE_FIRST_HIDDEN_LAYER_PZ, MULTIPLIER_PZ, LEAK_RATE_PZ,
-    NUM_EPOCHS_PY, LEARNING_RATE_PY, SIZE_INPUT_PY, SIZE_OUTPUT_PY, N_LAYERS_PY, SIZE_FIRST_HIDDEN_LAYER_PY, MULTIPLIER_PY, LEAK_RATE_PY,
-    NUM_EPOCHS_PX, LEARNING_RATE_PX, SIZE_INPUT_PX, SIZE_OUTPUT_PX, N_LAYERS_PX, SIZE_FIRST_HIDDEN_LAYER_PX, MULTIPLIER_PX, LEAK_RATE_PX): 
-      output_dir = "results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata"  
-      output_file = str(nevents_per_file)+"_"+str(num_training_inputs)+"_"+\
-                    str(num_epochs_pz)+"_"+str(learning_rate_pz)+"_"+str(size_input_pz)+"_"+str(size_output_pz)+"_"+str(n_layers_pz)+"_"+str(size_first_hidden_layer_pz)+"_"+str(multiplier_pz)+"_"+str(leak_rate_pz)+"_"+\
-                    str(num_epochs_py)+"_"+str(learning_rate_py)+"_"+str(size_input_py)+"_"+str(size_output_py)+"_"+str(n_layers_py)+"_"+str(size_first_hidden_layer_py)+"_"+str(multiplier_py)+"_"+str(leak_rate_py)+"_"+\
-                    str(num_epochs_px)+"_"+str(learning_rate_px)+"_"+str(size_input_px)+"_"+str(size_output_px)+"_"+str(n_layers_px)+"_"+str(size_first_hidden_layer_px)+"_"+str(multiplier_px)+"_"+str(leak_rate_px)
-      model_hash = hashlib.sha512(output_file.encode()).hexdigest()[:MAX_HASH]
-      output_file_location = open(str(output_dir)+"/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_hash)+".txt","w")
-      output_file_content = "--input_files\nresults/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/processed_data/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_\n"+\
-                            "--model_version\n"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_hash)+"\n"+\
-                            "--nevents_per_file\n"+str(nevents_per_file)+"\n"+\
-                            "--num_training_inputs\n"+str(num_training_inputs)+"\n"+\
-                            "--num_epochs_pz\n"+str(num_epochs_pz)+"\n"+\
-                            "--learning_rate_pz\n"+str(learning_rate_pz)+"\n"+\
-                            "--size_input_pz\n"+str(size_input_pz)+"\n"+\
-                            "--size_output_pz\n"+str(size_output_pz)+"\n"+\
-                            "--n_layers_pz\n"+str(n_layers_pz)+"\n"+\
-                            "--size_first_hidden_layer_pz\n"+str(size_first_hidden_layer_pz)+"\n"+\
-                            "--multiplier_pz\n"+str(multiplier_pz)+"\n"+\
-                            "--leak_rate_pz\n"+str(leak_rate_pz)+"\n"+\
-                            "--num_epochs_py\n"+str(num_epochs_py)+"\n"+\
-                            "--learning_rate_py\n"+str(learning_rate_py)+"\n"+\
-                            "--size_input_py\n"+str(size_input_py)+"\n"+\
-                            "--size_output_py\n"+str(size_output_py)+"\n"+\
-                            "--n_layers_py\n"+str(n_layers_py)+"\n"+\
-                            "--size_first_hidden_layer_py\n"+str(size_first_hidden_layer_py)+"\n"+\
-                            "--multiplier_py\n"+str(multiplier_py)+"\n"+\
-                            "--leak_rate_py\n"+str(leak_rate_py)+"\n"+\
-                            "--num_epochs_px\n"+str(num_epochs_px)+"\n"+\
-                            "--learning_rate_px\n"+str(learning_rate_px)+"\n"+\
-                            "--size_input_px\n"+str(size_input_px)+"\n"+\
-                            "--size_output_px\n"+str(size_output_px)+"\n"+\
-                            "--n_layers_px\n"+str(n_layers_px)+"\n"+\
-                            "--size_first_hidden_layer_px\n"+str(size_first_hidden_layer_px)+"\n"+\
-                            "--multiplier_px\n"+str(multiplier_px)+"\n"+\
-                            "--leak_rate_px\n"+str(leak_rate_px)
-      output_file_location.write(output_file_content)
-      print(output_file_location)
-      output_file_location.close()
-         
-rule roman_pots_train_neural_networks:
+rule roman_pots_train_model_pz:
   input:
+    data = ["results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.txt".format(index=index) for index in NFILES],
     script = "train_dense_neural_network.py"
+  params:
+    detector_version=DETECTOR_VERSION,
+    detector_config=DETECTOR_CONFIG,
+    subsystem=SUBSYSTEM,
+    benchmark=BENCHMARK 
   output:
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_py_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/model_px_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.pt",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_pz_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_py_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION),
-    expand("results/"+str(DETECTOR_VERSION)+"/{detector_config}/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/LossVsEpoch_model_px_"+str(DETECTOR_VERSION)+"_{detector_config}_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_{model_version}.png",
-           detector_config=DETECTOR_CONFIG,
-           model_version=MODEL_VERSION)
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_pz/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_pz.pt",
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_pz/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_pz.png"
+  shell:
+    """
+    python {input.script} --input_files {input.data} --model_name model_pz --model_dir results/{params.detector_version}/{params.detector_config}/detector_benchmarks/{params.subsystem}/{params.benchmark}/artifacts/model_pz/num_epochs_{wildcards.num_epochs}/learning_rate_{wildcards.learning_rate}/size_input_{wildcards.size_input}/size_output_{wildcards.size_output}/n_layers_{wildcards.n_layers}/size_first_hidden_layer_{wildcards.size_first_hidden_layer}/multiplier_{wildcards.multiplier}/leak_rate_{wildcards.leak_rate} --num_epochs {wildcards.num_epochs} --learning_rate {wildcards.learning_rate} --size_input {wildcards.size_input} --size_output {wildcards.size_output} --n_layers {wildcards.n_layers} --size_first_hidden_layer {wildcards.size_first_hidden_layer} --multiplier {wildcards.multiplier} --leak_rate {wildcards.leak_rate}
+    """
 
-  run:
-    for detector_config, model_version in product(DETECTOR_CONFIG,MODEL_VERSION):
-      os.system("python "+str(input.script)+" results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/metadata/"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".txt")
-      os.system("mv model_pz_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".pt results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/")
-      os.system("mv model_py_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".pt results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/")
-      os.system("mv model_px_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".pt results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/trained_models/")
-      os.system("mv LossVsEpoch_model_pz_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".png results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/")
-      os.system("mv LossVsEpoch_model_py_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".png results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/")
-      os.system("mv LossVsEpoch_model_px_"+str(DETECTOR_VERSION)+"_"+str(detector_config)+"_"+str(SUBSYSTEM)+"_"+str(BENCHMARK)+"_"+str(model_version)+".png results/"+str(DETECTOR_VERSION)+"/"+str(detector_config)+"/detector_benchmarks/"+str(SUBSYSTEM)+"/"+str(BENCHMARK)+"/artifacts/")
+rule roman_pots_train_model_py:
+  input:
+    data = ["results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.txt".format(index=index) for index in NFILES],
+    script = "train_dense_neural_network.py"
+  params:
+    detector_version=DETECTOR_VERSION,
+    detector_config=DETECTOR_CONFIG,
+    subsystem=SUBSYSTEM,
+    benchmark=BENCHMARK
+  output:
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_py/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_py.pt",
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_py/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_py.png"
+  shell:
+    """
+    python {input.script} --input_files {input.data} --model_name model_py --model_dir results/{params.detector_version}/{params.detector_config}/detector_benchmarks/{params.subsystem}/{params.benchmark}/artifacts/model_py/num_epochs_{wildcards.num_epochs}/learning_rate_{wildcards.learning_rate}/size_input_{wildcards.size_input}/size_output_{wildcards.size_output}/n_layers_{wildcards.n_layers}/size_first_hidden_layer_{wildcards.size_first_hidden_layer}/multiplier_{wildcards.multiplier}/leak_rate_{wildcards.leak_rate} --num_epochs {wildcards.num_epochs} --learning_rate {wildcards.learning_rate} --size_input {wildcards.size_input} --size_output {wildcards.size_output} --n_layers {wildcards.n_layers} --size_first_hidden_layer {wildcards.size_first_hidden_layer} --multiplier {wildcards.multiplier} --leak_rate {wildcards.leak_rate}
+    """
 
-   
-
-
+rule roman_pots_train_model_px:
+  input:
+    data = ["results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/processed_data/"+DETECTOR_VERSION+"_"+DETECTOR_CONFIG+"_{index}.txt".format(index=index) for index in NFILES],
+    script = "train_dense_neural_network.py"
+  params:
+    detector_version=DETECTOR_VERSION,
+    detector_config=DETECTOR_CONFIG,
+    subsystem=SUBSYSTEM,
+    benchmark=BENCHMARK
+  output:
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_px/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/model_px.pt",
+    "results/"+DETECTOR_VERSION+"/"+DETECTOR_CONFIG+"/detector_benchmarks/"+SUBSYSTEM+"/"+BENCHMARK+"/artifacts/model_px/num_epochs_{num_epochs}/learning_rate_{learning_rate}/size_input_{size_input}/size_output_{size_output}/n_layers_{n_layers}/size_first_hidden_layer_{size_first_hidden_layer}/multiplier_{multiplier}/leak_rate_{leak_rate}/LossVsEpoch_model_px.png"
+  shell:
+    """
+    python {input.script} --input_files {input.data} --model_name model_px --model_dir results/{params.detector_version}/{params.detector_config}/detector_benchmarks/{params.subsystem}/{params.benchmark}/artifacts/model_px/num_epochs_{wildcards.num_epochs}/learning_rate_{wildcards.learning_rate}/size_input_{wildcards.size_input}/size_output_{wildcards.size_output}/n_layers_{wildcards.n_layers}/size_first_hidden_layer_{wildcards.size_first_hidden_layer}/multiplier_{wildcards.multiplier}/leak_rate_{wildcards.leak_rate} --num_epochs {wildcards.num_epochs} --learning_rate {wildcards.learning_rate} --size_input {wildcards.size_input} --size_output {wildcards.size_output} --n_layers {wildcards.n_layers} --size_first_hidden_layer {wildcards.size_first_hidden_layer} --multiplier {wildcards.multiplier} --leak_rate {wildcards.leak_rate}
+    """
     

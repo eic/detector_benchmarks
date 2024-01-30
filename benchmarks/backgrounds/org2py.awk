@@ -7,6 +7,7 @@ BEGIN {
 	in_src = 1
 	match($0, /^ */)
 	spaces = RLENGTH
+	print "import time; import sys; sys.stderr.write(f\"{time.asctime()}\\n\")"
 	next
 }
 

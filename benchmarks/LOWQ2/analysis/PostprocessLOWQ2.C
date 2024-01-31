@@ -2,6 +2,8 @@
 #include <TCanvas.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <iostream>
+#include <TStyle.h>
 
 void SetStyle() {
     // Set global plot format variables
@@ -44,7 +46,7 @@ TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Re
     TH2* RatePlot = (TH2*)inputDir->Get(histName);
     // Check plots exist
     if (!RatePlot) {
-        cout << "Error: plot "<< histName <<" not found in input file" << endl;
+        std::cout << "Error: plot "<< histName <<" not found in input file" << std::endl;
         return nullptr;
     }
 
@@ -167,7 +169,7 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
 
     // Check plots exist
     if (!Q2plot || !Eplot) {
-        cout << "Error: plots "<< Q2HistName <<" and/or "<< EHistName <<" not found in input file" << endl;
+        std::cout << "Error: plots "<< Q2HistName <<" and/or "<< EHistName <<" not found in input file" << std::endl;
         return;
     }
     
@@ -213,14 +215,14 @@ void Postprocess(TString inName="LOWQ2QRRates3.root", TString outName="LOWQ2Plot
     // Open the input file
     TFile* inputFile = TFile::Open(inName);
     if (!inputFile) {
-        cout << "Error opening input file:" << inName << endl;
+        std::cout << "Error opening input file:" << inName << std::endl;
         return;
     }
 
     // Check the directory LOWQ2 exists and cd into it    
     TDirectory* dir = inputFile->GetDirectory("LOWQ2");
     if (!dir) {
-        cout << "Error: directory LOWQ2 not found in input file" << endl;
+        std::cout << "Error: directory LOWQ2 not found in input file" << std::endl;
         return;
     }
 

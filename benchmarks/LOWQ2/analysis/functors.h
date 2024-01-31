@@ -4,13 +4,15 @@
 #include "edm4hep/SimTrackerHit.h"
 #include "edm4hep/SimCalorimeterHit.h"
 
+using RVecHits = ROOT::VecOps::RVec<edm4hep::SimTrackerHitData>;
+
 //-----------------------------------------------------------------------------------------
 // Grab Component functor
 //-----------------------------------------------------------------------------------------
 struct getSubID{
   getSubID(std::string cname, dd4hep::Detector& det, std::string rname = "TaggerTrackerHits") : componentName(cname), detector(det), readoutName(rname){}
   
-  ROOT::VecOps::RVec<int> operator()(const std::vector<edm4hep::SimTrackerHitData>& evt) {
+  ROOT::VecOps::RVec<int> operator()(const RVecHits& evt) {
     auto decoder = detector.readout(readoutName).idSpec().decoder();
     auto indexID = decoder->index(componentName);
     ROOT::VecOps::RVec<int> result;

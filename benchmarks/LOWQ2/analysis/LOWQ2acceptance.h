@@ -2,24 +2,26 @@
 
 // #include "functors.h"
 
-  #include "ROOT/RDF/RInterface.hxx"
-  #include <TH1D.h>
-  #include <TH2D.h>
-  #include "ROOT/RVec.hxx"
+#include "ROOT/RDF/RInterface.hxx"
+#include <TH1D.h>
+#include <TH2D.h>
+#include "ROOT/RVec.hxx"
 
 // Define alias
 using RNode       = ROOT::RDF::RNode;
 using H1ResultPtr = ROOT::RDF::RResultPtr<TH1D>;
 using H2ResultPtr = ROOT::RDF::RResultPtr<TH2D>;
+using H3ResultPtr = ROOT::RDF::RResultPtr<TH3D>;
 using RVecI       = ROOT::VecOps::RVec<int>;
 using RVecD       = ROOT::VecOps::RVec<double>;
 using RVecS       = ROOT::VecOps::RVec<string>;
 
 // Lazy execution methods
-std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcceptancePlots( RNode d1 ){
+std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<TString,H3ResultPtr>> createAcceptancePlots( RNode d1 ){
 
   std::map<TString,H1ResultPtr> hHists1D;
   std::map<TString,H2ResultPtr> hHists2D;
+  std::map<TString,H3ResultPtr> hHists3D;
   
   int ePrimID = 2;
   int pBeamID = 1;
@@ -174,5 +176,5 @@ std::pair<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>> createAcc
   hHists1D["TotalCounts"]->Sumw2(false);
   hHists1D["Fractions"]->Sumw2(false);
 
-  return {hHists1D,hHists2D};
+  return {hHists1D,hHists2D,hHists3D};
 }

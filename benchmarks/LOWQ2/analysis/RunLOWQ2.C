@@ -3,6 +3,9 @@
 
 void RunLOWQ2(){
     
+    //Set implicit multi-threading
+    ROOT::EnableImplicitMT();
+
     std::string compactName = "/home/simong/EIC/epic/epic_18x275.xml";
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
     detector.fromCompact(compactName);
@@ -23,7 +26,10 @@ void RunLOWQ2(){
     // LOWQ2Benchmarks("/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root","LOWQ2QRRates.root",detector,eventRateQR);
     // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_18x275_new.edm4hep*.root","LOWQ2BremsRates.root",detector,bunchRate);
     // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_10x100_ab/brems_10x100_ab_0.edm4hep.root","LOWQ2BremsRates2.root",detector,eventRateBrems);
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","LOWQ2QRRates3.root",detector,eventRateQR);
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","LOWQ2BremsRates3.root",detector,eventRateBrems);
+    
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","LOWQ2QRRecon2.root",detector,eventRateQR);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","LOWQ2BremsRecon2.root",detector,eventRateBrems);
+
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","LOWQ2BremsHits.root",detector,eventRateBrems);
 
 }

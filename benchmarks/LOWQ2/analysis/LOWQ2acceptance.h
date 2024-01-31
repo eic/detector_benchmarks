@@ -52,47 +52,38 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
         .Define("W2","(pBeam+eBeam-primMom).M2()");
 
   RVecS colNames = d1.GetColumnNames();
-  std::map<TString, std::string_view> filters;
-  filters["All"]  = "true";
-  filters["ThetaCut"] = "primTheta<11";
+  std::vector<std::pair<TString, ROOT::RDF::RNode>> filters;
+  filters.push_back(std::make_pair("Generated",d1));
+  filters.push_back(std::make_pair("Theta<10mrad",d1.Filter("primTheta<10")));
   if(Any(colNames=="TaggerTrackerHits")){
-    filters["Any"]  = "TaggerTrackerHits.size() > 0";
-    filters["Mod1"] = "moduleID[moduleID==1].size()>0";
-    filters["Mod2"] = "moduleID[moduleID==2].size()>0";
+    filters.push_back(std::make_pair("Module1-Hit",d1.Filter("moduleID[moduleID==1].size()>0")));
+    filters.push_back(std::make_pair("Module2-Hit",d1.Filter("moduleID[moduleID==2].size()>0")));
+    filters.push_back(std::make_pair("Any-Hit",d1.Filter("TaggerTrackerHits.size() > 0")));
   }
 
   if(Any(colNames=="LowQ2Tracks")){
-    filters["Reconstructed"] = "LowQ2Tracks.size()>0";
+    filters.push_back(std::make_pair("Reconstructed-Track",d1.Filter("LowQ2Tracks.size()>0")));
   }
 
-  //Store the counts for each filter
-  RVecI filterCounts;
-  int rawCount = 0;
-  TString filtersName = "";
 
-  for (auto& filter : filters)
+  for (auto& [rawString,filterNode] : filters)
   {
-    RNode filterNode = d1.Filter(filter.second);
-    TString rawString = filter.first;
-    filtersName += rawString + "_";
-
-  
 
     //Histogram names
-    TString energyHistName        = "h" + rawString + "Energy";
-    TString thetaHistName         = "h" + rawString + "Theta";
-    TString etaHistName           = "h" + rawString + "Eta";
-    TString logQ2HistName         = "h" + rawString + "logQ2";
-    TString logxHistName          = "h" + rawString + "logx";
-    TString Q2HistName            = "h" + rawString + "Q2";
-    TString xHistName             = "h" + rawString + "x";
-    TString W2HistName            = "h" + rawString + "W2";
-    TString Q2xHistName           = "h" + rawString + "Q2x";
-    TString logQ2logxHistName     = "h" + rawString + "logQ2logx";
-    TString WlogQ2HistName        = "h" + rawString + "WlogQ2";
-    TString WlogxHistName         = "h" + rawString + "Wlogx";
-    TString primElogQ2HistName    = "h" + rawString + "primElogQ2";
-    TString primEthetaHistName    = "h" + rawString + "primEtheta";
+    TString energyHistName        = "hEnergy";
+    TString thetaHistName         = "hTheta";
+    TString etaHistName           = "hEta";
+    TString logQ2HistName         = "hlogQ2";
+    TString logxHistName          = "hlogx";
+    TString Q2HistName            = "hQ2";
+    TString xHistName             = "hx";
+    TString W2HistName            = "hW2";
+    TString Q2xHistName           = "hQ2x";
+    TString logQ2logxHistName     = "hlogQ2logx";
+    TString WlogQ2HistName        = "hWlogQ2";
+    TString WlogxHistName         = "hWlogx";
+    TString primElogQ2HistName    = "hprimElogQ2";
+    TString primEthetaHistName    = "hprimEtheta";
 
     //Histogram Ranges
     double energyMin = 0;
@@ -148,10 +139,25 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
     hHists2D[rawString+"/"+primElogQ2HistName] = filterNode.Histo2D({primElogQ2HistName, primElogQ2HistName + ";E [GeV];log(Q2) [GeV]", nBins2D, energyMin, energyMax, nBins2D, logQ2Min, logQ2Max}, "primE", "logQ2");
     hHists2D[rawString+"/"+primEthetaHistName] = filterNode.Histo2D({primEthetaHistName, primEthetaHistName + ";E [GeV];Theta [mrad]", nBins2D, energyMin, energyMax, nBins2D, thetaMin, thetaMax}, "primE", "primTheta");
 
+  }
 
+  //----------------------------------------------------------------------------------------------------
+  // Creates integrated acceptance plots for various filters
+  //----------------------------------------------------------------------------------------------------
+
+  //Store the counts for each filter
+  RVecI filterCounts;
+  int rawCount = 0;
+  TString filtersName = "";
+
+  //Calculate the counts for each filter
+  for (auto& [rawString,filterNode] : filters)
+  {
+    filtersName += rawString + "_";
     int counts = *filterNode.Count();
+    std::cout << rawString << " " << counts << std::endl;
     filterCounts.push_back(counts);    
-    if (filter.first == "All") {
+    if (rawString == "Generated") {
       rawCount = counts;
     }
   }
@@ -172,9 +178,9 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
 
   // Use the new column in the histograms
   hHists1D["TotalCounts"] = dfWithCounts.Histo1D({"hTotalCounts", "Total Counts;"+filtersName+";Count", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","count");
-  hHists1D["Fractions"]   = dfWithCounts.Histo1D({"hFractions", "Fractions;"+filtersName+";Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","fraction");
+  hHists1D["IntegratedAcceptance"]   = dfWithCounts.Histo1D({"hFractions", "Fractions;"+filtersName+";Fraction", Nfilters, 0,  static_cast<double>(Nfilters)}, "entry","fraction");
   hHists1D["TotalCounts"]->Sumw2(false);
-  hHists1D["Fractions"]->Sumw2(false);
+  hHists1D["IntegratedAcceptance"]->Sumw2(false);
 
   return {hHists1D,hHists2D,hHists3D};
 }

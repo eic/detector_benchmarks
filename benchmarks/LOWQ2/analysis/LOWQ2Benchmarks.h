@@ -100,18 +100,13 @@ void writePlots( TString outName ){
 
     TDirectory* dir = benchmarkDir;
     for (size_t i = 0; i < parts.size(); ++i) {
-      if (i == parts.size() - 1) {
-        // This is the last part, write the histogram
-        dir->cd();
+      // This is not the last part, create or get the directory
+      if (!dir->GetDirectory(parts[i].c_str())) {
+        dir = dir->mkdir(parts[i].c_str());
       } else {
-        // This is not the last part, create or get the directory
-        if (!dir->GetDirectory(parts[i].c_str())) {
-          dir = dir->mkdir(parts[i].c_str());
-        } else {
-          dir = dir->GetDirectory(parts[i].c_str());
-        }
-        dir->cd();
+        dir = dir->GetDirectory(parts[i].c_str());
       }
+      dir->cd();    
     }
         
     TDirectory* currentDir = gDirectory;
@@ -119,25 +114,25 @@ void writePlots( TString outName ){
     for(auto &[key,hist]: get<0>(hists)){
 
       //Split histogram name into parts
-      std::stringstream ss(key.Data());
-      std::string part;
-      std::vector<std::string> parts;
-      while (std::getline(ss, part, '/')) {
-        parts.push_back(part);
+      std::stringstream ss2(key.Data());
+      std::string part2;
+      std::vector<std::string> parts2;
+      while (std::getline(ss2, part2, '/')) {
+        parts2.push_back(part2);
       }
 
       TDirectory* dir = currentDir;
-      for (size_t i = 0; i < parts.size(); ++i) {
-        if (i == parts.size() - 1) {
+      for (size_t i = 0; i < parts2.size(); ++i) {
+        if (i == parts2.size() - 1) {
           // This is the last part, write the histogram
           hist->SetMinimum(0);
-          hist->Write(parts[i].c_str());
+          hist->Write(parts2[i].c_str());
         } else {
           // This is not the last part, create or get the directory
-          if (!dir->GetDirectory(parts[i].c_str())) {
-            dir = dir->mkdir(parts[i].c_str());
+          if (!dir->GetDirectory(parts2[i].c_str())) {
+            dir = dir->mkdir(parts2[i].c_str());
           } else {
-            dir = dir->GetDirectory(parts[i].c_str());
+            dir = dir->GetDirectory(parts2[i].c_str());
           }
           dir->cd();
         }
@@ -281,15 +276,15 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/G4out/qr_18x275_new.edm4hep*
   }
 
   if((Any(colNames==readoutName) || Any(colNames=="InclusiveKinematicsElectron"))  && Any(colNames=="MCParticles")){  
-    histMap["AcceptanceDistributions"] = createAcceptancePlots(node);
+    histMap["Acceptance"] = createAcceptancePlots(node);
   }
 
   if(Any(colNames=="TaggerTrackerClusterPositions")){  
-    histMap["ClusterDistributions"] =  createClusterPlots(node);
+    histMap["Clusters"] =  createClusterPlots(node);
   }
 
   if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
-    histMap["ReconstructedDistributions"] = createReconstructionPlots(node);
+    histMap["Reconstruction"] = createReconstructionPlots(node);
   }
 
   writePlots( outName );

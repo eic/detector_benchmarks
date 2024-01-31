@@ -91,8 +91,8 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
   double w2Max = 0.5; // GeV^2
   double thetaResMin = -5; // mrad
   double thetaResMax = 5; // mrad
-  double phiResMin = -45; // deg
-  double phiResMax = 45; // deg
+  double phiResMin = -100; // deg
+  double phiResMax = 100; // deg
   double eResMin = -0.1; // GeV
   double eResMax = 0.1; // GeV
   double q2ResMin = -0.01; // GeV^2
@@ -139,11 +139,9 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
 
   auto d2 = d1.Filter("reconTheta_mrad<2");
 
-  hHists2D["thetacut/phiResVsE"]     = d2.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", bins2D, phiResMin, phiResMax, bins2D, eMin, eMax}, "phiRes", "primE");
+  hHists1D["thetacut/phiRes"]            = d2.Histo1D({"phiRes","phiRes;#phi_{recon}-#phi_{prim} [rad]",bins1D,phiResMin,phiResMax},"phiRes");
+  hHists2D["thetacut/phiResVsE"]         = d2.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", bins2D, phiResMin, phiResMax, bins2D, eMin, eMax}, "phiRes", "primE");
   hHists2D["thetacut/reconPhiVsPrimPhi"] = d2.Histo2D({"reconPhiVsPrimPhi","reconPhiVsPrimPhi;#phi_{prim} [deg];#phi_{recon} [deg]",bins2D,phiMin,phiMax,bins2D,phiMin,phiMax},"primPhi_deg","reconPhi_deg");
-
-  //Plot showing where the phi resolution is less than 30 degrees in terms of E and theta
-  //hHists2D["phiResVsETheta"] = d1.Histo2D({"phiResVsETheta","phiResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad]",100,eMin,eMax,100,thetaMin,thetaMax},"primE","primTheta",[](double phiRes){return fabs(phiRes)<0.5;},{"phiRes-primPhi"});
 
   return {hHists1D, hHists2D, hHists3D};  
   

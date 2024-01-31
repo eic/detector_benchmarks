@@ -65,25 +65,25 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
       TString layerNum      = std::to_string(j);
       TString layerTag      = "layer"+layerNum;
       
-      TString xName         = "xID"+moduleTag+layerTag;
+      TString xName         = "xPixel";
       TString xHistName     = "h"+xName;
 
-      TString yName         = "yID"+moduleTag+layerTag;
+      TString yName         = "yPixel";
       TString yHistName     = "h"+yName;
 
-      TString xChipName     = "xChipID"+moduleTag+layerTag;
-      TString yChipName     = "yChipID"+moduleTag+layerTag;
+      TString xChipName     = "xChip";
+      TString yChipName     = "yChip";
 
-      TString yHalfChipName = "yHalfChipID"+moduleTag+layerTag;
+      TString yHalfChipName = "yHalfChip";
 
       TString xyHistName    = "h"+xName+yName;
 
-      TString xColumnName    = "xColumnID"+moduleTag+layerTag;
+      TString xColumnName    = "xColumn";
 
-      TString boardName     = "boardID"+moduleTag+layerTag;
+      TString boardName     = "board";
 
       std::vector<string>  layerSizeInput = {xName.Data()};
-      TString layerSizeName = "HitsPerEvent"+moduleTag+layerTag;
+      TString layerSizeName = "HitsPerEvent";
       TString sizeHistName  = "h"+layerSizeName;
       
       auto d4 = d3.Define("LayerFilter",[j](RVecI layID){return layID==j;},{"layerID"})
@@ -107,15 +107,15 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
       hHists1D[moduleTag+"/"+layerTag+"/"+sizeHistName] = d4.Histo1D({sizeHistName,   sizeHistName+";hits per event",  100, 0, 100   }, layerSizeName );
       
       // Plot number of hits per boardID for each layer
-      TString boardIDHistName = "hBoardID" +moduleTag + layerTag;
+      TString boardIDHistName = "hBoardID";
       hHists1D[moduleTag+"/"+layerTag+"/"+boardIDHistName] = d4.Histo1D({boardIDHistName, boardIDHistName+";board ID;Rate [Hz]", 3, 0, 3}, boardName, "eventWeight");
       
       // Plot number of hits per chipID for each layer
-      TString chipIDHistName = "hChipID" +moduleTag + layerTag;
+      TString chipIDHistName = "hChipID";
       hHists2D[moduleTag+"/"+layerTag+"/"+chipIDHistName] = d4.Histo2D({chipIDHistName, chipIDHistName+";x Chip;y Chip;Rate [Hz]", 6, 0, 6, 6, 0, 6}, xChipName, yChipName, "eventWeight");
       
       // Plot number of hits per chipID for each layer
-      TString xColumnIDHistName = "hxColumnID" +moduleTag + layerTag;
+      TString xColumnIDHistName = "hxColumnID";
       hHists2D[moduleTag+"/"+layerTag+"/"+xColumnIDHistName] = d4.Histo2D({xColumnIDHistName, xColumnIDHistName+";x Column;y Half Chip;Rate [Hz]", 3*xChip, 0, 3.0*xChip, 12, 0, 12}, xColumnName, yHalfChipName, "eventWeight");
       
     }

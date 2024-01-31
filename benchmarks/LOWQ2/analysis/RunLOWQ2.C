@@ -21,15 +21,15 @@ void RunLOWQ2(){
     double eventRateBrems = luminosity * eventCrossSectionBrems * 1e-27; // [Hz]
     double bunchRate      = 1.0 / bunchSpacing; // [Hz]
 
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/tempEventsQR2.root","LOWQ2QR2.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab0_recon.edm4hep.root","LOWQ2QROld.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root","LOWQ2QRRates.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_18x275_new.edm4hep*.root","LOWQ2BremsRates.root",detector,bunchRate);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_10x100_ab/brems_10x100_ab_0.edm4hep.root","LOWQ2BremsRates2.root",detector,eventRateBrems);
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/tempEventsQR2.root","plots/LOWQ2QR2.root",detector,eventRateQR);
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab0_recon.edm4hep.root","plots/LOWQ2QROld.root",detector,eventRateQR);
+    // LOWQ2Benchmarks("/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root","plots/LOWQ2QRRates.root",detector,eventRateQR);
+    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_18x275_new.edm4hep*.root","plots/LOWQ2BremsRates.root",detector,bunchRate);
+    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_10x100_ab/brems_10x100_ab_0.edm4hep.root","plots/LOWQ2BremsRates2.root",detector,eventRateBrems);
     
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","LOWQ2QRRecon2.root",detector,eventRateQR);
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","LOWQ2BremsRecon2.root",detector,eventRateBrems);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","plots/LOWQ2QRRecon2.root",detector,eventRateQR);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon2.root",detector,eventRateBrems);
 
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","LOWQ2BremsHits.root",detector,eventRateBrems);
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsHits.root",detector,eventRateBrems);
 
 }

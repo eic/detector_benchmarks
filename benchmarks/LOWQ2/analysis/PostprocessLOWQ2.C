@@ -257,6 +257,6 @@ void Postprocess(TString inName="LOWQ2QRRates3.root", TString outName="LOWQ2Plot
 //----------------------------------------------------------------------
 
 void PostprocessLOWQ2() {
-    Postprocess("LOWQ2QRRates3.root", "LOWQ2QRPlots.root", "Quasi-Real");
-    Postprocess("LOWQ2BremsRates3.root", "LOWQ2BremsPlots.root", "Bremsstrahlung");
+    Postprocess("LOWQ2QRRates3.root", "plots/LOWQ2QRPlots.root", "Quasi-Real");
+    Postprocess("LOWQ2BremsRates3.root", "plots/LOWQ2BremsPlots.root", "Bremsstrahlung");
 }

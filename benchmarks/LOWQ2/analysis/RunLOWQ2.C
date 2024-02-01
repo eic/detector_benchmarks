@@ -27,9 +27,9 @@ void RunLOWQ2(){
     // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_18x275_new.edm4hep*.root","plots/LOWQ2BremsRates.root",detector,bunchRate);
     // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_10x100_ab/brems_10x100_ab_0.edm4hep.root","plots/LOWQ2BremsRates2.root",detector,eventRateBrems);
     
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","plots/LOWQ2QRRecon2.root",detector,eventRateQR);
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon2.root",detector,eventRateBrems);
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","plots/LOWQ2QRRecon2.root",detector,eventRateQR);
+    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon2.root",detector,eventRateBrems);
 
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsHits.root",detector,eventRateBrems);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsHits.root",detector,eventRateBrems);
 
 }

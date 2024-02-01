@@ -275,17 +275,17 @@ void LOWQ2Benchmarks( string inName = "/scratch/EIC/G4out/qr_18x275_new.edm4hep*
 
   }
 
-  if((Any(colNames==readoutName) || Any(colNames=="InclusiveKinematicsElectron"))  && Any(colNames=="MCParticles")){  
-    histMap["Acceptance"] = createAcceptancePlots(node);
-  }
+  // if((Any(colNames==readoutName) || Any(colNames=="InclusiveKinematicsElectron"))  && Any(colNames=="MCParticles")){  
+  //   histMap["Acceptance"] = createAcceptancePlots(node);
+  // }
 
-  if(Any(colNames=="TaggerTrackerClusterPositions")){  
-    histMap["Clusters"] =  createClusterPlots(node);
-  }
+  // if(Any(colNames=="TaggerTrackerClusterPositions")){  
+  //   histMap["Clusters"] =  createClusterPlots(node);
+  // }
 
-  if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
-    histMap["Reconstruction"] = createReconstructionPlots(node);
-  }
+  // if(Any(colNames=="LowQ2TrackParameters") && Any(colNames=="MCParticles")){  
+  //   histMap["Reconstruction"] = createReconstructionPlots(node);
+  // }
 
   writePlots( outName );
 

@@ -4,6 +4,7 @@
 #include <TH2.h>
 #include <iostream>
 #include <TStyle.h>
+#include <TLatex>
 
 //----------------------------------------------------------------------
 // Set global plot format variables
@@ -18,6 +19,13 @@ void SetStyle() {
 
     gStyle->SetTitleOffset(4.0, "Z");
     // gStyle->SetTitleOffset(1.0, "Y");
+
+    // // Set global plot format variables
+    // int font = 42; // 
+    // gStyle->SetTextFont(font); // Set the font for text
+    // gStyle->SetLabelFont(font, "XYZ"); // Set the font for axis labels
+    // gStyle->SetTitleFont(font, "XYZ"); // Set the font for titles
+
 }
 
 //----------------------------------------------------------------------
@@ -67,6 +75,7 @@ TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Re
     RatePlot->GetXaxis()->SetTitle("x pixel");
     RatePlot->GetYaxis()->SetTitle("y pixel");
     RatePlot->GetZaxis()->SetTitle("Average Rate [Hz/55 #mum pixel]");
+
 
     RatePlot->SetStats(0);
 
@@ -123,7 +132,7 @@ void FormatAcceptancePlots(TDirectory* inputDir, TFile* outputFile, TString Tag=
     title = "Acceptance as a function of scattered electron energy and theta";
     AcceptETheta->SetTitle(title);
     AcceptETheta->GetXaxis()->SetTitle("E_{e'} [GeV]");
-    AcceptETheta->GetYaxis()->SetTitle("Theta_{e'} [mrad]");
+    AcceptETheta->GetYaxis()->SetTitle("#theta_{e'} [mrad]");
     AcceptETheta->GetZaxis()->SetTitle("Acceptance");
 
     AcceptETheta->SetStats(0);
@@ -185,7 +194,7 @@ void FormatAcceptancePlots(TDirectory* inputDir, TFile* outputFile, TString Tag=
         double binCenter = IntegratedAcceptancePlot->GetBinCenter(i);
 
         // Draw the bin content at the bin center
-        t.DrawText(binCenter, binContent+0.02, Form("%.3f", binContent));
+        t.DrawText(binCenter, binContent+0.02, Form("%.1f %s", binContent*100,"%"));
     }
 
     // Update the canvas to show the changes
@@ -228,6 +237,75 @@ void FormatRatePlots(TDirectory* inputDir, TFile* outputFile, TString Tag="Quasi
     // Clean up
     delete canvas;
 
+    TCanvas* canvas2 = new TCanvas("RateCanvasOverlay", "RateCanvasOverlay", 3200, 1200);
+    canvas2->Divide(2,1);
+
+    // Draw the plots on the canvas 
+    canvas2->cd(1);
+    gPad->SetLogz();
+    RatePlot1_0->Draw("colz");
+
+    //Add a grid ontop of the histogram showing 448x512 pixel chip boundaries
+    double xMin = RatePlot1_0->GetXaxis()->GetXmin();
+    double xMax = RatePlot1_0->GetXaxis()->GetXmax();
+    double yMin = RatePlot1_0->GetYaxis()->GetXmin()+512/4;
+    double yMax = RatePlot1_0->GetYaxis()->GetXmax()+512/4;
+    std::vector<int> verticalLineWidths   = {3,1,3,1,3,1,3};
+    std::vector<int> horizontalLineWidths = {3,1,2,1,2,1,2,1,2,1,2,1,3};
+    std::vector<int> horizontalLineStyles = {1,7,1,7,1,7,1,7,1,7,1,7,1};
+    std::vector<int> verticalLineColors   = {kRed,kBlue,kRed,kBlue,kRed,kBlue,kRed};
+    std::vector<int> horizontalLineColors = {kRed,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kBlue,kRed};
+    //Vertical lines
+    for (int i=0; i<=6; i++) {
+        TLine* line = new TLine(xMin+i*448, yMin, xMin+i*448, yMax);
+        line->SetLineColor(verticalLineColors[i]);
+        line->SetLineWidth(verticalLineWidths[i]);
+        line->Draw();
+    }
+    //Horizontal lines
+    for (int i=0; i<=12; i++) {
+        TLine* line = new TLine(xMin, yMin+i*256, xMax, yMin+i*256);
+        line->SetLineColor(horizontalLineColors[i]);
+        line->SetLineWidth(horizontalLineWidths[i]);
+        line->SetLineStyle(horizontalLineStyles[i]);
+        line->Draw();
+    }
+
+    gPad->Update();
+
+    canvas2->cd(2);
+    gPad->SetLogz();
+    RatePlot2_0->Draw("colz");
+
+    //Add a grid on top of the histogram showing 448x512 pixel chip boundaries
+    xMin = RatePlot2_0->GetXaxis()->GetXmin();
+    xMax = RatePlot2_0->GetXaxis()->GetXmax();
+    yMin = RatePlot2_0->GetYaxis()->GetXmin()+512/4;
+    yMax = RatePlot2_0->GetYaxis()->GetXmax()+512/4;
+    //Vertical lines
+    for (int i = 0; i <= 6; i++) {
+        TLine* line = new TLine(xMin+i*448, yMin, xMin+i*448, yMax);
+        line->SetLineColor(verticalLineColors[i]);
+        line->SetLineWidth(verticalLineWidths[i]);
+        line->Draw();
+    }
+    //Horizontal lines
+    for (int i = 0; i <= 12; i++) {
+        TLine* line = new TLine(xMin, yMin+i*256, xMax, yMin+i*256);
+        line->SetLineColor(horizontalLineColors[i]);
+        line->SetLineWidth(horizontalLineWidths[i]);
+        line->SetLineStyle(horizontalLineStyles[i]);
+        line->Draw();
+    }
+
+    gPad->Update();
+
+    // Save the canvas to output file
+    outputFile->WriteTObject(canvas);
+
+    // Clean up
+    delete canvas;
+
 }   
 
 //----------------------------------------------------------------------
@@ -246,9 +324,9 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
     TCanvas* canvas = new TCanvas("ReconCanvas", "ReconCanvas", 2400, 1200);
 
     // Read in the plots from the input file
-    TH1* EPlot      = (TH1*)inputDir->Get(EHistName);
-    TH1* ThetaPlot = (TH1*)inputDir->Get(ThetaHistName);
-    TH1* PhiPlot    = (TH1*)inputDir->Get(PhiHistName);
+    TH2* EPlot      = (TH2*)inputDir->Get(EHistName);
+    TH2* ThetaPlot  = (TH2*)inputDir->Get(ThetaHistName);
+    TH2* PhiPlot    = (TH2*)inputDir->Get(PhiHistName);
 
     TH1* EResPlot     = (TH1*)inputDir->Get(EResName);
     TH1* ThetaResPlot = (TH1*)inputDir->Get(ThetaResName);
@@ -265,10 +343,11 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
     canvas->cd(1);
     gPad->SetLogz();
     
-    EPlot->SetTitle("Reconstructed electron energy vs. primary electron energy");
+    EPlot->SetTitle("Reconstructed electron energy vs. Primary electron energy");
     EPlot->GetXaxis()->SetTitle("E_{prim} [GeV]");
     EPlot->GetYaxis()->SetTitle("E_{recon} [GeV]");
     EPlot->GetZaxis()->SetTitle("Counts");
+    EPlot->Rebin2D(2,2);
 
     EPlot->SetStats(0);
     EPlot->Draw("colz");
@@ -276,10 +355,11 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
     canvas->cd(2);
     gPad->SetLogz();
     
-    ThetaPlot->SetTitle("Reconstructed Theta vs. primary Theta");
-    ThetaPlot->GetXaxis()->SetTitle("Theta_{prim} [mrad]");
-    ThetaPlot->GetYaxis()->SetTitle("Theta_{recon} [mrad]");
+    ThetaPlot->SetTitle("Reconstructed #theta vs. Primary #theta");
+    ThetaPlot->GetXaxis()->SetTitle("#theta_{prim} [mrad]");
+    ThetaPlot->GetYaxis()->SetTitle("#theta_{recon} [mrad]");
     ThetaPlot->GetZaxis()->SetTitle("Counts");
+    ThetaPlot->Rebin2D(2,2);
 
     ThetaPlot->SetStats(0);
     ThetaPlot->Draw("colz");
@@ -287,40 +367,79 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
     canvas->cd(3);
     gPad->SetLogz();
 
-    PhiPlot->SetTitle("Reconstructed Phi vs. primary Phi");
-    PhiPlot->GetXaxis()->SetTitle("Phi_{prim} [deg]");
-    PhiPlot->GetYaxis()->SetTitle("Phi_{recon} [deg]");
+    PhiPlot->SetTitle("Reconstructed #varphi vs. Primary #varphi (#theta>1mrad)");
+    PhiPlot->GetXaxis()->SetTitle("#phi_{prim} [deg]");
+    PhiPlot->GetYaxis()->SetTitle("#phi_{recon} [deg]");
     PhiPlot->GetZaxis()->SetTitle("Counts");
+    PhiPlot->Rebin2D(2,2);
 
     PhiPlot->SetStats(0);
     PhiPlot->Draw("colz");
 
     canvas->cd(4);
 
-    EResPlot->SetTitle("Reconstructed electron energy resolution");
-    EResPlot->GetXaxis()->SetTitle("E_{recon} - E_{prim} / E_{prim}");
+    EResPlot->SetTitle("Electron energy resolution");
+    EResPlot->GetXaxis()->SetTitle("(E_{recon} - E_{prim}) / E_{prim}");
     EResPlot->GetYaxis()->SetTitle("Counts");
 
     EResPlot->SetStats(0);
     EResPlot->Draw();
 
+    // Write fitted Gaussian standard deviation in pad
+    //Fit Gaussian to histogram maximum bin +- 10 bins
+    int maxBin = EResPlot->GetMaximumBin();
+    int fitMin = maxBin-10;
+    int fitMax = maxBin+10;    
+    EResPlot->Fit("gaus", "Q", "", EResPlot->GetBinCenter(fitMin), EResPlot->GetBinCenter(fitMax));
+    double EResStdDev = EResPlot->GetFunction("gaus")->GetParameter(2);    
+    TLatex* latex = new TLatex();
+    latex->SetTextSize(0.03);
+    latex->DrawLatexNDC(0.2, 0.8, Form("#sigma_{E} = %.2f %s", EResStdDev*100, "%"));
+
+    // Remove fitted Gaussian from histogram
+    EResPlot->GetListOfFunctions()->Remove(EResPlot->GetFunction("gaus"));
+
     canvas->cd(5);
 
-    ThetaResPlot->SetTitle("Reconstructed Theta resolution");
-    ThetaResPlot->GetXaxis()->SetTitle("Theta_{recon} - Theta_{prim} [mrad]");
+    ThetaResPlot->SetTitle("Theta resolution");
+    ThetaResPlot->GetXaxis()->SetTitle("#theta_{recon} - #theta_{prim} [mrad]");
     ThetaResPlot->GetYaxis()->SetTitle("Counts");
 
     ThetaResPlot->SetStats(0);
     ThetaResPlot->Draw();
 
+    // Write fitted Gaussian standard deviation in pad
+    //Fit Gaussian to histogram maximum bin +- 10 bins
+    maxBin = ThetaResPlot->GetMaximumBin();
+    fitMin = maxBin-10;
+    fitMax = maxBin+10;
+    ThetaResPlot->Fit("gaus", "Q", "", ThetaResPlot->GetBinCenter(fitMin), ThetaResPlot->GetBinCenter(fitMax));
+    double ThetaResStdDev = ThetaResPlot->GetFunction("gaus")->GetParameter(2);
+    latex->DrawLatexNDC(0.2, 0.8, Form("#sigma_{#theta} = %.2f mrad", ThetaResStdDev));
+
+    // Remove fitted Gaussian from histogram
+    ThetaResPlot->GetListOfFunctions()->Remove(ThetaResPlot->GetFunction("gaus"));
+
     canvas->cd(6);
 
-    PhiResPlot->SetTitle("Reconstructed Phi resolution");
-    PhiResPlot->GetXaxis()->SetTitle("Phi_{recon} - Phi_{prim} [deg]");
+    PhiResPlot->SetTitle("Phi resolution (#theta>1mrad)");
+    PhiResPlot->GetXaxis()->SetTitle("#phi_{recon} - #phi_{prim} [deg]");
     PhiResPlot->GetYaxis()->SetTitle("Counts");
 
     PhiResPlot->SetStats(0);
     PhiResPlot->Draw();
+
+    // Write fitted Gaussian standard deviation in pad
+    //Fit Gaussian to histogram maximum bin +- 10 bins
+    maxBin = PhiResPlot->GetMaximumBin();
+    fitMin = maxBin-10;
+    fitMax = maxBin+10;
+    PhiResPlot->Fit("gaus", "Q", "", PhiResPlot->GetBinCenter(fitMin), PhiResPlot->GetBinCenter(fitMax));
+    double PhiResStdDev = PhiResPlot->GetFunction("gaus")->GetParameter(2);
+    latex->DrawLatexNDC(0.2, 0.8, Form("#sigma_{#phi} = %.1f deg", PhiResStdDev));
+
+    // Remove fitted Gaussian from histogram
+    PhiResPlot->GetListOfFunctions()->Remove(PhiResPlot->GetFunction("gaus"));
 
     // Save the canvas to output file
     outputFile->WriteTObject(canvas);

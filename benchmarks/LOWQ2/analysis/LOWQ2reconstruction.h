@@ -18,7 +18,8 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
   std::map<TString,H2ResultPtr> hHists2D;
   std::map<TString,H3ResultPtr> hHists3D;
 
-  d1 = d1.Define("eBeam", [eBeamID]
+  d1 = d1.Filter("LowQ2TrackParameters.size()>0") 
+        .Define("eBeam", [eBeamID]
                             (std::vector<edm4hep::MCParticleData> h)
                             {return ROOT::Math::PxPyPzMVector (h[eBeamID].momentum.x,h[eBeamID].momentum.y,h[eBeamID].momentum.z,h[eBeamID].mass);},
                             {"MCParticles"})
@@ -91,8 +92,8 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
   double w2Max = 0.5; // GeV^2
   double thetaResMin = -5; // mrad
   double thetaResMax = 5; // mrad
-  double phiResMin = -100; // deg
-  double phiResMax = 100; // deg
+  double phiResMin = -180; // deg
+  double phiResMax = 180; // deg
   double eResMin = -0.1; // GeV
   double eResMax = 0.1; // GeV
   double q2ResMin = -0.01; // GeV^2
@@ -137,7 +138,7 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
   hHists3D["phiResVsETheta"]   = d1.Histo3D({"phiResVsETheta","phiResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad];#phi_{recon}-#phi_{prim} [rad]",bins3D,eMin,eMax,bins3D,thetaMin,thetaMax,bins3DRes,phiResMin,phiResMax},"primE","primTheta_mrad","phiRes");
   hHists3D["EResVsETheta"]     = d1.Histo3D({"EResVsETheta","EResVsETheta;E_{prim} [GeV];#theta_{prim} [mrad];E_{recon}-E_{prim} [GeV]",bins3D,eMin,eMax,bins3D,thetaMin,thetaMax,bins3DRes,eResMin,eResMax},"primE","primTheta_mrad","ERes");
 
-  auto d2 = d1.Filter("reconTheta_mrad<2");
+  auto d2 = d1.Filter("reconTheta_mrad>1");
 
   hHists1D["thetacut/phiRes"]            = d2.Histo1D({"phiRes","phiRes;#phi_{recon}-#phi_{prim} [rad]",bins1D,phiResMin,phiResMax},"phiRes");
   hHists2D["thetacut/phiResVsE"]         = d2.Histo2D({"phiResVsE", "phiResVsE;#phi_{recon}-#phi_{prim} [rad];E_{prim} [GeV]", bins2D, phiResMin, phiResMax, bins2D, eMin, eMax}, "phiRes", "primE");

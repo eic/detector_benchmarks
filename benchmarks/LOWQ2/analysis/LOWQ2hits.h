@@ -15,11 +15,13 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
 
   int xChip = 448;
   int yChip = 512;
-  std::map<int,int> xPixelMin = {{1,-xChip*3},{2,-xChip*3}};
-  std::map<int,int> xPixelMax = {{1, xChip*3},{2, xChip*3}};
+  int xChips = 6;
+  int yChips = 6;
+  std::map<int,int> xPixelMin = {{1,-xChip*xChips/2},{2,-xChip*xChips/2}};
+  std::map<int,int> xPixelMax = {{1, xChip*xChips/2},{2, xChip*xChips/2}};
 
-  std::map<int,int> yPixelMin = {{1,-yChip*3},{2,-yChip*3}};
-  std::map<int,int> yPixelMax = {{1, yChip*3},{2, yChip*3}};
+  std::map<int,int> yPixelMin = {{1,-yChip*yChips/2},{2,-yChip*yChips/2}};
+  std::map<int,int> yPixelMax = {{1, yChip*yChips/2},{2, yChip*yChips/2}};
 
 
   std::map<TString,H1ResultPtr> hHists1D;
@@ -35,7 +37,7 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
 
 
   // Plot number of hits per moduleID
-  hHists1D["rate/hmoduleID"] = d2.Histo1D({"hmoduleID",  "hmoduleID;Module ID;Rate [Hz]", 2,     1,    3   }, "moduleID", "eventWeight");
+  hHists1D["hmoduleID"] = d2.Histo1D({"hmoduleID",  "hmoduleID;Module ID;Rate [Hz]", 2,     1,    3   }, "moduleID", "eventWeight");
   
   // Module Loop
   for(int i=1; i<=2; i++){
@@ -57,7 +59,7 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
       .Define(layerName,"layerID[ModuleFilter]");
         
     
-    hHists1D["rate/"+moduleTag+"/"+layerHistName]  = d3.Histo1D({layerHistName,   layerHistName+";Layer ID;Rate [Hz]",  4,     0,    4   }, layerName, "eventWeight");
+    hHists1D[moduleTag+"/"+layerHistName]  = d3.Histo1D({layerHistName,   layerHistName+";Layer ID;Rate [Hz]",  4,     0,    4   }, layerName, "eventWeight");
     
     // Layer Loop
     for(int j=0; j<=3; j++){

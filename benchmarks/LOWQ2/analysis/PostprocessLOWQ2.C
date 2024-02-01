@@ -4,7 +4,8 @@
 #include <TH2.h>
 #include <iostream>
 #include <TStyle.h>
-#include <TLatex>
+#include <TLatex.h>
+#include <TLine.h>
 
 //----------------------------------------------------------------------
 // Set global plot format variables
@@ -53,9 +54,9 @@ TH1* AcceptancePlot(TDirectory* inputDir, TString ReconHistName, TString AllHist
 //----------------------------------------------------------------------
 // Create rate plots
 //---------------------------------------------------------------------- 
-TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Real") {
+TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Real", TString inTag="AllHits") {
     
-    TString histName = "AllHits/module"+std::to_string(Module)+"/layer"+std::to_string(Layer)+"/hxPixelyPixel";
+    TString histName = inTag+"/module"+std::to_string(Module)+"/layer"+std::to_string(Layer)+"/hxPixelyPixel";
 
     // Read in the plots from the input file
     TH2* RatePlot = (TH2*)inputDir->Get(histName);
@@ -213,7 +214,6 @@ void FormatAcceptancePlots(TDirectory* inputDir, TFile* outputFile, TString Tag=
 //----------------------------------------------------------------------
 void FormatRatePlots(TDirectory* inputDir, TFile* outputFile, TString Tag="Quasi-Real") {
 
-    TString histName = "AllHits/module2/layer0/hxPixelyPixel";
 
     TCanvas* canvas = new TCanvas("RateCanvas", "RateCanvas", 3200, 1200);
     canvas->Divide(2,1);
@@ -305,6 +305,41 @@ void FormatRatePlots(TDirectory* inputDir, TFile* outputFile, TString Tag="Quasi
 
     // Clean up
     delete canvas;
+
+    // Canvas showing primary and secondary hits
+    // Todo: Neaten up
+    TCanvas* canvas3 = new TCanvas("PrimarySecondary-RateCanvas", "PrimarySecondary-RateCanvas", 2400, 2400);
+    canvas3->Divide(2,2);
+
+    TH2* RatePlotPrimary1_0 = RatePlot(inputDir,1,0,Tag,"PrimaryHits");
+    TH2* RatePlotPrimary2_0 = RatePlot(inputDir,2,0,Tag,"PrimaryHits");
+
+    TH2* RatePlotSecondary1_0 = RatePlot(inputDir,1,0,Tag,"SecondaryHits");
+    TH2* RatePlotSecondary2_0 = RatePlot(inputDir,2,0,Tag,"SecondaryHits");
+
+    // Draw the plots on the canvas
+    canvas3->cd(1);
+    gPad->SetLogz();
+    RatePlotPrimary1_0->Draw("colz");
+
+    canvas3->cd(2);
+    gPad->SetLogz();
+    RatePlotPrimary2_0->Draw("colz");
+
+    canvas3->cd(3);
+    gPad->SetLogz();
+    RatePlotSecondary1_0->Draw("colz");
+
+    canvas3->cd(4);
+    gPad->SetLogz();
+    RatePlotSecondary2_0->Draw("colz");
+
+    // Save the canvas to output file
+    outputFile->WriteTObject(canvas3);
+
+    // Clean up
+    delete canvas3;
+
 
 }   
 

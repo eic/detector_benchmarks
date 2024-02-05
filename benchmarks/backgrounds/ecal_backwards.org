@@ -39,6 +39,7 @@ def setup_presentation_style():
         'figure.titlesize': 9,
         'figure.figsize': (4, 3),
         'legend.fontsize': 7,
+        'legend.loc': 'upper right',
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
         'pgf.rcfonts': False,

@@ -151,7 +151,7 @@ for label, ds in datasets.items():
 plt.minorticks_on()
 plt.xlabel("vertex[0].t, mm")
 plt.legend()
-plt.savefig(output_dir / "vertex_time_distribution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / "vertex_time_distribution.png", bbox_inches="tight")
 plt.show()
 
 for label, ds in datasets.items():
@@ -162,7 +162,7 @@ for label, ds in datasets.items():
 plt.minorticks_on()
 plt.xlabel("vertex[0].z, mm")
 plt.legend()
-plt.savefig(output_dir / "vertex_z_distribution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / "vertex_z_distribution.png", bbox_inches="tight")
 plt.show()
 
 for label, ds in datasets.items():
@@ -176,7 +176,7 @@ plt.minorticks_on()
 plt.xlabel("vertex[0].z, mm")
 plt.ylabel("vertex[0].x, mm")
 plt.legend()
-plt.savefig(output_dir / "vertex_xz_distribution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / "vertex_xz_distribution.png", bbox_inches="tight")
 plt.show()
 
 for ix, (label, ds) in enumerate(datasets.items()):
@@ -190,7 +190,7 @@ for ix, (label, ds) in enumerate(datasets.items()):
     plt.xlabel("vertex[0].z, mm")
     plt.ylabel("vertex[0].y, mm")
     plt.title(label)
-    plt.savefig(output_dir / f"vertex_yz_distribution_{ix}.pdf", bbox_inches="tight")
+    plt.savefig(output_dir / f"vertex_yz_distribution_{ix}.png", bbox_inches="tight")
     plt.show()
 #+end_src
 
@@ -229,7 +229,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.title(f"{label}, event_id={event_id}\n{collection_name}")
         plt.xlabel("hit x, mm", loc="right")
         plt.ylabel("hit y, mm", loc="top")
-        plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.pdf", bbox_inches="tight")
+        plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.png", bbox_inches="tight")
         plt.show()
 #+end_src
 
@@ -283,7 +283,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
     plt.xlabel("r, mm", loc="right")
     dr = (r_axis.edges[1] - r_axis.edges[0])
     plt.ylabel(f"Number of towers per {dr} mm slice in $r$", loc="top")
-    plt.savefig(output_dir / f"{collection_name}_num_towers.pdf", bbox_inches="tight")
+    plt.savefig(output_dir / f"{collection_name}_num_towers.png", bbox_inches="tight")
     plt.show()
 #+end_src
 
@@ -322,7 +322,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.xlabel("r, mm", loc="right")
         plt.ylabel("rate per tower, Hz", loc="top")
         plt.yscale("log")
-        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.pdf", bbox_inches="tight")
+        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.png", bbox_inches="tight")
         plt.show()
 #+end_src
 
@@ -352,7 +352,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.xlabel("$z$ of the first interaction vertex, mm", loc="right")
         plt.ylabel("rate, Hz", loc="top")
         plt.yscale("log")
-        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.pdf", bbox_inches="tight")
+        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.png", bbox_inches="tight")
         plt.show()
 #+end_src
 
@@ -428,7 +428,7 @@ for edep_min in [0]: # GeV
         plt.ylabel("rate, Hz", loc="top")
         plt.yscale("log")
         plt.xticks(rotation=90, ha='right')
-        fig_cur.savefig(f"rates_edep_min_{edep_min}_{dataset_ix}.pdf", bbox_inches="tight")
+        fig_cur.savefig(f"rates_edep_min_{edep_min}_{dataset_ix}.png", bbox_inches="tight")
         plt.show()
         plt.close(fig_cur)
 
@@ -438,6 +438,6 @@ for edep_min in [0]: # GeV
     plt.ylabel("rate per tower, Hz", loc="top")
     plt.yscale("log")
     plt.xticks(rotation=90, ha='right')
-    fig_cmb.savefig(f"rates_edep_min_{edep_min}.pdf", bbox_inches="tight")
+    fig_cmb.savefig(f"rates_edep_min_{edep_min}.png", bbox_inches="tight")
     plt.show()
 #+end_src

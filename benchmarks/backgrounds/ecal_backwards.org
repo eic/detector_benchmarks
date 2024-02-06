@@ -399,7 +399,11 @@ for edep_min in [0]: # GeV
             #    cellID.map_partitions(unique)
             #).compute())
 
-            num_towers = num_towers_cache[branch_name.replace("Hits.energy", "")]
+            key = branch_name.replace("Hits.energy", "")
+            if key not in num_towers_cache:
+                print(f"The \"{key}\" not in num_towers_cache. Skipping.")
+                continue
+            num_towers = num_towers_cache[key]
 
             labels.append(branch_name.replace("Hits.energy", ""))
             values.append(ak.count(edep[edep > edep_min]))

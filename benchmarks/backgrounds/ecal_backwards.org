@@ -1,0 +1,447 @@
+#+PROPERTY: header-args:jupyter-python :session /jpy:localhost#8888:eeemcal :async yes :results drawer :exports both
+
+#+TITLE: ePIC EEEMCal background rates study
+#+AUTHOR: Dmitry Kalinkin
+#+OPTIONS: d:t
+
+#+begin_src jupyter-python :results silent
+import os
+from pathlib import Path
+
+import awkward as ak
+import boost_histogram as bh
+import dask
+import dask_awkward as dak
+import dask_histogram as dh
+import numpy as np
+import uproot
+import pyhepmc
+#+end_src
+
+#+begin_src jupyter-python :results silent
+from dask.distributed import Client
+
+client = Client(os.environ.get("DASK_SCHEDULER", "localhost:8786"))
+#+end_src
+
+* Plotting setup
+
+#+begin_src jupyter-python :results silent
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+def setup_presentation_style():
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use('ggplot')
+    plt.rcParams.update({
+        'axes.labelsize': 8,
+        'axes.titlesize': 9,
+        'figure.titlesize': 9,
+        'figure.figsize': (4, 3),
+        'legend.fontsize': 7,
+        'legend.loc': 'upper right',
+        'xtick.labelsize': 8,
+        'ytick.labelsize': 8,
+        'pgf.rcfonts': False,
+    })
+
+setup_presentation_style()
+#+end_src
+
+* Analysis
+
+** Input files
+
+#+begin_src jupyter-python :results silent
+ELECTRON_BEAM_GAS_GEN=os.environ.get("ELECTRON_BEAM_GAS_GEN", "../beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")
+ELECTRON_BEAM_GAS_SIM=os.environ.get("ELECTRON_BEAM_GAS_SIM", "electron_beam_gas.edm4hep.root")
+PHYSICS_PROCESS_SIM=os.environ.get("PHYSICS_PROCESS_SIM", "pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root")
+PROTON_BEAM_GAS_GEN=os.environ.get("PROTON_BEAM_GAS_GEN", "100GeV.hepmc")
+PROTON_BEAM_GAS_SIM=os.environ.get("PROTON_BEAM_GAS_SIM", "proton+beam_gas_ep.edm4hep.root")
+
+output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
+output_dir.mkdir(parents=True, exist_ok=True)
+#+end_src
+
+#+begin_src jupyter-python :results silent
+builder = ak.ArrayBuilder()
+n = 0
+with pyhepmc.open(PROTON_BEAM_GAS_GEN) as f:
+    it = iter(f)
+    for event in f:
+        builder.begin_list()
+        for vertex in event.vertices:
+            assert event.length_unit.name == "MM"
+            with builder.record("Vector4D"):
+                builder.field("x")
+                builder.real(vertex.position.x)
+                builder.field("y")
+                builder.real(vertex.position.y)
+                builder.field("z")
+                builder.real(vertex.position.z)
+                builder.field("t")
+                builder.real(vertex.position.t)
+        builder.end_list()
+        n += 1
+        if n > 10000: break
+
+vertices_proton_beam_gas = builder.snapshot()
+
+builder = ak.ArrayBuilder()
+n = 0
+with pyhepmc.open(ELECTRON_BEAM_GAS_GEN) as f:
+    it = iter(f)
+    for event in f:
+        builder.begin_list()
+        for vertex in event.vertices:
+            assert event.length_unit.name == "MM"
+            with builder.record("Vector3D"):
+                builder.field("x")
+                builder.real(vertex.position.x)
+                builder.field("y")
+                builder.real(vertex.position.y)
+                builder.field("z")
+                builder.real(vertex.position.z)
+                builder.field("t")
+                builder.real(vertex.position.t)
+        builder.end_list()
+        n += 1
+        if n > 10000: break
+
+vertices_electron_beam_gas = builder.snapshot()
+#+end_src
+
+#+begin_src jupyter-python :results silent
+def filter_name(name):
+    return "Hits." in name or "MCParticles." in name
+
+datasets = {
+    # https://wiki.bnl.gov/EPIC/index.php?title=Electron_Beam_Gas
+    "electron beam gas 10 GeV": {
+        "vertices": vertices_electron_beam_gas,
+        "events": uproot.dask({ELECTRON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "cmap": "cool",
+        "rate": 3.2e6, # Hz
+    },
+    "DIS 10x100, $Q^2 > 1$ GeV${}^2$": {
+        "events": uproot.dask({PHYSICS_PROCESS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "rate": 184e3, # Hz
+    },
+    # https://wiki.bnl.gov/EPIC/index.php?title=Hadron_Beam_Gas
+    "proton beam gas 100 GeV": {
+        "vertices": vertices_proton_beam_gas,
+        "events": uproot.dask({PROTON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "cmap": "summer",
+        "rate": 31.9e3, # Hz
+    },
+}
+
+for ds in datasets.values():
+    ds["events"].eager_compute_divisions()
+#+end_src
+
+** Vertex distributions
+
+#+begin_src jupyter-python
+for label, ds in datasets.items():
+    if "vertices" not in ds: continue
+    vs = ds["vertices"]
+    weight = ds["rate"] / ak.num(ds["vertices"], axis=0)
+    plt.hist(ak.ravel(vs.t[:,0]), bins=100, histtype="step", label=label)
+plt.minorticks_on()
+plt.xlabel("vertex[0].t, mm")
+plt.legend()
+plt.savefig(output_dir / "vertex_time_distribution.png", bbox_inches="tight")
+plt.show()
+
+for label, ds in datasets.items():
+    if "vertices" not in ds: continue
+    vs = ds["vertices"]
+    weight = ds["rate"] / ak.num(ds["vertices"], axis=0)
+    plt.hist(ak.ravel(vs.z[:,0]), bins=100, histtype="step", label=label)
+plt.minorticks_on()
+plt.xlabel("vertex[0].z, mm")
+plt.legend()
+plt.savefig(output_dir / "vertex_z_distribution.png", bbox_inches="tight")
+plt.show()
+
+for label, ds in datasets.items():
+    if "vertices" not in ds: continue
+    vs = ds["vertices"]
+    cmap = ds["cmap"]
+    weight = ds["rate"] / ak.num(ds["vertices"], axis=0)
+    plt.hist2d(vs.z[:,0].to_numpy(), vs.x[:,0].to_numpy(), bins=(100, np.linspace(-130, 130, 160)), cmin=1e-30, label=label, cmap=cmap)
+    plt.plot([], color=mpl.colormaps[cmap](0.5), label=label)
+plt.minorticks_on()
+plt.xlabel("vertex[0].z, mm")
+plt.ylabel("vertex[0].x, mm")
+plt.legend()
+plt.savefig(output_dir / "vertex_xz_distribution.png", bbox_inches="tight")
+plt.show()
+
+for ix, (label, ds) in enumerate(datasets.items()):
+    if "vertices" not in ds: continue
+    vs = ds["vertices"]
+    cmap = ds["cmap"]
+    weight = ds["rate"] / ak.num(ds["vertices"], axis=0)
+    plt.hist2d(vs.z[:,0].to_numpy(), vs.y[:,0].to_numpy(), bins=(100, 100), cmin=1e-30, cmap=cmap)
+    plt.colorbar()
+    plt.minorticks_on()
+    plt.xlabel("vertex[0].z, mm")
+    plt.ylabel("vertex[0].y, mm")
+    plt.title(label)
+    plt.savefig(output_dir / f"vertex_yz_distribution_{ix}.png", bbox_inches="tight")
+    plt.show()
+#+end_src
+
+** Simulation results
+
+#+begin_src jupyter-python
+for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
+    for dataset_ix, (label, ds) in enumerate(datasets.items()):
+        events = ds["events"]
+
+        energy_sums = ak.sum(events[f"{collection_name}.energy"].head(10000), axis=1)
+        event_id = ak.argmax(energy_sums)
+        xs = events[f"{collection_name}.position.x"].head(event_id + 1)[event_id].to_numpy()
+        ys = events[f"{collection_name}.position.y"].head(event_id + 1)[event_id].to_numpy()
+
+        bin_widths = [None, None]
+        for ix, vals in enumerate([xs, ys]):
+            centers = np.unique(vals)
+            diffs = centers[1:] - centers[:-1]
+            bin_widths[ix] = np.min(diffs[diffs > 0]) if np.sum(diffs > 0) > 0 else 1.
+            print(f"bin_widths[{ix}]", bin_widths[ix])
+
+        bins = {
+            "EcalEndcapNHits": [np.arange(-750., 750., bin_width) for bin_width in bin_widths],
+            "EcalEndcapPHits": [np.arange(-1800., 1800., bin_width) for bin_width in bin_widths],
+        }[collection_name]
+
+        plt.hist2d(
+            xs,
+            ys,
+            weights=events[f"{collection_name}.energy"].head(event_id + 1)[event_id].to_numpy(),
+            bins=bins,
+            cmin=1e-10,
+        )
+        plt.colorbar().set_label("energy, GeV", loc="top")
+        plt.title(f"{label}, event_id={event_id}\n{collection_name}")
+        plt.xlabel("hit x, mm", loc="right")
+        plt.ylabel("hit y, mm", loc="top")
+        plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.png", bbox_inches="tight")
+        plt.show()
+#+end_src
+
+** Discovering number of cells
+
+Using HyperLogLog algorithm would be faster here, or actually load
+DD4hep geometry and count sensitive volumes.
+
+#+begin_src jupyter-python
+def unique(array):
+    if ak.backend(array) == "typetracer":
+        ak.typetracer.touch_data(array)
+        return array
+    return ak.from_numpy(np.unique(ak.to_numpy(ak.ravel(array))))
+unique_delayed = dask.delayed(unique)
+len_delayed = dask.delayed(len)
+
+cellID_for_r = dict()
+
+for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
+    r_axis = {
+        "EcalEndcapNHits": bh.axis.Regular(75, 0., 750.),
+        "EcalEndcapPHits": bh.axis.Regular(90, 0., 1800.),
+    }[collection_name]
+    ds = datasets["DIS 10x100, $Q^2 > 1$ GeV${}^2$"]
+    events = ds["events"]
+
+    r = np.hypot(
+        ak.ravel(events[f"{collection_name}.position.x"]),
+        ak.ravel(events[f"{collection_name}.position.y"]),
+    )
+    cellID = ak.ravel(events[f"{collection_name}.cellID"])
+
+    cellID_for_r[collection_name] = np.array(client.gather(client.compute([
+        len_delayed(unique_delayed(
+            cellID[(r >= r_min) & (r < r_max)].map_partitions(unique)
+        ))
+        for r_min, r_max in zip(r_axis.edges[:-1], r_axis.edges[1:])
+    ])))
+
+    print(cellID_for_r[collection_name])
+    print(sum(cellID_for_r[collection_name]))
+
+    plt.stairs(
+        cellID_for_r[collection_name],
+        r_axis.edges,
+    )
+
+    plt.title(f"{collection_name}")
+    plt.legend()
+    plt.xlabel("r, mm", loc="right")
+    dr = (r_axis.edges[1] - r_axis.edges[0])
+    plt.ylabel(f"Number of towers per {dr} mm slice in $r$", loc="top")
+    plt.savefig(output_dir / f"{collection_name}_num_towers.png", bbox_inches="tight")
+    plt.show()
+#+end_src
+
+** Plotting the rates
+
+#+begin_src jupyter-python
+for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
+    r_axis = {
+        "EcalEndcapNHits": bh.axis.Regular(75, 0., 750.),
+        "EcalEndcapPHits": bh.axis.Regular(90, 0., 1800.),
+    }[collection_name]
+    for edep_min in [0.005, 0.015, 0.050]: # GeV
+        for label, ds in datasets.items():
+            events = ds["events"]
+            weight = ds["rate"] / len(events)
+
+            r = np.hypot(
+                ak.ravel(events[f"{collection_name}.position.x"]),
+                ak.ravel(events[f"{collection_name}.position.y"]),
+            )
+            edep = ak.ravel(events[f"{collection_name}.energy"])
+            r = r[edep > edep_min]
+
+            hist = dh.factory(
+                r,
+                axes=(r_axis,),
+            ).compute()
+            plt.stairs(
+                hist.values() * weight / cellID_for_r[collection_name],
+                hist.axes[0].edges,
+                label=f"{label}",
+            )
+
+        plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV\n{collection_name}")
+        plt.legend()
+        plt.xlabel("r, mm", loc="right")
+        plt.ylabel("rate per tower, Hz", loc="top")
+        plt.yscale("log")
+        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.png", bbox_inches="tight")
+        plt.show()
+#+end_src
+
+#+begin_src jupyter-python
+for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
+    for totedep_min in [-1, 0, 0.1, 0.5, 1.0, 5.0, 10.]: # GeV
+        for label, ds in datasets.items():
+            events = ds["events"]
+            weight = ds["rate"] / len(events)
+
+            z = ds["events"]["MCParticles.vertex.z"][:,1]
+            totedep = ak.sum(events[f"{collection_name}.energy"], axis=1)
+            z = z[totedep > totedep_min]
+
+            hist = dh.factory(
+                z,
+                axes=(bh.axis.Regular(250, -7500., 17500.),),
+            ).compute()
+            plt.stairs(
+                hist.values() * weight,
+                hist.axes[0].edges,
+                label=f"{label}",
+            )
+
+        plt.title(rf"for events with $E_{{\mathrm{{dep. tot.}}}}$ $>$ {totedep_min} GeV" + f"\n{collection_name}")
+        plt.legend()
+        plt.xlabel("$z$ of the first interaction vertex, mm", loc="right")
+        plt.ylabel("rate, Hz", loc="top")
+        plt.yscale("log")
+        plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.png", bbox_inches="tight")
+        plt.show()
+#+end_src
+
+#+begin_src jupyter-python
+num_towers_cache = {
+    "LumiSpecCAL": 200,
+    "LumiDirectPCAL": 1,
+    "ZDCHcal": 1470,
+    "LFHCAL": 578338,
+    "ZDC_WSi_": 187043,
+    "EcalBarrelScFi": 124205483,
+    "EcalEndcapP": 15037,
+    "ZDCEcal": 400,
+    "EcalEndcapPInsert": 536,
+    "HcalEndcapPInsert": 20251,
+    "B0ECal": 131,
+    "HcalEndcapN": 13800,
+    "HcalBarrel": 7680,
+    "EcalBarrelImaging": 5765469,
+    "EcalEndcapN": 2988,
+    "ZDC_PbSi_": 44344,
+}
+
+fig_cmb = plt.figure()
+ax_cmb = fig_cmb.gca()
+
+for edep_min in [0]: # GeV
+    for dataset_ix, (x_offset, (ds_label, ds)) in enumerate(zip(np.linspace(-0.3, 0.3, len(datasets)), datasets.items())):
+        events = ds["events"]
+        weight = ds["rate"] / len(events)
+
+        labels = []
+        values = []
+        norms = []
+
+        for branch_name in events.fields:
+            if ".energy" not in branch_name: continue
+            if "ZDC_SiliconPix_Hits" in branch_name: continue
+
+            edep = ak.ravel(events[branch_name])
+
+            #cellID = ak.ravel(events[branch_name.replace(".energy", ".cellID")])
+            #num_towers = len(unique_delayed(
+            #    cellID.map_partitions(unique)
+            #).compute())
+
+            key = branch_name.replace("Hits.energy", "")
+            if key not in num_towers_cache:
+                print(f"The \"{key}\" not in num_towers_cache. Skipping.")
+                continue
+            num_towers = num_towers_cache[key]
+
+            labels.append(branch_name.replace("Hits.energy", ""))
+            values.append(ak.count(edep[edep > edep_min]))
+            norms.append(num_towers if num_towers != 0 else np.nan)
+
+        fig_cur = plt.figure()
+        ax_cur = fig_cur.gca()
+
+        values, = dask.compute(values)
+        for ax, per_tower, offset, width in [
+                (ax_cmb, True, x_offset, 2 * 0.3 / (len(datasets) - 1)),
+                (ax_cur, False, 0, 2 * 0.3),
+        ]:
+            ax.bar(
+                np.arange(len(labels)) + offset,
+                weight * np.array(values) / (np.array(norms) if per_tower else np.ones_like(norms)),
+                width=width,
+                tick_label=labels,
+                label=ds_label,
+                color=f"C{dataset_ix}",
+            )
+
+        plt.sca(ax_cur)
+        plt.legend()
+        plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
+        plt.ylabel("rate, Hz", loc="top")
+        plt.yscale("log")
+        plt.xticks(rotation=90, ha='right')
+        fig_cur.savefig(f"rates_edep_min_{edep_min}_{dataset_ix}.png", bbox_inches="tight")
+        plt.show()
+        plt.close(fig_cur)
+
+    plt.sca(ax_cmb)
+    plt.legend()
+    plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
+    plt.ylabel("rate per tower, Hz", loc="top")
+    plt.yscale("log")
+    plt.xticks(rotation=90, ha='right')
+    fig_cmb.savefig(f"rates_edep_min_{edep_min}.png", bbox_inches="tight")
+    plt.show()
+#+end_src

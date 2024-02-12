@@ -31,20 +31,23 @@ rule backgrounds_get_beam_gas_proton:
 
 rule backgrounds_get_DIS:
     input:
-        S3.remote("eictest/EPIC/FULL/23.11.0/epic_craterlake/DIS/NC/10x100/minQ2=10/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root"),
+        S3.remote("eictest/EPIC/EVGEN/DIS/NC/{BEAM}/minQ2={MINQ2}/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc"),
+    wildcard_constraints:
+        BEAM="\d+x\d+",
+        MINQ2="\d+",
     output:
-        dis_sim="input/backgrounds/pythia8NCDIS_10x100_minQ2=10_beamEffects_xAngle=-0.025_hiDiv_1.0000.edm4hep.root",
+        "input/backgrounds/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc",
     run:
         shutil.move(input[0], output[0])
 
 
 rule backgrounds_sim:
     input:
-        "input/backgrounds/beam_gas_{BEAM}.hepmc",
+        "input/backgrounds/{NAME}.hepmc",
     output:
-        "sim_output/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root",
+        "sim_output/{DETECTOR_CONFIG}/{NAME}.edm4hep.root",
     log:
-        "sim_output/{DETECTOR_CONFIG}/beam_gas_{BEAM}.edm4hep.root.log",
+        "sim_output/{DETECTOR_CONFIG}/{NAME}.edm4hep.root.log",
     params:
         N_EVENTS=100
     shell:
@@ -80,7 +83,7 @@ rule backgrounds_ecal_backwards:
         script="ecal_backwards.py",
         electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
         electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
-        physics_signal_sim=rules.backgrounds_get_DIS.output[0],
+        physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
         proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
         proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
     output:

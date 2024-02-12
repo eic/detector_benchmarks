@@ -9,11 +9,11 @@
 //
 // Author: Alex Jentsch
 //------------------------
-
+//Low PT preprocessing added by David Ruth
 
 using namespace std;
 
-void preprocess_model_training_data(TString inputFile, TString outputFile) {
+void preprocess_model_training_data(TString inputFile, TString outputFile, TString outputFile_lo) {
 
     string fileName;
     TFile* inputRootFile;
@@ -52,6 +52,8 @@ void preprocess_model_training_data(TString inputFile, TString outputFile) {
     ofstream outputTrainingFile;
     outputTrainingFile.open(outputFile);
 
+    ofstream outputTrainingFile_lo;
+    outputTrainingFile_lo.open(outputFile_lo);
     // MC particles
     TTreeReaderArray<float> mc_px_array = { tree_reader, "MCParticles.momentum.x" };
     TTreeReaderArray<float> mc_py_array = { tree_reader, "MCParticles.momentum.y" };
@@ -81,6 +83,7 @@ void preprocess_model_training_data(TString inputFile, TString outputFile) {
         bool hasMCProton = false;
         bool hitLayerOne = false;
         bool hitLayerTwo = false;
+	bool lowPT = false;
 
         double mcProtonMomentum[3];
         TVector3 mctrk;
@@ -127,7 +130,12 @@ void preprocess_model_training_data(TString inputFile, TString outputFile) {
                 hitLayerTwo = true;
             }
         }
-
+        if (hasMCProton) {
+		double Pt = sqrt(pow(mcProtonMomentum[0],2) + pow(mcProtonMomentum[1],2));
+		if(Pt < 0.3) {
+			lowPT = true;
+		}
+	}
         if (hasMCProton && hitLayerOne && hitLayerTwo) {
 
             double slope_x = (rpHitLayerTwo[0] - rpHitLayerOne[0]) / (rpHitLayerTwo[2] - rpHitLayerOne[2]);
@@ -135,6 +143,10 @@ void preprocess_model_training_data(TString inputFile, TString outputFile) {
 
             outputTrainingFile << mcProtonMomentum[0] << "\t" << mcProtonMomentum[1] << "\t" << mcProtonMomentum[2] << "\t";
             outputTrainingFile << rpHitLayerTwo[0] << "\t" << slope_x << "\t" << rpHitLayerTwo[1] << "\t" << slope_y << endl;
+	    if (lowPT) {
+               outputTrainingFile_lo << mcProtonMomentum[0] << "\t" << mcProtonMomentum[1] << "\t" << mcProtonMomentum[2] << "\t";
+               outputTrainingFile_lo << rpHitLayerTwo[0] << "\t" << slope_x << "\t" << rpHitLayerTwo[1] << "\t" << slope_y << endl;
+            }
         }
 
         iEvent++;
@@ -142,6 +154,7 @@ void preprocess_model_training_data(TString inputFile, TString outputFile) {
 
     inputRootFile->Close();
     outputTrainingFile.close();
+    outputTrainingFile_lo.close();
 
     return;
 }

@@ -128,7 +128,7 @@ get_data:
       - runner_system_failure
 
 include: 
-  - local: 'benchmarks/backgrounds/config.yml'
+#  - local: 'benchmarks/backgrounds/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'

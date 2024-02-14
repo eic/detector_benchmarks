@@ -21,10 +21,13 @@ if [[ ! -n  "${PARTICLE}" ]] ; then
   export PARTICLE="electron"
 fi
 
-export JUGGLER_FILE_NAME_TAG="hcal_barrel_${PARTICLE}"
-export JUGGLER_GEN_FILE="${JUGGLER_FILE_NAME_TAG}.hepmc"
+if [[ ! -n  "${JUGGLER_FILE_NAME_TAG}" ]] ; then
+  export JUGGLER_FILE_NAME_TAG="hcal_barrel_${PARTICLE}"
+fi
 
-export JUGGLER_SIM_FILE="sim_${JUGGLER_FILE_NAME_TAG}.edm4hep.root"
+export JUGGLER_GEN_FILE="data/${JUGGLER_FILE_NAME_TAG}.hepmc"
+
+export JUGGLER_SIM_FILE="sim_output/sim_${JUGGLER_FILE_NAME_TAG}.edm4hep.root"
 export JUGGLER_REC_FILE="rec_${JUGGLER_FILE_NAME_TAG}.root"
 
 echo "JUGGLER_N_EVENTS = ${JUGGLER_N_EVENTS}"
@@ -51,8 +54,8 @@ ddsim --runType batch \
       --filter.tracker edep0 \
       --numberOfEvents ${JUGGLER_N_EVENTS} \
       --compactFile ${DETECTOR_PATH}/${DETECTOR_CONFIG}.xml \
-      --inputFiles data/${JUGGLER_FILE_NAME_TAG}.hepmc \
-      --outputFile sim_output/${JUGGLER_SIM_FILE}
+      --inputFiles ${JUGGLER_GEN_FILE} \
+      --outputFile ${JUGGLER_SIM_FILE}
 
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running npdet"
@@ -61,7 +64,3 @@ fi
 
 # Directory for plots
 mkdir -p results
-
-# Move ROOT output file
-#mv ${JUGGLER_REC_FILE} sim_output/
-

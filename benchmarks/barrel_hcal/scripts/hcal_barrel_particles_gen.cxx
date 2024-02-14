@@ -18,6 +18,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <cstdlib>
 #include <fmt/core.h>
 
 #include "hcal_barrel_common_functions.h"
@@ -25,7 +26,12 @@
 using namespace HepMC3;
 
 void hcal_barrel_particles_gen(int n_events = 1e6, double e_start = 0.0, double e_end = 20.0, std::string particle_name = "muon") {
-  std::string out_fname = fmt::format("./data/hcal_barrel_{}.hepmc", particle_name);
+  std::string out_fname;
+  auto env_fname = getenv("JUGGLER_GEN_FILE");
+  if (env_fname != nullptr)
+    out_fname = env_fname;
+  else
+    out_fname = fmt::format("./data/hcal_barrel_{}.hepmc", particle_name);
   WriterAscii hepmc_output(out_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);

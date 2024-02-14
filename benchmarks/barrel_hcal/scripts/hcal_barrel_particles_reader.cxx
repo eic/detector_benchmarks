@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include <fmt/core.h>
 
 #include "hcal_barrel_common_functions.h"
@@ -50,7 +51,12 @@ void hcal_barrel_particles_reader(std::string particle_name = "electron")
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.17);
 
-  std::string in_fname = fmt::format("./data/hcal_barrel_{}.hepmc",particle_name);
+  std::string in_fname;
+  auto env_fname = getenv("JUGGLER_GEN_FILE");
+  if (env_fname != nullptr)
+    in_fname = env_fname;
+  else
+    in_fname = fmt::format("./data/hcal_barrel_{}.hepmc", particle_name);
   ReaderAscii hepmc_input(in_fname);
   int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);

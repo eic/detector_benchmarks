@@ -20,7 +20,6 @@ bench:materialScanEta:
     - mkdir results/images/
     - mv materialScanEta.png results/images/materialScanEta.png
     - mv materialScanEta.pdf results/images/materialScanEta.pdf
-  allow_failure: true
 
 bench:materialScanEta:tracking:
   stage: benchmarks
@@ -30,7 +29,6 @@ bench:materialScanEta:tracking:
     - mkdir results/images/
     - mv materialScanEta.png results/images/materialScanEtaTracking.png
     - mv materialScanEta.pdf results/images/materialScanEtaTracking.pdf
-  allow_failure: true
 
 bench:materialScanEta:ecal:
   stage: benchmarks
@@ -40,7 +38,6 @@ bench:materialScanEta:ecal:
     - mkdir results/images/
     - mv materialScanEta.png results/images/materialScanEtaEcal.png
     - mv materialScanEta.pdf results/images/materialScanEtaEcal.pdf
-  allow_failure: true
 
 bench:materialScanEtaPhi:
   stage: benchmarks
@@ -50,7 +47,6 @@ bench:materialScanEtaPhi:
     - mkdir results/images/
     - mv materialScanEtaPhi.png results/images/materialScanEtaPhi.png
     - mv materialScanEtaPhi.pdf results/images/materialScanEtaPhi.pdf
-  allow_failure: true
 
 bench:materialScanEtaPhi:tracking:
   stage: benchmarks
@@ -60,7 +56,6 @@ bench:materialScanEtaPhi:tracking:
     - mkdir results/images/
     - mv materialScanEtaPhi.png results/images/materialScanEtaPhiTracking.png
     - mv materialScanEtaPhi.pdf results/images/materialScanEtaPhiTracking.pdf
-  allow_failure: true
 
 bench:materialScanEtaPhi:ecal:
   stage: benchmarks
@@ -70,7 +65,6 @@ bench:materialScanEtaPhi:ecal:
     - mkdir results/images/
     - mv materialScanEtaPhi.png results/images/materialScanEtaPhiEcal.png
     - mv materialScanEtaPhi.pdf results/images/materialScanEtaPhiEcal.pdf
-  allow_failure: true
 
 collect_results:materialscan:
   extends: .det_benchmark

@@ -89,14 +89,14 @@ void analysis_zdc_particles(
   // Define variables
   auto d1 = d0
     .Define("Ethr", Ethr, {"MCParticles"})
-    .Define("nhits_Ecal", nhits, {"ZDCEcalHits"})
-    .Define("Esim_Ecal", Esim, {"ZDCEcalHits"})
+    .Define("nhits_Ecal", nhits, {"EcalFarForwardZDCHits"})
+    .Define("Esim_Ecal", Esim, {"EcalFarForwardZDCHits"})
     .Define("fsam_Ecal", fsam, {"Esim_Ecal", "Ethr"})
-    .Define("nhits_Hcal", nhits, {"ZDCHcalHits"})
-    .Define("Esim_Hcal", Esim, {"ZDCHcalHits"})
+    .Define("nhits_Hcal", nhits, {"HcalFarForwardZDCHits"})
+    .Define("Esim_Hcal", Esim, {"HcalFarForwardZDCHits"})
     .Define("fsam_Hcal", fsam, {"Esim_Hcal", "Ethr"})
-    .Define("hit_x_position", hit_x_position, {"ZDCHcalHits"})
-	  .Define("hit_y_position", hit_y_position, {"ZDCHcalHits"})
+    .Define("hit_x_position", hit_x_position, {"HcalFarForwardZDCHits"})
+	  .Define("hit_y_position", hit_y_position, {"HcalFarForwardZDCHits"})
   ;
 
   // Define Histograms

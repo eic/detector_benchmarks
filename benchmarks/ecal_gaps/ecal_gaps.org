@@ -1,0 +1,192 @@
+#+PROPERTY: header-args:jupyter-python :session /jpy:localhost#8888:gap :async yes :results drawer :exports both
+
+#+TITLE: ePIC ECal gap study
+#+AUTHOR: Dmitry Kalinkin
+#+OPTIONS: d:t
+
+#+begin_src jupyter-python :results silent
+import os
+from pathlib import Path
+
+import awkward as ak
+import boost_histogram as bh
+import dask
+import dask_awkward as dak
+import dask_histogram as dh
+import numpy as np
+import uproot
+#+end_src   
+
+#+begin_src jupyter-python :results slient
+from dask.distributed import Client
+client = Client(os.environ.get("DASK_SCHEDULER", "localhost:8786"))
+#+end_src
+
+* Plotting setup
+
+#+begin_src jupyter-python :results silent
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+       
+def setup_presentation_style():
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use('ggplot')
+    plt.rcParams.update({
+        'axes.labelsize': 8,
+        'axes.titlesize': 9,
+        'figure.titlesize': 9,
+        'figure.figsize': (4, 3),
+        'legend.fontsize': 7,
+        'xtick.labelsize': 8,
+        'ytick.labelsize': 8,
+        'pgf.rcfonts': False,
+    })
+
+setup_presentation_style()
+#+end_src       
+
+** Settings
+
+#+begin_src jupyter-python :results silent
+DETECTOR_CONFIG=os.environ.get("DETECTOR_CONFIG")
+
+output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
+output_dir.mkdir(parents=True, exist_ok=True)
+#+end_src
+
+* Analysis
+
+#+begin_src jupyter-python :results silent
+def filter_name(name):
+    return (
+        "PARAMETERS" not in name
+        and all(coll not in name for coll in ["_intMap", "_floatMap", "_stringMap", "_doubleMap"])
+    )
+
+import functools
+
+@functools.cache
+def get_events(particle="e-", energy="20GeV", num_files=1):
+    events = uproot.dask(
+        {}
+        | {f"sim_output/{DETECTOR_CONFIG}/{particle}/{energy}/3to50deg/{particle}_{energy}_3to50deg.{INDEX:04d}.eicrecon.tree.edm4eic.root": "events" for INDEX in range(num_files)}
+        | {f"sim_output/{DETECTOR_CONFIG}/{particle}/{energy}/45to135deg/{particle}_{energy}_45to135deg.{INDEX:04d}.eicrecon.tree.edm4eic.root": "events" for INDEX in range(num_files)}
+        | {f"sim_output/{DETECTOR_CONFIG}/{particle}/{energy}/130to177deg/{particle}_{energy}_130to177deg.{INDEX:04d}.eicrecon.tree.edm4eic.root": "events" for INDEX in range(num_files)}
+        ,
+        filter_name=filter_name, open_files=False, steps_per_file=1,
+    )
+
+    pt = np.hypot(events["MCParticles.momentum.x"][:,0], events["MCParticles.momentum.y"][:,0])
+    theta = np.arctan2(pt, events["MCParticles.momentum.z"][:,0])
+    eta = -np.log(np.tan(theta / 2))
+    p = np.hypot(pt, events["MCParticles.momentum.z"][:,0])
+
+    axis_eta = bh.axis.Regular(200, -4, 4)
+
+    hist_norm = dh.factory(
+        eta,
+        axes=(
+            axis_eta,
+        ),
+    ).compute()
+    weight_lut = 1 / hist_norm.values(flow=True)
+
+    def get_weight(array):
+        if ak.backend(array) == "typetracer":
+            ak.typetracer.touch_data(array)
+            return array
+        return ak.from_numpy(weight_lut[axis_eta.index(ak.to_numpy(array))])
+
+    weights = eta.map_partitions(get_weight)
+
+    events["p_thrown"] = p
+    events["eta_thrown"] = eta
+    events["weights"] = weights
+
+    return events, axis_eta
+#+end_src
+
+#+begin_src jupyter-python
+particle = "e-"
+
+for energy in ["500MeV", "5GeV", "20GeV"]:
+    events, axis_eta = get_events(particle=particle, energy=energy)
+
+    for calo_name in ["EcalEndcapN", "EcalBarrelScFi", "EcalBarrelImaging", "EcalEndcapP"]:
+        cond = ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) > 10e-3 # GeV
+
+        hist = dh.factory(
+            events["eta_thrown"][cond],
+            (ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) / events["p_thrown"])[cond],
+            axes=(
+                axis_eta,
+                bh.axis.Regular(100, 0.1, 1.1),
+            ),
+            weights=events["weights"][cond],
+        ).compute()
+
+        cmap = plt.get_cmap(name="rainbow", lut=None).copy()
+        cmap.set_under("none")
+
+        plt.pcolormesh(
+            hist.axes[0].edges,
+            hist.axes[1].edges,
+            hist.values().T,
+            cmap=cmap,
+            norm=mpl.colors.LogNorm(
+                vmin=np.min(hist.values()[hist.values() > 0]),
+            ),
+        )
+        plt.colorbar()
+        plt.xlabel(r"$\eta_{thrown}$", loc="right")
+        plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
+        plt.title(f"{energy} {particle} in {calo_name}")
+        plt.minorticks_on()
+        plt.savefig(output_dir / f"ecal_gap_{particle}_{energy}_{calo_name}.png", bbox_inches="tight")
+        plt.show()
+        plt.clf()
+#+end_src
+
+#+begin_src jupyter-python
+particle = "e-"
+
+for energy in ["500MeV", "5GeV", "20GeV"]:
+    events, axis_eta = get_events(particle=particle, energy=energy)
+
+    calos = ["EcalEndcapN", "EcalBarrelScFi", "EcalEndcapP"]
+    total_energy = sum([
+        ak.sum(events[f"{calo_name}RecHits.energy"], axis=1)
+        for calo_name in calos
+    ])
+
+    hist = dh.factory(
+        events["eta_thrown"],
+        total_energy / events["p_thrown"],
+        axes=(
+            axis_eta,
+            bh.axis.Regular(100, 0.0, 1.1),
+        ),
+        weights=events["weights"],
+    ).compute()
+
+    cmap = plt.get_cmap(name="rainbow", lut=None).copy()
+    cmap.set_under("none")
+
+    plt.pcolormesh(
+        hist.axes[0].edges,
+        hist.axes[1].edges,
+        hist.values().T,
+        cmap=cmap,
+        norm=mpl.colors.LogNorm(
+            vmin=np.min(hist.values()[hist.values() > 0]),
+        ),
+    )
+    plt.colorbar()
+    plt.xlabel(r"$\eta_{thrown}$", loc="right")
+    plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
+    plt.title(f"{energy} {particle}\n" + "+".join(calos))
+    plt.minorticks_on()
+    plt.savefig(output_dir / f"ecal_gap_{particle}_{energy}_sum_all.png", bbox_inches="tight")
+    plt.show()
+    plt.clf()
+#+end_src

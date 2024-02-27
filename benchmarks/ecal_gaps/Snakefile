@@ -45,23 +45,12 @@ eicrecon {input} -Ppodio:output_file={output} \
 """
 
 
-rule ecal_gaps_org2py:
-    input:
-        notebook=workflow.source_path("ecal_gaps.org"),
-        converter=workflow.source_path("./org2py.awk"),
-    output:
-        "ecal_gaps.py"
-    shell:
-        """
-awk -f {input.converter} {input.notebook} > {output}
-"""
-
 DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
 
 rule ecal_gaps:
     input:
         matplotlibrc=".matplotlibrc",
-        script="ecal_gaps.py",
+        script="benchmarks/ecal_gaps/ecal_gaps.py",
         # TODO pass as a file list?
         _=expand(
             "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",

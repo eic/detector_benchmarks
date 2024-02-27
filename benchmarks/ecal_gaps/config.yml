@@ -4,7 +4,7 @@ sim:ecal_gaps:
   script:
     - mkdir $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
-    - snakemake --cores 8 ecal_gaps --omit-from ecal_gaps
+    - snakemake --cores 10 ecal_gaps --omit-from ecal_gaps
 
 bench:ecal_gaps:
   extends: .det_benchmark

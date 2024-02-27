@@ -41,7 +41,7 @@ rule ecal_gaps_recon:
         INDEX="\d{4}",
     shell: """
 eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits
+  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 
 

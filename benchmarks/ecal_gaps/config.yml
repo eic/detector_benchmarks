@@ -17,7 +17,7 @@ bench:ecal_gaps:
     - pip install -r benchmarks/ecal_gaps/requirements.txt
     - snakemake --cores 8 ecal_gaps
 
-collect_results:backgrounds:
+collect_results:ecal_gaps:
   extends: .det_benchmark
   stage: collect
   needs:

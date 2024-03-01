@@ -19,6 +19,7 @@ else:
 
 include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
+include: "benchmarks/ecal_gaps/Snakefile"
 
 rule matplotlibrc:
     output:
@@ -28,3 +29,15 @@ rule matplotlibrc:
             fp.write("backend: Agg\n")
             # interactive mode prevents plt.show() from blocking
             fp.write("interactive : True\n")
+
+
+rule org2py:
+    input:
+        notebook=workflow.basedir + "/{NOTEBOOK}.org",
+        converter=workflow.source_path("benchmarks/common/org2py.awk"),
+    output:
+        "{NOTEBOOK}.py"
+    shell:
+        """
+awk -f {input.converter} {input.notebook} > {output}
+"""

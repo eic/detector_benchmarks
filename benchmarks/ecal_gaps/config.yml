@@ -1,0 +1,26 @@
+sim:ecal_gaps:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - mkdir -p $LOCAL_DATA_PATH/input
+    - ln -s $LOCAL_DATA_PATH/input input
+    - snakemake --cores 10 ecal_gaps --omit-from ecal_gaps
+
+bench:ecal_gaps:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:ecal_gaps"]
+  script:
+    - ln -s $LOCAL_DATA_PATH/input input
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/ecal_gaps/requirements.txt
+    - snakemake --cores 8 ecal_gaps
+
+collect_results:ecal_gaps:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:ecal_gaps"
+  script:
+    - ls -lrht

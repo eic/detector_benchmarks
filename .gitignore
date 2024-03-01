@@ -40,3 +40,7 @@ __pycache__/
 calorimeters/test/
 *.d
 *.pcm
+
+# org2py output
+benchmarks/backgrounds/ecal_backwards.py
+benchmarks/ecal_gaps/ecal_gaps.py

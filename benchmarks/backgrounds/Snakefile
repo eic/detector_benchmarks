@@ -36,9 +36,9 @@ rule backgrounds_sim:
     input:
         "input/backgrounds/{NAME}.hepmc",
     output:
-        "sim_output/{DETECTOR_CONFIG}/{NAME}.edm4hep.root",
+        "sim_output/{DETECTOR_CONFIG}/backgrounds/{NAME}.edm4hep.root",
     log:
-        "sim_output/{DETECTOR_CONFIG}/{NAME}.edm4hep.root.log",
+        "sim_output/{DETECTOR_CONFIG}/backgrounds/{NAME}.edm4hep.root.log",
     params:
         N_EVENTS=100
     shell:
@@ -55,28 +55,17 @@ ddsim \
 """
 
 
-rule backgrounds_org2py:
-    input:
-        notebook=workflow.source_path("ecal_backwards.org"),
-        converter=workflow.source_path("./org2py.awk"),
-    output:
-        "ecal_backwards.py"
-    shell:
-        """
-awk -f {input.converter} {input.notebook} > {output}
-"""
-
 DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
 
 rule backgrounds_ecal_backwards:
     input:
         matplotlibrc=".matplotlibrc",
-        script="ecal_backwards.py",
+        script="benchmarks/backgrounds/ecal_backwards.py",
         electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
-        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_electron.edm4hep.root",
-        physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
+        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/beam_gas_electron.edm4hep.root",
+        physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
         proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
-        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/beam_gas_proton.edm4hep.root",
+        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/beam_gas_proton.edm4hep.root",
     output:
         directory("results/backgrounds/backwards_ecal")
     threads: workflow.cores

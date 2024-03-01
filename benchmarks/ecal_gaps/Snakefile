@@ -1,0 +1,84 @@
+import os
+
+
+rule ecal_gaps_sim:
+    input:
+        steering_file=provider.remote(remote_path("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer")),
+    output:
+        "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="e-",
+        ENERGY="(500MeV|5GeV|20GeV)",
+        PHASE_SPACE="(3to50|45to135|130to177)deg",
+        INDEX="\d{4}",
+    params:
+        N_EVENTS=1000
+    shell:
+        """
+ddsim \
+  --runType batch \
+  --enableGun \
+  --steeringFile "{input.steering_file}" \
+  --random.seed 1{wildcards.INDEX} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule ecal_gaps_recon:
+    input:
+        "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    output:
+        "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+    log:
+        "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX="\d{4}",
+    shell: """
+eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
+"""
+
+
+DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+
+rule ecal_gaps:
+    input:
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/ecal_gaps/ecal_gaps.py",
+        # TODO pass as a file list?
+        _=expand(
+            "sim_output/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            DETECTOR_CONFIG=DETECTOR_CONFIG,
+            PARTICLE=["e-"],
+            ENERGY=["500MeV", "5GeV", "20GeV"],
+            PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+            INDEX=range(1),
+        ),
+    output:
+        directory("results/ecal_gaps"),
+    threads: workflow.cores
+    shell:
+        """
+cleanup() {{
+  echo Cleaning up
+  kill $WORKER_PID $SCHEDULER_PID
+}}
+trap cleanup EXIT
+
+PORT=$RANDOM
+dask scheduler --port $PORT &
+export DASK_SCHEDULER=localhost:$PORT
+SCHEDULER_PID=$!
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 &
+WORKER_PID=$!
+env \
+MATPLOTLIBRC={input.matplotlibrc} \
+OUTPUT_DIR={output} \
+python {input.script}
+"""

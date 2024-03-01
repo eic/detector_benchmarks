@@ -2,7 +2,7 @@ sim:ecal_gaps:
   extends: .det_benchmark
   stage: simulate
   script:
-    - mkdir $LOCAL_DATA_PATH/input
+    - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
     - snakemake --cores 10 ecal_gaps --omit-from ecal_gaps
 

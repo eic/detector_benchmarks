@@ -2,7 +2,7 @@ sim:backgrounds:
   extends: .det_benchmark
   stage: simulate
   script:
-    - mkdir $LOCAL_DATA_PATH/input
+    - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
     - snakemake --cores 2 sim_output/$DETECTOR_CONFIG/beam_gas_{electron,proton}.edm4hep.root sim_output/$DETECTOR_CONFIG/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_vtxfix_1.edm4hep.root
 

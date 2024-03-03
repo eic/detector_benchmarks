@@ -34,7 +34,8 @@ rule backgrounds_get_DIS:
 
 rule backgrounds_sim:
     input:
-        "input/backgrounds/{NAME}.hepmc",
+        hepmc="input/backgrounds/{NAME}.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{NAME}.edm4hep.root",
     log:
@@ -50,7 +51,7 @@ ddsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-  --inputFiles {input} \
+  --inputFiles {input.hepmc} \
   --outputFile {output}
 """
 

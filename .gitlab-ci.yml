@@ -150,6 +150,7 @@ deploy_results:
 
 benchmarks:detector:success:
   stage: status-report
+  dependencies: []
   extends: .status
   variables:
     STATE: "success"
@@ -158,6 +159,7 @@ benchmarks:detector:success:
 
 benchmarks:detector:failure:
   stage: status-report
+  dependencies: []
   extends: .status
   variables:
     STATE: "failure"

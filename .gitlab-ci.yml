@@ -88,6 +88,7 @@ common:setup:
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
+    - if [[ "$(snakemake --version)" != 7.* ]]; then mv Snakemake.8 Snakemake; fi
 
 
 common:detector:

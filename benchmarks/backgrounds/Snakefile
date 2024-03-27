@@ -4,7 +4,7 @@ import shutil
 
 rule backgrounds_get_beam_gas_electron:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")),
+        storage(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")),
     output:
         "input/backgrounds/beam_gas_electron.hepmc",
     run:
@@ -13,7 +13,7 @@ rule backgrounds_get_beam_gas_electron:
 
 rule backgrounds_get_beam_gas_proton:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc")),
+        storage(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc")),
     output:
         "input/backgrounds/beam_gas_proton.hepmc",
     run:
@@ -22,7 +22,7 @@ rule backgrounds_get_beam_gas_proton:
 
 rule backgrounds_get_DIS:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/DIS/NC/{BEAM}/minQ2={MINQ2}/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc")),
+        storage(remote_path("EPIC/EVGEN/DIS/NC/{BEAM}/minQ2={MINQ2}/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc")),
     wildcard_constraints:
         BEAM="\d+x\d+",
         MINQ2="\d+",

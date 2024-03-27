@@ -1,0 +1,15 @@
+configfile: "config.yaml"
+storage:
+    provider="s3",
+    endpoint_url="https://eics3.sdcc.bnl.gov:9000",
+    access_key=os.environ["S3_ACCESS_KEY"],
+    secret_key=os.environ["S3_SECRET_KEY"],
+
+if config["remote"] == "S3":
+    remote_path = lambda path: f"s3://eictest/{path}"
+elif config["remote"] == "XRootD":
+    remote_path = lambda path: f"root://dtn-eic.jlab.org//work/eic2/{path}"
+else:
+    raise ValueError(f"Unexpected config[\"remote\"] = {config['remote']}")
+
+include: "Snakefile.common"

@@ -1,0 +1,21 @@
+sim:forward_lfhcal_pion:
+  extends: .det_benchmark 
+  stage: simulate
+  script:
+    - echo "I will be simulating some forward pion events here!"
+    - echo "0.135 MeV" >> $LOCAL_DATA_PATH/pion_mass
+
+sim:forward_lfhcal_proton:
+  extends: .det_benchmark 
+  stage: simulate
+  script:
+    - echo "I will be simulating some forward proton events here!"
+
+bench:forward_lfhcal_energy_res:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:forward_lfhcal_pion", "sim:forward_lfhcal_proton"]
+  script:
+    - echo "Working through the tutorial, and I will be nalyzing events here!"
+    - echo "Our intelligence reports that the pion mass is $(cat $LOCAL_DATA_PATH/pion_mass)"

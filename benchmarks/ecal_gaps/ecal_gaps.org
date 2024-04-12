@@ -73,7 +73,7 @@ def get_events(particle="e-", energy="20GeV", num_files=1):
         | {f"sim_output/{DETECTOR_CONFIG}/{particle}/{energy}/45to135deg/{particle}_{energy}_45to135deg.{INDEX:04d}.eicrecon.tree.edm4eic.root": "events" for INDEX in range(num_files)}
         | {f"sim_output/{DETECTOR_CONFIG}/{particle}/{energy}/130to177deg/{particle}_{energy}_130to177deg.{INDEX:04d}.eicrecon.tree.edm4eic.root": "events" for INDEX in range(num_files)}
         ,
-        filter_name=filter_name, open_files=False, steps_per_file=1, recursive=True,
+        filter_name=filter_name, open_files=False, steps_per_file=1,
     )
 
     print(events.fields)

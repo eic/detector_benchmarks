@@ -76,8 +76,6 @@ def get_events(particle="e-", energy="20GeV", num_files=1):
         filter_name=filter_name, open_files=False, steps_per_file=1,
     )
 
-    print(events.fields)
-
     pt = np.hypot(events["MCParticles.momentum.x"][:,0], events["MCParticles.momentum.y"][:,0])
     theta = np.arctan2(pt, events["MCParticles.momentum.z"][:,0])
     eta = -np.log(np.tan(theta / 2))

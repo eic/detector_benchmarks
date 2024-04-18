@@ -3,4 +3,3 @@ bench:material_scan:
   stage: benchmarks
   script:
     - snakemake --cores 1 epic_craterlake/results/material_scan_details.pdf
-    - mv epic_craterlake/results ./

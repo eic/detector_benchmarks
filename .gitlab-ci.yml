@@ -143,7 +143,7 @@ include:
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal"]
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

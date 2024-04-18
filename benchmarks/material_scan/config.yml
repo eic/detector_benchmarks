@@ -3,3 +3,11 @@ bench:material_scan:
   stage: benchmarks
   script:
     - snakemake --cores 1 epic_craterlake/results/material_scan_details.pdf
+
+collect_results:material_scan:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["bench:material_scan"]
+  script:
+    - ls -lrht

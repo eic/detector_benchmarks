@@ -65,6 +65,9 @@ def filter_name(name):
 
 import functools
 
+axis_eta = bh.axis.Regular(200, -4, 4)
+axis_eta_coarse = bh.axis.Regular(100, -4, 4)
+
 @functools.cache
 def get_events(particle="e-", energy="20GeV", num_files=1):
     events = uproot.dask(
@@ -80,8 +83,6 @@ def get_events(particle="e-", energy="20GeV", num_files=1):
     theta = np.arctan2(pt, events["MCParticles.momentum.z"][:,0])
     eta = -np.log(np.tan(theta / 2))
     p = np.hypot(pt, events["MCParticles.momentum.z"][:,0])
-
-    axis_eta = bh.axis.Regular(200, -4, 4)
 
     hist_norm = dh.factory(
         eta,
@@ -110,20 +111,31 @@ def get_events(particle="e-", energy="20GeV", num_files=1):
 particle = "e-"
 
 for energy in ["500MeV", "5GeV", "20GeV"]:
-    events, axis_eta = get_events(particle=particle, energy=energy)
+    events = get_events(particle=particle, energy=energy)
 
     for calo_name in ["EcalEndcapN", "EcalBarrelScFi", "EcalBarrelImaging", "EcalEndcapP"]:
         cond = ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) > 10e-3 # GeV
 
-        hist = dh.factory(
-            events["eta_thrown"][cond],
-            (ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) / events["p_thrown"])[cond],
-            axes=(
-                axis_eta,
-                bh.axis.Regular(100, 0.1, 1.1),
+        hist, profile = client.gather(client.compute([
+            dh.factory(
+                events["eta_thrown"][cond],
+                (ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) / events["p_thrown"])[cond],
+                axes=(
+                    axis_eta,
+                    bh.axis.Regular(100, 0.1, 1.1),
+                ),
+                weights=events["weights"][cond],
             ),
-            weights=events["weights"][cond],
-        ).compute()
+            dh.factory(
+                events["eta_thrown"][cond],
+                sample=(ak.sum(events[f"{calo_name}RecHits.energy"], axis=1) / events["p_thrown"])[cond],
+                storage=bh.storage.WeightedMean(),
+                axes=(
+                    axis_eta_coarse,
+                ),
+                weights=events["weights"][cond],
+            ),
+        ]))
 
         cmap = plt.get_cmap(name="rainbow", lut=None).copy()
         cmap.set_under("none")
@@ -138,6 +150,9 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
             ),
         )
         plt.colorbar()
+        std = np.sqrt(profile.variances())
+        cond = profile.values() > std
+        plt.errorbar(profile.axes[0].centers[cond], profile.values()[cond], yerr=std[cond], marker=".", markersize=2, color="black", ls="none", lw=0.6, capsize=1.)
         plt.xlabel(r"$\eta_{thrown}$", loc="right")
         plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
         plt.title(f"{energy} {particle} in {calo_name}")
@@ -151,7 +166,7 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
 particle = "e-"
 
 for energy in ["500MeV", "5GeV", "20GeV"]:
-    events, axis_eta = get_events(particle=particle, energy=energy)
+    events = get_events(particle=particle, energy=energy)
 
     calos = ["EcalEndcapN", "EcalBarrelScFi", "EcalEndcapP"]
     total_energy = sum([
@@ -159,15 +174,26 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
         for calo_name in calos
     ])
 
-    hist = dh.factory(
-        events["eta_thrown"],
-        total_energy / events["p_thrown"],
-        axes=(
-            axis_eta,
-            bh.axis.Regular(100, 0.0, 1.1),
+    hist, profile = client.gather(client.compute([
+        dh.factory(
+            events["eta_thrown"],
+            total_energy / events["p_thrown"],
+            axes=(
+                axis_eta,
+                bh.axis.Regular(100, 0.1, 1.1),
+            ),
+            weights=events["weights"],
         ),
-        weights=events["weights"],
-    ).compute()
+        dh.factory(
+            events["eta_thrown"],
+            sample=total_energy / events["p_thrown"],
+            storage=bh.storage.WeightedMean(),
+            axes=(
+                axis_eta_coarse,
+            ),
+            weights=events["weights"],
+        ),
+    ]))
 
     cmap = plt.get_cmap(name="rainbow", lut=None).copy()
     cmap.set_under("none")
@@ -182,6 +208,9 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
         ),
     )
     plt.colorbar()
+    std = np.sqrt(profile.variances())
+    cond = profile.values() > std
+    plt.errorbar(profile.axes[0].centers[cond], profile.values()[cond], yerr=std[cond], marker=".", markersize=2, color="black", ls="none", lw=0.6, capsize=1.)
     plt.xlabel(r"$\eta_{thrown}$", loc="right")
     plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
     plt.title(f"{energy} {particle}\n" + "+".join(calos))

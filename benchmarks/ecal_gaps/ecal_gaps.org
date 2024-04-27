@@ -104,7 +104,7 @@ def get_events(particle="e-", energy="20GeV", num_files=1):
     events["eta_thrown"] = eta
     events["weights"] = weights
 
-    return events, axis_eta
+    return events
 #+end_src
 
 #+begin_src jupyter-python

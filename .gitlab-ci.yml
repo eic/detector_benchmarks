@@ -155,6 +155,7 @@ include:
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
+  - local: 'benchmarks/LOWQ2/config.yml'
   - local: 'benchmarks/others/config.yml'
 
 deploy_results:

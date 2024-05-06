@@ -8,6 +8,7 @@ variables:
   GITHUB_REPOSITORY: ''
 
 workflow:
+  name: '$PIPELINE_NAME'
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'

@@ -1,12 +1,16 @@
 #include "LOWQ2Benchmarks.h"
+#include <cstdlib>
 
-
-void RunLOWQ2(){
+void RunLOWQ2(std::string inputFileName="Brems_input.root", std::string outputFileName="plots/LOWQ2BremsRecon3.root",
+                double eventCrossSection=0, std::string compactName="/opt/detector/epic-nightly/share/epic/epic.xml") {
     
     //Set implicit multi-threading
     ROOT::EnableImplicitMT();
+    
+    // Output script running conditions
+    std::cout << "Running LOWQ2 benchmarks with the following parameters:" << std::endl;
+    std::cout << "  - xml file: " << compactName << std::endl;
 
-    std::string compactName = "/home/simong/EIC/epic/epic_18x275.xml";
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
     detector.fromCompact(compactName);
 
@@ -21,15 +25,11 @@ void RunLOWQ2(){
     double eventRateBrems = luminosity * eventCrossSectionBrems * 1e-27; // [Hz]
     double bunchRate      = 1.0 / bunchSpacing; // [Hz]
 
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/tempEventsQR2.root","plots/LOWQ2QR2.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab0_recon.edm4hep.root","plots/LOWQ2QROld.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root","plots/LOWQ2QRRates.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_18x275_new.edm4hep*.root","plots/LOWQ2BremsRates.root",detector,bunchRate);
-    // LOWQ2Benchmarks("/scratch/EIC/G4out/brems_10x100_ab/brems_10x100_ab_0.edm4hep.root","plots/LOWQ2BremsRates2.root",detector,eventRateBrems);
-    
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","plots/LOWQ2QRRecon2.root",detector,eventRateQR);
-    // LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon2.root",detector,eventRateBrems);
+    double eventRate      = luminosity * eventCrossSection * 1e-27; // [Hz]
 
-    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsHits.root",detector,eventRateBrems);
+    //LOWQ2Benchmarks("/scratch/EIC/ReconOut/QR_new.root","plots/LOWQ2QRRecon2.root",detector,eventRateQR);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon2.root",detector,eventRateBrems);
+    LOWQ2Benchmarks("/scratch/EIC/ReconOut/Brems_new.root","plots/LOWQ2BremsRecon3.root",detector,bunchRate);
+    //LOWQ2Benchmarks(inputFileName,outputFileName,detector,eventRate);
 
 }

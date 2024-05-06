@@ -50,7 +50,7 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
         .Define("reconTheta_mrad","1000.0*reconTheta")
         .Define("reconPhi","(double)LowQ2TrackParameters[0].phi")
         .Define("reconPhi_deg","reconPhi * TMath::RadToDeg()")
-        .Define("reconP","(18./10.)*(double)(1/(LowQ2TrackParameters[0].qOverP*LowQ2TrackParameters[0].charge))")
+        .Define("reconP","(18./10.)*(double)(-1/(LowQ2TrackParameters[0].qOverP))")
         .Define("reconMom",[](double p, double theta, double phi){return ROOT::Math::PxPyPzMVector(p*sin(theta)*cos(phi),p*sin(theta)*sin(phi),p*cos(theta),0.000511);},{"reconP","reconTheta","reconPhi"})
         .Define("reconE","reconMom.E()")
         .Define("reconScatteredV","eBeam-reconMom")

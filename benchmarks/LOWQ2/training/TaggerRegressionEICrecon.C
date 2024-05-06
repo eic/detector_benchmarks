@@ -25,9 +25,13 @@ using namespace TMVA;
 // At least one track reconstructed by EIC algorithms in the LOWQ2 tagger is needed.
 
 void TaggerRegressionEICrecon(
-			      TString inDataNames   = "/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab*_recon.edm4hep.root",
-			      TString outDataName   = "/scratch/EIC/Results/ML-Out/trainedData.root",
-			      TString inWeightName  = "dataset/weights/LowQ2Reconstruction_DNN.weights.xml"
+			      TString inDataNames    = "/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab*_recon.edm4hep.root",
+			      TString outDataName    = "/scratch/EIC/LowQ2Model/trainedData.root",
+            TString dataFolderName = "/scratch/EIC/LowQ2Model/",
+            TString mcBeamEnergy   = "18",
+            TString typeName       = "LowQ2MomentumRegression",
+            TString methodName     = "DNN",
+			      TString inWeightName   = "dataset/weights/LowQ2Reconstruction_DNN.weights.xml"
 			      )
 {
  
@@ -45,16 +49,13 @@ void TaggerRegressionEICrecon(
   TFile* outputFile = TFile::Open( outDataName, "RECREATE" );
  
   // Create the factory object. Later you can choose the methods
-  TString typeName = "LowQ2Reconstruction";
    
   TMVA::Factory *factory = new TMVA::Factory( typeName, outputFile,
 					      "!V:!Silent:Color:DrawProgressBar:AnalysisType=Regression" );
 
-  TString dataFolderName = "dataset"; 
+  ; 
   TMVA::DataLoader *dataloader=new TMVA::DataLoader(dataFolderName);
-  
-  TString methodName   = "DNN";
-      
+        
   // Input TrackParameters variables from EICrecon - 
   TString collectionName = "LowQ2Tracks[0]";
   dataloader->AddVariable( collectionName+".loc.a", "fit_position_y", "units", 'F' );
@@ -65,16 +66,14 @@ void TaggerRegressionEICrecon(
   // Regression target particle 3-momentum, normalised to beam energy.
   // Takes second particle, in the test data this is the scattered electron
   // TODO add energy and array element information to be read directly from datafile - EMD4eic and EICrecon changes.
-  TString mcParticleName = "MCParticles[2]";
-  TString mcBeamEnergy   = "18";
+  TString mcParticleName = "ScatteredElectron[0]";
   dataloader->AddTarget( mcParticleName+".momentum.x/"+mcBeamEnergy );
   dataloader->AddTarget( mcParticleName+".momentum.y/"+mcBeamEnergy );
   dataloader->AddTarget( mcParticleName+".momentum.z/"+mcBeamEnergy );
  
   std::cout << "--- TMVARegression           : Using input files: " << inDataNames << std::endl;
  
-  // Register the regression tree
- 
+  // Register the regression tree 
   TChain* regChain = new TChain("events");
   regChain->Add(inDataNames);
   //regChain->SetEntries(8000); // Set smaller sample for tests

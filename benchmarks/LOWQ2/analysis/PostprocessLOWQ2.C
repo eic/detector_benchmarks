@@ -56,7 +56,7 @@ TH1* AcceptancePlot(TDirectory* inputDir, TString ReconHistName, TString AllHist
 //---------------------------------------------------------------------- 
 TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Real", TString inTag="AllHits") {
     
-    TString histName = inTag+"/module"+std::to_string(Module)+"/layer"+std::to_string(Layer)+"/hxPixelyPixel";
+    TString histName = inTag+"/module"+std::to_string(Module)+"/layer"+std::to_string(Layer)+"/hxPixelyPixelRate";
 
     // Read in the plots from the input file
     TH2* RatePlot = (TH2*)inputDir->Get(histName);
@@ -537,6 +537,6 @@ void Postprocess(TString inName="LOWQ2QRRates3.root", TString outName="LOWQ2Plot
 // Main function to create canvases
 //----------------------------------------------------------------------
 void PostprocessLOWQ2() {
-    Postprocess("plots/LOWQ2QRRecon2.root", "plots/LOWQ2QR_FormattedPlots.root", "Quasi-Real");
-    Postprocess("plots/LOWQ2BremsRecon2.root", "plots/LOWQ2Brems_FormattedPlots.root", "Bremsstrahlung");
+//     Postprocess("plots/LOWQ2QRRecon2.root", "plots/LOWQ2QR_FormattedPlots.root", "Quasi-Real");
+     Postprocess("plots/LOWQ2BremsRecon3.root", "plots/LOWQ2Brems_FormattedPlots3.root", "Bremsstrahlung");
 }

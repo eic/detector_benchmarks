@@ -97,14 +97,12 @@ void TaggerRegressionEICrecon(
   TString layoutString("Layout=TANH|1024,TANH|128,TANH|64,TANH|32,LINEAR");
   
   TString trainingStrategyString("TrainingStrategy=");
-  //trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
-  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=10,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
+  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
   
   TString nnOptions("!H:V:ErrorStrategy=SUMOFSQUARES:WeightInitialization=XAVIERUNIFORM:RandomSeed=1234");
 
   // Use GPU if possible on the machine
-  //TString architectureString("Architecture=GPU");
-  TString architectureString("Architecture=CPU");
+  TString architectureString("Architecture=GPU");
 
   // Transformation of data prior to training layers - decorrelate and normalise whole dataset
   TString transformString("VarTransform=D,N");

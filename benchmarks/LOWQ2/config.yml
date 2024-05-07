@@ -1,5 +1,12 @@
 # Run Snakemake for the training
-training:
+train:LOWQ2:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - snakemake --snakefile training/Snakefile --configfile config.yml
   
 
+SIM_DIRECTORY:   "LowQ2_G4out/"
+RECO_DIRECTORY:  "LowQ2_ReconOut/"
+MODEL_DIRECTORY: "LowQ2_Model/"
 

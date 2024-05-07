@@ -3,58 +3,32 @@ from itertools import product
 
 import os
 import shutil
-from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
 
-S3 = S3RemoteProvider(
-    endpoint_url="https://eics3.sdcc.bnl.gov:9000",
-    access_key_id=os.environ["S3_ACCESS_KEY"],
-    secret_access_key=os.environ["S3_SECRET_KEY"],
-)
+configfile: "local_config.yml"
 
-EVENTS_DIRECTORY   = "/scratch/EIC/Events/S3in/"
-SIM_DIRECTORY     = "/scratch/EIC/G4out/S3processed/"
-RECO_DIRECTORY    = "/scratch/EIC/ReconOut/S3in/"
-RECO_DIRECTORY_P  = "/scratch/EIC/ReconOut/S3processed/"
-MODEL_DIRECTORY   = "/scratch/EIC/LowQ2Model/"
-
-REMOTE_EVENTS_DIRECTORY = "EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
-REMOTE_RECO_DIRECTORY   = "EPIC/RECO/24.02.1/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
-S3_DIR                  = "eictest/"
-XROOTD_SERVER           = "root://dtn-eic.jlab.org/"
-XROOTD_DIR              = "/work/eic2/"
-
-EVENT_EXTENSION    = ".ab.hepmc3.tree.root"
-SIM_EXTENSION      = ".edm4hep.root"
-RECO_EXTENSION     = ".eicrecon.tree.edm4eic.root"
+EVENT_EXTENSION = ".ab.hepmc3.tree.root"
+SIM_EXTENSION   = ".edm4hep.root"
+RECO_EXTENSION  = ".eicrecon.tree.edm4eic.root"
  
-FILE_BASE          = "pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run"
-XML_FILE           = "/home/simong/EIC/epic/install/share/epic/epic_craterlake_10x100.xml"
-XML_FILE_TAGGER    = "/home/simong/EIC/epic/install/share/epic/epic_ip6.xml"
-XML_FILE_EDIT       = "/home/simong/EIC/epic/epic_edit.xml"
-BEAM_ENERGY        = "10"
+REMOTE_EVENTS_DIRECTORY = "root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
+FILE_BASE               = "pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run"
 
-rule download_event_input:
-    input:
-        S3.remote(REMOTE_EVENTS_DIRECTORY+FILE_BASE+"{index}"+EVENT_EXTENSION),
-    output:
-        EVENTS_DIRECTORY+FILE_BASE+"{index}"+EVENT_EXTENSION,
-    run:
-        shutil.move(input[0], output[0])
-
+XML_FILE        = "epic_edit.xml"
+BEAM_ENERGY     = "10"
 
 def remote_file_exists(server,url):
     try:
         subprocess.check_output(['xrdfs', server, 'stat', url])
-        return True
+        return url
     except subprocess.CalledProcessError:
-        return False
-
+        return None
+'''
 rule run_simulation_tagger:           
     params:
-        XML=XML_FILE_EDIT,
-        input=lambda wildcards: XROOTD_SERVER+XROOTD_DIR+REMOTE_EVENTS_DIRECTORY+FILE_BASE+wildcards.index+EVENT_EXTENSION if remote_file_exists(XROOTD_SERVER,XROOTD_DIR+REMOTE_EVENTS_DIRECTORY+FILE_BASE+wildcards.index+EVENT_EXTENSION) else None,
+        XML=XML_FILE,
+        input=remote_file_exists(REMOTE_EVENTS_DIRECTORY+FILE_BASE+wildcards.index+EVENT_EXTENSION),
     output:
-        SIM_DIRECTORY+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
+        config["SIM_DIRECTORY"]+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
     shell: """
 npsim \
     --inputFiles {params.input} \
@@ -67,15 +41,7 @@ npsim \
     --field.eps_max 1e-04 \
     --physics.rangecut 50 \
 """
-
-rule download_recon:
-    input:
-        S3.remote(S3_DIR+REMOTE_RECO_DIRECTORY+FILE_BASE+"{runindex}"+".ab."+"{subindex}"+RECO_EXTENSION),
-    output:
-        RECO_DIRECTORY+FILE_BASE+"{runindex}"+".ab."+"{subindex}"+RECO_EXTENSION,
-    run:
-        shutil.move(input[0], output[0])
-
+'''
 rule run_reconstruction:
     params:
         XML=XML_FILE,
@@ -83,31 +49,13 @@ rule run_reconstruction:
         collections="TaggerTrackerProjectedTracks,MCScatteredElectrons,MCParticles,EventHeader",
     input:
         expand(
-            SIM_DIRECTORY+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
-            index=range(1,10),            
+            config["SIM_DIRECTORY"]+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
+            index=range(1,4),            
         ),       
     output:
-        RECO_DIRECTORY_P+FILE_BASE+".fab"+RECO_EXTENSION,
+        config["RECO_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION,
     shell: """
-/home/simong/EIC/EICrecon/bin/eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output[0]} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
-"""
-
-rule run_reconstruction_remote:
-    params:
-        XML=XML_FILE,
-        beam_energy=BEAM_ENERGY,
-        collections="TaggerTrackerProjectedTracks,MCScatteredElectrons,MCParticles,EventHeader",
-        stringValue=RECO_DIRECTORY+FILE_BASE+"*.ab.*"+RECO_EXTENSION,
-    input:
-        expand(
-            RECO_DIRECTORY+FILE_BASE+"{runindex}"+".ab."+"{subindex:04d}"+RECO_EXTENSION,
-            subindex=range(1,4),
-            runindex=1
-        ),       
-    output:
-        RECO_DIRECTORY_P+FILE_BASE+".ab"+RECO_EXTENSION,
-    shell: """
-/home/simong/EIC/EICrecon/bin/eicrecon {input}  -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output[0]} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
+/home/simong/EIC/EICrecon/bin/eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
 """
 
 rule low_q2_train_network:
@@ -117,9 +65,9 @@ rule low_q2_train_network:
         method_name="DNN",
         model_dir="LowQ2Model"
     input:
-        train_data=RECO_DIRECTORY_P+FILE_BASE+".fab"+RECO_EXTENSION,
+        train_data=config["RECO_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION,
     output:
-        root_output=MODEL_DIRECTORY+"trainedData.root",
+        root_output=config["MODEL_DIRECTORY"]+"trainedData.root",
     shell:
       """
       root -l -b -q 'TaggerRegressionEICrecon.C++("{input.train_data}", "{output.root_output}", "{params.model_dir}", "{params.beam_energy}", "{params.type_name}", "{params.method_name}")'

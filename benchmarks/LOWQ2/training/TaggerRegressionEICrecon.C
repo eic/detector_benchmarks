@@ -27,7 +27,7 @@ using namespace TMVA;
 void TaggerRegressionEICrecon(
 			      TString inDataNames    = "/scratch/EIC/ReconOut/qr_18x275_ab/qr_18x275_ab*_recon.edm4hep.root",
 			      TString outDataName    = "/scratch/EIC/LowQ2Model/trainedData.root",
-            TString dataFolderName = "/scratch/EIC/LowQ2Model/",
+            TString dataFolderName = "LowQ2Model",
             TString mcBeamEnergy   = "18",
             TString typeName       = "LowQ2MomentumRegression",
             TString methodName     = "DNN",
@@ -57,7 +57,7 @@ void TaggerRegressionEICrecon(
   TMVA::DataLoader *dataloader=new TMVA::DataLoader(dataFolderName);
         
   // Input TrackParameters variables from EICrecon - 
-  TString collectionName = "LowQ2Tracks[0]";
+  TString collectionName     = "TaggerTrackerProjectedTracks[0]";
   dataloader->AddVariable( collectionName+".loc.a", "fit_position_y", "units", 'F' );
   dataloader->AddVariable( collectionName+".loc.b", "fit_position_z", "units", 'F' );
   dataloader->AddVariable( "sin("+collectionName+".phi)*sin("+collectionName+".theta)",   "fit_vector_x",   "units", 'F' );
@@ -66,7 +66,8 @@ void TaggerRegressionEICrecon(
   // Regression target particle 3-momentum, normalised to beam energy.
   // Takes second particle, in the test data this is the scattered electron
   // TODO add energy and array element information to be read directly from datafile - EMD4eic and EICrecon changes.
-  TString mcParticleName = "ScatteredElectron[0]";
+  TString mcParticleName = "MCParticles[MCScatteredElectrons_objIdx[0].index]";
+  //TString mcParticleName = "MCParticles[0]";
   dataloader->AddTarget( mcParticleName+".momentum.x/"+mcBeamEnergy );
   dataloader->AddTarget( mcParticleName+".momentum.y/"+mcBeamEnergy );
   dataloader->AddTarget( mcParticleName+".momentum.z/"+mcBeamEnergy );
@@ -88,7 +89,7 @@ void TaggerRegressionEICrecon(
   // expression need to exist in the original TTree)
   // dataloader->SetWeightExpression( "1/(eE)", "Regression" ); // If MC event weights are kept use these
   // Apply additional cuts on the data
-  TCut mycut = "@LowQ2Tracks.size()==1"; // Make sure there's one reconstructed track in event
+  TCut mycut = "@TaggerTrackerProjectedTracks.size()==1"; // Make sure there's one reconstructed track in event
    
   dataloader->PrepareTrainingAndTestTree(mycut,"nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:SplitSeed=1:NormMode=NumEvents:!V");
 
@@ -96,12 +97,14 @@ void TaggerRegressionEICrecon(
   TString layoutString("Layout=TANH|1024,TANH|128,TANH|64,TANH|32,LINEAR");
   
   TString trainingStrategyString("TrainingStrategy=");
-  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
+  //trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=64,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
+  trainingStrategyString +="LearningRate=1e-4,Momentum=0,MaxEpochs=2000,ConvergenceSteps=200,BatchSize=10,TestRepetitions=1,Regularization=None,Optimizer=ADAM";   
   
   TString nnOptions("!H:V:ErrorStrategy=SUMOFSQUARES:WeightInitialization=XAVIERUNIFORM:RandomSeed=1234");
 
   // Use GPU if possible on the machine
-  TString architectureString("Architecture=GPU");
+  //TString architectureString("Architecture=GPU");
+  TString architectureString("Architecture=CPU");
 
   // Transformation of data prior to training layers - decorrelate and normalise whole dataset
   TString transformString("VarTransform=D,N");
@@ -146,7 +149,7 @@ void TaggerRegressionEICrecon(
   std::cout << "==> Wrote root file: " << outputFile->GetName() << std::endl;
   std::cout << "==> TMVARegression is done!" << std::endl;
   
-  delete factory;
-  delete dataloader;
+  // delete factory;
+  // delete dataloader;
   
 }

@@ -1,5 +1,5 @@
+# Run Snakemake for the training
 training:
-  # Training configuration goes here
+  
 
-analysis:
-  # Analysis configuration goes here
+

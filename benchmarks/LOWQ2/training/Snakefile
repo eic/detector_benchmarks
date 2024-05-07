@@ -55,7 +55,7 @@ rule run_reconstruction:
     output:
         config["RECO_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION,
     shell: """
-/home/simong/EIC/EICrecon/bin/eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
+eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
 """
 
 rule low_q2_train_network:

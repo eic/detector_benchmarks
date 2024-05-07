@@ -9,4 +9,3 @@ train:LOWQ2:
 SIM_DIRECTORY:   "LowQ2_G4out/"
 RECO_DIRECTORY:  "LowQ2_ReconOut/"
 MODEL_DIRECTORY: "LowQ2_Model/"
-

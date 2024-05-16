@@ -8,6 +8,7 @@ variables:
   GITHUB_REPOSITORY: ''
 
 workflow:
+  name: '$PIPELINE_NAME'
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -116,7 +117,7 @@ get_data:
     - source .local/bin/env.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
-    - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
+    - ln -s "${LOCAL_DATA_PATH}/datasets/data" data    
     # snakemake support
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
@@ -129,17 +130,18 @@ get_data:
 
 include: 
 #  - local: 'benchmarks/backgrounds/config.yml'
-  - local: 'benchmarks/ecal_gaps/config.yml'
-  - local: 'benchmarks/tracking_detectors/config.yml'
-  - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/barrel_hcal/config.yml'
-  - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/material_maps/config.yml'
-  - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/pid/config.yml'
-  - local: 'benchmarks/timing/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
-
+#  - local: 'benchmarks/ecal_gaps/config.yml'
+#  - local: 'benchmarks/tracking_detectors/config.yml'
+#  - local: 'benchmarks/barrel_ecal/config.yml'
+#  - local: 'benchmarks/barrel_hcal/config.yml'
+#  - local: 'benchmarks/zdc/config.yml'
+#  - local: 'benchmarks/material_maps/config.yml'
+#  - local: 'benchmarks/material_scan/config.yml'
+#  - local: 'benchmarks/pid/config.yml'
+#  - local: 'benchmarks/timing/config.yml'
+#  - local: 'benchmarks/b0_tracker/config.yml'
+  - local: 'benchmarks/LOWQ2/config.yml'
+'''
 deploy_results:
   stage: deploy
   needs:
@@ -220,4 +222,4 @@ pages:
     paths:
       - public
 
-
+'''

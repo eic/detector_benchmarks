@@ -61,7 +61,7 @@ eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collecti
 
 rule run_benchmarks:
     input:
-        "/scratch/EIC/ReconOut/{tag}_new.root"
+        config["RECO_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION
     params:
         xmlName=XMLFILE,
         timeBased = lambda wildcards: tag_params[wildcards.tag]["timeBased"],

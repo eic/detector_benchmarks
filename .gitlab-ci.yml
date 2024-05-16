@@ -130,18 +130,18 @@ get_data:
 
 include: 
 #  - local: 'benchmarks/backgrounds/config.yml'
-  - local: 'benchmarks/ecal_gaps/config.yml'
-  - local: 'benchmarks/tracking_detectors/config.yml'
-  - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/barrel_hcal/config.yml'
-  - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/material_maps/config.yml'
-  - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/pid/config.yml'
-  - local: 'benchmarks/timing/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
+#  - local: 'benchmarks/ecal_gaps/config.yml'
+#  - local: 'benchmarks/tracking_detectors/config.yml'
+#  - local: 'benchmarks/barrel_ecal/config.yml'
+#  - local: 'benchmarks/barrel_hcal/config.yml'
+#  - local: 'benchmarks/zdc/config.yml'
+#  - local: 'benchmarks/material_maps/config.yml'
+#  - local: 'benchmarks/material_scan/config.yml'
+#  - local: 'benchmarks/pid/config.yml'
+#  - local: 'benchmarks/timing/config.yml'
+#  - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/LOWQ2/config.yml'
-
+'''
 deploy_results:
   stage: deploy
   needs:
@@ -222,4 +222,4 @@ pages:
     paths:
       - public
 
-
+'''

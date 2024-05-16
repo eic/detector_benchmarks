@@ -1,0 +1,21 @@
+rule run_benchmarks:
+    input:
+        "/scratch/EIC/ReconOut/{tag}_new.root"
+    params:
+        crossSection = 0.0551,
+    output:
+        "plots/LOWQ2{tag}_Recon.root"
+    shell:
+        """
+        root -l -b -q 'RunLOWQ2.C++("{input}", "{output}", {params.crossSection})'        
+        """
+
+rule run_plots:
+    input:
+        "plots/LOWQ2{tag}_Recon.root"
+    output:
+        "plots/LOWQ2{tag}_FormattedPlots2.root"
+    shell:
+        """
+        root -l -b -q 'PostprocessLOWQ2.C("{input}", "{output}","{wildcards.tag}")'
+        """

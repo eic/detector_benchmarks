@@ -1,0 +1,6 @@
+/gps/particle e-
+/gps/energy 5 GeV
+/gps/position 0 0 0 mm
+/gps/ang/type iso
+/gps/ang/mintheta 0 deg
+/gps/ang/maxtheta 20 deg

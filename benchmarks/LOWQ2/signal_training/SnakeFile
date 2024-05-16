@@ -1,0 +1,28 @@
+# Snakefile
+
+# Rule to run the simulation using Allpix2
+rule run_simulation:
+    input:
+        "input_file.root"  # Input file containing position and momentum
+    output:
+        "simulation_output.root"  # Output file from the simulation
+    shell:
+        "allpix2 -c config_file.cfg -i {input} -o {output}"
+
+# Rule to train the GAN using the simulation output
+rule train_gan:
+    input:
+        "simulation_output.root"  # Output file from the simulation
+    output:
+        "trained_gan_model.h5"  # Trained GAN model file
+    shell:
+        "python train_gan_signal.py --input {input} --output {output}"
+
+# Default rule to run the simulation and train the GAN
+rule all:
+    input:
+        "trained_gan_model.h5"  # Trained GAN model file
+    output:
+        "final_results.root"  # Final results file
+    shell:
+        "python generate_results.py --model {input} --output {output}"

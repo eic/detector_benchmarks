@@ -1,0 +1,42 @@
+# allpix2 config file for time series pulse shape generation
+[Allpix]
+log_level = "INFO"
+log_format = "DEFAULT"
+detectors_file = "timepix4-mini.conf"
+number_of_events = 5
+#random_seed = 16676192459248392355
+
+[GeometryBuilderGeant4]
+
+[DepositionGeant4]
+physics_list = FTFP_BERT_LIV
+source_position = 0um 0um 0um
+source_type = "square"
+beam_size = 55um
+beam_direction = 0 0 1
+number_of_particles = 1
+file_name = "source.mac"
+max_step_length = 1.0um
+output_plots = true
+
+[ElectricFieldReader]
+model="linear"
+bias_voltage=10V
+depletion_depth=50um
+
+[ProjectionPropagation]
+temperature = 293K
+charge_per_step = 500
+propagate_holes = true
+
+[SimpleTransfer]
+max_depth_distance = 5um
+output_plots = true
+
+# replace by [VisualizationGeant4] to run the visualization
+[Ignore]
+mode = "gui"
+accumulate = 1
+
+[ROOTObjectWriter]
+file_name = "Out.root"

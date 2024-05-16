@@ -1,0 +1,9 @@
+bench:LOWQ2_events:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - snakemake --cores 8 $DETECTOR_CONFIG/results/LOWQ2/LOWQ2_FormattedPlots.edm4hep.root --configfile config.yml
+
+SIM_DIRECTORY:     "sim_output/LOWQ2"
+RECO_DIRECTORY:    "reconstruction/LOWQ2"
+RESULTS_DIRECTORY: "results/LOWQ2"

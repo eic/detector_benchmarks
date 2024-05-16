@@ -69,7 +69,7 @@ rule run_benchmarks:
         eventCrossSection = lambda wildcards: tag_params[wildcards.tag]["eventCrossSection"]
  
     output:
-        "{dir}/results/LOWQ2/LOWQ2{tag}_Plots.root"
+        "{dir}/LOWQ2{tag}_Plots.root"
     shell:
         """
         root -l -b -q 'RunLOWQ2.C++("{input}", "{output}", "{params.xmlName}", {params.timeBased}, {params.timeWindow}, {params.eventCrossSection})'        
@@ -77,11 +77,11 @@ rule run_benchmarks:
 
 rule run_plots:
     input:
-        "{dir}/results/LOWQ2/LOWQ2{tag}_Plots.root"
+        "{dir}/LOWQ2{tag}_Plots.root"
     params:
         tagName = lambda wildcards: tag_params[wildcards.tag]["tagName"],
     output:
-        "{dir}/results/LOWQ2/LOWQ2{tag}_FormattedPlots.root"
+        "{dir}/LOWQ2{tag}_FormattedPlots.root"
     shell:
         """
         root -l -b -q 'PostprocessLOWQ2.C("{input}", "{output}","{params.tagName}")'

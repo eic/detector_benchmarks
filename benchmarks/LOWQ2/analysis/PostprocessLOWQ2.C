@@ -17,15 +17,7 @@ void SetStyle() {
     gStyle->SetPadRightMargin(0.18);
     gStyle->SetPadBottomMargin(0.12);
     gStyle->SetTitleSize(0.04, "XYZ");
-
     gStyle->SetTitleOffset(4.0, "Z");
-    // gStyle->SetTitleOffset(1.0, "Y");
-
-    // // Set global plot format variables
-    // int font = 42; // 
-    // gStyle->SetTextFont(font); // Set the font for text
-    // gStyle->SetLabelFont(font, "XYZ"); // Set the font for axis labels
-    // gStyle->SetTitleFont(font, "XYZ"); // Set the font for titles
 
 }
 
@@ -71,7 +63,6 @@ TH2* RatePlot(TDirectory* inputDir, int Module, int Layer, TString Tag="Quasi-Re
     RatePlot->Rebin2D(rebin,rebin);
     RatePlot->Scale(1.0/(rebin*rebin));
     TString title = "Tagger module "+std::to_string(Module)+", layer "+std::to_string(Layer)+" - Mean "+Tag+" rate per "+std::to_string(rebin)+"x"+std::to_string(rebin)+" pixel group";
-    // TString title = "Tagger module 2, layer 0 rate, integrated over "+std::to_string(rebin)+"x"+std::to_string(rebin)+" pixel group";
     RatePlot->SetTitle(title);
     RatePlot->GetXaxis()->SetTitle("x pixel");
     RatePlot->GetYaxis()->SetTitle("y pixel");
@@ -485,9 +476,9 @@ void FormatReconstructionPlots(TDirectory* inputDir, TFile* outputFile, TString 
 }
 
 //----------------------------------------------------------------------
-// This function is called by the benchmarking script maybe
+// This function is called by the benchmarking script
 //----------------------------------------------------------------------
-void Postprocess(TString inName="LOWQ2QRRates3.root", TString outName="LOWQ2Plots.root", TString Tag="Quasi-Real") {
+void PostprocessLOWQ2(TString inName, TString outName, TString Tag) {
     
     SetStyle();
     
@@ -536,7 +527,7 @@ void Postprocess(TString inName="LOWQ2QRRates3.root", TString outName="LOWQ2Plot
 //----------------------------------------------------------------------
 // Main function to create canvases
 //----------------------------------------------------------------------
-void PostprocessLOWQ2() {
-//     Postprocess("plots/LOWQ2QRRecon2.root", "plots/LOWQ2QR_FormattedPlots.root", "Quasi-Real");
-     Postprocess("plots/LOWQ2BremsRecon3.root", "plots/LOWQ2Brems_FormattedPlots3.root", "Bremsstrahlung");
-}
+// void PostprocessLOWQ2() {
+// //     Postprocess("plots/LOWQ2QRRecon2.root", "plots/LOWQ2QR_FormattedPlots.root", "Quasi-Real");
+//      Postprocess("plots/LOWQ2BremsRecon3.root", "plots/LOWQ2Brems_FormattedPlots3.root", "Bremsstrahlung");
+// }

@@ -1,5 +1,2 @@
-training:
-  # Training configuration goes here
-
-analysis:
-  # Analysis configuration goes here
+include: 
+  - local: 'analysis/config.yml'

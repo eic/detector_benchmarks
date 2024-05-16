@@ -7,7 +7,7 @@ void RunLOWQ2(  std::string inputFileName  = "Brems_input.root",
                 bool   inputIsTimeBased    = false,      // true if the event sample is time-based, false if it is event-based
                 double timeWindow          = 10.15*1e-9, //[s]
                 double eventCrossSection   = 0.0551,     // [mb]
-                double luminosity          = 1e34,       // [cm^-2 s^-1]
+                double luminosity          = 1e34        // [cm^-2 s^-1]
             ) {
     
     //Set implicit multi-threading

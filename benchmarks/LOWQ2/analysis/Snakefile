@@ -1,21 +1,88 @@
+# Possible tags for local/remote running
+tag_params = {
+    "QR":      {"timeBased": 0, "timeWindow": 0,          "eventCrossSection": 0.0551, "tagName": "Quasi-Real"},
+    "Brem":    {"timeBased": 1, "timeWindow": 10.15*1e-9, "eventCrossSection": 0,      "tagName": "Bremsstrahlung"},
+    "pythia6": {"timeBased": 0, "timeWindow": 0,          "eventCrossSection": 0.054,  "tagName": "Deep Inelastic Scattering"},
+    # Add more mappings here if needed
+}
+
+EVENT_EXTENSION = ".ab.hepmc3.tree.root"
+SIM_EXTENSION   = ".edm4hep.root"
+RECO_EXTENSION  = ".eicrecon.tree.edm4eic.root"
+ 
+REMOTE_EVENTS_DIRECTORY = "root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
+FILE_BASE               = "pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run"
+
+BEAM_ENERGY     = "10"
+XML_FILE        = "/opt/detector/epic-main/share/epic/epic.xml",
+
+# Function to check if the remote file exists
+def remote_file_exists(server,url):
+    try:
+        subprocess.check_output(['xrdfs', server, 'stat', url])
+        return url
+    except subprocess.CalledProcessError:
+        return None
+
+rule run_simulation_remote:           
+    params:
+        XML=XML_FILE,
+        input=remote_file_exists(REMOTE_EVENTS_DIRECTORY+FILE_BASE+wildcards.index+EVENT_EXTENSION),
+    output:
+        config["SIM_DIRECTORY"]+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
+    shell: """
+npsim \
+    --inputFiles {params.input} \
+    --outputFile {output[0]} \
+    --compactFile {params.XML} \
+    --runType run \
+    --numberOfEvents 100 \
+    --physics.list FTFP_BERT \
+    --field.eps_min 5e-06 \
+    --field.eps_max 1e-04 \
+    --physics.rangecut 50 \
+"""    
+
+rule run_reconstruction:
+    params:
+        XML=XML_FILE,
+        beam_energy=BEAM_ENERGY,
+        collections="TaggerTrackerProjectedTracks,MCScatteredElectrons,MCParticles,EventHeader",
+    input:
+        expand(
+            config["SIM_DIRECTORY"]+FILE_BASE+"{index}_tagger"+SIM_EXTENSION,
+            index=range(1,4),            
+        ),       
+    output:
+        config["RECO_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION,
+    shell: """
+eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
+"""
+
 rule run_benchmarks:
     input:
         "/scratch/EIC/ReconOut/{tag}_new.root"
     params:
-        crossSection = 0.0551,
+        xmlName=XMLFILE,
+        timeBased = lambda wildcards: tag_params[wildcards.tag]["timeBased"],
+        timeWindow = lambda wildcards: tag_params[wildcards.tag]["timeWindow"],
+        eventCrossSection = lambda wildcards: tag_params[wildcards.tag]["eventCrossSection"]
+ 
     output:
-        "plots/LOWQ2{tag}_Recon.root"
+        "{dir}/results/LOWQ2/LOWQ2{tag}_Plots.root"
     shell:
         """
-        root -l -b -q 'RunLOWQ2.C++("{input}", "{output}", {params.crossSection})'        
+        root -l -b -q 'RunLOWQ2.C++("{input}", "{output}", "{params.xmlName}", {params.timeBased}, {params.timeWindow}, {params.eventCrossSection})'        
         """
 
 rule run_plots:
     input:
-        "plots/LOWQ2{tag}_Recon.root"
+        "{dir}/results/LOWQ2/LOWQ2{tag}_Plots.root"
+    params:
+        tagName = lambda wildcards: tag_params[wildcards.tag]["tagName"],
     output:
-        "plots/LOWQ2{tag}_FormattedPlots2.root"
+        "{dir}/results/LOWQ2/LOWQ2{tag}_FormattedPlots.root"
     shell:
         """
-        root -l -b -q 'PostprocessLOWQ2.C("{input}", "{output}","{wildcards.tag}")'
+        root -l -b -q 'PostprocessLOWQ2.C("{input}", "{output}","{params.tagName}")'
         """

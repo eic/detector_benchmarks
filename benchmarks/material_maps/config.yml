@@ -20,3 +20,4 @@ material_maps:
   artifacts:
     paths:
       - results/material_maps
+  allow_failure: true

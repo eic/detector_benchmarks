@@ -1,10 +1,19 @@
 image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 
+variables:
+  DETECTOR: epic
+  DETECTOR_CONFIG: epic_craterlake
+  DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
+  GITHUB_SHA: ''
+  GITHUB_REPOSITORY: ''
+
 workflow:
+  name: '$PIPELINE_NAME'
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "webide"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
     - if: '$CI_COMMIT_BRANCH == "master"'
     - if: '$CI_COMMIT_TAG'
 
@@ -21,10 +30,10 @@ default:
       - .local/share
       - results
       - config
-      - juggler.env
+      - .env
       - summary.txt
     reports:
-      dotenv: juggler.env
+      dotenv: .env
 
 stages:
   - status-pending
@@ -40,6 +49,7 @@ stages:
   - status-report
 
 .status:
+  image: curlimages/curl:latest
   script:
     - |
       if [ -n "${GITHUB_SHA}" ] ; then
@@ -67,49 +77,17 @@ benchmarks:detector:pending:
 common:setup:
   stage: config
   before_script:
+  script:
     - |
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
         export COMMON_BENCH_VERSION="master" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
+      echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
       git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
-  script:
-    - |
-      if [[ "x${CI_PIPELINE_SOURCE}" == "xmerge_request_event"  || "$CI_COMMIT_BRANCH" == "master" ]]; then
-        echo "DETECTOR               = ${DETECTOR}"
-        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
-        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_USERNAME=${DEPLOY_TOKEN_USERNAME}" >> juggler.env
-        echo "DETECTOR_DEPLOY_TOKEN_PASSWORD=${DEPLOY_TOKEN_PASSWORD}" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
-      else 
-        if [[ "${DETECTOR}" == "" ]] ; then
-          export DETECTOR="epic" 
-        fi
-        if [[ "${DETECTOR_CONFIG}" == "" ]] ; then
-          export DETECTOR_CONFIG="${DETECTOR}"
-        fi
-        if [[ "${DETECTOR_VERSION}" == "" ]] ; then
-          export DETECTOR_VERSION="main" 
-        fi
-        if [[ "${DETECTOR_REPOSITORYURL}" == "" ]] ; then
-          export DETECTOR_REPOSITORYURL="https://github.com/eic/${DETECTOR}"
-        fi
-        echo "DETECTOR               = ${DETECTOR}"
-        echo "DETECTOR_CONFIG        = ${DETECTOR_CONFIG}"
-        echo "DETECTOR_VERSION       = ${DETECTOR_VERSION}"
-        echo "DETECTOR_REPOSITORYURL = ${DETECTOR_REPOSITORYURL}"
-        echo "DETECTOR=$DETECTOR" >> juggler.env
-        echo "DETECTOR_CONFIG=$DETECTOR_CONFIG" >> juggler.env
-        echo "DETECTOR_VERSION=$DETECTOR_VERSION" >> juggler.env
-        echo "DETECTOR_REPOSITORYURL=$DETECTOR_REPOSITORYURL" >> juggler.env
-        echo "COMMON_BENCH_VERSION=$COMMON_BENCH_VERSION" >> juggler.env
-      fi
+      echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
+      echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
+      echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
 
 
@@ -140,6 +118,10 @@ get_data:
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
+    # snakemake support
+    - mkdir "${DETECTOR_CONFIG}"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - ls -lrtha
   retry:
     max: 2
@@ -147,27 +129,30 @@ get_data:
       - runner_system_failure
 
 include: 
+#  - local: 'benchmarks/backgrounds/config.yml'
+  - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/material_maps/config.yml'
+  - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/LOWQ2/config.yml'
-  - local: 'benchmarks/others/config.yml'
 
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:materialscan"]
+    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt
 
 benchmarks:detector:success:
   stage: status-report
+  dependencies: []
   extends: .status
   variables:
     STATE: "success"
@@ -176,6 +161,7 @@ benchmarks:detector:success:
 
 benchmarks:detector:failure:
   stage: status-report
+  dependencies: []
   extends: .status
   variables:
     STATE: "failure"
@@ -194,6 +180,9 @@ benchmarks:reconstruction:
     DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
     DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
+    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
+    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
+    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
   trigger:
     project: EIC/benchmarks/reconstruction_benchmarks
     strategy: depend
@@ -211,6 +200,9 @@ benchmarks:physics:
     DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
     DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
     COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
+    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
+    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
+    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
   trigger:
     project: EIC/benchmarks/physics_benchmarks
     strategy: depend

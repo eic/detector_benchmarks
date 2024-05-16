@@ -1,0 +1,41 @@
+name: Mirror and Trigger EICweb
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Mirror and Trigger EICweb
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Push to EICweb
+      uses: eic/gitlab-sync@master
+      with:
+        url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
+        token: ${{ secrets.GITLAB_TOKEN }}
+        username: ${{ secrets.GITLAB_USERNAME }}
+        ciskip: true
+    - name: Trigger EICweb
+      uses: eic/trigger-gitlab-ci@v2
+      with:
+        url: https://eicweb.phy.anl.gov
+        project_id: 399
+        token: ${{ secrets.EICWEB_DETECTOR_BENCHMARKS_TRIGGER }}
+        ref_name: ${{ github.event.pull_request.head.ref || github.ref }}
+        variables:
+          GITHUB_REPOSITORY=${{ github.repository }}
+          GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
+          GITHUB_PR=${{ github.event.pull_request.number }}
+          PIPELINE_NAME=${{ github.event.pull_request.title }}

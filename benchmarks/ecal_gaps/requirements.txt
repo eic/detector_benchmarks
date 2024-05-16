@@ -1,0 +1,7 @@
+awkward >= 2.4.0
+dask >= 2023
+dask_awkward
+dask_histogram
+distributed >= 2023
+pyhepmc
+uproot ~= 5.2.0

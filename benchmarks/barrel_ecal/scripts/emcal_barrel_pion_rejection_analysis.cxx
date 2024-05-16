@@ -87,9 +87,8 @@ void emcal_barrel_pion_rejection_analysis(
 
   /*
   // Sampling Fraction grabbed from json file
-  // Note that this value is derived from electrons
   json j;
-  std::ifstream prev_steps_ifstream("results/emcal_barrel_calibration.json");
+  std::ifstream prev_steps_ifstream("results/emcal_barrel_electron_calibration.json");
   prev_steps_ifstream >> j;
 
   // Sampling Fraction

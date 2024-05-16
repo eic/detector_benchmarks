@@ -1,0 +1,197 @@
+DETECTOR_PATH = os.environ["DETECTOR_PATH"]
+
+
+rule emcal_barrel_particles_gen:
+    input:
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_particles_gen.cxx"),
+    params:
+        JUGGLER_N_EVENTS = 100,
+    output:
+        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
+    shell:
+        """
+env \
+  JUGGLER_GEN_FILE=../{output} \
+  root -l -b -q '{input.script}+({params.JUGGLER_N_EVENTS}, {wildcards.E_MIN}, {wildcards.E_MAX}, \"{wildcards.PARTICLE}\")'
+"""
+
+
+rule emcal_barrel_particles:
+    input:
+        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc"
+    params:
+        JUGGLER_N_EVENTS = 100,
+    output:
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
+    shell:
+        """
+ddsim \
+   --runType batch \
+   -v WARNING \
+   --part.minimalKineticEnergy 0.5*GeV  \
+   --filter.tracker edep0 \
+   --numberOfEvents {params.JUGGLER_N_EVENTS} \
+   --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
+   --inputFiles {input} \
+   --outputFile {output}
+"""
+
+
+# This is needed to bridge snakemake rule files to "normal" benchmarks
+rule emcal_barrel_particles_compat_normal:
+    input:
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies5.0_5.0.edm4hep.root",
+    wildcard_constraints:
+        PARTICLE="[^_]+",
+    output:
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+    shell:
+        """
+ln {input} {output}
+"""
+
+
+# This is needed to bridge snakemake rule files to "energy_scan" benchmarks
+rule emcal_barrel_particles_compat_energy_scan:
+    input:
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E}_{E}.edm4hep.root",
+    wildcard_constraints:
+        PARTICLE="[^_]+",
+    output:
+        "{DETECTOR_CONFIG}/sim_output/energy_scan/{E}/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+    shell:
+        """
+ln {input} {output}
+"""
+
+
+rule emcal_barrel_particles_analysis:
+    input:
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_particles_analysis.cxx"),
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+    wildcard_constraints:
+        PARTICLE="(electron|photon|piplus|piminus)", # avoid clash with "pions"
+    output:
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_calibration.json",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Ethr.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Ethr.pdf",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_nhits.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_nhits.pdf",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Esim.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Esim.pdf",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsam.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsam.pdf",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamImg.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamImg.pdf",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamScFi.png",
+        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamScFi.pdf",
+    shell:
+        """
+cd {wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.script}+("{wildcards.PARTICLE}", true)'
+"""
+
+
+rule emcal_barrel_pions_analysis:
+    input:
+        script=workflow.source_path("scripts/emcal_barrel_pions_analysis.cxx"),
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piplus_energies5.0_5.0.edm4hep.root",
+    output:
+        expand(
+            "{{DETECTOR_CONFIG}}/results/emcal_barrel_pions_{var_name}.{extension}",
+            var_name=["Ethr", "nhits", "Esim", "fsam", "pid"],
+            extension=["pdf", "png"],
+        ),
+    shell:
+        """
+cd {wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.script}+("../{input.sim}")'
+"""
+
+
+rule emcal_barrel_pi0_analysis:
+    input:
+        script=workflow.source_path("scripts/emcal_barrel_pi0_analysis.cxx"),
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_pi0_energies5.0_5.0.edm4hep.root",
+        fsam="{DETECTOR_CONFIG}/results/emcal_barrel_electron_calibration.json",
+    output:
+        expand(
+            "{{DETECTOR_CONFIG}}/results/emcal_barrel_pi0_{var_name}.{extension}",
+            var_name=["Ethr", "nhits", "Esim", "dE_rel"],
+            extension=["pdf", "png"],
+        ),
+        "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json"
+    shell:
+        """
+cd {wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.script}+("../{input.sim}")'
+"""
+
+
+ENERGY_SCAN_ENERGIES = [0.5, 1., 2., 5., 10.]
+rule emcal_energy_scan:
+    input:
+        # Require all simulations produced for this rule
+        expand("{{DETECTOR_CONFIG}}/sim_output/energy_scan/{energy}/sim_emcal_barrel_{{PARTICLE}}.edm4hep.root", energy=ENERGY_SCAN_ENERGIES),
+    output:
+        "{DETECTOR_CONFIG}/sim_output/emcal_barrel_energy_scan_points_{PARTICLE}.txt",
+    run:
+        with open(output[0], "wt") as fp:
+            for energy in ENERGY_SCAN_ENERGIES:
+                fp.write(f"{energy}\n")
+
+
+rule emcal_barrel_particles_energy_scan_analysis:
+    input:
+        script=workflow.source_path("scripts/emcal_barrel_energy_scan_analysis.cxx"),
+        scan_points="{DETECTOR_CONFIG}/sim_output/emcal_barrel_energy_scan_points_{PARTICLE}.txt",
+    output:
+        "{DETECTOR_CONFIG}/results/energy_scan/emcal_barrel_{PARTICLE}_fsam_scan.png",
+        "{DETECTOR_CONFIG}/results/energy_scan/emcal_barrel_{PARTICLE}_fsam_scan_res.png",
+        expand(
+            "{{DETECTOR_CONFIG}}/results/energy_scan/{energy}/emcal_barrel_{{PARTICLE}}_{plot}.png",
+            energy=ENERGY_SCAN_ENERGIES,
+            plot=["Esim_layer", "Layer_nodep", "Layer_Esim_mean", "Ethr", "nhits", "Esim", "fsam"],
+        ),
+    shell:
+        """
+cd {wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.script}+("{wildcards.PARTICLE}")'
+"""
+
+
+rule emcal_barrel_pion_rejection_analysis:
+    input:
+        workflow.source_path("scripts/emcal_barrel_common_functions.h"),
+        script=workflow.source_path("scripts/emcal_barrel_pion_rejection_analysis.cxx"),
+        electron="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.root",
+        piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root",
+    output:
+        "{DETECTOR_CONFIG}/results/emcal_barrel_pion_rej_RatioRej.png",
+        "{DETECTOR_CONFIG}/results/Barrel_emcal_pion_rej.json",
+        expand(
+            "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_{var_save}.png",
+            var_save=["Esim", "EsimTot", "EDep6", "EDep6OverP", "pT", "eta", "EsimScFi", "EsimScFiOverP"],
+        ),
+        expand(
+            "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_E{i}Eta{j}.png",
+            i=range(6),
+            j=range(2),
+        ),
+        expand(
+            "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_{tag}_E{energy}_eta{eta_bin}.{extension}",
+            energy=[5, 10, 18],
+            eta_bin=range(2, 4),
+            tag=(
+                ["cut_mom_ele", "cut_mom_pim", "cut_ratio_pim"]
+                + sum([[f"cut_{var}_ele", f"cut_{var}_pim", f"cut_{var}_comb"] for var in ["pT", "EDep6OverP"]], [])
+            ),
+            extension=["pdf", "png"],
+        ),
+    shell:
+        """
+cd {wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.script}+("../{input.electron}", "../{input.piminus}")'
+"""

@@ -20,8 +20,6 @@ using RVecI       = ROOT::VecOps::RVec<int>;
 
 std::map<TString,std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<TString,H3ResultPtr>>> histMap;
 
-
-
 //---------------------------------------------------------------------------------------------
 // Create dataframe from input file(s)
 //---------------------------------------------------------------------------------------------
@@ -228,8 +226,7 @@ void writePlots( TString outName ){
 //---------------------------------------------------------------------------------------------
 // Create the benchmark plots
 //---------------------------------------------------------------------------------------------
-void LOWQ2Benchmarks( string inName = "/scratch/EIC/G4out/qr_18x275_new.edm4hep*.root",
-		      TString outName = "LOWQ2QRRates.root", dd4hep::Detector& detector=dd4hep::Detector::getInstance(), double eventRate=0.0 ){
+void LOWQ2Benchmarks( string inName, TString outName, dd4hep::Detector& detector, double eventRate ){
 
   auto node = initialise( inName );
   

@@ -97,9 +97,8 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
                   .Define(yHalfChipName,"yHalfChipID[LayerFilter&&ModuleFilter]")
                   .Define(xColumnName,"xColumnID[LayerFilter&&ModuleFilter]")
                   .Define(layerSizeName,[](RVecI lay){return lay.size();},layerSizeInput);
+     
 
-      
-    
       hHists1D[moduleTag+"/"+layerTag+"/"+xHistName]    = d4.Histo1D({xHistName,   xHistName+";x pixel column;Rate [Hz]",  xRange, xMin, xMax   }, xName, "eventWeight");
       
       hHists1D[moduleTag+"/"+layerTag+"/"+yHistName]    = d4.Histo1D({yHistName,   yHistName+";y pixel column;Rate [Hz]",  yRange, yMin, yMax   }, yName, "eventWeight");
@@ -122,7 +121,6 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
       
     }
   }
-
 
   return {hHists1D,hHists2D,hHists3D};
  

@@ -5,7 +5,7 @@ MODEL_DIRECTORY: "LowQ2_Model/"
 # Run Snakemake for the training
 train:LOWQ2:
   extends: .det_benchmark
-  stage: benchmarks
+  stage: calibrate
   script:
     - snakemake --cores 8 ${MODEL_DIRECTORY}"trainedData.root" --configfile config.yml 
   

@@ -141,7 +141,7 @@ include:
 #  - local: 'benchmarks/timing/config.yml'
 #  - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/LOWQ2/config.yml'
-'''
+
 deploy_results:
   stage: deploy
   needs:

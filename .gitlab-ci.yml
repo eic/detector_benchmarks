@@ -183,6 +183,7 @@ benchmarks:reconstruction:
     BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
     BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
     BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
+    PIPELINE_NAME: "$PIPELINE_NAME"
   trigger:
     project: EIC/benchmarks/reconstruction_benchmarks
     strategy: depend
@@ -203,6 +204,7 @@ benchmarks:physics:
     BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
     BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
     BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
+    PIPELINE_NAME: "$PIPELINE_NAME"
   trigger:
     project: EIC/benchmarks/physics_benchmarks
     strategy: depend

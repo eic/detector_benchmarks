@@ -28,14 +28,14 @@ jobs:
         username: ${{ secrets.GITLAB_USERNAME }}
         ciskip: true
     - name: Trigger EICweb
-      uses: eic/trigger-gitlab-ci@v2
+      uses: eic/trigger-gitlab-ci@v3
       with:
         url: https://eicweb.phy.anl.gov
         project_id: 399
         token: ${{ secrets.EICWEB_DETECTOR_BENCHMARKS_TRIGGER }}
         ref_name: ${{ github.event.pull_request.head.ref || github.ref }}
-        variables:
+        variables: |
           GITHUB_REPOSITORY=${{ github.repository }}
           GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_PR=${{ github.event.pull_request.number }}
-          PIPELINE_NAME=${{ github.event.pull_request.title }}
+          PIPELINE_NAME=${{ github.repository }}: ${{ github.event.pull_request.title || github.ref_name }}

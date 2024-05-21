@@ -1,0 +1,110 @@
+# Snakemake file for training a new neural network for LOW-Q2 tagger electron momentum reconstruction
+from itertools import product
+
+import os
+import shutil
+from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
+
+configfile: "local_config.yml"
+
+S3 = S3RemoteProvider(
+    endpoint_url="https://eics3.sdcc.bnl.gov:9000",
+    access_key_id=os.environ["S3_ACCESS_KEY"],
+    secret_access_key=os.environ["S3_SECRET_KEY"],
+)
+
+EVENT_EXTENSION = ".ab.hepmc3.tree.root"
+SIM_EXTENSION   = ".edm4hep.root"
+RECO_EXTENSION  = ".eicrecon.tree.edm4eic.root"
+ 
+REMOTE_EVENTS_SERVER    =  "root://dtn-eic.jlab.org/"
+REMOTE_EVENTS_DIRECTORY = "/work/eic2/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
+
+S3_RECON_DIRECTORY      = "eictest/EPIC/RECO/24.05.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
+FILE_BASE               = "pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run"
+
+XML_FILE        = "epic_edit.xml"
+BEAM_ENERGY     = "10"
+
+###################################################################
+# Find and download the input files directly from the S3 bucket
+###################################################################
+rule download_recon_input:
+    input:
+        S3.remote(S3_RECON_DIRECTORY+FILE_BASE+"{run_index}.ab.{file_index}"+RECO_EXTENSION),
+    output:
+        config["RECO_IN_DIRECTORY"]+FILE_BASE+"{run_index}.ab.{file_index}"+RECO_EXTENSION,
+    run:
+        shutil.move(input[0], output[0])
+
+###################################################################
+# Generate the input files for the training from the event files
+###################################################################
+def remote_file_exists(server,url):
+    try:
+        subprocess.check_output(['xrdfs', server, 'stat', url])
+        return url
+    except subprocess.CalledProcessError:
+        return None
+
+rule run_simulation_tagger:
+    params:
+        XML=XML_FILE,
+        input=lambda wildcards: remote_file_exists(REMOTE_EVENTS_SERVER,REMOTE_EVENTS_DIRECTORY+FILE_BASE+wildcards.fileindex+EVENT_EXTENSION),
+    output:
+        config["SIM_DIRECTORY"]+FILE_BASE+"{fileindex}.ab.{subindex:04d}"+SIM_EXTENSION,
+    shell:  """
+                npsim \
+                    --inputFiles {params.input} \
+                    --outputFile {output[0]} \
+                    --compactFile {params.XML} \
+                    --runType run \
+                    --numberOfEvents 1000 \
+                    --skipNEvents 1000*{subindex} \
+                    --physics.list FTFP_BERT \
+                    --field.eps_min 5e-06 \
+                    --field.eps_max 1e-04 \
+                    --physics.rangecut 50 \
+            """
+    
+rule generate_recon_input:
+    params:
+        XML=XML_FILE,
+        beam_energy=BEAM_ENERGY,
+        collections="TaggerTrackerProjectedTracks,MCScatteredElectrons,MCParticles,EventHeader",
+    input:
+        config["SIM_DIRECTORY"]+FILE_BASE+"{fileindex}.ab.{subindex:04d}"+SIM_EXTENSION,               
+    output:
+        config["RECO_IN_DIRECTORY"]+FILE_BASE+"{fileindex}.ab.{subindex:04d}"+RECO_EXTENSION,
+    shell:  """
+                eicrecon {input} -Pdd4hep:xml_files={params.XML} -Ppodio:output_include_collections={params.collections} -Ppodio:output_file={output} -PLOWQ2:LowQ2Trajectories:electron_beamE={params.beam_energy}
+            """
+
+###################################################################
+# Try to download the input files from the S3 bucket before generating them
+###################################################################
+ruleorder: download_recon_input > generate_recon_input
+
+###################################################################
+# Train the network to reconstruct the electron momentum
+###################################################################
+rule low_q2_train_network:
+    params:
+        beam_energy=BEAM_ENERGY,
+        type_name="LowQ2MomentumRegression",
+        method_name="DNN",
+        model_dir="LowQ2Model",
+        input_files=config["RECO_IN_DIRECTORY"]+FILE_BASE+"*.ab.000[1234]"+RECO_EXTENSION,
+    input:
+        train_data=expand(
+            config["RECO_IN_DIRECTORY"]+FILE_BASE+"{fileindex}.ab.{subindex:04d}"+RECO_EXTENSION,
+            fileindex=range(1,20),
+            subindex=range(1,4),
+        ),   
+    output:
+        root_output=config["MODEL_DIRECTORY"]+"trainedData.root",
+    shell:
+            """
+                root -l -b -q 'TaggerRegressionEICrecon.C++("{params.input_files}", "{output.root_output}", "{params.model_dir}", "{params.beam_energy}", "{params.type_name}", "{params.method_name}")'
+            """
+

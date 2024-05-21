@@ -1,2 +1,2 @@
 include: 
-  - local: 'training/config.yml'
+  - local: 'reconstruction_training/config.yml'

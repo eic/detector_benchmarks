@@ -1,9 +1,5 @@
-#SIM_DIRECTORY:     ${LOCAL_DATA_PATH}/"sim_output"
-#RECO_DIRECTORY:    ${LOCAL_DATA_PATH}/"results"
-#RESULTS_DIRECTORY: ${LOCAL_DATA_PATH}/"results"
-
 bench:LOWQ2_events:
   extends: .det_benchmark
   stage: benchmarks
   script:
-    - snakemake --cores 8 ${RESULTS_DIRECTORY}/LOWQ2_FormattedPlots.edm4hep.root --configfile config.yml
+    - snakemake --cores 8 ${RESULTS_DIRECTORY}/LOWQ2_FormattedPlots.edm4hep.root --configfile ../remote_config.yml

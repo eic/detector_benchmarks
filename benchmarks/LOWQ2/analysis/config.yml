@@ -1,6 +1,6 @@
-SIM_DIRECTORY:     ${LOCAL_DATA_PATH}/"sim_output"
-RECO_DIRECTORY:    ${LOCAL_DATA_PATH}/"results"
-RESULTS_DIRECTORY: ${LOCAL_DATA_PATH}/"results"
+#SIM_DIRECTORY:     ${LOCAL_DATA_PATH}/"sim_output"
+#RECO_DIRECTORY:    ${LOCAL_DATA_PATH}/"results"
+#RESULTS_DIRECTORY: ${LOCAL_DATA_PATH}/"results"
 
 bench:LOWQ2_events:
   extends: .det_benchmark

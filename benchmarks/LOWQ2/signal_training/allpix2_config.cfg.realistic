@@ -3,7 +3,7 @@
 log_level = "INFO"
 log_format = "DEFAULT"
 detectors_file = "allpix2_detector.cfg"
-number_of_events = 4000
+number_of_events = 4
 random_seed = 161
 
 [GeometryBuilderGeant4]
@@ -13,27 +13,48 @@ physics_list = FTFP_BERT_LIV
 source_type = "macro"
 file_name = "source.mac"
 max_step_length = 0.1um
+output_plots = true
 
 [ElectricFieldReader]
+#model = "mesh"
+#file_name = "example_electric_field.init"
+#field_mapping = PIXEL_FULL
+#field_scale = {0.3667, 0.55}
+#field_depth = 300um
+
+
 model="linear"
-bias_voltage = -200V
-#output_plots = true
+bias_voltage=-200V
 
-[ProjectionPropagation]
+
+output_plots = true
+
+[WeightingPotentialReader]
+model = "pad"
+
+[TransientPropagation]
 temperature = 293K
-charge_per_step = 25
+charge_per_step = 50
+timestep = 25ps
+propagate_electrons = true
+propagate_holes = false
 
-#[WeightingPotentialReader]
-#model = "pad"
-#[TransientPropagation]
-#temperature = 293K
-#charge_per_step = 50
-#timestep = 25ps
-#propagate_electrons = true
+output_plots = true
+
+output_linegraphs = true
+output_linegraphs_collected = true
+
+output_animations = true
+output_plots_theta = 10
+output_plots_phi = 45
+output_plots_step = 200ps
+output_plots_use_pixel_units = true
+output_animations_color_markers = true
 
 [PulseTransfer]
-timestep = 0.1ns
-#output_pulsegraphs = true
+output_plots = true
+timestep = 0.05ns
+output_pulsegraphs = true
 
 [CSADigitizer]
 model = "simple"
@@ -41,12 +62,12 @@ feedback_capacitance = 5e-15C/V
 rise_time_constant = 1e-9s
 feedback_time_constant = 10e-9s
 integration_time = 0.5e-6s
-threshold = -10e-3V
+threshold = 10e-3V
 clock_bin_toa = 1.5625ns
 clock_bin_tot = 25.0ns
 
 output_plots = true
-#output_pulsegraphs = true
+output_pulsegraphs = true
 
 # replace by [VisualizationGeant4] to run the visualization
 [Ignore]

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd" >
+
+<define>
+  <rotation name="identity" x="0" y="0" z="0"/>
+  <constant name="pixelSize" value="55.0" unit="um"/>
+  <constant name="halfPixelSize" value="pixelSize*0.5"/>
+  <constant name="halfPixelDiagonal" value="halfPixelSize*sqrt(2)"/>
+  <constant name="sourceDepth" value="4" unit="um"/>
+  <position name="cutBoxPos" x="0.5*halfPixelSize" y="-0.5*halfPixelSize" z="0.0"  unit="um"/>
+  <rotation name="cutBoxRot" x="0" y="0" z="45" unit="deg"/>
+  <position name="center" x="0.5*halfPixelSize" y="0.5*halfPixelSize" z="0.5*sourceDepth"  unit="um"/>
+</define>
+
+<materials>
+
+  <element name="Oxygen"   formula="O"  Z="8.">
+    <atom value="16.0"/>
+  </element>
+  <element name="Nitrogen" formula="N"  Z="7.">
+    <atom value="14.01"/>
+  </element>
+
+  <material name="Air">
+   <D value="1.290" unit="mg/cm3"/>
+   <fraction n="0.7" ref="Nitrogen"/>
+   <fraction n="0.3" ref="Oxygen"/>
+  </material>
+
+</materials>
+
+<solids>
+  <box name="Box" x="halfPixelSize" y="halfPixelSize" z="sourceDepth" lunit="um"/>
+  <box name="CutBox" x="halfPixelDiagonal" y="halfPixelDiagonal" z="sourceDepth*1.01" lunit="um"/>
+  <subtraction name="TrianglePrism">
+    <first ref="Box"/>
+    <second ref="CutBox"/>
+    <positionref ref="cutBoxPos"/>
+    <rotationref ref="cutBoxRot"/>
+  </subtraction>
+
+  <box name="WorldBox" x="1.0" y="1.0" z="1.0" lunit="cm"/>
+</solids>
+
+<structure>
+  <volume name="TrianglePrismVol">
+    <materialref ref="Air"/>
+    <solidref ref="TrianglePrism"/>
+  </volume>
+
+  <volume name="WorldBoxVol">
+    <materialref ref="Air"/>
+    <solidref ref="WorldBox"/>
+    <physvol>
+       <volumeref ref="TrianglePrismVol"/>
+       <positionref ref="center"/>
+       <rotationref ref="identity"/>
+    </physvol>
+  </volume>
+</structure>
+
+<setup name="Default" version="1.0">
+  <world ref="WorldBoxVol"/>
+</setup>
+
+</gdml>

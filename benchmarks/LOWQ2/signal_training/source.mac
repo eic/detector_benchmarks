@@ -1,10 +1,11 @@
 /gps/particle e-
 /gps/energy 1 GeV
-/gps/position 13.75 13.75 0 um
+/gps/position 13.75 13.75 0.1 um
 /gps/pos/type Plane
 /gps/pos/shape Square
 /gps/pos/halfx 13.75 um
 /gps/pos/halfy 13.75 um
+/gps/pos/confine TrianglePrismVol_PV
 /gps/ang/type iso
 /gps/ang/mintheta 0 deg
-/gps/ang/maxtheta 20 deg
+/gps/ang/maxtheta 5 deg

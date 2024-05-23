@@ -1,0 +1,5 @@
+bench:LOWQ2_events:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - snakemake --cores 8 ${RESULTS_DIRECTORY}/LOWQ2_FormattedPlots.edm4hep.root --configfile ../remote_config.yml

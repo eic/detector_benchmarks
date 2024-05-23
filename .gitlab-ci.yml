@@ -140,12 +140,12 @@ include:
 #  - local: 'benchmarks/pid/config.yml'
 #  - local: 'benchmarks/timing/config.yml'
 #  - local: 'benchmarks/b0_tracker/config.yml'
-  - local: 'benchmarks/LOWQ2/config.yml'
-'''
+  - local: 'benchmarks/LOWQ2/analysis/config.yml'
+
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
+#    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt
@@ -223,5 +223,3 @@ pages:
   artifacts:
     paths:
       - public
-
-'''

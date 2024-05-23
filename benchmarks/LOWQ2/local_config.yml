@@ -1,0 +1,3 @@
+SIM_DIRECTORY:      "/scratch/EIC/SimOut/S3in/"
+RECO_IN_DIRECTORY:  "/scratch/EIC/ReconOut/S3in/"
+MODEL_DIRECTORY:    "/scratch/EIC/LowQ2Model/"

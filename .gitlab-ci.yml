@@ -45,7 +45,6 @@ stages:
   - benchmarks
   - collect
   - deploy
-  - trigger
   - status-report
 
 .status:
@@ -167,48 +166,6 @@ benchmarks:detector:failure:
     DESCRIPTION: "Failed!"
   when: on_failure
 
-benchmarks:reconstruction:
-  stage: trigger
-  variables:
-    GITHUB_SHA: "${GITHUB_SHA}"
-    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
-    DETECTOR: "$DETECTOR"
-    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
-    DETECTOR_VERSION: "$DETECTOR_VERSION"
-    DETECTOR_REPOSITORYURL: "$DETECTOR_REPOSITORYURL"
-    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
-    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
-    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
-    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
-    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
-    PIPELINE_NAME: "$PIPELINE_NAME"
-  trigger:
-    project: EIC/benchmarks/reconstruction_benchmarks
-    strategy: depend
-  needs: ["deploy_results"]
-
-benchmarks:physics:
-  stage: trigger
-  variables:
-    GITHUB_SHA: "${GITHUB_SHA}"
-    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
-    DETECTOR: "$DETECTOR"
-    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
-    DETECTOR_VERSION: "$DETECTOR_VERSION"
-    DETECTOR_REPOSITORYURL: "$DETECTOR_REPOSITORYURL"
-    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
-    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
-    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
-    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
-    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
-    PIPELINE_NAME: "$PIPELINE_NAME"
-  trigger:
-    project: EIC/benchmarks/physics_benchmarks
-    strategy: depend
-  needs: ["deploy_results"]
-
 pages:
   stage: deploy
   rules:
@@ -222,5 +179,3 @@ pages:
   artifacts:
     paths:
       - public
-
-

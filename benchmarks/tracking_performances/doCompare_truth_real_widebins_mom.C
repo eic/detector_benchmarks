@@ -67,7 +67,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 
 	 double mu_truth = hist_truth->GetMean(); 
 	 double sigma_truth = hist_truth->GetStdDev();
-  // hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
+         hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
 	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
 	 hist_truth->Fit(func_truth,"NR+");
 	 hist_truth->Fit(func_truth,"R+");
@@ -84,8 +84,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	 
 	 double mu_real = hist_real->GetMean(); 
 	 double sigma_real = hist_real->GetStdDev();
-  // hist_real->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
-   func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
+         hist_real->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
+         func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
 	 hist_real->Fit(func_real,"NR+");
 	 mu_real = func_real->GetParameter(1); 
 	 sigma_real = func_real->GetParameter(2);
@@ -127,7 +127,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 
   TFile *fout = new TFile(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.root",particle.Data(),etamin,etamax),"recreate");
 	TGraphErrors *gr1 = new TGraphErrors(size_truth,p_truth,sigma_p_truth,err_p_truth,err_sigma_p_truth);
-  gr1->SetName("gr_truthseed");
+        gr1->SetName("gr_truthseed");
 	gr1->SetMarkerStyle(25);
 	gr1->SetMarkerColor(kBlue);
 	gr1->SetMarkerSize(2.0);
@@ -135,8 +135,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	gr1->GetXaxis()->CenterTitle();
 	gr1->GetYaxis()->CenterTitle();
 	
-  TGraphErrors *gr2 = new TGraphErrors(size_real,p_real,sigma_p_real,err_p_real,err_sigma_p_real);
-  gr2->SetName("gr_realseed");
+       TGraphErrors *gr2 = new TGraphErrors(size_real,p_real,sigma_p_real,err_p_real,err_sigma_p_real);
+       gr2->SetName("gr_realseed");
 	gr2->SetMarkerStyle(34);
 	gr2->SetMarkerColor(kRed);
 	gr2->SetMarkerSize(2.0);
@@ -149,16 +149,16 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	c_mom->cd();
 	mgMom->GetXaxis()->SetLimits(0.0,10.2);
 	mgMom->GetYaxis()->SetRangeUser(0.,12.0);
-  mgMom->Draw("AP");
-  lmom->AddEntry(gr1,"Truth Seeding");
-  lmom->AddEntry(gr2,"Realistic Seeding");
-  lmom->Draw("same");
-  draw_req_Mom(etamin,etamax,0.,mgMom->GetXaxis()->GetXmax());
-  c_mom->SaveAs(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
-  fout->cd();
-  mgMom->SetName(Form("mom_resol_%1.1f_eta_%1.1f",etamin,etamax));
-  mgMom->Write();
-  fout->Close();
+	mgMom->Draw("AP");
+	lmom->AddEntry(gr1,"Truth Seeding");
+	lmom->AddEntry(gr2,"Realistic Seeding");
+	lmom->Draw("same");
+	draw_req_Mom(etamin,etamax,0.,mgMom->GetXaxis()->GetXmax());
+	c_mom->SaveAs(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
+	fout->cd();
+	mgMom->SetName(Form("mom_resol_%1.1f_eta_%1.1f",etamin,etamax));
+	mgMom->Write();
+	fout->Close();
 }
 
 //===Fit Momentum Resolution

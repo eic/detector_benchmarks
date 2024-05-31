@@ -46,7 +46,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    histp[i]->SetName(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
    
-   TFile* file = TFile::Open(Form("./Output/%s_%1.1f.edm4eic.root",filename.Data(),mom));
+   TFile* file = TFile::Open(Form("./%s_%1.1f.edm4eic.root",filename.Data(),mom));
    if (!file) {printf("file not found !!!"); return;}
    TTreeReader myReader("events", file); // name of tree and file
    if (debug) cout<<"Filename: "<<file->GetName()<<"\t NEvents: "<<myReader.GetEntries()<<endl;
@@ -85,22 +85,16 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
       Double_t pmc = charge[j]*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); 
       Double_t prec = 1./qoverp[j]; 
 
-      Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);   
-
-      Double_t Emc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]+mpi*mpi);
-      Double_t Erec = sqrt(prec*prec+mpi*mpi); 
-      
+      Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);  
       Double_t pzmc = pz_mc[j];  
       
       Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/pmc))/2));
-      Double_t etarec = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzrec/prec))/2));
       Double_t p_resol = (prec-pmc)/pmc;
       
       for (int ibin=0; ibin<nbins_eta; ++ibin){ 
       if(etamc>eta[ibin] && etamc<eta[ibin+1]) histp[ibin]->Fill(p_resol); 
       }
       h_d0xy_3d->Fill(d0xy[j]*0.1, etamc, ptmc); // cm
-    //  printf("DCAxy: %f \t etamc: %f \t ptamc: %f \n",d0xy[j]*0.1,etamc,ptmc);
       h_d0z_3d->Fill(d0z[j]*0.1, etamc, ptmc); // cm
       } // Generated Tracks  
      } // Reco Tracks

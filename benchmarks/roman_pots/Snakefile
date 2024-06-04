@@ -1,7 +1,7 @@
 from itertools import product
 
 DETECTOR_PATH = os.environ["DETECTOR_PATH"]
-DETECTOR_VERSION = os.environ["DETECTOR_VERSION"]
+DETECTOR_VERSION = re.search(r"epic-.*.-", DETECTOR_PATH).group().removeprefix("epic-").removesuffix("-")
 SUBSYSTEM = "roman_pots"
 BENCHMARK = "dense_neural_network"
 DETECTOR_CONFIG = "epic_ip6"

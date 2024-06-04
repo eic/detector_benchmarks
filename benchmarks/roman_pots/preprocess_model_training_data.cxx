@@ -100,10 +100,10 @@ void preprocess_model_training_data(TString inputFile, TString outputFile, TStri
             }
         }
 
-        double hit1minZ = 25099.0;
-        double hit1maxZ = 26022.0;
-        double hit2minZ = 27099.0;
-        double hit2maxZ = 28022.0;
+        double hit1minZ = 32547.3-923/2.0;
+        double hit1maxZ = 32547.3+923/2.0;
+        double hit2minZ = 34245.5-923/2.0;
+        double hit2maxZ = 34245.5+923/2.0;
 
         double rpHitLayerOne[3];
         double rpHitLayerTwo[3];

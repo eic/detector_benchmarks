@@ -15,7 +15,7 @@ import dask_awkward as dak
 import dask_histogram as dh
 import numpy as np
 import uproot
-import pyhepmc
+from pyHepMC3 import HepMC3
 #+end_src
 
 #+begin_src jupyter-python :results silent
@@ -66,47 +66,47 @@ output_dir.mkdir(parents=True, exist_ok=True)
 #+begin_src jupyter-python :results silent
 builder = ak.ArrayBuilder()
 n = 0
-with pyhepmc.open(PROTON_BEAM_GAS_GEN) as f:
-    it = iter(f)
-    for event in f:
-        builder.begin_list()
-        for vertex in event.vertices:
-            assert event.length_unit.name == "MM"
-            with builder.record("Vector4D"):
-                builder.field("x")
-                builder.real(vertex.position.x)
-                builder.field("y")
-                builder.real(vertex.position.y)
-                builder.field("z")
-                builder.real(vertex.position.z)
-                builder.field("t")
-                builder.real(vertex.position.t)
-        builder.end_list()
-        n += 1
-        if n > 10000: break
+f = HepMC3.ReaderPlugin(PROTON_BEAM_GAS_GEN, "libHepMC3rootIO.so", "newReaderRootTreefile")
+event = HepMC3.GenEvent()
+while f.read_event(event):
+    builder.begin_list()
+    assert event.length_unit().name == "MM"
+    for vertex in event.vertices():
+        with builder.record("Vector4D"):
+            builder.field("x")
+            builder.real(vertex.position().x())
+            builder.field("y")
+            builder.real(vertex.position().y())
+            builder.field("z")
+            builder.real(vertex.position().z())
+            builder.field("t")
+            builder.real(vertex.position().t())
+    builder.end_list()
+    n += 1
+    if n > 10000: break
 
 vertices_proton_beam_gas = builder.snapshot()
 
 builder = ak.ArrayBuilder()
 n = 0
-with pyhepmc.open(ELECTRON_BEAM_GAS_GEN) as f:
-    it = iter(f)
-    for event in f:
-        builder.begin_list()
-        for vertex in event.vertices:
-            assert event.length_unit.name == "MM"
-            with builder.record("Vector3D"):
-                builder.field("x")
-                builder.real(vertex.position.x)
-                builder.field("y")
-                builder.real(vertex.position.y)
-                builder.field("z")
-                builder.real(vertex.position.z)
-                builder.field("t")
-                builder.real(vertex.position.t)
-        builder.end_list()
-        n += 1
-        if n > 10000: break
+f = HepMC3.ReaderPlugin(ELECTRON_BEAM_GAS_GEN, "libHepMC3rootIO.so", "newReaderRootTreefile")
+event = HepMC3.GenEvent()
+while f.read_event(event):
+    builder.begin_list()
+    assert event.length_unit().name == "MM"
+    for vertex in event.vertices():
+        with builder.record("Vector4D"):
+            builder.field("x")
+            builder.real(vertex.position().x())
+            builder.field("y")
+            builder.real(vertex.position().y())
+            builder.field("z")
+            builder.real(vertex.position().z())
+            builder.field("t")
+            builder.real(vertex.position().t())
+    builder.end_list()
+    n += 1
+    if n > 10000: break
 
 vertices_electron_beam_gas = builder.snapshot()
 #+end_src

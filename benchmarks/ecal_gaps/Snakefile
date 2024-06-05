@@ -66,6 +66,7 @@ rule ecal_gaps:
     threads: workflow.cores
     shell:
         """
+set -m # monitor mode to prevent lingering shells
 cleanup() {{
   echo Cleaning up
   kill $WORKER_PID $SCHEDULER_PID

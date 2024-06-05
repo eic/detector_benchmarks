@@ -4,37 +4,37 @@ import shutil
 
 rule backgrounds_get_beam_gas_electron:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")),
+        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root")),
     output:
-        "input/backgrounds/beam_gas_electron.hepmc",
+        "input/backgrounds/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root",
     run:
         shutil.move(input[0], output[0])
 
 
 rule backgrounds_get_beam_gas_proton:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/ProtonBeamGasEvents/100GeV/100GeV_1.hepmc")),
+        provider.remote(remote_path("EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root")),
     output:
-        "input/backgrounds/beam_gas_proton.hepmc",
+        "input/backgrounds/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root",
     run:
         shutil.move(input[0], output[0])
 
 
 rule backgrounds_get_DIS:
     input:
-        provider.remote(remote_path("EPIC/EVGEN/DIS/NC/{BEAM}/minQ2={MINQ2}/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc")),
+        provider.remote(remote_path("EPIC/EVGEN/DIS/NC/{BEAM}/minQ2={MINQ2}/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc3.tree.root")),
     wildcard_constraints:
         BEAM="\d+x\d+",
         MINQ2="\d+",
     output:
-        "input/backgrounds/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc",
+        "input/backgrounds/pythia8NCDIS_{BEAM}_minQ2={MINQ2}_{SUFFIX}.hepmc3.tree.root",
     run:
         shutil.move(input[0], output[0])
 
 
 rule backgrounds_sim:
     input:
-        hepmc="input/backgrounds/{NAME}.hepmc",
+        hepmc="input/backgrounds/{NAME}.hepmc3.tree.root",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{NAME}.edm4hep.root",
@@ -62,11 +62,11 @@ rule backgrounds_ecal_backwards:
     input:
         matplotlibrc=".matplotlibrc",
         script="benchmarks/backgrounds/ecal_backwards.py",
-        electron_beam_gas_gen="input/backgrounds/beam_gas_electron.hepmc",
-        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/beam_gas_electron.edm4hep.root",
+        electron_beam_gas_gen="input/backgrounds/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root",
+        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root",
         physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
-        proton_beam_gas_gen="input/backgrounds/beam_gas_proton.hepmc",
-        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/beam_gas_proton.edm4hep.root",
+        proton_beam_gas_gen="input/backgrounds/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root",
+        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root",
     output:
         directory("results/backgrounds/backwards_ecal")
     threads: workflow.cores

@@ -72,6 +72,13 @@ rule backgrounds_ecal_backwards:
     threads: workflow.cores
     shell:
         """
+set -m # monitor mode to prevent lingering shells
+cleanup() {{
+  echo Cleaning up
+  kill $WORKER_PID $SCHEDULER_PID
+}}
+trap cleanup EXIT
+
 PORT=$RANDOM
 dask scheduler --port $PORT &
 export DASK_SCHEDULER=localhost:$PORT
@@ -87,5 +94,4 @@ PROTON_BEAM_GAS_GEN=$(realpath {input.proton_beam_gas_gen}) \
 PROTON_BEAM_GAS_SIM=$(realpath {input.proton_beam_gas_sim}) \
 OUTPUT_DIR={output} \
 python {input.script}
-kill $WORKER_PID $SCHEDULER_PID
 """

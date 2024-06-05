@@ -153,6 +153,7 @@ plt.xlabel("vertex[0].t, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_time_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for label, ds in datasets.items():
     if "vertices" not in ds: continue
@@ -164,6 +165,7 @@ plt.xlabel("vertex[0].z, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_z_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for label, ds in datasets.items():
     if "vertices" not in ds: continue
@@ -178,6 +180,7 @@ plt.ylabel("vertex[0].x, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_xz_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for ix, (label, ds) in enumerate(datasets.items()):
     if "vertices" not in ds: continue
@@ -192,6 +195,7 @@ for ix, (label, ds) in enumerate(datasets.items()):
     plt.title(label)
     plt.savefig(output_dir / f"vertex_yz_distribution_{ix}.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src
 
 ** Simulation results
@@ -231,6 +235,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.ylabel("hit y, mm", loc="top")
         plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 ** Discovering number of cells
@@ -285,6 +290,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
     plt.ylabel(f"Number of towers per {dr} mm slice in $r$", loc="top")
     plt.savefig(output_dir / f"{collection_name}_num_towers.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src
 
 ** Plotting the rates
@@ -324,6 +330,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 #+begin_src jupyter-python
@@ -354,6 +361,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 #+begin_src jupyter-python
@@ -444,4 +452,5 @@ for edep_min in [0]: # GeV
     plt.xticks(rotation=90, ha='right')
     fig_cmb.savefig(f"rates_edep_min_{edep_min}.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src

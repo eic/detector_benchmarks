@@ -88,7 +88,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
       Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);  
       Double_t pzmc = pz_mc[j];  
       
-      Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/pmc))/2));
+      Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
       Double_t p_resol = (prec-pmc)/pmc;
       
       for (int ibin=0; ibin<nbins_eta; ++ibin){ 

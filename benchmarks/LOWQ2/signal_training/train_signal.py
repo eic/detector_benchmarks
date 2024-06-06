@@ -1,124 +1,69 @@
 import numpy as np
 import uproot
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.layers import Input, LSTM, Dense, Lambda, RepeatVector, TimeDistributed
-from tensorflow.keras.models import Model
-from tensorflow.keras import backend as K
+from tensorflow.keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
+
+# train_signal.py
+from model import create_model
 
 # Load data from the ROOT file
-file_path = 'output/Out.realistic.root'
+file_path = 'output/Out_Convert.root'
+
+vae = create_model()
+
+def mse_round_error(y_true, y_pred):
+    mse = tf.reduce_mean(tf.square(y_true - y_pred))
+    round_error = tf.reduce_mean(tf.square(y_pred - tf.round(y_pred)))
+    return mse + round_error
+
+# Compile the model
+vae.compile(optimizer=Adam(), loss="mse")
+#vae.compile(optimizer=Adam(), loss=mse_round_error)
+
 
 # Assuming the ROOT file structure: MCParticles and PixelHits trees
 with uproot.open(file_path) as file:
-    mc_particles_tree = file['MCParticle/mydetector']
-    pixel_hits_tree = file['PixelHit/mydetector']
+    tree = file['events']
 
-    print(f'MCParticles columns: {mc_particles_tree.keys()}')
-    print(pixel_hits_tree)
-    print(f'PixelHits columns: {pixel_hits_tree.keys()}')
+    # Extracting data from the ROOT file
+    df = tree.arrays(['x', 'y', 'pixel_x', 'pixel_y', 'charge', 'time'], library='pd')
 
-    # Load data into DataFrames
-    mc_particles_df = mc_particles_tree.arrays(library='np')
-    print(mc_particles_df)
-    print(mc_particles_df["mydetector"])
-    print(dir(mc_particles_df["mydetector"]))
+    #limit the number of rows
+    #df = df.head(10000)
     
-    print(mc_particles_df["mydetector"].flatten())
-    for value in mc_particles_df["mydetector"]:
-        print(value)
-        print(dir(value))
-        print("BLABABASADSDAS")
-        for vec in value:
-            print(vec)
-            print(dir(vec))
-            print(vec.member_names)
-            print(vec.getLocalStartPoint())
 
-    mc_particles_df = mc_particles_tree.arrays(library='pd')
-    pixel_hits_df = pixel_hits_tree.arrays(library='pd')
+    # Normalize the 'x' and 'y' columns
+    df['x'] = (df['x'] - df['x'].min()) / (df['x'].max() - df['x'].min())
+    df['y'] = (df['y'] - df['y'].min()) / (df['y'].max() - df['y'].min())
 
-# Select relevant columns from MCParticles and PixelHits
-mc_particles_data = mc_particles_df[['momentum_x', 'momentum_y', 'momentum_z', 'position_x', 'position_y', 'position_z']].values
+    # Define a function to create a sparse tensor from a row
+    def row_to_sparse_tensor(row):
+        charge_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.zeros(len(row['pixel_x']))])
+        time_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.ones(len(row['pixel_x']))])
+        indices = np.concatenate([charge_indices, time_indices])
+        values = np.concatenate([row['charge'], row['time']])
+        dense_shape = [10, 10, 2]
+        sparse_tensor = tf.sparse.reorder(tf.sparse.SparseTensor(indices, values, dense_shape))
+        return tf.sparse.to_dense(sparse_tensor)
 
-# Extract PixelHits and pad sequences to the same length
-pixel_hits_data = pixel_hits_df[['charge', 'time', 'pixel_x', 'pixel_y']].groupby(level=0).apply(lambda x: x.values.tolist())
-pixel_hits_data = tf.keras.preprocessing.sequence.pad_sequences(pixel_hits_data, dtype='float32', padding='post')
+    # Apply the function to each row of the DataFrame
+    #target_tensors = df.apply(row_to_sparse_tensor, axis=1)
+    target_tensors = tf.stack(df.apply(row_to_sparse_tensor, axis=1).to_list())
 
-# Ensure consistent length
-max_sequence_length = pixel_hits_data.shape[1]
+    # Create input tensors
+    input_tensors = df[['x', 'y']].to_numpy()
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(mc_particles_data, pixel_hits_data, test_size=0.2, random_state=42)
 
-# Define the VAE model
-input_dim = X_train.shape[1]
-timesteps = max_sequence_length
-output_dim = pixel_hits_data.shape[2]
-latent_dim = 16
+    target_tensors_np = target_tensors.numpy()
 
-# Encoder
-inputs = Input(shape=(input_dim,))
-h = Dense(128, activation='relu')(inputs)
-h = Dense(64, activation='relu')(h)
-h = Dense(32, activation='relu')(h)
+    # Split the input and target tensors into training and validation sets
+    input_train, input_val, target_train, target_val = train_test_split(input_tensors, target_tensors_np, test_size=0.2)
+    
+    # Now you can use these variables in the fit function
+    vae.fit(input_train, target_train, validation_data=(input_val, target_val), epochs=100, batch_size=64)
 
-z_mean = Dense(latent_dim)(h)
-z_log_var = Dense(latent_dim)(h)
-
-# Sampling function
-def sampling(args):
-    z_mean, z_log_var = args
-    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0., stddev=1.0)
-    return z_mean + K.exp(z_log_var / 2) * epsilon
-
-z = Lambda(sampling, output_shape=(latent_dim,))([z_mean, z_log_var])
-
-# Decoder
-decoder_h = Dense(32, activation='relu')
-decoder_h2 = Dense(64, activation='relu')
-decoder_h3 = Dense(128, activation='relu')
-repeat_latent = RepeatVector(timesteps)
-decoder_lstm = LSTM(128, return_sequences=True, activation='relu')
-decoder_mean = TimeDistributed(Dense(output_dim, activation='linear'))
-
-h_decoded = decoder_h(z)
-h_decoded = decoder_h2(h_decoded)
-h_decoded = decoder_h3(h_decoded)
-h_decoded = repeat_latent(h_decoded)
-h_decoded = decoder_lstm(h_decoded)
-outputs = decoder_mean(h_decoded)
-
-# Define the VAE model
-vae = Model(inputs, outputs)
-
-# Define VAE loss
-def vae_loss(inputs, outputs):
-    reconstruction_loss = tf.reduce_mean(tf.square(inputs - outputs))
-    kl_loss = -0.5 * tf.reduce_mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var))
-    return reconstruction_loss + kl_loss
-
-vae.compile(optimizer='adam', loss=vae_loss)
-
-# Train the VAE
-history = vae.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2, verbose=1)
-
-# Evaluate the VAE on the test set
-loss = vae.evaluate(X_test, y_test, verbose=1)
-print(f'Test loss: {loss}')
-
-# Save the trained model
-vae.save('vae_allpix2_model.h5')
-
-# Predict on test data
-predictions = vae.predict(X_test)
-
-# Plot training history
-plt.plot(history.history['loss'], label='Training loss')
-plt.plot(history.history['val_loss'], label='Validation loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.show()
+    model_path = 'model.h5'
+    vae.save(model_path)

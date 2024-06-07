@@ -147,8 +147,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	mgMom->Add(gr1);
 	mgMom->Add(gr2);
 	c_mom->cd();
-	mgMom->GetXaxis()->SetLimits(0.0,10.2);
-	mgMom->GetYaxis()->SetRangeUser(0.,12.0);
+	mgMom->GetXaxis()->SetRangeUser(0.40,10.2);
+	mgMom->GetYaxis()->SetRangeUser(0.,10.0);
 	mgMom->Draw("AP");
 	lmom->AddEntry(gr1,"Truth Seeding");
 	lmom->AddEntry(gr2,"Realistic Seeding");

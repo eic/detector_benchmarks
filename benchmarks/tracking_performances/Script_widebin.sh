@@ -24,11 +24,10 @@ eicrecon \
  -Pnthreads=1 \
  -Pjana:debug_plugin_loading=1 \
  -Pjana:nevents=$nevents \
- -PTracking:CentralTrackerSourceLinker:input_tags=SiBarrelTrackerRecHits,SiBarrelVertexRecHits,SiEndcapTrackerRecHits,TOFBarrelRecHit,TOFEndcapRecHits,MPGDBarrelRecHits,MPGDDIRCRecHits,OuterMPGDBarrelRecHits,BackwardMPGDEndcapRecHits,ForwardMPGDEndcapRecHits \
  -Pacts:MaterialMap=calibrations/materials-map.cbor \
  -Ppodio:output_file="${filename}"_${mom_array[i]}.edm4eic.root \
  -Pdd4hep:xml_files=../epic/install/share/epic/epic_craterlake_tracking_only.xml   \
- -Ppodio:output_include_collections="ReconstructedChargedParticles,ReconstructedSeededChargedParticles,MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralTrackVertices" \
+ -Ppodio:output_collections="ReconstructedChargedParticles,ReconstructedSeededChargedParticles,MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralTrackVertices" \
  sim${mom_array[i]}.edm4hep.root
 done 
 

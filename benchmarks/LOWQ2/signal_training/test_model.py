@@ -3,7 +3,7 @@ import numpy as np
 import onnxruntime as ort
 
 output_dir = 'plots/'
-model_base = "model_tpx4_new2"
+model_base = "model_tpx4_new3"
 model_name = model_base+".onnx"
 # Load the ONNX model
 sess = ort.InferenceSession(model_name)
@@ -14,6 +14,7 @@ data_grid_size = 6
 
 #static input tensor
 input_tensors = np.array([[[0.5, 0.5, 0.0, 0.0]],[[0.25, 0.25, 0.0, 0.0]],[[0.0, 0.0,-0.05,-0.05]],[[0.5, 0.1,0.0,0.0]],[[0.0, 0.5,0.05,0.05]],[[0.25, 0.5,0.05,0.05]]], dtype=np.float32)
+input_tags    = ['x', 'y', 'px', 'py']
 
 input_name = sess.get_inputs()[0].name
 
@@ -57,7 +58,13 @@ for j, input_tensor in enumerate(input_tensors[:,:,0:4]):
         axs[i * 2 + 1].set_title('Time')
         fig.colorbar(im_time, ax=axs[i * 2 + 1], orientation='vertical')
 
-    output_name = output_dir + model_base + '_' + 'x-' + str(input_tensor[0][0]) + '_y-' + str(input_tensor[0][1]) + '_px-' + str(input_tensor[0][2]) + '_py-' + str(input_tensor[0][3]) + '.png'
+    # Set the output name based on the input tensor
+    output_name = output_dir + model_base
+    # loop over inner ddimension of input tensor
+    for i in range(input_tensor.shape[-1]):
+        output_name += '_' + input_tags[i] + '-' + str(input_tensor[0][i])
+    #'_x-' + str(input_tensor[0][0]) + '_y-' + str(input_tensor[0][1]) + '_px-' + str(input_tensor[0][2]) + '_py-' + str(input_tensor[0][3]) + '.png'
+    output_name += '.png'
 
     # Show the plot
     plt.show()

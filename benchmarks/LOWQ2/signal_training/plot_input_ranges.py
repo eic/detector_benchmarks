@@ -9,6 +9,7 @@ output_dir = 'plots/'
 
 num_plots = 3
 data_grid_size = 6
+sensor_thickness = 300.0/55.0 # Thickness in pixel dimensions
 
 # Assuming the ROOT file structure: MCParticles and PixelHits trees
 infile = uproot.open(file_path)
@@ -25,9 +26,10 @@ df = tree.arrays(['x', 'y', 'px', 'py', 'pixel_x', 'pixel_y', 'charge', 'time'],
 
 # Plot x, y 2d distribution in a 1x1 range
 plt.figure()
-plt.hist2d(df['x'], df['y'], bins=(100, 100), range=[[0, 1], [0, 1]], cmap='viridis')
+plt.hist2d(df['x'], df['y'], bins=(400, 400), range=[[-3, 3], [-3, 3]], cmap='viridis')
 plt.xlabel('x [pixel pitch]')
 plt.ylabel('y [pixel pitch]')
+plt.grid(True)
 plt.savefig(output_dir + 'x_y_distribution.png')
 
 # Plot px, py 2d distribution in a 1x1 range
@@ -46,28 +48,28 @@ plt.savefig(output_dir + 'num_hit.png')
 
 # Plot the x_pixel distribution
 plt.figure()
-plt.hist(df['pixel_x'], bins=data_grid_size, range=(0, data_grid_size))
+plt.hist(np.concatenate(df['pixel_x'].values), bins=data_grid_size, range=(0, data_grid_size))
 plt.xlabel('x pixel')
 plt.ylabel('Number of entries')
 plt.savefig(output_dir + 'x_pixel_distribution.png')
 
 # Plot the y_pixel distribution
 plt.figure()
-plt.hist(df['pixel_y'], bins=data_grid_size, range=(0, data_grid_size))
+plt.hist(np.concatenate(df['pixel_y'].values), bins=data_grid_size, range=(0, data_grid_size))
 plt.xlabel('y pixel')
 plt.ylabel('Number of entries')
 plt.savefig(output_dir + 'y_pixel_distribution.png')
 
 # Plot the charge distribution
 plt.figure()
-plt.hist(df['charge'], bins=6, range=(0, 6))
+plt.hist(np.concatenate(df['charge'].values), bins=6, range=(0, 6))
 plt.xlabel('Charge')
 plt.ylabel('Number of entries')
 plt.savefig(output_dir + 'charge_distribution.png')
 
 # Plot the time distribution
 plt.figure()
-plt.hist(df['time'], bins=10, range=(0, 10))
+plt.hist(np.concatenate(df['time'].values), bins=10, range=(0, 10))
 plt.xlabel('Time')
 plt.ylabel('Number of entries')
 plt.savefig(output_dir + 'time_distribution.png')
@@ -131,25 +133,26 @@ for j, input_tensor in enumerate(input_tensors[:,0:4]):
         #im = ax.imshow(data, vmin=0, vmax=4)
         
         # Set x and y axes limits
-        ax.set_xlim(0, data_grid_size)
-        ax.set_ylim(0, data_grid_size)
+        ax.set_xlim(-data_grid_size/2, data_grid_size/2)
+        ax.set_ylim(-data_grid_size/2, data_grid_size/2)
 
     # Plot the data for the entries in the dataframe on a grid
     for i, tensor in enumerate(target_tensors):
 
         # Create empty 2D grids for charge and time
         charge_grid = np.zeros((data_grid_size, data_grid_size))
-        time_grid = np.zeros((data_grid_size, data_grid_size))
+        time_grid   = np.zeros((data_grid_size, data_grid_size))
 
+        axs[i * 2].arrow(df_sample['x'][i], df_sample['y'][i], df_sample['px'][i]*sensor_thickness, df_sample['py'][i]*sensor_thickness, head_width=0.01, head_length=0.01, fc='red', ec='red')
+        axs[i * 2 + 1].arrow(df_sample['x'][i], df_sample['y'][i], df_sample['px'][i]*sensor_thickness, df_sample['py'][i]*sensor_thickness, head_width=0.01, head_length=0.01, fc='red', ec='red')
 
-        #print(tensor[:,:,0])
         # Plot the charge data
-        im_charge = axs[i * 2].imshow(tensor[:,:,0], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0, vmax=3)
+        im_charge = axs[i * 2].imshow(tensor[:,:,0], cmap='viridis', extent=[-data_grid_size/2, data_grid_size/2, -data_grid_size/2, data_grid_size/2], vmin=0, vmax=3)
         axs[i * 2].set_title('Charge')
         fig.colorbar(im_charge, ax=axs[i * 2], orientation='vertical')
 
         # Plot the time data
-        im_time = axs[i * 2 + 1].imshow(tensor[:,:,1], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0, vmax=10)
+        im_time = axs[i * 2 + 1].imshow(tensor[:,:,1], cmap='viridis', extent=[-data_grid_size/2, data_grid_size/2, -data_grid_size/2, data_grid_size/2], vmin=0, vmax=10)
         axs[i * 2 + 1].set_title('Time')
         fig.colorbar(im_time, ax=axs[i * 2 + 1], orientation='vertical')
 

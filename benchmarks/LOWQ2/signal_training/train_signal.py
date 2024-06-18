@@ -9,25 +9,29 @@ import tf2onnx
 import onnx
 
 # train_signal.py
-from model2 import VAE
-from model2 import KLWeightCallback
-from model2 import Generator
+from model_ad import VAE
+from model_ad import Generator
+from model_ad import LatentSpace
 
-epochs = 100
-batch_size = 500
-model_path = 'model_tpx4_new2'
+epochs = 500
+batch_size = 1000
+model_path = 'model_tpx4_new3'
 data_grid_size = 6
 
 condition_columns = ['x', 'y', 'px', 'py']
+#condition_columns = ['x', 'y']
 nconditions = len(condition_columns)
+
+nInput = nconditions + data_grid_size*data_grid_size*2
 
 # Load data from the ROOT file
 file_path = 'output/Out_Convert_tpx4-6.root'
 
 #vae = create_model()
-vae = VAE(latent_dim=2,nconditions=nconditions,weight=1.0,grid_size=data_grid_size)
+vae = VAE(latent_dim=20,nconditions=nconditions,grid_size=data_grid_size)
 
-vae.compile(optimizer=Adam())
+#vae.compile(optimizer=Adam())
+vae.compile(r_optimizer=Adam(),a_optimizer=Adam())
 
 # Assuming the ROOT file structure: MCParticles and PixelHits trees
 with uproot.open(file_path) as file:
@@ -72,13 +76,14 @@ with uproot.open(file_path) as file:
     input_tensors = np.concatenate([conditions_tensors, target_tensors], axis=1)
 
     # Split the input and target tensors into training and validation sets
-    input_train, input_val, target_train, target_val = train_test_split(input_tensors, target_tensors, test_size=0.2)
+    input_train, input_val, target_train, target_val = train_test_split(input_tensors, target_tensors, test_size=0.25)
     
-    callback = KLWeightCallback(vae, 0.02)
+    #callback = KLWeightCallback(vae, 0.01)
+    vae.adapt(input_train)
 
     # Now you can use these variables in the fit function
-    vae.fit(input_train,target_train, validation_data=[input_val, target_val], epochs=epochs, batch_size=batch_size, callbacks=[callback])
-    #vae.fit(input_train,target_train, validation_data=[input_val, target_val], epochs=epochs, batch_size=batch_size)
+    #vae.fit(input_train,target_train, validation_data=[input_val, target_val], epochs=epochs, batch_size=batch_size, callbacks=[callback])
+    vae.fit(input_train,target_train, validation_data=[input_val, target_val], epochs=epochs, batch_size=batch_size)
     
     model_name = model_path+'.keras'
     vae.save(model_name)
@@ -94,3 +99,13 @@ with uproot.open(file_path) as file:
     # Convert the model
     onnx_model, _ = tf2onnx.convert.from_keras(decoder,input_signature, opset=13)
     onnx.save(onnx_model, model_path+".onnx")
+
+    latent_encoder  = LatentSpace(vae)
+    outTest_latent = latent_encoder(input_tensors[:1])
+    print(outTest_latent)
+
+
+    input_signature_latent = [tf.TensorSpec([None,nInput], tf.float32, name='x')]
+    
+    onnx_model_latent, _ = tf2onnx.convert.from_keras(latent_encoder,input_signature_latent, opset=13)
+    onnx.save(onnx_model_latent, model_path+"_latent.onnx")

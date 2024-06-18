@@ -7,6 +7,7 @@ from tensorflow import sparse, stack
 file_path = 'output/Out_Convert.root'
 
 num_plots = 10
+sensor_thickness = 300.0/55.0 # Thickness in pixel dimensions
 
 # Assuming the ROOT file structure: MCParticles and PixelHits trees
 infile = uproot.open(file_path)

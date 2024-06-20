@@ -11,7 +11,7 @@
 #include "PixelHit.hpp"
 
 
-int Convert_Data(TString inName="output/Out_tpx4.root", TString outName="output/Out_Convert_tpx4-6.root") {
+int Convert_Data(TString inName="output/Out_tpx4_big.root", TString outName="output/Out_Convert_Big.root") {
 
 
 
@@ -46,6 +46,7 @@ int Convert_Data(TString inName="output/Out_tpx4.root", TString outName="output/
 
     // Limit grid size from 10x10
     int grid_size = 6;
+    int grid_area = grid_size*grid_size;
     // shift grid by half the size rounded down
     int shift_grid = int((10-grid_size)/2);
 
@@ -77,7 +78,8 @@ int Convert_Data(TString inName="output/Out_tpx4.root", TString outName="output/
         pixelChargeBranch->GetEntry(i);
         pixelHitBranch->GetEntry(i);
 
-
+        charge = std::vector<double>(grid_area, 0);
+        time   = std::vector<double>(grid_area, 0);
 
         for (auto particle: input_particles) {
             auto start = particle->getGlobalStartPoint();
@@ -117,10 +119,12 @@ int Convert_Data(TString inName="output/Out_tpx4.root", TString outName="output/
 
             if(x_index < 0 || x_index >= grid_size || y_index < 0 || y_index >= grid_size) continue;
             
-            pixel_x.push_back(x_index);
-            pixel_y.push_back(y_index);
-            charge.push_back(hit->getSignal());
-            time.push_back(hit->getLocalTime());
+            //pixel_x.push_back(x_index);
+            //pixel_y.push_back(y_index);
+            //charge.push_back(hit->getSignal());
+            //time.push_back(hit->getLocalTime());
+            charge[x_index*grid_size + y_index] = hit->getSignal();
+            time[x_index*grid_size + y_index] = hit->getLocalTime();
         }
 
         outputTree->Fill();

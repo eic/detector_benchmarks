@@ -13,9 +13,9 @@ from model_ad import VAE
 from model_ad import Generator
 from model_ad import LatentSpace
 
-epochs = 500
-batch_size = 1000
-model_path = 'model_tpx4_new3'
+epochs = 400
+batch_size = 5000
+model_path = 'model_digitization'
 data_grid_size = 6
 
 condition_columns = ['x', 'y', 'px', 'py']
@@ -25,7 +25,7 @@ nconditions = len(condition_columns)
 nInput = nconditions + data_grid_size*data_grid_size*2
 
 # Load data from the ROOT file
-file_path = 'output/Out_Convert_tpx4-6.root'
+file_path = 'output/Out_Convert_Big.root'
 
 #vae = create_model()
 vae = VAE(latent_dim=20,nconditions=nconditions,grid_size=data_grid_size)
@@ -38,7 +38,8 @@ with uproot.open(file_path) as file:
     tree = file['events']
 
     # Extracting data from the ROOT file
-    df = tree.arrays(['x', 'y', 'px', 'py', 'pixel_x', 'pixel_y', 'charge', 'time'], library='pd')
+    #df = tree.arrays(['x', 'y', 'px', 'py', 'pixel_x', 'pixel_y', 'charge', 'time'], library='pd')
+    df = tree.arrays(['x', 'y', 'px', 'py', 'charge', 'time'], entry_stop=9000000)
 
     #limit the number of rows
     #df = df.head(10000)
@@ -50,25 +51,38 @@ with uproot.open(file_path) as file:
     #df['px'] = (df['px'] - df['px'].min()) / (df['px'].max() - df['px'].min())
     #df['py'] = (df['py'] - df['py'].min()) / (df['py'].max() - df['py'].min())
 
-    # Define a function to create a sparse tensor from a row
-    def row_to_sparse_tensor(row):
-        charge_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.zeros(len(row['pixel_x']))])
-        time_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.ones(len(row['pixel_x']))])
-        indices = np.concatenate([charge_indices, time_indices])
-        values = np.concatenate([row['charge'], row['time']])
-        dense_shape = [data_grid_size, data_grid_size, 2]
-        sparse_tensor = tf.sparse.reorder(tf.sparse.SparseTensor(indices, values, dense_shape))
-        return tf.sparse.to_dense(sparse_tensor)
+    # # Define a function to create a sparse tensor from a row
+    # def row_to_sparse_tensor(row):
+    #     charge_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.zeros(len(row['pixel_x']))])
+    #     time_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.ones(len(row['pixel_x']))])
+    #     indices = np.concatenate([charge_indices, time_indices])
+    #     values = np.concatenate([row['charge'], row['time']])
+    #     dense_shape = [data_grid_size, data_grid_size, 2]
+    #     sparse_tensor = tf.sparse.reorder(tf.sparse.SparseTensor(indices, values, dense_shape))
+    #     return tf.sparse.to_dense(sparse_tensor)
+    
+    # # Define a function to create a 2D histogram from a row
+    # def row_to_histogram(row):
+    #     charge_hist, _, _ = np.histogram2d(row['pixel_x'], row['pixel_y'], bins=data_grid_size, weights=row['charge'])
+    #     time_hist, _, _ = np.histogram2d(row['pixel_x'], row['pixel_y'], bins=data_grid_size, weights=row['time'])
+    #     return np.stack([charge_hist, time_hist], axis=-1)
 
-    # Apply the function to each row of the DataFrame
-    #target_tensors = df.apply(row_to_sparse_tensor, axis=1)
-    target_tensors = tf.stack(df.apply(row_to_sparse_tensor, axis=1).to_list())
-
+    # # Apply the function to each row of the DataFrame
+    target_tensors = np.concatenate([df['charge'].to_numpy(), df['time'].to_numpy()], axis=1)
+    
     # Reshape the target_tensors so that other than the event dimension, the other dimensions are the flat
-    target_tensors = tf.reshape(target_tensors, (target_tensors.shape[0], -1)).numpy()
+    #target_tensors = target_tensors.reshape((target_tensors.shape[0], -1))
+
+    # # Apply the function to each row of the DataFrame
+    # #target_tensors = df.apply(row_to_sparse_tensor, axis=1)
+    # target_tensors = tf.stack(df.apply(row_to_sparse_tensor, axis=1).to_list())
+
+    # # Reshape the target_tensors so that other than the event dimension, the other dimensions are the flat
+    # target_tensors = tf.reshape(target_tensors, (target_tensors.shape[0], -1)).numpy()
 
     # Create input tensors
     conditions_tensors = df[condition_columns].to_numpy()
+    conditions_tensors = np.array([list(t) for t in conditions_tensors])
     #conditions_tensors = df[['x', 'y']].to_numpy()
     #conditions_tensors = df[[]].to_numpy()
 
@@ -78,7 +92,6 @@ with uproot.open(file_path) as file:
     # Split the input and target tensors into training and validation sets
     input_train, input_val, target_train, target_val = train_test_split(input_tensors, target_tensors, test_size=0.25)
     
-    #callback = KLWeightCallback(vae, 0.01)
     vae.adapt(input_train)
 
     # Now you can use these variables in the fit function

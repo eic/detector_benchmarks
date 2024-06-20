@@ -3,7 +3,7 @@ import numpy as np
 import onnxruntime as ort
 
 output_dir = 'plots/'
-model_base = "model_tpx4_new3"
+model_base = "model_digitization"
 model_name = model_base+".onnx"
 # Load the ONNX model
 sess = ort.InferenceSession(model_name)
@@ -43,18 +43,18 @@ for j, input_tensor in enumerate(input_tensors[:,:,0:4]):
         # Predict the output for the input tensor
         output = sess.run(None, {input_name: input_tensor})
         output = output[0]
-        output = output.reshape((1, data_grid_size, data_grid_size, 2))
+        output = output.reshape((1, 2, data_grid_size, data_grid_size))
 
         round_output = np.round(output)
         #round_output = output
 
         # Plot the output grid for the first channel
-        im_charge = axs[i * 2].imshow(round_output[0,:,:,0], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0.1, vmax=3)
+        im_charge = axs[i * 2].imshow(round_output[0,0,:,:], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0.1, vmax=3)
         axs[i * 2].set_title('Charge')
         fig.colorbar(im_charge, ax=axs[i * 2], orientation='vertical')
 
         # Plot the output grid for the second channel
-        im_time = axs[i * 2 + 1].imshow(round_output[0,:,:,1], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0.1, vmax=10)
+        im_time = axs[i * 2 + 1].imshow(round_output[0,1,:,:], cmap='viridis', extent=[0, data_grid_size, 0, data_grid_size], vmin=0.1, vmax=10)
         axs[i * 2 + 1].set_title('Time')
         fig.colorbar(im_time, ax=axs[i * 2 + 1], orientation='vertical')
 

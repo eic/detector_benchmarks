@@ -15,8 +15,8 @@ class Encoder(tf.keras.Model):
         self.encode = tf.keras.Sequential([
             tfkl.InputLayer(shape=(flat_shape+nconditions,)),
             self.normalizer,
-            tfkl.Dense(1024, activation='relu'),
-            tfkl.Dense(256, activation='relu'),
+            tfkl.Dense(128, activation='relu'),
+            tfkl.Dense(64, activation='relu'),
             tfkl.Dense(2*latent_dim),
         ])
 
@@ -38,8 +38,8 @@ class Decoder(tf.keras.Model):
         self.normalizer = tfkl.Normalization(name='decode_normalizer')
         self.decode = tf.keras.Sequential([            
             tfkl.InputLayer(shape=(latent_dim+nconditions,),name='input_layer'),
-            tfkl.Dense(256, activation='relu'),
-            tfkl.Dense(1024, activation='relu'),
+            tfkl.Dense(64, activation='relu'),
+            tfkl.Dense(128, activation='relu'),
             tfkl.Dense(flat_shape, name='output_layer')
         ])
 
@@ -59,8 +59,8 @@ class Adversarial(tf.keras.Model):
         super(Adversarial, self).__init__()
         self.reconstruct_conditions = tf.keras.Sequential([
             tfkl.InputLayer(shape=(latent_dim,)),
-            tfkl.Dense(1024, activation='relu'),
-            tfkl.Dense(256, activation='relu'),
+            tfkl.Dense(128, activation='relu'),
+            tfkl.Dense(64, activation='relu'),
             tfkl.Dense(nconditions, activation='linear')
         ])
 

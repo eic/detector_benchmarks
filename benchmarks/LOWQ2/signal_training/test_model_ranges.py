@@ -5,7 +5,7 @@ from tensorflow import sparse, stack
 import onnxruntime as ort
 
 output_dir = 'plots/'
-model_base = "model_tpx4_new3"
+model_base = "model_digitization"
 model_name = model_base+".onnx"
 # Load the ONNX model
 sess = ort.InferenceSession(model_name)
@@ -13,7 +13,7 @@ sess = ort.InferenceSession(model_name)
 input_name = sess.get_inputs()[0].name
 
 # Load data from the ROOT file
-file_path = 'output/Out_Convert_tpx4-6.root'
+file_path = 'output/Out_Convert_Big.root'
 output_dir = 'plots/'
 
 num_plots = 3
@@ -32,9 +32,10 @@ input_data = df[['x', 'y', 'px', 'py']].values.astype(np.float32)
 # Predict the output for the input tensor
 output = sess.run(None, {input_name: input_data})
 output = output[0]
-output = output.reshape((len(input_data), data_grid_size, data_grid_size, 2))
+output = output.reshape((len(input_data), 2, data_grid_size, data_grid_size))
 
 round_output = np.round(output)
+round_output = np.transpose(round_output, (0, 2, 3, 1))
 
 # Calculate the number of pixels with hits > 0 for each entry
 output_nhits = np.sum(round_output[:,:,:,0] > 0, axis=(1,2))
@@ -54,7 +55,7 @@ plt.savefig(output_dir + 'charge_distribution_pred.png')
 
 # Plot the time distribution
 plt.figure()
-plt.hist(round_output[round_output[:,:,:,0] > 0][...,1], bins=10, range=(0, 10))
+plt.hist(round_output[round_output[:,:,:,0] > 0][...,1], bins=30, range=(0, 30))
 plt.xlabel('Time')
 plt.ylabel('Number of entries')
 plt.savefig(output_dir + 'time_distribution_pred.png')

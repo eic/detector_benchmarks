@@ -13,9 +13,9 @@ from model_ad import VAE
 from model_ad import Generator
 from model_ad import LatentSpace
 
-epochs = 400
+epochs = 200
 batch_size = 5000
-model_path = 'model_digitization'
+model_path = 'model_digitization_genprop'
 data_grid_size = 6
 
 condition_columns = ['x', 'y', 'px', 'py']
@@ -25,10 +25,10 @@ nconditions = len(condition_columns)
 nInput = nconditions + data_grid_size*data_grid_size*2
 
 # Load data from the ROOT file
-file_path = 'output/Out_Convert_Big.root'
+file_path = 'output/Out_Convert_genprop.root'
 
 #vae = create_model()
-vae = VAE(latent_dim=20,nconditions=nconditions,grid_size=data_grid_size)
+vae = VAE(latent_dim=10,nconditions=nconditions,grid_size=data_grid_size)
 
 #vae.compile(optimizer=Adam())
 vae.compile(r_optimizer=Adam(),a_optimizer=Adam())
@@ -39,53 +39,14 @@ with uproot.open(file_path) as file:
 
     # Extracting data from the ROOT file
     #df = tree.arrays(['x', 'y', 'px', 'py', 'pixel_x', 'pixel_y', 'charge', 'time'], library='pd')
-    df = tree.arrays(['x', 'y', 'px', 'py', 'charge', 'time'], entry_stop=9000000)
-
-    #limit the number of rows
-    #df = df.head(10000)
+    df = tree.arrays(['x', 'y', 'px', 'py', 'charge', 'time'], entry_stop=1000000)
     
-
-    # Normalize the 'x', 'y', 'px', and 'py' columns
-    #df['x']  = (df['x'] - df['x'].min()) / (df['x'].max() - df['x'].min())
-    #df['y']  = (df['y'] - df['y'].min()) / (df['y'].max() - df['y'].min())
-    #df['px'] = (df['px'] - df['px'].min()) / (df['px'].max() - df['px'].min())
-    #df['py'] = (df['py'] - df['py'].min()) / (df['py'].max() - df['py'].min())
-
-    # # Define a function to create a sparse tensor from a row
-    # def row_to_sparse_tensor(row):
-    #     charge_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.zeros(len(row['pixel_x']))])
-    #     time_indices = np.column_stack([row['pixel_x'], row['pixel_y'], np.ones(len(row['pixel_x']))])
-    #     indices = np.concatenate([charge_indices, time_indices])
-    #     values = np.concatenate([row['charge'], row['time']])
-    #     dense_shape = [data_grid_size, data_grid_size, 2]
-    #     sparse_tensor = tf.sparse.reorder(tf.sparse.SparseTensor(indices, values, dense_shape))
-    #     return tf.sparse.to_dense(sparse_tensor)
-    
-    # # Define a function to create a 2D histogram from a row
-    # def row_to_histogram(row):
-    #     charge_hist, _, _ = np.histogram2d(row['pixel_x'], row['pixel_y'], bins=data_grid_size, weights=row['charge'])
-    #     time_hist, _, _ = np.histogram2d(row['pixel_x'], row['pixel_y'], bins=data_grid_size, weights=row['time'])
-    #     return np.stack([charge_hist, time_hist], axis=-1)
-
-    # # Apply the function to each row of the DataFrame
     target_tensors = np.concatenate([df['charge'].to_numpy(), df['time'].to_numpy()], axis=1)
-    
-    # Reshape the target_tensors so that other than the event dimension, the other dimensions are the flat
-    #target_tensors = target_tensors.reshape((target_tensors.shape[0], -1))
-
-    # # Apply the function to each row of the DataFrame
-    # #target_tensors = df.apply(row_to_sparse_tensor, axis=1)
-    # target_tensors = tf.stack(df.apply(row_to_sparse_tensor, axis=1).to_list())
-
-    # # Reshape the target_tensors so that other than the event dimension, the other dimensions are the flat
-    # target_tensors = tf.reshape(target_tensors, (target_tensors.shape[0], -1)).numpy()
-
+  
     # Create input tensors
     conditions_tensors = df[condition_columns].to_numpy()
     conditions_tensors = np.array([list(t) for t in conditions_tensors])
-    #conditions_tensors = df[['x', 'y']].to_numpy()
-    #conditions_tensors = df[[]].to_numpy()
-
+  
     # Concatenate the conditions_tensors and target_tensors along final axis
     input_tensors = np.concatenate([conditions_tensors, target_tensors], axis=1)
 

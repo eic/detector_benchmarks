@@ -11,7 +11,7 @@
 #include "PixelHit.hpp"
 
 
-int Convert_Data(TString inName="output/Out_tpx4_big.root", TString outName="output/Out_Convert_Big.root") {
+int Convert_Data(TString inName="output/Out_tpx4_genprop.root", TString outName="output/Out_Convert_genprop.root") {
 
 
 

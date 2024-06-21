@@ -3,7 +3,7 @@ import numpy as np
 import onnxruntime as ort
 
 output_dir = 'plots/'
-model_base = "model_digitization"
+model_base = "model_digitization2"
 model_name = model_base+".onnx"
 # Load the ONNX model
 sess = ort.InferenceSession(model_name)
@@ -45,7 +45,7 @@ for j, input_tensor in enumerate(input_tensors[:,:,0:4]):
         output = output[0]
         output = output.reshape((1, 2, data_grid_size, data_grid_size))
 
-        round_output = np.round(output)
+        round_output = np.ceil(output-0.2)
         #round_output = output
 
         # Plot the output grid for the first channel

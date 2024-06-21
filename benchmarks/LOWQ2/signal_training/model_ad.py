@@ -15,8 +15,10 @@ class Encoder(tf.keras.Model):
         self.encode = tf.keras.Sequential([
             tfkl.InputLayer(shape=(flat_shape+nconditions,)),
             self.normalizer,
-            tfkl.Dense(128, activation='relu'),
-            tfkl.Dense(64, activation='relu'),
+            tfkl.Dense(1024, activation='relu'),
+            tfkl.Dense(1024, activation='relu'),
+            tfkl.Dense(256, activation='relu'),
+            tfkl.Dense(256, activation='relu'),
             tfkl.Dense(2*latent_dim),
         ])
 
@@ -38,8 +40,10 @@ class Decoder(tf.keras.Model):
         self.normalizer = tfkl.Normalization(name='decode_normalizer')
         self.decode = tf.keras.Sequential([            
             tfkl.InputLayer(shape=(latent_dim+nconditions,),name='input_layer'),
-            tfkl.Dense(64, activation='relu'),
-            tfkl.Dense(128, activation='relu'),
+            tfkl.Dense(256, activation='relu'),
+            tfkl.Dense(256, activation='relu'),
+            tfkl.Dense(1024, activation='relu'),
+            tfkl.Dense(1024, activation='relu'),
             tfkl.Dense(flat_shape, name='output_layer')
         ])
 
@@ -59,8 +63,10 @@ class Adversarial(tf.keras.Model):
         super(Adversarial, self).__init__()
         self.reconstruct_conditions = tf.keras.Sequential([
             tfkl.InputLayer(shape=(latent_dim,)),
-            tfkl.Dense(128, activation='relu'),
+            tfkl.Dense(1024, activation='relu'),
+            tfkl.Dense(256, activation='relu'),
             tfkl.Dense(64, activation='relu'),
+            tfkl.Dense(16, activation='relu'),
             tfkl.Dense(nconditions, activation='linear')
         ])
 
@@ -105,16 +111,6 @@ class VAE(tf.keras.Model):
         reconstruction = self.decoder(conditions,mean)
         #advisarial_conditions = self.adversarial(mean)
 
-
-        # Reconstruction loss
-        #reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.math.squared_difference(x, reconstruction)))
-        #kl_loss = -0.5 * tf.reduce_sum(1 + logvar - tf.square(mean) - tf.exp(logvar), axis=1)
-        #adversarial_loss = tf.reduce_mean(tf.reduce_sum(tf.math.squared_difference(conditions, advisarial_conditions)))
-        
-        #total_loss = tf.reduce_mean(reconstruction_loss + kl_loss - adversarial_loss)
-        
-        # add loss
-        #self.add_loss(total_loss)
         return reconstruction
     
     def train_step(self, input):
@@ -205,10 +201,15 @@ class LatentSpace(tf.keras.Model):
         super(LatentSpace, self).__init__()
         self.flat_shape  = original_model.flat_shape
         self.nconditions = original_model.nconditions
-        self.input_layer = tfkl.InputLayer(input_shape=(self.flat_shape+self.nconditions,))
+        self.input_layer = tfkl.InputLayer(shape=(self.flat_shape+self.nconditions,))
         self.encoder    = original_model.encoder
         self.output_names = ['output']
 
+    def reparameterize(self, mean, logvar):
+        eps = tf.random.normal(shape=tf.shape(mean))
+        return eps * tf.exp(logvar * .5) + mean
+    
     def call(self, input):
         mean, logvar = self.encoder(input)
-        return mean, logvar
+        z = self.reparameterize(mean, logvar)
+        return z

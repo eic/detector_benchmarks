@@ -6,9 +6,9 @@ sim:backgrounds:
     - ln -s $LOCAL_DATA_PATH/input input
     - |
       snakemake --cores 2 \
-        sim_output/$DETECTOR_CONFIG/backgrounds/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root \
-        sim_output/$DETECTOR_CONFIG/backgrounds/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root \
-        sim_output/$DETECTOR_CONFIG/backgrounds/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root
+        sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root \
+        sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root \
+        sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root
 
 bench:backgrounds_emcal_backwards:
   extends: .det_benchmark

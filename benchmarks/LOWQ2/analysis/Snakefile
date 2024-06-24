@@ -1,7 +1,7 @@
 # Possible tags for local/remote running
 tag_params = {
     "QR":      {"timeBased": 0, "timeWindow": 0,          "eventCrossSection": 0.0551, "tagName": "Quasi-Real"},
-    "Brem":    {"timeBased": 1, "timeWindow": 10.15*1e-9, "eventCrossSection": 0,      "tagName": "Bremsstrahlung"},
+    "Brems":   {"timeBased": 1, "timeWindow": 10.15*1e-9, "eventCrossSection": 0,      "tagName": "Bremsstrahlung"},
     "pythia6": {"timeBased": 0, "timeWindow": 0,          "eventCrossSection": 0.054,  "tagName": "Deep Inelastic Scattering"},
     # Add more mappings here if needed
 }
@@ -68,7 +68,7 @@ rule run_benchmarks:
     input:
         config["RECO_IN_DIRECTORY"]+FILE_BASE+".tagger_recon"+RECO_EXTENSION
     params:
-        xmlName=XMLFILE,
+        xmlName=XML_FILE,
         timeBased = lambda wildcards: tag_params[wildcards.tag]["timeBased"],
         timeWindow = lambda wildcards: tag_params[wildcards.tag]["timeWindow"],
         eventCrossSection = lambda wildcards: tag_params[wildcards.tag]["eventCrossSection"]

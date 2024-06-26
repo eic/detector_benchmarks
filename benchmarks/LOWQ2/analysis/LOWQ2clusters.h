@@ -16,6 +16,8 @@ std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<
   auto d2 = d1.Define("ClusterSize","TaggerTrackerClusterPositions.rawHits_end-TaggerTrackerClusterPositions.rawHits_begin");
   hHists1D["hClusterSize"] = d2.Histo1D({"hClusterSize","hClusterSize",100,0,100}, "ClusterSize"); 
 
+  //Need associations back to simulated hit positions to get hit resolutions... tricky...
+
   return {hHists1D,hHists2D,hHists3D};
  
 }

@@ -21,6 +21,7 @@ include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
+include: "benchmarks/tracking_performances/Snakefile"
 
 
 rule warmup_run:

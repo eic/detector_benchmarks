@@ -1,0 +1,117 @@
+rule tracking_performance_sim:
+    input:
+        steering_file=provider.remote(remote_path("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer")),
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="pi-",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="(3to50|45to135|130to177)deg",
+        INDEX="\d{4}",
+    params:
+        N_EVENTS=10000
+    shell:
+        """
+ddsim \
+  --runType batch \
+  --enableGun \
+  --steeringFile "{input.steering_file}" \
+  --random.seed 1{wildcards.INDEX} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule tracking_performance_recon:
+    input:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    output:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+    log:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX="\d{4}",
+    shell: """
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_include_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralTrackVertices
+"""
+
+
+rule tracking_performance_at_momentum:
+    input:
+        script="benchmarks/tracking_performances/Tracking_Performances.C",
+        # TODO pass as a file list?
+        sim=lambda wildcards: expand(
+            "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            DETECTOR_CONFIG="epic_craterlake_tracking_only",
+            ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+            PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+            INDEX=range(1),
+        ),
+    output:
+        "{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
+        "{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
+        combined_root=temp("sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
+    shell:
+        """
+if [[ "{wildcards.SEEDING}" == "truthseed" ]]; then
+        SEEDING=""
+elif [[ "{wildcards.SEEDING}" == "realseed" ]]; then
+        SEEDING="Seeded"
+fi
+hadd {output.combined_root} {input.sim}
+root -l -b -q {input.script}'("{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "'$SEEDING'")'
+"""
+
+
+rule tracking_performance_summary_at_eta:
+    input:
+        expand(
+            [
+                "truthseed/pi-/mom/Performances_mom_{MOMENTUM:.1f}_mom_resol_truth_pi-.root",
+                "truthseed/pi-/dca/Performances_dca_{MOMENTUM:.1f}_dca_resol_truth_pi-.root",
+                "realseed/pi-/mom/Performances_mom_{MOMENTUM:.1f}_mom_resol_realseed_pi-.root",
+                "realseed/pi-/dca/Performances_dca_{MOMENTUM:.1f}_dca_resol_realseed_pi-.root",
+            ],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 15.0],
+        ),
+        script="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
+    output:
+        expand(
+            "Debug_Plots/{SEEDING}/pi-/mom/{SEEDING}_mom_resol_mom{MOMENTUM:.1f}_{{ETA_MIN}}_eta_{{ETA_MAX}}.png",
+            SEEDING=["real", "truth"],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 15.0],
+        ),
+        "Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
+        "Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
+    shell:
+        """
+root -l -b -q {input.script}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1.)'
+"""
+
+
+TRACKING_PERFORMANCE_ETA_BINS = [-3.5, -2.5, -1.0, 1.0, 2.5, 3.5]
+
+rule tracking_performance:
+    input:
+        expand(
+            [
+                "Final_Results/pi-/mom/mom_resol_{ETA_BIN}.png",
+                "Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
+            ],
+            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
+        ),
+    output:
+        directory("results/tracking_performances")
+    shell:
+        """
+mkdir {output}
+cp {input} {output}
+"""

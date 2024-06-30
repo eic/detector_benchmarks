@@ -1,0 +1,32 @@
+sim:tracking_performance:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["pi-"]
+        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
+  script:
+    - mkdir -p $LOCAL_DATA_PATH/sim_output
+    - ln -s $LOCAL_DATA_PATH/sim_output sim_output
+    - |
+      snakemake --cores 1 \
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.tree.edm4eic.root \
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/45to135deg/${PARTICLE}_${MOMENTUM}_45to135deg.0000.eicrecon.tree.edm4eic.root \
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/130to177deg/${PARTICLE}_${MOMENTUM}_130to177deg.0000.eicrecon.tree.edm4eic.root
+
+bench:tracking_performance:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:tracking_performance"]
+  script:
+    - ln -s $LOCAL_DATA_PATH/sim_output sim_output
+    - snakemake --cores 1 tracking_performance
+
+collect_results:tracking_performance:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:tracking_performance"
+  script:
+    - ls -lrht

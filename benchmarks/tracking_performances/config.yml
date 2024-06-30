@@ -6,8 +6,6 @@ sim:tracking_performance:
       - PARTICLE: ["pi-"]
         MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
   script:
-    - mkdir -p $LOCAL_DATA_PATH/sim_output
-    - ln -s $LOCAL_DATA_PATH/sim_output sim_output
     - |
       snakemake --cores 1 \
         sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.tree.edm4eic.root \
@@ -20,7 +18,6 @@ bench:tracking_performance:
   needs:
     - ["sim:tracking_performance"]
   script:
-    - ln -s $LOCAL_DATA_PATH/sim_output sim_output
     - snakemake --cores 1 tracking_performance
 
 collect_results:tracking_performance:

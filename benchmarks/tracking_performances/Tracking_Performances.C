@@ -46,7 +46,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    histp[i]->SetName(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
    
-   TFile* file = TFile::Open(Form("./%s_%1.1f.edm4eic.root",filename.Data(),mom));
+   TFile* file = TFile::Open(filename.Data());
    if (!file) {printf("file not found !!!"); return;}
    TTreeReader myReader("events", file); // name of tree and file
    if (debug) cout<<"Filename: "<<file->GetName()<<"\t NEvents: "<<myReader.GetEntries()<<endl;

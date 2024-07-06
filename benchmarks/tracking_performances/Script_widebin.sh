@@ -35,12 +35,13 @@ done
 for ((iparticle=0; iparticle<${#particle_array[@]}; iparticle++)); do
 # truth seeding
 for ((i=0; i<${#mom_array[@]}; i++)); do
-root -b -l -q Tracking_Performances.C'("'${filename}'","'${particle_array[iparticle]}'",'${mom_array[i]}',0.15,"")'
+Form("./%s_%1.1f",,mom)
+root -b -l -q Tracking_Performances.C'("./'${filename}$(printf "%.1f" ${mom_array[i]})'.edm4eic.root","'${particle_array[iparticle]}'",'${mom_array[i]}',0.15,"")'
 done
 
 # real seeding
 for ((i=0; i<${#mom_array[@]}; i++)); do
-root -b -l -q Tracking_Performances.C'("'${filename}'","'${particle_array[iparticle]}'",'${mom_array[i]}',0.15,"Seeded")'
+root -b -l -q Tracking_Performances.C'("./'${filename}$(printf "%.1f" ${mom_array[i]})'.edm4eic.root","'${particle_array[iparticle]}'",'${mom_array[i]}',0.15,"Seeded")'
 done
 done
 cd truthseed/pi-/dca

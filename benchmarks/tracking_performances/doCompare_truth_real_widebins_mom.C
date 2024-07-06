@@ -67,7 +67,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 
 	 double mu_truth = hist_truth->GetMean(); 
 	 double sigma_truth = hist_truth->GetStdDev();
-         hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
+   hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
 	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
 	 hist_truth->Fit(func_truth,"NR+");
 	 mu_truth = func_truth->GetParameter(1); 
@@ -87,8 +87,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	 
 	 double mu_real = hist_real->GetMean(); 
 	 double sigma_real = hist_real->GetStdDev();
-         hist_real->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
-         func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
+   hist_real->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
+   func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
 	 hist_real->Fit(func_real,"NR+");
 	 mu_real = func_real->GetParameter(1); 
 	 sigma_real = func_real->GetParameter(2);

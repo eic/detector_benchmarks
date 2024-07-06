@@ -70,6 +70,9 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
          hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
 	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
 	 hist_truth->Fit(func_truth,"NR+");
+	 mu_truth = func_truth->GetParameter(1); 
+	 sigma_truth = func_truth->GetParameter(2);
+	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth);
 	 hist_truth->Fit(func_truth,"R+");
 	 float truth_par2 = func_truth->GetParameter(2)*100;
 	 float truth_par2_err = func_truth->GetParError(2)*100;
@@ -147,7 +150,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	mgMom->Add(gr1);
 	mgMom->Add(gr2);
 	c_mom->cd();
-	mgMom->GetXaxis()->SetRangeUser(0.40,10.2);
+	mgMom->GetXaxis()->SetRangeUser(0.40,15.2);
 	mgMom->GetYaxis()->SetRangeUser(0.,10.0);
 	mgMom->Draw("AP");
 	lmom->AddEntry(gr1,"Truth Seeding");

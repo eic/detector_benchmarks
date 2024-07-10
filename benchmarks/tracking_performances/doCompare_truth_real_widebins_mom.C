@@ -70,6 +70,9 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
          hist_truth->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
 	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
 	 hist_truth->Fit(func_truth,"NR+");
+	 mu_truth = func_truth->GetParameter(1); 
+	 sigma_truth = func_truth->GetParameter(2);
+	 func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth);
 	 hist_truth->Fit(func_truth,"R+");
 	 float truth_par2 = func_truth->GetParameter(2)*100;
 	 float truth_par2_err = func_truth->GetParError(2)*100;
@@ -115,12 +118,12 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	err_p_truth[i] = 0.;
 	}
 	
-     const int size_real = momV_real.size();
+        const int size_real = momV_real.size();
 	double p_real[size_real], err_p_real[size_real], sigma_p_real[size_real], err_sigma_p_real[size_real]; 
 	
 	for (int i=0; i<size_real; i++){
 	p_real[i] = momV_real.at(i);
-  sigma_p_real[i] = momresolV_real.at(i);
+        sigma_p_real[i] = momresolV_real.at(i);
 	err_sigma_p_real[i] = err_momresolV_real.at(i);
 	err_p_real[i] = 0.;
 	}
@@ -135,8 +138,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	gr1->GetXaxis()->CenterTitle();
 	gr1->GetYaxis()->CenterTitle();
 	
-       TGraphErrors *gr2 = new TGraphErrors(size_real,p_real,sigma_p_real,err_p_real,err_sigma_p_real);
-       gr2->SetName("gr_realseed");
+        TGraphErrors *gr2 = new TGraphErrors(size_real,p_real,sigma_p_real,err_p_real,err_sigma_p_real);
+        gr2->SetName("gr_realseed");
 	gr2->SetMarkerStyle(34);
 	gr2->SetMarkerColor(kRed);
 	gr2->SetMarkerSize(2.0);
@@ -147,7 +150,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	mgMom->Add(gr1);
 	mgMom->Add(gr2);
 	c_mom->cd();
-	mgMom->GetXaxis()->SetRangeUser(0.40,10.2);
+	mgMom->GetXaxis()->SetRangeUser(0.40,15.2);
 	mgMom->GetYaxis()->SetRangeUser(0.,10.0);
 	mgMom->Draw("AP");
 	lmom->AddEntry(gr1,"Truth Seeding");

@@ -63,7 +63,7 @@ rule zdc_analysis:
     input:
         expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root",
                particle=["gamma"],
-               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1."],
+               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
                theta_min=["0"],
                theta_max=["0.3"]),	
 	script="benchmarks/zdc_lyso/analysis/analysis.py",
@@ -81,7 +81,7 @@ rule create_all_hepmc:
     input:
         expand("data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
                particle=["gamma"],
-               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1."],
+               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
                theta_min=["0"],
                theta_max=["0.3"])
 

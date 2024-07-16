@@ -14,7 +14,7 @@ hep.set_style("CMS")
 def gaussian(x, amp, mean, sigma):
     return amp * np.exp( -(x - mean)**2 / (2*sigma**2) ) 
 
-Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1]
+Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 
 df = pd.DataFrame({})
 for eng in Energy:

@@ -1,88 +1,94 @@
-rule all:
-    input:
-        expand("data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
-               particle=["gamma"],
-               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1."],
-               theta_min=["0"],
-               theta_max=["0.3"],
-	       phi_min=["0"],
-	       phi_max=["360"])
+import os
 
 
 rule ecal_lyso_sim_hepmc:
     input:
-        gen_par = "gen_particles.cxx",
+        script = "benchmarks/zdc_lyso/gen_particles.cxx",
     output:
         hepmcfile="data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
     log:
-        "log/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.log",
+        "data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc.log",
     wildcard_constraints:
         
     params:
-        physics_list="FTFP_BERT",
         num_events=1000,
     shell:
         """
-root -l -b -q '{input.gen_par}({params.num_events}, "{output.hepmcfile}", "{wildcards.particle}", {wildcards.theta_min}, {wildcards.theta_max}, 0, 360, {wildcards.beam_energy})'
+root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildcards.particle}", {wildcards.theta_min}, {wildcards.theta_max}, 0, 360, {wildcards.beam_energy})'
 """
 
 
 rule ecal_lyso_sim:
     input:
-        "data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
+        hepmcfile="data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        "data/{DETECTOR}_sim_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
     log:
-        "log/{DETECTOR}_sim_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.log",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root.log",
     wildcard_constraints:
         
     params:
-        physics_list="FTFP_BERT",
         num_events=1000,
 
     shell:
         """
 npsim \
-  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR}.xml \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
   --numberOfEvents {params.num_events} \
-  --physicsList {params.physics_list} \
-  --inputFiles {input} \
+  --inputFiles {input.hepmcfile} \
   --outputFile {output}  || exit
 """
 
 
 rule ecal_lyso_reco:
     input:
-        "data/{DETECTOR}_sim_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
     output:
-        "data/{DETECTOR}_reco_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root",
     log:
-        "log/{DETECTOR}_reco_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.log",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
        
     params:
-        DETECTOR="epic_craterlake",
+
     shell:
         """
-eicrecon -Ppodio:output_include_collections=HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,MCParticles {input}
+eicrecon -Ppodio:output_collections=HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,MCParticles {input}
 mv podio_output.root {output}
 """
 
 
 rule zdc_analysis:
-	input:
-		"data/epic_craterlake_reco_gamma_0.005GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		"data/epic_craterlake_reco_gamma_0.01GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		"data/epic_craterlake_reco_gamma_0.05GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		"data/epic_craterlake_reco_gamma_0.1GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		"data/epic_craterlake_reco_gamma_0.5GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		"data/epic_craterlake_reco_gamma_1GeV_theta_0deg_thru_0.3deg.edm4hep.root",
-		
-		script="analysis.py",
-	output:
-		"results/plots.pdf",
+    input:
+        expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root",
+               particle=["gamma"],
+               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1."],
+               theta_min=["0"],
+               theta_max=["0.3"]),	
+	script="benchmarks/zdc_lyso/analysis/analysis.py",
+    output:
+        "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
 
-	shell:
-		"""
+    shell:
+        """
 python {input.script}
 """
+
+
+# Examples of invocation
+rule create_all_hepmc:
+    input:
+        expand("data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
+               particle=["gamma"],
+               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1."],
+               theta_min=["0"],
+               theta_max=["0.3"])
+
+
+rule run_all_locally:
+   input:
+        "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
+   message:
+        "See output in {input[0]}"
+

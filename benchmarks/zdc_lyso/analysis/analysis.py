@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import mplhep as hep
 import uproot
 import pandas as pd
+import os
 from scipy.optimize import curve_fit
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -17,11 +18,11 @@ Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1]
 
 df = pd.DataFrame({})
 for eng in Energy:
-    tree = uproot.open(f'data/epic_craterlake_reco_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.root')['events']
+    tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.tree.edm4eic.root')['events']
     ecal_reco_energy = tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array()
     #hcal_reco_energy = tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array()
 
-    tree = uproot.open(f'data/epic_craterlake_sim_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.root')['events']
+    tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.root')['events']
     ecal_sim_energy = tree['EcalFarForwardZDCHits/EcalFarForwardZDCHits.energy'].array()
     hcal_sim_energy = tree['HcalFarForwardZDCHits/HcalFarForwardZDCHits.energy'].array()
 
@@ -56,8 +57,7 @@ for i in range(6):
     mu.append(coeff[1])
     sigma.append(coeff[2])
     resolution.append(np.abs(coeff[2])*100/coeff[1])
-plt.savefig('results/Energy_reconstruction_cluster.pdf')
-
+#plt.savefig('results/Energy_reconstruction_cluster.pdf')
 plt.show()
 
 fig2, (ax1,ax2) = plt.subplots(2,1,figsize=(15,10),sharex=True)
@@ -74,8 +74,7 @@ ax2.scatter(Energy, resolution, c='r')
 ax2.set_ylabel('Resolution (%)')
 ax2.set_xlabel('Gamma Energy (GeV)')
 ax2.set_xscale('log')
-plt.savefig('results/Energy_resolution.pdf')
-
+#plt.savefig('results/Energy_resolution.pdf')
 plt.show()
 
 
@@ -108,7 +107,7 @@ for i in range(6):
     plt.legend()
     plt.xscale('log')
     plt.xlim(1e0,1e3)
-plt.savefig('results/Energy_deposition.pdf')
+#plt.savefig('results/Energy_deposition.pdf')
 plt.show()
 
 fig4, ax = plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios': [2,1]})
@@ -127,7 +126,7 @@ plt.errorbar(np.array(Energy)*1000,np.array(hmean)/np.array(emean)*47.619,label=
 plt.legend()
 plt.ylabel('Leakage Ratio')
 plt.xlabel('Truth Energy (MeV)')
-plt.savefig('results/Energy_ratio_and_Leakage.pdf')
+#plt.savefig('results/Energy_ratio_and_Leakage.pdf')
 plt.tight_layout()
 plt.show()
 
@@ -142,11 +141,11 @@ plt.scatter(Energy,np.array(hhits)/np.array(ehits)*100)
 plt.legend()
 plt.xlabel('Simulation Truth Gamma Energy (GeV)')
 plt.ylabel('Simulation Hits at ZDC (%)')
-plt.savefig('results/Hits.pdf')
+#plt.savefig('results/Hits.pdf')
 plt.show()
 
-pdfs = ['results/Energy_reconstruction_cluster.pdf','results/Energy_resolution.pdf','results/Energy_deposition.pdf','results/Energy_ratio_and_Leakage.pdf','results/Hits.pdf']
-with PdfPages("results/plots.pdf") as pdf:
+#pdfs = ['results/Energy_reconstruction_cluster.pdf','results/Energy_resolution.pdf','results/Energy_deposition.pdf','results/Energy_ratio_and_Leakage.pdf','results/Hits.pdf']
+with PdfPages(f'results/{os.environ["DETECTOR_CONFIG"]}/zdc_lyso/plots.pdf') as pdf:
     pdf.savefig(fig1)
     pdf.savefig(fig2)
     pdf.savefig(fig3)

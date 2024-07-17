@@ -9,7 +9,7 @@
 #include "TMath.h"
 
 void draw_req_DCA(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, TString epic ="24.06.0", TString eicrecon = "v1.14.0", Bool_t drawreq=1) // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString epic ="24.06.0", TString eicrecon = "v1.14.0") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========

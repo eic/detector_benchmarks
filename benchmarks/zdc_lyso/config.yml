@@ -1,0 +1,15 @@
+sim:zdc_lyso:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - snakemake --cores 6 run_all_locally
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+results:zdc_lyso:
+  stage: collect
+  needs: ["sim:zdc_lyso"]
+  script:
+    - collect_tests.py zdc_lyso

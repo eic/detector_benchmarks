@@ -135,6 +135,7 @@ include:
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
+  - local: 'benchmarks/zdc_lyso/config.yml'
   - local: 'benchmarks/material_maps/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'

@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 void draw_req_Mom(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1) // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString epic ="24.06.0", TString eicrecon = "v1.14.0") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -27,6 +27,11 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
    double mom[nfiles] ={0.5,1.0,2.0,5.0,10.0,15.0};
    std::vector<double> momV_truth, momV_real, momresolV_truth, err_momresolV_truth, momresolV_real, err_momresolV_real;
    momV_truth.clear(); momV_real.clear(); momresolV_truth.clear(); err_momresolV_truth.clear(); momresolV_real.clear(); err_momresolV_real.clear();
+   TString symbolname = "";
+   if (particle == "pi-") symbolname = "#pi^{-}"; 
+   else symbolname = particle; 
+   ofstream outfile;
+   outfile.open ("Mom_resol.txt",ios_base::app);  
    
    TF1 *f1=new TF1("f1","FitMomentumResolution",0.,30.0,2);
    f1->SetParLimits(0,0.,0.1);	
@@ -44,10 +49,10 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
   TLegend *lmom; 
   mgMom = new TMultiGraph("mgMom",";p (GeV/c); #sigmap/p %");
   
-  lmom = new TLegend(0.70,0.80,0.90,0.93);
+  lmom = new TLegend(0.65,0.80,0.90,0.93);
   lmom->SetTextSize(0.03);
   lmom->SetBorderSize(0);
-  lmom->SetHeader(Form("Particle (%s): %1.1f < #eta < %1.1f",particle.Data(),etamin,etamax),"C");
+  lmom->SetHeader(Form("%s ePIC(%s/%s): %1.1f < #eta < %1.1f",symbolname.Data(),epic.Data(),eicrecon.Data(),etamin,etamax),"C");
   
   TF1 *func_truth = new TF1("func_truth","gaus",-0.5,0.5);
   TF1 *func_real = new TF1("func_real","gaus",-0.5,0.5);
@@ -158,6 +163,17 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	lmom->Draw("same");
 	draw_req_Mom(etamin,etamax,0.,mgMom->GetXaxis()->GetXmax());
 	c_mom->SaveAs(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
+	
+	// Write the numbers in output file for comparisons
+	outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICRecon"<<setw(20)<<eicrecon.Data()<<endl;
+  outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
+  for (Int_t i = 0; i<gr1->GetN(); ++i){
+  double x,ytrue, yreal;
+  gr1->GetPoint(i,x,ytrue);    gr2->GetPoint(i,x,yreal);  
+  outfile<<etamin<<setw(20)<<etamax<<setw(20)<<x<<setw(20)<<ytrue<<setw(20)<<yreal<<endl;
+  }
+  outfile.close();
+	
 	fout->cd();
 	mgMom->SetName(Form("mom_resol_%1.1f_eta_%1.1f",etamin,etamax));
 	mgMom->Write();

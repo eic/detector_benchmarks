@@ -166,7 +166,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	
 	// Write the numbers in output file for comparisons
 	outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICrecon"<<setw(20)<<eicrecon.Data()<<endl;
-  outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
+  outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"p (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
   for (Int_t i = 0; i<gr1->GetN(); ++i){
   double x,ytrue, yreal;
   gr1->GetPoint(i,x,ytrue);    gr2->GetPoint(i,x,yreal);  

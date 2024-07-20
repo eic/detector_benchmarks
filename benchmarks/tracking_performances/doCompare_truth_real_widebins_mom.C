@@ -24,7 +24,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
    gStyle->SetOptStat(1);
   
    const Int_t nfiles = 6;
-   double mom[nfiles] ={0.5,1.0,2.0,5.0,10.0,15.0};
+   double mom[nfiles] ={0.5,1.0,2.0,5.0,10.0,20.0};
    std::vector<double> momV_truth, momV_real, momresolV_truth, err_momresolV_truth, momresolV_real, err_momresolV_real;
    momV_truth.clear(); momV_real.clear(); momresolV_truth.clear(); err_momresolV_truth.clear(); momresolV_real.clear(); err_momresolV_real.clear();
    
@@ -150,7 +150,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	mgMom->Add(gr1);
 	mgMom->Add(gr2);
 	c_mom->cd();
-	mgMom->GetXaxis()->SetRangeUser(0.40,15.2);
+	mgMom->GetXaxis()->SetRangeUser(0.40,20.2);
 	mgMom->GetYaxis()->SetRangeUser(0.,10.0);
 	mgMom->Draw("AP");
 	lmom->AddEntry(gr1,"Truth Seeding");

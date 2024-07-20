@@ -34,11 +34,11 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    int theta_val[nbins_eta+1] ={3,50,45,135,130,177};
    int nfiles = 100; 
    double eta[nbins_eta+1]={-3.5,-2.5,-1.0,1.0,2.5,3.5};
-   double pt[nbins_eta+1]={0.1,0.5,1.0,2.0,5.0,10.0};
+   double pt[nbins_eta+1]={0.5,1.0,2.0,5.0,10.0,20.1};
    TH1D *histp[nbins_eta]; 
    
-    TH3D *h_d0xy_3d= new TH3D("h_d0xy_3d","Transverse Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,200,0.,20.);
-    TH3D *h_d0z_3d= new TH3D("h_d0z_3d","Longitudinal Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,200,0.,20.);
+    TH3D *h_d0xy_3d= new TH3D("h_d0xy_3d","Transverse Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
+    TH3D *h_d0z_3d= new TH3D("h_d0z_3d","Longitudinal Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
    
    for (int i=0; i<nbins_eta; i++){
    histp[i] = new TH1D(Form("hist_etabin%d",i),Form("hist_etabin%d",i),600,-0.3,0.3);

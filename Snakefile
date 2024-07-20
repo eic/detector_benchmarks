@@ -1,8 +1,22 @@
+configfile: "snakemake.yml"
+
 include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
+
+use_s3 = config["remote_provider"].lower() == "s3"
+use_xrootd = config["remote_provider"].lower() == "xrootd"
+
+
+def get_remote_path(path):
+    if use_s3:
+        return f"s3https://eics3.sdcc.bnl.gov:9000/eictest/{path}"
+    elif use_xrootd:
+        return f"root://dtn-eic.jlab.org//work/eic2/{path}"
+    else:
+        raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
 
 rule fetch_epic:
@@ -10,6 +24,11 @@ rule fetch_epic:
         filepath="EPIC/{PATH}"
     shell: """
 xrdcp root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
+""" if use_xrootd else """
+mc cp S3/eictest/{output.filepath} {output.filepath}
+""" if use_s3 else f"""
+echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
+exit 1
 """
 
 

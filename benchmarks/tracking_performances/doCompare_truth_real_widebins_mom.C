@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 void draw_req_Mom(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString epic ="24.06.0", TString eicrecon = "v1.14.0") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString epic ="", TString eicrecon = "") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -165,8 +165,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	c_mom->SaveAs(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
 	
 	// Write the numbers in output file for comparisons
-	outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICRecon"<<setw(20)<<eicrecon.Data()<<endl;
-  outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
+	outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICrecon"<<setw(20)<<eicrecon.Data()<<endl;
+  outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"p (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
   for (Int_t i = 0; i<gr1->GetN(); ++i){
   double x,ytrue, yreal;
   gr1->GetPoint(i,x,ytrue);    gr2->GetPoint(i,x,yreal);  

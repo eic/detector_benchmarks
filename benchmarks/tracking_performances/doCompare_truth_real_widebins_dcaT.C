@@ -185,7 +185,7 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
  
    // Write the numbers in output file for comparisons
    outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICRecon"<<setw(20)<<eicrecon.Data()<<endl;
-   outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"Resol #mum (Real)"<<endl;
+   outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"DCAT Resol #mum (Real)"<<endl;
    for (Int_t i = 0; i<gr1->GetN(); ++i){
    double x,ytrue, yreal;
    gr2->GetPoint(i,x,yreal);  

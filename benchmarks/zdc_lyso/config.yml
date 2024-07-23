@@ -8,8 +8,10 @@ sim:zdc_lyso:
     when:
       - runner_system_failure
 
-results:zdc_lyso:
+collect_results:zdc_lyso:
+  extends: .det_benchmark
   stage: collect
-  needs: ["sim:zdc_lyso"]
+  needs:
+    - "sim:zdc_lyso"
   script:
-    - collect_tests.py zdc_lyso
+    - ls -lrht

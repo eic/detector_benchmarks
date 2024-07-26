@@ -39,7 +39,7 @@ npsim \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
-  --outputFile {output}  || exit
+  --outputFile {output}
 """
 
 

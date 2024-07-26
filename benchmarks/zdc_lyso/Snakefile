@@ -5,27 +5,27 @@ rule ecal_lyso_sim_hepmc:
     input:
         script = "benchmarks/zdc_lyso/gen_particles.cxx",
     output:
-        hepmcfile="data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
+        hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
     log:
-        "data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc.log",
+        "data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
     wildcard_constraints:
         
     params:
         num_events=1000,
     shell:
         """
-root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildcards.particle}", {wildcards.theta_min}, {wildcards.theta_max}, 0, 360, {wildcards.beam_energy})'
+root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildcards.PARTICLE}", {wildcards.THETA_MIN}, {wildcards.THETA_MAX}, 0, 360, {wildcards.BEAM_ENERGY})'
 """
 
 
 rule ecal_lyso_sim:
     input:
-        hepmcfile="data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
+        hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     log:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root.log",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
     wildcard_constraints:
         
     params:
@@ -45,11 +45,11 @@ npsim \
 
 rule ecal_lyso_reco:
     input:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     output:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
     log:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root.log",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
        
     params:
@@ -63,11 +63,11 @@ mv podio_output.root {output}
 
 rule zdc_analysis:
     input:
-        expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.eicrecon.tree.edm4eic.root",
-               particle=["gamma"],
-               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
-               theta_min=["0"],
-               theta_max=["0.3"]),	
+        expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
+               PARTICLE=["gamma"],
+               BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
+               THETA_MIN=["0"],
+               THETA_MAX=["0.3"]),	
 	script="benchmarks/zdc_lyso/analysis/analysis.py",
     output:
         "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
@@ -81,11 +81,11 @@ python {input.script}
 # Examples of invocation
 rule create_all_hepmc:
     input:
-        expand("data/{particle}_{beam_energy}GeV_theta_{theta_min}deg_thru_{theta_max}deg.hepmc",
-               particle=["gamma"],
-               beam_energy=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
-               theta_min=["0"],
-               theta_max=["0.3"])
+        expand("data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+               PARTICLE=["gamma"],
+               BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
+               THETA_MIN=["0"],
+               THETA_MAX=["0.3"])
 
 
 rule run_all_locally:

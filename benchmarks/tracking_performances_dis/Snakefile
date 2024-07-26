@@ -1,0 +1,37 @@
+import shutil
+
+
+rule trk_dis_sim:
+    input:
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=10,
+    shell:
+        """
+ddsim \
+  --runType batch \
+  --part.minimalKineticEnergy 1000*GeV  \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --inputFiles root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/DIS/NC/{wildcards.EBEAM}x{wildcards.PBEAM}/minQ2={wildcards.MINQ2}/pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_vtxfix_{wildcards.INDEX}.hepmc3.tree.root \
+  --outputFile {output}
+"""
+
+
+rule trk_dis_reco:
+    input:
+        "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+    output:
+        "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+    shell:
+        """
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_include_collections=MCParticles,ReconstructedChargedParticles,ReconstructedSeededChargedParticles
+"""
+
+

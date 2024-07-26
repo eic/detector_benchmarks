@@ -41,7 +41,8 @@ rule ecal_gaps_recon:
     wildcard_constraints:
         INDEX="\d{4}",
     shell: """
-eicrecon {input} -Ppodio:output_file={output} \
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 

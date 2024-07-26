@@ -8,8 +8,6 @@ rule ecal_lyso_sim_hepmc:
         hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
     log:
         "data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
-    wildcard_constraints:
-        
     params:
         num_events=1000,
     shell:
@@ -26,11 +24,8 @@ rule ecal_lyso_sim:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     log:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
-    wildcard_constraints:
-        
     params:
         num_events=1000,
-
     shell:
         """
 npsim \
@@ -50,10 +45,6 @@ rule ecal_lyso_reco:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
     log:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
-    wildcard_constraints:
-       
-    params:
-
     shell:
         """
 eicrecon -Ppodio:output_collections=HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,MCParticles {input}
@@ -71,7 +62,6 @@ rule zdc_analysis:
 	script="benchmarks/zdc_lyso/analysis/analysis.py",
     output:
         "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
-
     shell:
         """
 python {input.script}

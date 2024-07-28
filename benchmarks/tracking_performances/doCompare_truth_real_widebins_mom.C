@@ -151,7 +151,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	mgMom->Add(gr2);
 	c_mom->cd();
 	mgMom->GetXaxis()->SetRangeUser(0.40,20.2);
-	mgMom->GetYaxis()->SetRangeUser(0.,10.0);
+	mgMom->GetYaxis()->SetRangeUser(0.0,1.50*TMath::MaxElement(gr2->GetN(),gr2->GetY())); // 50% more of the maximum value on yaxis
 	mgMom->Draw("AP");
 	lmom->AddEntry(gr1,"Truth Seeding");
 	lmom->AddEntry(gr2,"Realistic Seeding");

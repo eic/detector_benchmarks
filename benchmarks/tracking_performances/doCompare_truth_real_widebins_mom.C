@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 void draw_req_Mom(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString epic ="", TString eicrecon = "") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString extra_legend = "") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -52,7 +52,8 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
   lmom = new TLegend(0.65,0.80,0.90,0.93);
   lmom->SetTextSize(0.03);
   lmom->SetBorderSize(0);
-  lmom->SetHeader(Form("%s ePIC(%s/%s): %1.1f < #eta < %1.1f",symbolname.Data(),epic.Data(),eicrecon.Data(),etamin,etamax),"C");
+  lmom->SetHeader(extra_legend.Data(), "C");
+  lmom->AddEntry((TObject*)0, Form("%s, %1.1f < #eta < %1.1f", symbolname.Data(), etamin, etamax), "C");
   
   TF1 *func_truth = new TF1("func_truth","gaus",-0.5,0.5);
   TF1 *func_real = new TF1("func_real","gaus",-0.5,0.5);
@@ -165,7 +166,7 @@ void doCompare_truth_real_widebins_mom(TString particle = "pi-",double etamin=-1
 	c_mom->SaveAs(Form("Final_Results/%s/mom/mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
 	
 	// Write the numbers in output file for comparisons
-	outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICrecon"<<setw(20)<<eicrecon.Data()<<endl;
+	outfile << extra_legend << endl;
   outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"p (GeV/c) \t"<<setw(20)<<"Resol  #mum (Truth)"<<setw(20)<<"Resol #mum (Real)"<<endl;
   for (Int_t i = 0; i<gr1->GetN(); ++i){
   double x,ytrue, yreal;

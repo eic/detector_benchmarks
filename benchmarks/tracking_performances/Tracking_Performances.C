@@ -82,7 +82,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
       
       if (fabs(ptmc) < pTcut) continue;
 
-      Double_t pmc = charge[j]*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); 
+      Double_t pmc = (1./charge[j])*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec
       Double_t prec = 1./qoverp[j]; 
 
       Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);  

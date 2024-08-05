@@ -18,7 +18,8 @@ rule warmup_run:
         "warmup/{DETECTOR_CONFIG}.edm4hep.root",
     message: "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
     shell: """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
   --runType batch \
   --numberOfEvents 1 \
   --compactFile "$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml" \

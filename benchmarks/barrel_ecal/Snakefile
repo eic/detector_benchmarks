@@ -26,7 +26,8 @@ rule emcal_barrel_particles:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
     shell:
         """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
    --runType batch \
    -v WARNING \
    --part.minimalKineticEnergy 0.5*GeV  \

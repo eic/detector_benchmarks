@@ -13,7 +13,8 @@ rule backgrounds_sim:
         N_EVENTS=100
     shell:
         """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
   --runType batch \
   --part.minimalKineticEnergy 100*GeV  \
   --filter.tracker edep0 \
@@ -39,7 +40,7 @@ rule backgrounds_ecal_backwards:
     threads: workflow.cores
     shell:
         """
-set -m # monitor mode to prevent lingering shells
+set -m # monitor mode to prevent lingering processes
 cleanup() {{
   echo Cleaning up
   kill $WORKER_PID $SCHEDULER_PID

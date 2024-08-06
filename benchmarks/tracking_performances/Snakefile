@@ -122,6 +122,24 @@ root -l -b -q ../{input.script}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}
 """
 
 
+rule tracking_performance_debug_montage:
+    input:
+        expand(
+            [
+                "{{CAMPAIGN}}/Debug_Plots/{SEEDING}/pi-/mom/{SEEDING}_mom_resol_mom{MOMENTUM:.1f}_{{ETA_BIN}}.png",
+            ],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
+            SEEDING=["truth", "real"],
+        ),
+    output:
+        "{CAMPAIGN}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
+    shell:
+        """
+montage -mode concatenate {input} {output} || true
+ls {output}
+"""
+
+
 TRACKING_PERFORMANCE_ETA_BINS = [-3.5, -2.5, -1.0, 1.0, 2.5, 3.5]
 
 rule tracking_performance:
@@ -130,6 +148,7 @@ rule tracking_performance:
             [
                 "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.png",
                 "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
+                "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
             ],
             ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
         ),

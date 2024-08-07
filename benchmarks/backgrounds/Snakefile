@@ -10,7 +10,8 @@ rule backgrounds_sim:
     log:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root.log",
     params:
-        N_EVENTS=100
+        N_EVENTS=100,
+        hepmc=lambda wildcards: get_remote_path(f"{wildcards.PATH}.hepmc3.tree.root"),
     shell:
         """
 ddsim \
@@ -20,7 +21,7 @@ ddsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-  --inputFiles root://dtn-eic.jlab.org//work/eic2/{wildcards.PATH}.hepmc3.tree.root \
+  --inputFiles {params.hepmc} \
   --outputFile {output}
 """
 

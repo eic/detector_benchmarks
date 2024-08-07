@@ -113,6 +113,7 @@ get_data:
   needs:
     - ["get_data","common:detector"]
   before_script:
+    - mc config host add S3 https://eics3.sdcc.bnl.gov:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY}
     - source .local/bin/env.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

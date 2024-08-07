@@ -18,12 +18,27 @@ bench:tracking_performance:
   needs:
     - ["sim:tracking_performance"]
   script:
-    - snakemake --cores 1 tracking_performance
+    - snakemake --cores 3 tracking_performance_local
 
 collect_results:tracking_performance:
   extends: .det_benchmark
   stage: collect
   needs:
     - "bench:tracking_performance"
+  script:
+    - ls -lrht
+
+bench:tracking_performance_campaigns:
+  extends: .det_benchmark
+  stage: benchmarks
+  #when: manual
+  script:
+    - snakemake --cores 1 tracking_performance_campaigns
+
+collect_results:tracking_performance_campaigns:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:tracking_performance_campaigns"
   script:
     - ls -lrht

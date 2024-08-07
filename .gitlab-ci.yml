@@ -122,6 +122,9 @@ get_data:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    # cache downloaded artifacts
+    - if [ -d /scratch ]; then mkdir -p /scratch/EPIC; ln -sf /scratch/EPIC ./EPIC; fi
+    - du -hs /scratch/EPIC
     - ls -lrtha
   retry:
     max: 2
@@ -136,6 +139,7 @@ include:
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
+  - local: 'benchmarks/zdc_lyso/config.yml'
   - local: 'benchmarks/material_maps/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'

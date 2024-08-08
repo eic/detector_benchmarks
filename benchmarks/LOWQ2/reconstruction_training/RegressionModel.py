@@ -10,14 +10,22 @@ class RegressionModel(nn.Module):
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, 32)
         self.fc5 = nn.Linear(32, 3)
+        self.mean = torch.tensor([0.0, 0.0, 0.0, 0.0])
+        self.std  = torch.tensor([1.0, 1.0, 1.0, 1.0])
 
     def forward(self, x):
+        x = (x-self.mean)/self.std
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         x = torch.relu(self.fc3(x))
         x = torch.relu(self.fc4(x))
         x = self.fc5(x)
         return x
+    
+    def adapt(self, input_data):
+        self.mean = input_data.mean(axis=0)
+        self.std = input_data.std(axis=0)
+    
 
 def makeModel():
     # Create the model
@@ -32,6 +40,7 @@ def makeModel():
 
 def trainModel(epochs, input_data, target_data, val_input, val_target):
     model, optimizer, criterion = makeModel()
+    model.adapt(input_data)
     for epoch in range(epochs):
         model.train()
         # Zero the parameter gradients

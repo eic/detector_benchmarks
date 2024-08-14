@@ -1,0 +1,28 @@
+sim:backwards_ecal:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - mkdir -p $LOCAL_DATA_PATH/input
+    - ln -s $LOCAL_DATA_PATH/input input
+    - |
+      snakemake --cores 5 \
+        sim_output/backwards_ecal/epic_craterlake
+
+bench:backwards_ecal_emcal_backwards:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:backwards_ecal"]
+  script:
+    - ln -s $LOCAL_DATA_PATH/input input
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake --cores 8 backwards_ecal_ecal_backwards
+
+collect_results:backwards_ecal:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:backwards_ecal_emcal_backwards"
+  script:
+    - ls -lrht

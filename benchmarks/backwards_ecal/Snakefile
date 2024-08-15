@@ -46,10 +46,22 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 """
 
 
-rule backwards_ecal_simulate:
+rule backwards_ecal_recon_many:
     input:
         expand(
             "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            INDEX=range(20),
+        ),
+    output:
+        touch("sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag"),
+
+
+DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+
+rule backwards_ecal:
+    input:
+        expand(
+            "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
             PARTICLE=["pi-", "e-"],
             ENERGY=[
                 "100MeV",
@@ -62,17 +74,7 @@ rule backwards_ecal_simulate:
                 "20GeV",
             ],
             PHASE_SPACE=["130to177deg"],
-            INDEX=range(20),
         ),
-    output:
-        touch("sim_output/backwards_ecal/{DETECTOR_CONFIG}/flag"),
-
-
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
-
-rule backwards_ecal:
-    input:
-        sim_output="sim_output/backwards_ecal/" + DETECTOR_CONFIG + "/flag",
         matplotlibrc=".matplotlibrc",
         script="benchmarks/backwards_ecal/backwards_ecal.py",
     output:

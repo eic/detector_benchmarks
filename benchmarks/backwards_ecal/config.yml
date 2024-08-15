@@ -1,11 +1,13 @@
 sim:backwards_ecal:
   extends: .det_benchmark
   stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
   script:
-    - mkdir -p $LOCAL_DATA_PATH/input
-    - ln -s $LOCAL_DATA_PATH/input input
     - |
-      snakemake --cores 5 sim_output/backwards_ecal/epic_craterlake/flag
+      snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/130to177deg/flag
 
 bench:backwards_ecal_emcal_backwards:
   extends: .det_benchmark

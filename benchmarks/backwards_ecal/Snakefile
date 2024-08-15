@@ -77,7 +77,6 @@ rule backwards_ecal:
         script="benchmarks/backwards_ecal/backwards_ecal.py",
     output:
         directory("results/backwards_ecal")
-    threads: workflow.cores
     shell:
         """
 env \

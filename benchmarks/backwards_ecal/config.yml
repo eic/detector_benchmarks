@@ -7,7 +7,7 @@ sim:backwards_ecal:
         MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
   script:
     - |
-      snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/130to177deg/flag
+      snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
 
 bench:backwards_ecal_emcal_backwards:
   extends: .det_benchmark

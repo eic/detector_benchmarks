@@ -61,7 +61,7 @@ DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
 rule backwards_ecal:
     input:
         expand(
-            "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
+            "sim_output/backwards_ecal/" + DETECTOR_CONFIG + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
             PARTICLE=["pi-", "e-"],
             ENERGY=[
                 "100MeV",

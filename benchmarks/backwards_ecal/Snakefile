@@ -49,7 +49,7 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 rule backwards_ecal_recon_many:
     input:
         expand(
-            "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{{ENERGY}}/{{PHASE_SPACE}}/{{PARTICLE}}_{{ENERGY}}_{{PHASE_SPACE}}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
             INDEX=range(20),
         ),
     output:

@@ -22,9 +22,7 @@ import numpy as np
 import vector
 import uproot
 from sklearn.metrics import roc_curve
-#+end_src   
 
-#+begin_src jupyter-python
 vector.register_awkward()
 #+end_src
 

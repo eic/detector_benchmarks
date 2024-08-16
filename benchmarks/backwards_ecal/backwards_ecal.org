@@ -145,12 +145,12 @@ for ix, energy in enumerate(energies):
 
         for do_log, ax in [(False, axs[ix]), (True, axs_log[ix])]:
             plt.sca(ax)
-            plt.hist(e_pred, bins=np.linspace(0., 1.01, 101), label=rf"$e^-$ {clf_label}", hatch=None if use_clusters else r"xxx", alpha=0.8 if use_clusters else 1.)
-            plt.hist(pi_pred, bins=np.linspace(0., 1.01, 101), label=rf"$\pi^-$ {clf_label}", histtype="step")
+            plt.hist(e_pred, weights=np.full_like(e_pred, 1.0 / ak.num(e_pred, axis=0)), bins=np.linspace(0., 1.01, 101), label=rf"$e^-$ {clf_label}", hatch=None if use_clusters else r"xxx", alpha=0.8 if use_clusters else 1.)
+            plt.hist(pi_pred, weights=np.full_like(pi_pred, 1.0 / ak.num(pi_pred, axis=0)), bins=np.linspace(0., 1.01, 101), label=rf"$\pi^-$ {clf_label}", histtype="step")
             plt.title(f"{energy}")
             plt.legend()
             plt.xlabel("Classifier output", loc="right")
-            plt.ylabel("Number of events", loc="top")
+            plt.ylabel("Event yield", loc="top")
             if do_log:
                 plt.yscale("log")
 

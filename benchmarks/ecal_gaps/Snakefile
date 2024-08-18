@@ -45,7 +45,7 @@ rule ecal_gaps_recon:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
+  -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 
 

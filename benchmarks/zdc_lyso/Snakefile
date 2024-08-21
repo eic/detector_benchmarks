@@ -1,7 +1,7 @@
 import os
 
 
-rule ecal_lyso_sim_hepmc:
+rule zdc_lyso_sim_hepmc:
     input:
         script = "benchmarks/zdc_lyso/gen_particles.cxx",
     output:
@@ -16,7 +16,7 @@ root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildc
 """
 
 
-rule ecal_lyso_sim:
+rule zdc_lyso_sim:
     input:
         hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
@@ -38,7 +38,7 @@ npsim \
 """
 
 
-rule ecal_lyso_reco:
+rule zdc_lyso_reco:
     input:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     output:
@@ -52,7 +52,7 @@ mv podio_output.root {output}
 """
 
 
-rule zdc_analysis:
+rule zdc_lyso_analysis:
     input:
         expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
                PARTICLE=["gamma"],
@@ -69,7 +69,7 @@ python {input.script}
 
 
 # Examples of invocation
-rule create_all_hepmc:
+rule zdc_lyso_hepmc:
     input:
         expand("data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
                PARTICLE=["gamma"],
@@ -78,7 +78,7 @@ rule create_all_hepmc:
                THETA_MAX=["0.3"])
 
 
-rule run_all_locally:
+rule zdc_lyso_local:
    input:
         "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
    message:

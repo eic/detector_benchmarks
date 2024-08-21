@@ -4,9 +4,9 @@ rule lfhcal_sim_hepmc:
     input:
         script = "benchmarks/lfhcal/gen_particles.cxx",
     output:
-        hepmcfile="data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        hepmcfile="data_lfhcal/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
     log:
-        "data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
+        "data_lfhcal/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
     params:
         num_events=1000,
     shell:
@@ -17,7 +17,7 @@ root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildc
 
 rule lfhcal_sim:
     input:
-        hepmcfile="data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        hepmcfile="data_lfhcal/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
@@ -72,7 +72,7 @@ python {input.script}
 rule lfhcal_create_all_hepmc:
     input:
         expand("data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
-               PARTICLE=["gamma"],
+               PARTICLE=["neutron","gamma"],
                BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
                THETA_MIN=["0"],
                THETA_MAX=["0.3"])

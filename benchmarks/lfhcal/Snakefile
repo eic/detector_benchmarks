@@ -1,13 +1,12 @@
 import os
 
-
 rule lfhcal_sim_hepmc:
     input:
         script = "benchmarks/lfhcal/gen_particles.cxx",
     output:
-        hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        hepmcfile="data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
     log:
-        "data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
+        "data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
     params:
         num_events=1000,
     shell:
@@ -18,12 +17,12 @@ root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildc
 
 rule lfhcal_sim:
     input:
-        hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        hepmcfile="data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     log:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
+        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
     params:
         num_events=1000,
     shell:
@@ -40,11 +39,11 @@ npsim \
 
 rule lfhcal_reco:
     input:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     output:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
+        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
     log:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
+        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
     shell:
         """
 eicrecon -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEnd\
@@ -55,14 +54,14 @@ mv podio_output.root {output}
 
 rule lfhcal_analysis:
     input:
-        expand("sim_output/lfhcal/{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
+        expand("sim_output/lfhcal/lfhcal_{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
                PARTICLE=["neutron","gamma"],
                BEAM_ENERGY=["2", "5", "10", "20", "40"],
                THETA_MIN=["0"],
                THETA_MAX=["50"]),	
 	script="benchmarks/lfhcal/analysis/analysis.py",
     output:
-        "results/{DETECTOR_CONFIG}/lfhcal/plots.pdf",
+        "results/{DETECTOR_CONFIG}/lfhcal/lfhcal_plots.pdf",
     shell:
         """
 python {input.script}
@@ -72,7 +71,7 @@ python {input.script}
 # Examples of invocation
 rule lfhcal_create_all_hepmc:
     input:
-        expand("data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        expand("data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
                PARTICLE=["gamma"],
                BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
                THETA_MIN=["0"],
@@ -81,7 +80,7 @@ rule lfhcal_create_all_hepmc:
 
 rule lfhcal_run_all_locally:
    input:
-        "results/" + os.environ["DETECTOR_CONFIG"] + "/lfhcal/plots.pdf",
+        "results/" + os.environ["DETECTOR_CONFIG"] + "/lfhcal/lfhcal_plots.pdf",
    message:
         "See output in {input[0]}"
 

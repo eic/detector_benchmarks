@@ -10,17 +10,19 @@ rule backgrounds_sim:
     log:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root.log",
     params:
-        N_EVENTS=100
+        N_EVENTS=100,
+        hepmc=lambda wildcards: get_remote_path(f"{wildcards.PATH}.hepmc3.tree.root"),
     shell:
         """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
   --runType batch \
   --part.minimalKineticEnergy 100*GeV  \
   --filter.tracker edep0 \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-  --inputFiles root://dtn-eic.jlab.org//work/eic2/{wildcards.PATH}.hepmc3.tree.root \
+  --inputFiles {params.hepmc} \
   --outputFile {output}
 """
 
@@ -39,7 +41,7 @@ rule backgrounds_ecal_backwards:
     threads: workflow.cores
     shell:
         """
-set -m # monitor mode to prevent lingering shells
+set -m # monitor mode to prevent lingering processes
 cleanup() {{
   echo Cleaning up
   kill $WORKER_PID $SCHEDULER_PID

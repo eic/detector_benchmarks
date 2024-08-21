@@ -4,7 +4,16 @@ sim:backwards_ecal:
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi-"]
-        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
+        MOMENTUM: [
+          "100MeV",
+          "200MeV",
+          "500MeV",
+          "1GeV",
+          "2GeV",
+          "5GeV",
+          "10GeV",
+          "20GeV",
+        ]
   script:
     - |
       snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag

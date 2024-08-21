@@ -9,21 +9,20 @@ sim:backwards_ecal:
     - |
       snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
 
-bench:backwards_ecal_emcal_backwards:
+bench:backwards_ecal:
   extends: .det_benchmark
   stage: benchmarks
   needs:
     - ["sim:backwards_ecal"]
   script:
-    - ln -s $LOCAL_DATA_PATH/input input
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
-    - snakemake --cores 1 backwards_ecal_ecal_backwards
+    - snakemake --cores 1 backwards_ecal
 
 collect_results:backwards_ecal:
   extends: .det_benchmark
   stage: collect
   needs:
-    - "bench:backwards_ecal_emcal_backwards"
+    - "bench:backwards_ecal"
   script:
     - ls -lrht

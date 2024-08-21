@@ -1,0 +1,17 @@
+sim:lfhcal:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - snakemake --cores 1 run_all_locally
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+collect_results:lfhcal:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "sim:lfhcal"
+  script:
+    - ls -lrht

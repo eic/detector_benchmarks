@@ -53,10 +53,7 @@ rule backwards_ecal_recon_many:
             INDEX=range(20),
         ),
     output:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
-    shell: """
-touch {output}
-"""
+        touch("sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag"),
 
 
 DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]

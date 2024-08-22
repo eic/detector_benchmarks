@@ -26,7 +26,6 @@ bench:backwards_ecal:
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
-    - find sim_output/ -type f
     - snakemake --cores 1 backwards_ecal
 
 collect_results:backwards_ecal:

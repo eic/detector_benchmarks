@@ -12,7 +12,7 @@ rule backwards_ecal_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=1000
+        N_EVENTS=lambda wildcards: 500 if wildcards.PARTICLE == "e-" else 1000
     shell:
         """
 set -m # monitor mode to prevent lingering processes

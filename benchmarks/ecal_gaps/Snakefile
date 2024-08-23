@@ -18,7 +18,8 @@ rule ecal_gaps_sim:
         N_EVENTS=1000
     shell:
         """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
@@ -41,9 +42,10 @@ rule ecal_gaps_recon:
     wildcard_constraints:
         INDEX="\d{4}",
     shell: """
-env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
+  -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 
 

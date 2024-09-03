@@ -79,7 +79,7 @@ elif [[ "{wildcards.SEEDING}" == "realseed" ]]; then
 fi
 hadd {output.combined_root} {input.sim}
 cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "'$TRUTH_SEEDING'")'
+root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING')'
 """
 
 

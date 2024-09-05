@@ -28,6 +28,7 @@ default:
       - .local/bin
       - .local/include
       - .local/share
+      - .snakemake/log
       - results
       - config
       - .env

@@ -44,7 +44,7 @@ jobs:
     - name: Set pending EICweb status
       if: ${{ github.event_name != 'delete' }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.BACKPORT_ACTION_TOKEN }}
         DETECTOR_CONFIG: epic_craterlake
       run: |
         curl \

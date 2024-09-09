@@ -3,7 +3,7 @@ import os
 
 rule ecal_gaps_sim:
     input:
-        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
+        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",

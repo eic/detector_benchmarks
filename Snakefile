@@ -1,6 +1,7 @@
 configfile: "snakemake.yml"
 
 include: "benchmarks/backgrounds/Snakefile"
+include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"

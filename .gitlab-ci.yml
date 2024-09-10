@@ -28,6 +28,7 @@ default:
       - .local/bin
       - .local/include
       - .local/share
+      - .snakemake/log
       - results
       - config
       - .env
@@ -133,6 +134,7 @@ get_data:
 
 include: 
   - local: 'benchmarks/backgrounds/config.yml'
+  - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'

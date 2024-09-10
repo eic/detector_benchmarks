@@ -1,0 +1,37 @@
+sim:backwards_ecal:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        MOMENTUM: [
+          "100MeV",
+          "200MeV",
+          "500MeV",
+          "1GeV",
+          "2GeV",
+          "5GeV",
+          "10GeV",
+          "20GeV",
+        ]
+  script:
+    - |
+      snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
+
+bench:backwards_ecal:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:backwards_ecal"]
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake --cores 1 backwards_ecal
+
+collect_results:backwards_ecal:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:backwards_ecal"
+  script:
+    - ls -lrht

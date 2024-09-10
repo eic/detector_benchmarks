@@ -1,13 +1,18 @@
-import shutil
+
+#Compile the analysis and plotting scripts
+rule demp_compile:
+    input:
+        ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
 
 
+# Process the generated HepMC files through the simulation
 rule trk_dis_sim:
     input:
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
     params:
-        N_EVENTS=10,
+        N_EVENTS=100,
     shell:
         """
 ddsim \
@@ -21,7 +26,7 @@ ddsim \
   --outputFile {output}
 """
 
-
+# Process the files produced in the previous step through EICRecon
 rule trk_dis_reco:
     input:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
@@ -29,9 +34,43 @@ rule trk_dis_reco:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     shell:
         """
-env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=MCParticles,ReconstructedChargedParticles,ReconstructedSeededChargedParticles
+  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedSeededChargedParticles
 """
+
+# Process the files -- either from the campaign or local running -- through the analysis script
+rule trk_dis_analysis:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis.cxx",
+        script_compiled=ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
+        data="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+    output:
+        config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
+        hists="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/hists.root",
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        INDEX="\d+",
+    shell:
+        """
+cat > {output.config} <<EOF
+{{
+  "rec_file": "{input.data}",
+  "detector": "{wildcards.DETECTOR_CONFIG}",
+  "ebeam": {wildcards.EBEAM},
+  "pbeam": {wildcards.PBEAM},
+  "Min_Q2": {wildcards.MINQ2},
+  "output_prefix": "$(dirname "{output.hists}")/hists"
+}}
+EOF
+root -l -b -q '{input.script}+("{output.config}")'
+"""
+
+#Merge all the files produced in the previous step
+#rule trk_dis_combine:
 
 

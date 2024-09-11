@@ -44,4 +44,6 @@ collect_results:tracking_performance_campaigns:
   script:
     - ls -lrht
     - rm EPIC # remove the symlink to preserve the shared files
+    - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake --cores 1 --delete-all-output tracking_performance_campaigns
+    - mv results{_save,}/

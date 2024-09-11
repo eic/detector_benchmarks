@@ -29,4 +29,6 @@ collect_results:backgrounds:
   script:
     - ls -lrht
     - rm EPIC # remove the symlink to preserve the shared files
+    - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake --cores 1 --delete-all-output backgrounds_ecal_backwards
+    - mv results{_save,}/

@@ -35,4 +35,5 @@ collect_results:backwards_ecal:
     - "bench:backwards_ecal"
   script:
     - ls -lrht
+    - rm EPIC # remove the symlink to preserve the shared files
     - snakemake --cores 1 --delete-all-output backwards_ecal

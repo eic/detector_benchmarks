@@ -15,4 +15,5 @@ collect_results:zdc_lyso:
     - "sim:zdc_lyso"
   script:
     - ls -lrht
+    - rm EPIC # remove the symlink to preserve the shared files
     - snakemake --cores 1 --delete-all-output zdc_lyso_local

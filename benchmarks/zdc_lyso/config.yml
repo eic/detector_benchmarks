@@ -15,3 +15,4 @@ collect_results:zdc_lyso:
     - "sim:zdc_lyso"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output zdc_lyso_local

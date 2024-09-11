@@ -28,3 +28,4 @@ collect_results:backgrounds:
     - "bench:backgrounds_emcal_backwards"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output backgrounds_ecal_backwards

@@ -24,3 +24,4 @@ collect_results:ecal_gaps:
     - "bench:ecal_gaps"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output ecal_gaps

@@ -30,6 +30,7 @@ jobs:
         username: ${{ secrets.GITLAB_USERNAME }}
         ciskip: true
     - name: Trigger EICweb
+      id: trigger_eicweb
       uses: eic/trigger-gitlab-ci@v3
       if: ${{ github.event_name != 'delete' }}
       with:
@@ -54,5 +55,5 @@ jobs:
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          -d '{"context": "eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')", "state": "pending", "description": "Waiting for response from the EICweb"}' \
+          -d '{"context": "eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')", "state": "pending", "description": "Waiting for response from the EICweb", "target_url": "${{ fromJson(steps.trigger_eicweb.outputs.json).web_url }}"}' \
           "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha || github.sha }}"

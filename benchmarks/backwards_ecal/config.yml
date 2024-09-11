@@ -35,3 +35,4 @@ collect_results:backwards_ecal:
     - "bench:backwards_ecal"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output backwards_ecal

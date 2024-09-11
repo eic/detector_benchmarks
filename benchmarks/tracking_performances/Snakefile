@@ -1,6 +1,6 @@
 rule tracking_performance_sim:
     input:
-        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
+        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -59,13 +59,13 @@ rule tracking_performance_at_momentum:
               INDEX=range(1),
           )
           if wildcards.CAMPAIGN == "local" else
-          expand(
+          ancient(expand(
               "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
               DETECTOR_CONFIG="epic_craterlake",
               ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
               INDEX=range(1),
-          ),
+          )),
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",

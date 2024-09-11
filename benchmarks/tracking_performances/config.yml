@@ -4,7 +4,7 @@ sim:tracking_performance:
   parallel:
     matrix:
       - PARTICLE: ["pi-"]
-        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "15GeV"]
+        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
   script:
     - |
       snakemake --cores 1 \
@@ -27,6 +27,7 @@ collect_results:tracking_performance:
     - "bench:tracking_performance"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output tracking_performance_local
 
 bench:tracking_performance_campaigns:
   extends: .det_benchmark
@@ -42,3 +43,4 @@ collect_results:tracking_performance_campaigns:
     - "bench:tracking_performance_campaigns"
   script:
     - ls -lrht
+    - snakemake --cores 1 --delete-all-output tracking_performance_campaigns

@@ -163,6 +163,9 @@ benchmarks:detector:success:
   variables:
     STATE: "success"
     DESCRIPTION: "Succeeded!"
+  after_script:
+    # Cleanup scratch space
+    - rm -rfv $LOCAL_DATA_PATH
   when: on_success
 
 benchmarks:detector:failure:

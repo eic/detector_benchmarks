@@ -10,7 +10,7 @@
 #include "TMath.h"
 #define mpi 0.139  // 1.864 GeV/c^2
 
-void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, TString name = "")
+void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, bool truth_seeding=false)
 {
 
   // style of the plot
@@ -22,11 +22,6 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    gStyle->SetHistLineWidth(2);
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(1);
-   
-   TString dir = "";
-   TString dist_dir_mom = ""; TString dist_dir_dca = "";
-   if (name=="") {dist_dir_mom = "mom_resol_truth"; dist_dir_dca = "dca_resol_truth"; dir = "truthseed";}
-   else {dist_dir_mom = "mom_resol_realseed"; dist_dir_dca = "dca_resol_realseed"; dir = "realseed";}
    
    bool debug=true;	  
   // Tree with reconstructed tracks
@@ -51,6 +46,32 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    TTreeReader myReader("events", file); // name of tree and file
    if (debug) cout<<"Filename: "<<file->GetName()<<"\t NEvents: "<<myReader.GetEntries()<<endl;
   
+   TTree *tree = dynamic_cast<TTree*>(file->Get("events"));
+   if (!(tree->GetBranch("CentralCKFSeededTrackParameters") || tree->GetBranch("CentralCKFTruthSeededTrackParameters"))) {
+     cerr << "Found neither CentralCKFSeededTrackParameters nor CentralCKFTruthSeededTrackParameters!" << endl;
+     return;
+   }
+   bool is_old_style = tree->GetBranch("CentralCKFSeededTrackParameters");
+
+   TString dir = "";
+   TString dist_dir_mom = ""; TString dist_dir_dca = "";
+   TString tag = "";
+   if (truth_seeding) {
+      dist_dir_mom = "mom_resol_truth"; dist_dir_dca = "dca_resol_truth"; dir = "truthseed";
+      if (is_old_style) {
+        tag = "";
+      } else {
+        tag = "TruthSeeded";
+      }
+   } else {
+      dist_dir_mom = "mom_resol_realseed"; dist_dir_dca = "dca_resol_realseed"; dir = "realseed";
+      if (is_old_style) {
+        tag = "Seeded";
+      } else {
+        tag = "";
+      }
+   }
+
    // MC and Reco information 
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 
@@ -61,12 +82,12 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    TTreeReaderArray<Float_t> pz_mc(myReader, "MCParticles.momentum.z"); 
    TTreeReaderArray<Int_t> status(myReader, "MCParticles.generatorStatus"); 
    TTreeReaderArray<Int_t> pdg(myReader, "MCParticles.PDG"); 
-   TTreeReaderArray<Int_t> match_flag(myReader, Form("CentralCKF%sTrackParameters.type",name.Data()));
-   TTreeReaderArray<Float_t> d0xy(myReader, Form("CentralCKF%sTrackParameters.loc.a",name.Data())); 
-   TTreeReaderArray<Float_t> d0z(myReader, Form("CentralCKF%sTrackParameters.loc.b",name.Data()));    
-   TTreeReaderArray<Float_t> theta(myReader, Form("CentralCKF%sTrackParameters.theta",name.Data()));  
-   TTreeReaderArray<Float_t> phi(myReader, Form("CentralCKF%sTrackParameters.phi",name.Data()));
-   TTreeReaderArray<Float_t> qoverp(myReader, Form("CentralCKF%sTrackParameters.qOverP",name.Data()));  
+   TTreeReaderArray<Int_t> match_flag(myReader, Form("CentralCKF%sTrackParameters.type",tag.Data()));
+   TTreeReaderArray<Float_t> d0xy(myReader, Form("CentralCKF%sTrackParameters.loc.a",tag.Data()));
+   TTreeReaderArray<Float_t> d0z(myReader, Form("CentralCKF%sTrackParameters.loc.b",tag.Data()));
+   TTreeReaderArray<Float_t> theta(myReader, Form("CentralCKF%sTrackParameters.theta",tag.Data()));
+   TTreeReaderArray<Float_t> phi(myReader, Form("CentralCKF%sTrackParameters.phi",tag.Data()));
+   TTreeReaderArray<Float_t> qoverp(myReader, Form("CentralCKF%sTrackParameters.qOverP",tag.Data()));
 
   int count =0;
   int matchId = 1; // Always matched track assigned the index 0 

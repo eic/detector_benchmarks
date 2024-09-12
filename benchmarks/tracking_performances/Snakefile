@@ -42,7 +42,7 @@ rule tracking_performance_recon:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralTrackVertices
+  -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """
 
 
@@ -73,13 +73,13 @@ rule tracking_performance_at_momentum:
     shell:
         """
 if [[ "{wildcards.SEEDING}" == "truthseed" ]]; then
-        SEEDING=""
+        TRUTH_SEEDING="true"
 elif [[ "{wildcards.SEEDING}" == "realseed" ]]; then
-        SEEDING="Seeded"
+        TRUTH_SEEDING="false"
 fi
 hadd {output.combined_root} {input.sim}
 cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "'$SEEDING'")'
+root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING')'
 """
 
 

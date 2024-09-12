@@ -24,6 +24,7 @@ def get_remote_path(path):
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
+    retries: 3
     shell: """
 xrdcp root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
 """ if use_xrootd else """

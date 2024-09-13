@@ -43,6 +43,8 @@ def setup_presentation_style():
         'legend.fontsize': 7,
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
+        'xaxis.labellocation': 'right',
+        'yaxis.labellocation': 'top',
         'pgf.rcfonts': False,
     })
 
@@ -149,8 +151,8 @@ for ix, energy in enumerate(energies):
             plt.hist(pi_pred, weights=np.full_like(pi_pred, 1.0 / ak.num(pi_pred, axis=0)), bins=np.linspace(0., 1.01, 101), label=rf"$\pi^-$ {clf_label}", histtype="step")
             plt.title(f"{energy}")
             plt.legend()
-            plt.xlabel("Classifier output", loc="right")
-            plt.ylabel("Event yield", loc="top")
+            plt.xlabel("Classifier output")
+            plt.ylabel("Event yield")
             if do_log:
                 plt.yscale("log")
 
@@ -170,8 +172,8 @@ for ix, energy in enumerate(energies):
         plt.yscale("log")
         plt.title(f"{energy}")
         plt.legend(loc="lower left")
-        plt.xlabel("Electron efficiency, %", loc="right")
-        plt.ylabel("Pion rejection factor", loc="top")
+        plt.xlabel("Electron efficiency, %")
+        plt.ylabel("Pion rejection factor")
 
 fig.savefig(output_dir / f"pred.pdf", bbox_inches="tight")
 plt.close(fig)
@@ -191,8 +193,8 @@ for clf_label, roc in rocs.items():
 plt.yscale("log")
 plt.title(INPUT_PATH_FORMAT)
 plt.legend()
-plt.xlabel("Energy, GeV", loc="right")
-plt.ylabel("Pion rejection at 95%", loc="top")
+plt.xlabel("Energy, GeV")
+plt.ylabel("Pion rejection at 95%")
 plt.savefig(output_dir / f"pion_rej.pdf", bbox_inches="tight")
 plt.show()
 #+end_src

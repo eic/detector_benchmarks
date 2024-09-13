@@ -26,7 +26,7 @@ rule fetch_epic:
         filepath="EPIC/{PATH}"
     retries: 3
     shell: """
-xrdcp root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
 """ if use_xrootd else """
 mc cp S3/eictest/{output.filepath} {output.filepath}
 """ if use_s3 else f"""

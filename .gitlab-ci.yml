@@ -149,7 +149,17 @@ include:
 deploy_results:
   stage: deploy
   needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
+    - "collect_results:backgrounds"
+    - "collect_results:backwards_ecal"
+    - "collect_results:barrel_ecal"
+    - "collect_results:barrel_hcal"
+    - "collect_results:ecal_gaps"
+    - "collect_results:material_scan"
+    - "collect_results:pid"
+    - "collect_results:tracking_performance"
+    - "collect_results:tracking_performance_campaigns"
+    - "collect_results:zdc"
+    - "collect_results:zdc_lyso"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

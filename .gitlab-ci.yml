@@ -137,14 +137,6 @@ include:
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
 
-deploy_results:
-  stage: deploy
-  needs:
-    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
-  script:
-    - echo "deploy results!"
-    - find results -print | sort | tee summary.txt
-
 benchmarks:detector:success:
   stage: status-report
   dependencies: []
@@ -165,17 +157,3 @@ benchmarks:detector:failure:
     STATE: "failure"
     DESCRIPTION: "Failed!"
   when: on_failure
-
-pages:
-  stage: deploy
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_SERVER_HOST != "eicweb.phy.anl.gov"'
-  cache:
-    paths:
-      - node_modules/
-  image: node:latest
-  script:
-    - mkdir public && cp doc/main.html public/index.html
-  artifacts:
-    paths:
-      - public

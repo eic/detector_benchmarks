@@ -147,6 +147,7 @@ include:
   - local: 'benchmarks/b0_tracker/config.yml'
 
 deploy_results:
+  allow_failure: true
   stage: deploy
   needs:
     - "collect_results:backgrounds"
@@ -163,6 +164,8 @@ deploy_results:
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt
+    - xrdfs $XROOTD_RW_ENDPOINT mkdir $XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
+    - xrdcp -r results $XROOTD_RW_ENDPOINT/$XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
 
 benchmarks:detector:success:
   stage: status-report

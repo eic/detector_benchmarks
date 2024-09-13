@@ -27,9 +27,13 @@ rule fetch_epic:
     retries: 3
     shell: """
 # workaround what looks to be an issue with AIO on scratch
+set -x
 TMP_OUTPUT="$(mktemp)"
+TMP_OTHER="$(mktemp)"
 xrdcp --force root://dtn-eic.jlab.org//work/eic2/{output.filepath} "$TMP_OUTPUT"
-cat "$TMP_OUTPUT" >> {output.filepath}
+cat "$TMP_OUTPUT" > "$TMP_OTHER"
+head "$TMP_OTHER"
+mv "$TMP_OTHER" {output.filepath}
 """ if use_xrootd else """
 mc cp S3/eictest/{output.filepath} {output.filepath}
 """ if use_s3 else f"""

@@ -127,7 +127,7 @@ get_data:
     - if [ -d /scratch ]; then mkdir -p /scratch/EPIC; ln -sf /scratch/EPIC ./EPIC; fi
     - du -hs /scratch/EPIC
     - ls -lrtha
-    - ls -lRtha /scratch/EPIC/
+    - find /scratch/EPIC/ -type f -exec stat {} \;
   retry:
     max: 2
     when:

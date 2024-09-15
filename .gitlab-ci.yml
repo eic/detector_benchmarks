@@ -123,7 +123,7 @@ get_data:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
-    # cache downloaded artifacts
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:
     max: 2

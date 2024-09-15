@@ -4,7 +4,7 @@ sim:ecal_gaps:
   script:
     - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
-    - snakemake --cores 10 ecal_gaps --omit-from ecal_gaps
+    - snakemake --cache --cores 10 ecal_gaps --omit-from ecal_gaps
 
 bench:ecal_gaps:
   extends: .det_benchmark
@@ -24,7 +24,6 @@ collect_results:ecal_gaps:
     - "bench:ecal_gaps"
   script:
     - ls -lrht
-    - rm EPIC # remove the symlink to preserve the shared files
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake --cores 1 --delete-all-output ecal_gaps
     - mv results{_save,}/

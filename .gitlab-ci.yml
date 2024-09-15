@@ -124,8 +124,6 @@ get_data:
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     # cache downloaded artifacts
-    - if [ -d /scratch ]; then mkdir -p /scratch/EPIC; ln -sf /scratch/EPIC ./EPIC; fi
-    - du -hs /scratch/EPIC
     - ls -lrtha
   retry:
     max: 2

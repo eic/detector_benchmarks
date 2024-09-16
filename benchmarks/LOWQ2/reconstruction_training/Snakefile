@@ -18,13 +18,64 @@ SIM_EXTENSION   = ".edm4hep.root"
 RECO_EXTENSION  = ".eicrecon.tree.edm4eic.root"
  
 REMOTE_EVENTS_SERVER    =  "root://dtn-eic.jlab.org/"
-REMOTE_EVENTS_DIRECTORY = "/work/eic2/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
+REMOTE_EVENTS_DIRECTORY = "/work/eic2/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/"
+REMOTE_RECO_DIRECTORY  = "/work/eic2/EPIC/RECO/24.07.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/"
 
 S3_RECON_DIRECTORY      = "eictest/EPIC/RECO/24.05.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/"
-FILE_BASE               = "pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run"
+FILE_BASE               = "pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run"
 
 XML_FILE        = "epic_edit.xml"
-BEAM_ENERGY     = "10"
+BEAM_ENERGY     = "18"
+
+def remote_file_exists(server,url):
+    try:
+        subprocess.check_output(['xrdfs', server, 'stat', url])
+        return url
+    except subprocess.CalledProcessError:
+        return None
+    
+def check_files_exist(file_indices):
+    existing_files = []
+    for fileindex in file_indices:
+        file_path = REMOTE_EVENTS_DIRECTORY + FILE_BASE + fileindex + EVENT_EXTENSION
+        if remote_file_exists(REMOTE_EVENTS_SERVER, file_path):
+            existing_files.append(file_path)
+    return existing_files
+
+###################################################################
+# Run training on remote XRootD server data
+###################################################################
+rule run_training:     
+    params:
+        input = expand(
+            REMOTE_EVENTS_SERVER + REMOTE_RECO_DIRECTORY + FILE_BASE + "{i}.ab.{j}" + RECO_EXTENSION,
+            i=range(1, 11),
+            j=range(1050, 1152)
+        ),
+    output:
+        "regression_model{tag}.onnx",
+    run:
+        shell("python TaggerRegression.py --dataFiles {params.input} --beamEnergy 18 --outModelFile {output}")
+
+
+###################################################################
+# Test training on remote XRootD server data
+###################################################################
+rule run_testing:
+    params:
+        input = expand(
+            REMOTE_EVENTS_SERVER + REMOTE_RECO_DIRECTORY + FILE_BASE + "{i}.ab.{j}" + RECO_EXTENSION,
+            i=range(11, 31),
+            j=range(1050, 1054)
+        ),
+    input:
+        "regression_model{tag}.onnx",
+    output:
+        direct = "output_vs_target{tag}.png",
+        transformed = "output_vs_target_transformed{tag}.png",
+    run:
+        shell("python TestModel.py --modelFile {input} --dataFiles {params.input} --beamEnergy 18 --outGraphFile {output.direct} --outGraphFile2 {output.transformed}")
+
 
 ###################################################################
 # Find and download the input files directly from the S3 bucket
@@ -40,12 +91,6 @@ rule download_recon_input:
 ###################################################################
 # Generate the input files for the training from the event files
 ###################################################################
-def remote_file_exists(server,url):
-    try:
-        subprocess.check_output(['xrdfs', server, 'stat', url])
-        return url
-    except subprocess.CalledProcessError:
-        return None
 
 rule run_simulation_tagger:
     params:

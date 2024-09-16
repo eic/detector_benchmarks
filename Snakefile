@@ -51,6 +51,7 @@ include: "benchmarks/insert_tau/Snakefile"
 include: "benchmarks/femc_electron/Snakefile"
 include: "benchmarks/femc_photon/Snakefile"
 include: "benchmarks/femc_pi0/Snakefile"
+include: "benchmarks/beamline/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"

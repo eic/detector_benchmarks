@@ -1,6 +1,7 @@
+import os
 
 #Compile the analysis and plotting scripts
-rule demp_compile:
+rule trk_dis_compile:
     input:
         ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
 
@@ -12,7 +13,7 @@ rule trk_dis_sim:
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
     params:
-        N_EVENTS=100,
+        N_EVENTS=10,
     shell:
         """
 ddsim \
@@ -37,7 +38,7 @@ rule trk_dis_reco:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedSeededChargedParticles
+  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles
 """
 
 # Process the files -- either from the campaign or local running -- through the analysis script

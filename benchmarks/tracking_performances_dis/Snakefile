@@ -140,14 +140,14 @@ root -l -b -q '{input.script}+("{input.config}")'
 
 
 #Examples of invocation
-rule demp_run_locally:
+rule trk_dis_run_locally:
     input:
         "results/tracking_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_10/plots.pdf",
     message:
         "See output in {input[0]}"
 
 
-rule demp_run_locally_trk_only:
+rule trk_dis_run_locally_trk_only:
     input:
         "results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_10/plots.pdf",
     message:

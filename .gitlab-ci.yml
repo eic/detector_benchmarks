@@ -123,9 +123,7 @@ get_data:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
-    # cache downloaded artifacts
-    - if [ -d /scratch ]; then mkdir -p /scratch/EPIC; ln -sf /scratch/EPIC ./EPIC; fi
-    - du -hs /scratch/EPIC
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:
     max: 2
@@ -163,6 +161,9 @@ benchmarks:detector:success:
   variables:
     STATE: "success"
     DESCRIPTION: "Succeeded!"
+  after_script:
+    # Cleanup scratch space
+    - rm -rfv $LOCAL_DATA_PATH
   when: on_success
 
 benchmarks:detector:failure:

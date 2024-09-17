@@ -16,7 +16,7 @@ sim:backwards_ecal:
         ]
   script:
     - |
-      snakemake --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
+      snakemake --cache --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
 
 bench:backwards_ecal:
   extends: .det_benchmark
@@ -35,3 +35,6 @@ collect_results:backwards_ecal:
     - "bench:backwards_ecal"
   script:
     - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output backwards_ecal
+    - mv results{_save,}/

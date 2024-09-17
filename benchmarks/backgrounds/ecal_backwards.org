@@ -42,6 +42,8 @@ def setup_presentation_style():
         'legend.loc': 'upper right',
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
+        'xaxis.labellocation': 'right',
+        'yaxis.labellocation': 'top',
         'pgf.rcfonts': False,
     })
 
@@ -232,8 +234,8 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         )
         plt.colorbar().set_label("energy, GeV", loc="top")
         plt.title(f"{label}, event_id={event_id}\n{collection_name}")
-        plt.xlabel("hit x, mm", loc="right")
-        plt.ylabel("hit y, mm", loc="top")
+        plt.xlabel("hit x, mm")
+        plt.ylabel("hit y, mm")
         plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.png", bbox_inches="tight")
         plt.show()
         plt.clf()
@@ -286,9 +288,9 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
     plt.title(f"{collection_name}")
     plt.legend()
-    plt.xlabel("r, mm", loc="right")
+    plt.xlabel("r, mm")
     dr = (r_axis.edges[1] - r_axis.edges[0])
-    plt.ylabel(f"Number of towers per {dr} mm slice in $r$", loc="top")
+    plt.ylabel(f"Number of towers per {dr} mm slice in $r$")
     plt.savefig(output_dir / f"{collection_name}_num_towers.png", bbox_inches="tight")
     plt.show()
     plt.clf()
@@ -326,8 +328,8 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
         plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV\n{collection_name}")
         plt.legend()
-        plt.xlabel("r, mm", loc="right")
-        plt.ylabel("rate per tower, Hz", loc="top")
+        plt.xlabel("r, mm")
+        plt.ylabel("rate per tower, Hz")
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.png", bbox_inches="tight")
         plt.show()
@@ -357,8 +359,8 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
         plt.title(rf"for events with $E_{{\mathrm{{dep. tot.}}}}$ $>$ {totedep_min} GeV" + f"\n{collection_name}")
         plt.legend()
-        plt.xlabel("$z$ of the first interaction vertex, mm", loc="right")
-        plt.ylabel("rate, Hz", loc="top")
+        plt.xlabel("$z$ of the first interaction vertex, mm")
+        plt.ylabel("rate, Hz")
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.png", bbox_inches="tight")
         plt.show()
@@ -438,7 +440,7 @@ for edep_min in [0]: # GeV
         plt.sca(ax_cur)
         plt.legend()
         plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
-        plt.ylabel("rate, Hz", loc="top")
+        plt.ylabel("rate, Hz")
         plt.yscale("log")
         plt.xticks(rotation=90, ha='right')
         fig_cur.savefig(f"rates_edep_min_{edep_min}_{dataset_ix}.png", bbox_inches="tight")
@@ -448,7 +450,7 @@ for edep_min in [0]: # GeV
     plt.sca(ax_cmb)
     plt.legend()
     plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
-    plt.ylabel("rate per tower, Hz", loc="top")
+    plt.ylabel("rate per tower, Hz")
     plt.yscale("log")
     plt.xticks(rotation=90, ha='right')
     fig_cmb.savefig(f"rates_edep_min_{edep_min}.png", bbox_inches="tight")

@@ -39,6 +39,8 @@ def setup_presentation_style():
         'legend.fontsize': 7,
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
+        'xaxis.labellocation': 'right',
+        'yaxis.labellocation': 'top',
         'pgf.rcfonts': False,
     })
 
@@ -153,8 +155,8 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
         std = np.sqrt(profile.variances())
         cond = profile.values() > std
         plt.errorbar(profile.axes[0].centers[cond], profile.values()[cond], yerr=std[cond], marker=".", markersize=2, color="black", ls="none", lw=0.6, capsize=1.)
-        plt.xlabel(r"$\eta_{thrown}$", loc="right")
-        plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
+        plt.xlabel(r"$\eta_{thrown}$")
+        plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$")
         plt.title(f"{energy} {particle} in {calo_name}")
         plt.minorticks_on()
         plt.savefig(output_dir / f"ecal_gap_{particle}_{energy}_{calo_name}.png", bbox_inches="tight")
@@ -211,8 +213,8 @@ for energy in ["500MeV", "5GeV", "20GeV"]:
     std = np.sqrt(profile.variances())
     cond = profile.values() > std
     plt.errorbar(profile.axes[0].centers[cond], profile.values()[cond], yerr=std[cond], marker=".", markersize=2, color="black", ls="none", lw=0.6, capsize=1.)
-    plt.xlabel(r"$\eta_{thrown}$", loc="right")
-    plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$", loc="top")
+    plt.xlabel(r"$\eta_{thrown}$")
+    plt.ylabel(r"$\sum E_{\mathrm{dep.}} / p_{\mathrm{thrown}}$")
     plt.title(f"{energy} {particle}\n" + "+".join(calos))
     plt.minorticks_on()
     plt.savefig(output_dir / f"ecal_gap_{particle}_{energy}_sum_all.png", bbox_inches="tight")

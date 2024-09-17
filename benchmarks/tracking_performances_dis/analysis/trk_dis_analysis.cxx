@@ -138,12 +138,6 @@ void trk_dis_analysis(const std::string& config_name)
     h1c2->SetLineColor(kMagenta);h1c2->SetLineWidth(2);
     h1c2->SetMarkerColor(kMagenta);h1c2->SetMarkerStyle(kFullCrossX);
 
-    // Ratio histograms
-    TH1 *h1rb1 = new TH1D("h1rb1","",100,-4,4); //Real-seeded tracks (Pt > 200 MeV/c cut)
-    TH1 *h1rc1 = new TH1D("h1rc1","",100,-4,4); //Truth-seeded tracks (Pt > 200 MeV/c cut)
-    TH1 *h1rb2 = new TH1D("h1rb2","",100,-4,4); //Real-seeded tracks (Pt > 500 MeV/c cut)
-    TH1 *h1rc2 = new TH1D("h1rc2","",100,-4,4); //Truth-seeded tracks (Pt > 500 MeV/c cut)
-
     //Track purity
     TH1 *h2a = new TH1D("h2a","Real-seeded tracks purity",100,0,1.1);
     h2a->GetXaxis()->SetTitle("Fraction of track measurements from a given MC Particle");h2a->GetXaxis()->CenterTitle();
@@ -234,32 +228,7 @@ void trk_dis_analysis(const std::string& config_name)
 
     } //End loop over events
 
-    //Make ratio histograms
-    h1rb1 = (TH1*) h1b1->Clone("h1rb1");
-    h1rb1->Divide(h1a1);
-    h1rb1->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 200 MeV/c");
-    h1rb1->GetXaxis()->SetTitle("#eta");h1rb1->GetXaxis()->CenterTitle();
-    h1rb1->GetYaxis()->SetTitle("Ratio");h1rb1->GetYaxis()->CenterTitle();
-
-    h1rc1 = (TH1*) h1c1->Clone("h1rc1");
-    h1rc1->Divide(h1a1);
-    h1rc1->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 200 MeV/c");
-    h1rc1->GetXaxis()->SetTitle("#eta");h1rc1->GetXaxis()->CenterTitle();
-    h1rc1->GetYaxis()->SetTitle("Ratio");h1rc1->GetYaxis()->CenterTitle();
-
-    h1rb2 = (TH1*) h1b2->Clone("h1rb2");
-    h1rb2->Divide(h1a2);
-    h1rb2->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 500 MeV/c");
-    h1rb2->GetXaxis()->SetTitle("#eta");h1rb2->GetXaxis()->CenterTitle();
-    h1rb2->GetYaxis()->SetTitle("Ratio");h1rb2->GetYaxis()->CenterTitle();
-
-    h1rc2 = (TH1*) h1c2->Clone("h1rc2");
-    h1rc2->Divide(h1a2);
-    h1rc2->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 500 MeV/c");
-    h1rc2->GetXaxis()->SetTitle("#eta");h1rc2->GetXaxis()->CenterTitle();
-    h1rc2->GetYaxis()->SetTitle("Ratio");h1rc2->GetYaxis()->CenterTitle();
-
-     //--------------------------------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------------------------------
 
     ofile->Write(); // Write histograms to file
     ofile->Close(); // Close output file

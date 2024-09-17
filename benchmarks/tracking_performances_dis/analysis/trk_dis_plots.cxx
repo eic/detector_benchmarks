@@ -60,14 +60,40 @@ void trk_dis_plots(const std::string& config_name)
     TH1D* h1c1 = (TH1D*) file->Get("h1c1");
     TH1D* h1c2 = (TH1D*) file->Get("h1c2");
 
-    TH1D* h1rb1 = (TH1D*) file->Get("h1rb1");
-    TH1D* h1rb2 = (TH1D*) file->Get("h1rb2");
-
-    TH1D* h1rc1 = (TH1D*) file->Get("h1rc1");
-    TH1D* h1rc2 = (TH1D*) file->Get("h1rc2");
-
     TH1D* h2a = (TH1D*) file->Get("h2a");
     TH1D* h2b = (TH1D*) file->Get("h2b");
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------
+
+    // Make ratio histograms
+    TH1 *h1rb1 = new TH1D("h1rb1","",100,-4,4); //Real-seeded tracks (Pt > 200 MeV/c cut)
+    TH1 *h1rc1 = new TH1D("h1rc1","",100,-4,4); //Truth-seeded tracks (Pt > 200 MeV/c cut)
+    TH1 *h1rb2 = new TH1D("h1rb2","",100,-4,4); //Real-seeded tracks (Pt > 500 MeV/c cut)
+    TH1 *h1rc2 = new TH1D("h1rc2","",100,-4,4); //Truth-seeded tracks (Pt > 500 MeV/c cut)
+
+    h1rb1 = (TH1*) h1b1->Clone("h1rb1");
+    h1rb1->Divide(h1a1);
+    h1rb1->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 200 MeV/c");
+    h1rb1->GetXaxis()->SetTitle("#eta");h1rb1->GetXaxis()->CenterTitle();
+    h1rb1->GetYaxis()->SetTitle("Ratio");h1rb1->GetYaxis()->CenterTitle();
+
+    h1rc1 = (TH1*) h1c1->Clone("h1rc1");
+    h1rc1->Divide(h1a1);
+    h1rc1->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 200 MeV/c");
+    h1rc1->GetXaxis()->SetTitle("#eta");h1rc1->GetXaxis()->CenterTitle();
+    h1rc1->GetYaxis()->SetTitle("Ratio");h1rc1->GetYaxis()->CenterTitle();
+
+    h1rb2 = (TH1*) h1b2->Clone("h1rb2");
+    h1rb2->Divide(h1a2);
+    h1rb2->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 500 MeV/c");
+    h1rb2->GetXaxis()->SetTitle("#eta");h1rb2->GetXaxis()->CenterTitle();
+    h1rb2->GetYaxis()->SetTitle("Ratio");h1rb2->GetYaxis()->CenterTitle();
+
+    h1rc2 = (TH1*) h1c2->Clone("h1rc2");
+    h1rc2->Divide(h1a2);
+    h1rc2->SetTitle("Ratio of recontructed to generated particle counts: P_{T} > 500 MeV/c");
+    h1rc2->GetXaxis()->SetTitle("#eta");h1rc2->GetXaxis()->CenterTitle();
+    h1rc2->GetYaxis()->SetTitle("Ratio");h1rc2->GetYaxis()->CenterTitle();
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
 

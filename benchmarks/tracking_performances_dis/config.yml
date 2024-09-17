@@ -2,7 +2,7 @@ sim:tracking_performances_dis:
   extends: .det_benchmark
   stage: simulate
   script:
-    - snakemake --cache --cores 10 results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_10/hists.root 
+    - snakemake --cores 10 results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_10/hists.root 
   retry:
     max: 2
     when:

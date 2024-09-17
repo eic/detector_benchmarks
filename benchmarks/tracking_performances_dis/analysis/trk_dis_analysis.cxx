@@ -89,6 +89,10 @@ void trk_dis_analysis(const std::string& config_name)
     TTreeReaderArray<int> rec_ts_type(tr, "ReconstructedTruthSeededChargedParticles.type"); //Type 0: successful eta/phi match to generated particle
     TTreeReaderArray<int> rec_ts_pdg(tr, "ReconstructedTruthSeededChargedParticles.PDG"); //Uses PID lookup table information
 
+    // Hit-based track to MC Particle association weight
+    TTreeReaderArray<float> hit_assoc_weight(tr,"CentralCKFTrackAssociations.weight"); //Real-seeded tracking
+    TTreeReaderArray<float> hit_assoc_weight_ts(tr,"CentralCKFTruthSeededTrackAssociations.weight"); //Truth-seeded tracking
+
     //-------------------------------------------------------------------------------------------------------------------------------------------- 
     // Define Histograms
 
@@ -139,6 +143,17 @@ void trk_dis_analysis(const std::string& config_name)
     TH1 *h1rc1 = new TH1D("h1rc1","",100,-4,4); //Truth-seeded tracks (Pt > 200 MeV/c cut)
     TH1 *h1rb2 = new TH1D("h1rb2","",100,-4,4); //Real-seeded tracks (Pt > 500 MeV/c cut)
     TH1 *h1rc2 = new TH1D("h1rc2","",100,-4,4); //Truth-seeded tracks (Pt > 500 MeV/c cut)
+
+    //Track purity
+    TH1 *h2a = new TH1D("h2a","Real-seeded tracks purity",100,0,1.1);
+    h2a->GetXaxis()->SetTitle("Fraction of track measurements from a given MC Particle");h2a->GetXaxis()->CenterTitle();
+    h2a->GetYaxis()->SetTitle("Number of Tracks");h2a->GetYaxis()->CenterTitle();
+    h2a->SetLineColor(kBlack);h2a->SetLineWidth(2);
+
+    TH1 *h2b = new TH1D("h2b","Truth-seeded tracks purity",100,0,1.1);
+    h2b->GetXaxis()->SetTitle("Fraction of track measurements from a given MC Particle");h2b->GetXaxis()->CenterTitle();
+    h2b->GetYaxis()->SetTitle("Number of Tracks");h2b->GetYaxis()->CenterTitle();
+    h2b->SetLineColor(kBlack);h2b->SetLineWidth(2);
 
     //Define additional variables
     TLorentzVector gen_vec;
@@ -200,6 +215,22 @@ void trk_dis_analysis(const std::string& config_name)
             if( rec_vec.Pt() > 0.5 ) h1c2->Fill(rec_vec.Eta());
 
         } //End loop over reconstructed particles
+
+        // Loop over truth-seeded hit-based associations
+        for(size_t iassoc=0;iassoc<hit_assoc_weight.GetSize();iassoc++){
+            
+            auto assoc_weight = hit_assoc_weight[iassoc];
+            h2a->Fill(assoc_weight);
+        
+        } //End loop over hit associations
+
+        // Loop over truth-seeded hit-based associations
+        for(size_t iassoc=0;iassoc<hit_assoc_weight_ts.GetSize();iassoc++){
+            
+            auto assoc_weight = hit_assoc_weight_ts[iassoc];
+            h2b->Fill(assoc_weight);
+        
+        } //End loop over hit associations
 
     } //End loop over events
 

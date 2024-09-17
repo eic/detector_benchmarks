@@ -43,20 +43,6 @@ void trk_dis_plots(const std::string& config_name)
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
-    //Define Style
-    gStyle->SetOptStat(0);
-    gStyle->SetPadBorderMode(0);
-    gStyle->SetFrameBorderMode(0);
-    gStyle->SetFrameLineWidth(2);
-    gStyle->SetLabelSize(0.035,"X");
-    gStyle->SetLabelSize(0.035,"Y");
-    //gStyle->SetLabelOffset(0.01,"X");
-    //gStyle->SetLabelOffset(0.01,"Y");
-    gStyle->SetTitleXSize(0.04);
-    gStyle->SetTitleXOffset(0.9);
-    gStyle->SetTitleYSize(0.04);
-    gStyle->SetTitleYOffset(0.9);
-
     // Read file with histograms
     TFile* file = new TFile(hists_file.c_str());
 
@@ -80,9 +66,18 @@ void trk_dis_plots(const std::string& config_name)
     TH1D* h1rc1 = (TH1D*) file->Get("h1rc1");
     TH1D* h1rc2 = (TH1D*) file->Get("h1rc2");
 
+    TH1D* h2a = (TH1D*) file->Get("h2a");
+    TH1D* h2b = (TH1D*) file->Get("h2b");
+
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
     // Make plots and save to PDF file
+
+    // Update Style
+    gStyle->SetPadGridX(0);
+    gStyle->SetPadGridY(0);
+    gStyle->SetOptStat(0);
+
     std::cout<<"Making plots..."<<std::endl;
 
     //Generated charged particles
@@ -91,7 +86,7 @@ void trk_dis_plots(const std::string& config_name)
     h1a1->Draw("same");
     h1a2->Draw("same");
 
-    TLegend *leg1a = new TLegend(0.125,0.7,0.375,0.875);
+    TLegend *leg1a = new TLegend(0.25,0.6,0.6,0.875);
     leg1a->SetBorderSize(0);leg1a->SetFillStyle(0);
     leg1a->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1a->AddEntry("h1a","All generated charged particles","l");
@@ -105,7 +100,7 @@ void trk_dis_plots(const std::string& config_name)
     h1b1->Draw("same");
     h1b2->Draw("same");
 
-    TLegend *leg1b = new TLegend(0.25,0.7,0.5,0.875);
+    TLegend *leg1b = new TLegend(0.25,0.6,0.6,0.875);
     leg1b->SetBorderSize(0);leg1b->SetFillStyle(0);
     leg1b->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1b->AddEntry("h1b","All real-seeded tracks","l");
@@ -119,7 +114,7 @@ void trk_dis_plots(const std::string& config_name)
     h1c1->Draw("same");
     h1c2->Draw("same");
 
-    TLegend *leg1c = new TLegend(0.25,0.7,0.5,0.875);
+    TLegend *leg1c = new TLegend(0.25,0.6,0.6,0.875);
     leg1c->SetBorderSize(0);leg1c->SetFillStyle(0);
     leg1c->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1c->AddEntry("h1c","All truth-seeded tracks","l");
@@ -135,7 +130,7 @@ void trk_dis_plots(const std::string& config_name)
     h1b1->Draw("same");
     h1c1->Draw("same");
 
-    TLegend *leg1d = new TLegend(0.125,0.675,0.575,0.875);
+    TLegend *leg1d = new TLegend(0.15,0.675,0.6,0.875);
     leg1d->SetBorderSize(0);leg1d->SetFillStyle(0);
     leg1d->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1d->AddEntry("h1a1","Generated charged particles w/ P_{T} > 200 MeV/c","l");
@@ -150,7 +145,7 @@ void trk_dis_plots(const std::string& config_name)
     h1a2->Draw("same");
     h1b2->Draw("P same");
 
-    TLegend *leg1e = new TLegend(0.125,0.675,0.575,0.875);
+    TLegend *leg1e = new TLegend(0.15,0.675,0.6,0.875);
     leg1e->SetBorderSize(0);leg1e->SetFillStyle(0);
     leg1e->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1e->AddEntry("h1a2","Generated charged particles w/ P_{T} > 500 MeV/c","fl");
@@ -163,13 +158,12 @@ void trk_dis_plots(const std::string& config_name)
     h1a2->Draw("same");
     h1c2->Draw("P same");
 
-    TLegend *leg1e1 = new TLegend(0.125,0.675,0.575,0.875);
+    TLegend *leg1e1 = new TLegend(0.15,0.675,0.6,0.875);
     leg1e1->SetBorderSize(0);leg1e1->SetFillStyle(0);
     leg1e1->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg1e1->AddEntry("h1a2","Generated charged particles w/ P_{T} > 500 MeV/c","fl");
     leg1e1->AddEntry("h1c2","Truth-seeded tracks w/ P_{T} > 500 MeV/c","p");
     leg1e1->Draw();
-
 
     //Comparison 1 ratio
     TCanvas *c1f = new TCanvas("c1f");
@@ -195,6 +189,26 @@ void trk_dis_plots(const std::string& config_name)
     leg1g->AddEntry("h1rc2","Truth-seeded tracking","l");
     leg1g->Draw();
 
+    //Hit-based associations -- real-seeded tracks
+    TCanvas *c2a = new TCanvas("c2a");
+    c2a->SetLogy();
+    h2a->Draw();
+
+    TLegend *leg2a = new TLegend(0.25,0.6,0.6,0.875);
+    leg2a->SetBorderSize(0);leg2a->SetFillStyle(0);
+    leg2a->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
+    leg2a->Draw();
+
+    //Hit-based associations -- truth-seeded tracks
+    TCanvas *c2b = new TCanvas("c2b");
+    c2b->SetLogy();
+    h2b->Draw();
+
+    TLegend *leg2b = new TLegend(0.25,0.6,0.6,0.875);
+    leg2b->SetBorderSize(0);leg2a->SetFillStyle(0);
+    leg2b->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
+    leg2b->Draw();
+
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
     // Print plots to pdf file
@@ -207,6 +221,8 @@ void trk_dis_plots(const std::string& config_name)
     c1e1->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c1f->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c1g->Print(fmt::format("{}.pdf", output_prefix).c_str());
-    c1g->Print(fmt::format("{}.pdf]", output_prefix).c_str());
+    c2a->Print(fmt::format("{}.pdf", output_prefix).c_str());
+    c2b->Print(fmt::format("{}.pdf", output_prefix).c_str());
+    c2b->Print(fmt::format("{}.pdf]", output_prefix).c_str());
 
 }

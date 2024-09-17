@@ -1,10 +1,29 @@
 import os
 
 #Compile the analysis and plotting scripts
+ROOT_BUILD_DIR = os.getenv("ROOT_BUILD_DIR", None)
+
+if ROOT_BUILD_DIR is not None:
+    ROOT_BUILD_DIR_PREFIX = f"{ROOT_BUILD_DIR.rstrip('/')}/{os.getcwd().lstrip('/')}/"
+else:
+    ROOT_BUILD_DIR_PREFIX = ""
+
+rule compile_analysis:
+    input:
+        "{path}/{filename}.cxx",
+    output:
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.d",
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.so",
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+    shell:
+        """
+root -l -b -q -e '.L {input}+'
+"""
+
 rule trk_dis_compile:
     input:
         ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-
+	ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
 
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
@@ -13,7 +32,7 @@ rule trk_dis_sim:
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
     params:
-        N_EVENTS=10,
+        N_EVENTS=100,
     shell:
         """
 ddsim \
@@ -72,6 +91,66 @@ root -l -b -q '{input.script}+("{output.config}")'
 """
 
 #Merge all the files produced in the previous step
-#rule trk_dis_combine:
+rule trk_dis_combine:
+    input:
+        lambda wildcards: [f"results/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
+    output:
+        config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        hists="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/hists.root",
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        NUM_FILES="\d+",
+    shell:
+        """
+cat > {output.config} <<EOF
+{{
+  "hists_file": "{output.hists}",
+  "detector": "{wildcards.DETECTOR_CONFIG}",
+  "ebeam": {wildcards.EBEAM},
+  "pbeam": {wildcards.PBEAM},
+  "Min_Q2": {wildcards.MINQ2},
+  "nfiles": {wildcards.NUM_FILES},
+  "output_prefix": "$(dirname "{output.hists}")/plots"
+}}
+EOF
+hadd {output.hists} {input}
+"""
+
+#Process the merged file through the plotting script
+rule trk_dis_plots:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
+        script_compiled=ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
+        config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+    output:
+        "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        NUM_FILES="\d+",
+    shell:
+        """
+root -l -b -q '{input.script}+("{input.config}")'
+"""
+
+
+#Examples of invocation
+rule demp_run_locally:
+    input:
+        "results/tracking_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_10/plots.pdf",
+    message:
+        "See output in {input[0]}"
+
+
+rule demp_run_locally_trk_only:
+    input:
+        "results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_10/plots.pdf",
+    message:
+        "See output in {input[0]}"
 
 

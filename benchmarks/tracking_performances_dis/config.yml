@@ -14,7 +14,7 @@ bench:tracking_performances_dis:
   needs:
     - ["sim:tracking_performances_dis"]
   script:
-    - snakemake --cores 1 results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf 
+    - snakemake --cores 1 trk_dis_run_locally_trk_only
 
 collect_results:tracking_performances_dis:
   extends: .det_benchmark
@@ -24,5 +24,5 @@ collect_results:tracking_performances_dis:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output tracking_performances_dis
+    - snakemake --cores 1 --delete-all-output trk_dis_run_locally_trk_only
     - mv results{_save,}/

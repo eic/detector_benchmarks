@@ -1,0 +1,50 @@
+import os
+
+#Compile the plotting script
+ROOT_BUILD_DIR = os.getenv("ROOT_BUILD_DIR", None)
+
+if ROOT_BUILD_DIR is not None:
+    ROOT_BUILD_DIR_PREFIX = f"{ROOT_BUILD_DIR.rstrip('/')}/{os.getcwd().lstrip('/')}/"
+else:
+    ROOT_BUILD_DIR_PREFIX = ""
+
+rule compile_analysis:
+    input:
+        "{path}/{filename}.cxx",
+    output:
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.d",
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.so",
+        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+    shell:
+        """
+root -l -b -q -e '.L {input}+'
+"""
+
+rule trk_eff_compile:
+    input:
+        ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_efficiency/analysis/trk_eff_cxx.so"
+
+
+# Process the single-particle events through the simulation
+rule trk_eff_sim:
+    input:
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        "sim_output/tracking_performances_efficiency/{DETECTOR_CONFIG}/single_mu-_minP={MINP}_maxP={MAXP}_xgen={XGEN}_ygen={YGEN}_zgen={ZGEN}.edm4hep.root",
+    params:
+        N_EVENTS=100,
+    shell:
+        """
+npsim \
+  --runType batch \
+  -v WARNING \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --enableGun --gun.distribution 'eta' --gun.thetaMax 3.106 --gun.thetaMin 0.036 \
+  --gun.momentumMin "{wildcards.MINP}*GeV" --gun.momentumMax "{wildcards.MAXP}*GeV" \
+  --gun.position {wildcards.XGEN},{wildcards.YGEN},{wildcards.ZGEN} \
+  --numberOfEvents {params.num_events} \
+  --inputFiles {input.hepmcfile} \
+  --outputFile {output}
+"""
+
+

@@ -32,7 +32,7 @@ rule trk_dis_sim:
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
     params:
-        N_EVENTS=100,
+        N_EVENTS=200,
     shell:
         """
 ddsim \

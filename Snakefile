@@ -7,6 +7,8 @@ include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
 include: "benchmarks/zdc_lyso/Snakefile"
+include: "benchmarks/insert_muon/Snakefile"
+include: "benchmarks/zdc_muon/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"

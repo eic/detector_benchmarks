@@ -1,0 +1,34 @@
+simulate:insert_muon:
+  stage: simulate
+  extends: .phy_benchmark
+  needs: ["common:detector"]
+  parallel:
+    matrix:
+      - P: 20
+      - P: 30
+      - P: 40
+      - P: 50
+      - P: 60
+      - P: 70
+      - P: 80
+  timeout: 1 hours
+  script:
+    - snakemake --cores 1 sim_output/insert_muon/epic_craterlake_rec_mu-_${P}GeV.edm4hep.root 
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+analyze:insert_muon:
+  stage: analyze
+  extends: .phy_benchmark
+  needs: ["simulate:insert_muon"]
+  script:
+    - mkdir -p results/epic_craterlake
+    - python benchmarks/insert_muon/analysis/muon_plots.py results/epic_craterlake/insert_muon
+
+collect_results:insert_muon:
+  stage: collect_results
+  needs: ["analyze:insert_muon"]
+  script:
+    - ls -al

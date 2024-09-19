@@ -33,9 +33,9 @@ npsim \
 
 rule insert_muon_recon:
         input:
-                SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_muon_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root"
         output:
-                REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_muon_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root"
         shell:
                 """
 NEVENTS_REC=1000
@@ -44,7 +44,7 @@ eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_fil
 
 rule insert_muon_analysis:
 	input:
-                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_rec_muon_{P}GeV.edm4hep.root",
+                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root",
 		    P=[20, 30, 40, 50, 60, 70, 80],
 		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
                 script="benchmarks/insert_muon/analysis/muon_plots.py",

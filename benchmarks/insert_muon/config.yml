@@ -21,7 +21,7 @@ simulate:insert_muon:
 
 analyze:insert_muon:
   stage: analyze
-  extends: .phy_benchmark
+  extends: .det_benchmark
   needs: ["simulate:insert_muon"]
   script:
     - mkdir -p results/epic_craterlake

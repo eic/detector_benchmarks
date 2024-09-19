@@ -146,9 +146,9 @@ include:
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
-  - local: 'benchmarks/sigma/config.yml'
-  - local: 'benchmarks/lambda/config.yml'
-  - local: 'benchmarks/neutron/config.yml'
+  - local: 'benchmarks/zdc_sigma/config.yml'
+  - local: 'benchmarks/zdc_lambda/config.yml'
+  - local: 'benchmarks/insert_neutron/config.yml'
 
 
 deploy_results:
@@ -164,6 +164,9 @@ deploy_results:
     - "collect_results:pid"
     - "collect_results:tracking_performance"
     - "collect_results:tracking_performance_campaigns"
+    - "collect_results:zdc_sigma"
+    - "collect_results:zdc_lambda"
+    - "collect_results:insert_neutron"
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
   script:

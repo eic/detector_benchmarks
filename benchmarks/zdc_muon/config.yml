@@ -1,4 +1,4 @@
-simulate:zdc_muon:
+sim:zdc_muon:
   stage: simulate
   extends: .det_benchmark
   needs: ["common:detector"]

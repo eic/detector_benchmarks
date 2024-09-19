@@ -21,7 +21,7 @@ simulate:zdc_muon:
 
 analyze:zdc_muon:
   stage: analyze
-  extends: .phy_benchmark
+  extends: .det_benchmark
   needs: ["simulate:zdc_muon"]
   script:
     - mkdir -p results/epic_craterlake

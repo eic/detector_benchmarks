@@ -1,4 +1,4 @@
-lambda:simulate:
+simulate:zdc_sigma:
   stage: simulate
   extends: .phy_benchmark
   needs: ["common:detector"]
@@ -14,21 +14,21 @@ lambda:simulate:
       - P: 275
   timeout: 6 hours
   script:
-    - snakemake --cores 1 sim_output/lambda/epic_zdc_sipm_on_tile_only_rec_lambda_dec_${P}GeV.edm4hep.root 
+    - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4hep.root 
   retry:
     max: 2
     when:
       - runner_system_failure
 
-lambda:analyze:
+analyze:zdc_sigma:
   stage: analyze
   extends: .phy_benchmark
-  needs: ["lambda:simulate"]
+  needs: ["simulate:zdc_sigma"]
   script:
-    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/lambda 
+    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma 
 
-lambda:results:
+collect_results:zdc_sigma:
   stage: collect_results
-  needs: ["lambda:analyze"]
+  needs: ["analyze:zdc_sigma"]
   script:
     - ls -al

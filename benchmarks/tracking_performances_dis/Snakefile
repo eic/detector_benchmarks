@@ -1,20 +1,12 @@
 import os
 
-#Compile the analysis and plotting scripts
-ROOT_BUILD_DIR = os.getenv("ROOT_BUILD_DIR", None)
-
-if ROOT_BUILD_DIR is not None:
-    ROOT_BUILD_DIR_PREFIX = f"{ROOT_BUILD_DIR.rstrip('/')}/{os.getcwd().lstrip('/')}/"
-else:
-    ROOT_BUILD_DIR_PREFIX = ""
-
 rule compile_analysis:
     input:
         "{path}/{filename}.cxx",
     output:
-        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.d",
-        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx.so",
-        ROOT_BUILD_DIR_PREFIX + "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+        "{path}/{filename}_cxx.d",
+        "{path}/{filename}_cxx.so",
+        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
     shell:
         """
 root -l -b -q -e '.L {input}+'
@@ -22,8 +14,8 @@ root -l -b -q -e '.L {input}+'
 
 rule trk_dis_compile:
     input:
-        ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-	ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
+        "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
+        "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
 
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
@@ -64,7 +56,7 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 rule trk_dis_analysis:
     input:
         script="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis.cxx",
-        script_compiled=ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
         data="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     output:
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
@@ -123,7 +115,7 @@ hadd {output.hists} {input}
 rule trk_dis_plots:
     input:
         script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
-        script_compiled=ROOT_BUILD_DIR_PREFIX + "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:
         "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"

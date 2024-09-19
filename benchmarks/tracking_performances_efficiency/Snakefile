@@ -42,9 +42,25 @@ npsim \
   --enableGun --gun.distribution 'eta' --gun.thetaMax 3.106 --gun.thetaMin 0.036 \
   --gun.momentumMin "{wildcards.MINP}*GeV" --gun.momentumMax "{wildcards.MAXP}*GeV" \
   --gun.position {wildcards.XGEN},{wildcards.YGEN},{wildcards.ZGEN} \
-  --numberOfEvents {params.num_events} \
-  --inputFiles {input.hepmcfile} \
+  --numberOfEvents {params.N_EVENTS} \
   --outputFile {output}
 """
 
+
+# Process the files produced in the previous step through EICRecon
+rule trk_eff_reco:
+    input:
+        "sim_output/tracking_performances_efficiency/{DETECTOR_CONFIG}/single_mu-_minP={MINP}_maxP={MAXP}_xgen={XGEN}_ygen={YGEN}_zgen={ZGEN}.edm4hep.root",
+    output:
+        "sim_output/tracking_performances_efficiency/{DETECTOR_CONFIG}/single_mu-_minP={MINP}_maxP={MAXP}_xgen={XGEN}_ygen={YGEN}_zgen={ZGEN}.edm4eic.root",
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,CentralTrackSeedingResults,CentralCKFTrackParameters,CentralCKFTruthSeededTrackParameters
+"""
+
+
+# Process the reconstructed files through the analysis/plotting script
 

@@ -22,7 +22,7 @@ simulate:insert_muon:
 analyze:insert_muon:
   stage: analyze
   extends: .det_benchmark
-  needs: ["simulate:insert_muon"]
+  needs: ["sim:insert_muon"]
   script:
     - mkdir -p results/epic_craterlake
     - python benchmarks/insert_muon/analysis/muon_plots.py results/epic_craterlake/insert_muon

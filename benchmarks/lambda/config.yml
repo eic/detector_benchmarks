@@ -1,0 +1,34 @@
+lambda:simulate:
+  stage: simulate
+  extends: .phy_benchmark
+  needs: ["common:detector"]
+  parallel:
+    matrix:
+      - P: 100
+      - P: 125
+      - P: 150
+      - P: 175
+      - P: 200
+      - P: 225
+      - P: 250
+      - P: 275
+  timeout: 6 hours
+  script:
+    - snakemake --cores 1 sim_output/lambda/epic_zdc_sipm_on_tile_only_rec_lambda_dec_${P}GeV.edm4hep.root 
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+lambda:analyze:
+  stage: analyze
+  extends: .phy_benchmark
+  needs: ["lambda:simulate"]
+  script:
+    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/lambda 
+
+lambda:results:
+  stage: collect_results
+  needs: ["lambda:analyze"]
+  script:
+    - ls -al

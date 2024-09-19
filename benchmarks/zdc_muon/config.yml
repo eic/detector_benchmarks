@@ -22,7 +22,7 @@ simulate:zdc_muon:
 analyze:zdc_muon:
   stage: analyze
   extends: .det_benchmark
-  needs: ["simulate:zdc_muon"]
+  needs: ["sim:zdc_muon"]
   script:
     - mkdir -p results/epic_craterlake
     - python benchmarks/zdc_muon/analysis/muon_plots.py results/epic_craterlake/zdc_muon

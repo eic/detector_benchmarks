@@ -1,6 +1,6 @@
 simulate:zdc_muon:
   stage: simulate
-  extends: .phy_benchmark
+  extends: .det_benchmark
   needs: ["common:detector"]
   parallel:
     matrix:

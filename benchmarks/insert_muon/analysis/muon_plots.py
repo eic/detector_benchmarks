@@ -34,6 +34,20 @@ for p in momenta:
     gc.collect()
     print("read", filename)
 
+for array in arrays_sim.values():
+    tilt=-0.025
+    px=array['MCParticles.momentum.x'][:,2]
+    py=array['MCParticles.momentum.y'][:,2]
+    pz=array['MCParticles.momentum.z'][:,2]
+    p=np.sqrt(px**2+py**2+pz**2)
+    
+    pxp=px*np.cos(tilt)-pz*np.sin(tilt)
+    pyp=py
+    pzp=pz*np.cos(tilt)+px*np.sin(tilt)
+    
+    array['eta_truth']=1/2*np.log((p+pzp)/(p-pzp))
+    array['phi_truth']=np.arctan2(pyp,pxp)
+    
 for p in 50,:
     E=arrays_sim[p]["HcalEndcapPInsertHits.energy"]
     y, x,_=plt.hist(1e3*ak.flatten(E),bins=100, range=(0, 1.2), histtype='step')
@@ -47,6 +61,7 @@ for p in 50,:
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
     print(coeff)
     xx=np.linspace(0,.7, 100)
+    MIP=coeff[1]/1000
     plt.plot(xx, fnc(xx,*coeff), label=f'Landau fit:\nMIP={coeff[1]*1e3:.0f}$\\pm${1e3*np.sqrt(var_matrix[1][1]):.0f} keV')
     plt.xlabel("hit energy [MeV]")
     plt.ylabel("hits")
@@ -54,15 +69,15 @@ for p in 50,:
     plt.legend(fontsize=20)
     plt.savefig(outdir+"/MIP.pdf")
 
-for p in 50,:
+    plt.figure(figsize=(10,7))
     array=arrays_sim[p]
-    bins=30
-    selection=np.sum(array["HcalEndcapPInsertHits.energy"],axis=-1)>0
-    h1, xedges, yedges = np.histogram2d(list(array[selection]['phi_truth']),list(array[selection]['eta_truth']), bins=bins)
-    h2, xedges, yedges = np.histogram2d(list(array['phi_truth']),list(array['eta_truth']), bins=bins)
+    bins=30; r=((-np.pi, np.pi),(2.8, 4.2))
+    selection=np.sum(array["HcalEndcapPInsertHits.energy"]>0.5*MIP,axis=-1)>0
+    h1, xedges, yedges = np.histogram2d(list(array[selection]['phi_truth']),list(array[selection]['eta_truth']), bins=bins, range=r)
+    h2, xedges, yedges = np.histogram2d(list(array['phi_truth']),list(array['eta_truth']), bins=bins, range=r)
 
     h = h1 / h2
-    pc=plt.pcolor(xedges, yedges, h.T)
+    pc=plt.pcolor(xedges, yedges, h.T,linewidth=0)
     plt.xlabel("$\\phi^*$ [rad]")
     plt.ylabel("$\\eta^*$ [rad]")
     cb = plt.colorbar(pc)

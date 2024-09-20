@@ -1,7 +1,6 @@
 sim:zdc_sigma:
   stage: simulate
   extends: .det_benchmark
-  needs: ["common:detector"]
   parallel:
     matrix:
       - P: 100

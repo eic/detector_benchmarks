@@ -20,7 +20,7 @@ sim:zdc_muon:
       - runner_system_failure
 
 analyze:zdc_muon:
-  stage: analyze
+  stage: benchmarks
   extends: .det_benchmark
   needs: ["sim:zdc_muon"]
   script:

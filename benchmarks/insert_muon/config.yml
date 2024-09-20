@@ -20,7 +20,7 @@ sim:insert_muon:
       - runner_system_failure
 
 analyze:insert_muon:
-  stage: analyze
+  stage: benchmarks
   extends: .det_benchmark
   needs: ["sim:insert_muon"]
   script:

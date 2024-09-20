@@ -24,8 +24,7 @@ bench:insert_neutron:
   extends: .det_benchmark
   needs: ["sim:insert_neutron"]
   script:
-    - mkdir -p results/epic_craterlake
-    - python benchmarks/insert_neutron/analysis/neutron_plots.py results/epic_craterlake/insert_neutron
+    - snakemake --cores 1 results/epic_craterlake/insert_neutron
 
 collect_results:insert_neutron:
   stage: collect

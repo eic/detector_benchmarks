@@ -25,8 +25,7 @@ bench:zdc_sigma:
   extends: .det_benchmark
   needs: ["sim:zdc_sigma"]
   script:
-    - mkdir -p results/epic_zdc_sipm_on_tile_only/zdc_sigma
-    - python benchmarks/zdc_sigma/analysis/sigma_plots.py results/epic_zdc_sipm_on_tile_only/zdc_sigma 
+    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma
 
 collect_results:zdc_sigma:
   stage: collect

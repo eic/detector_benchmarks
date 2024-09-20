@@ -29,6 +29,6 @@ analyze:zdc_muon:
 
 collect_results:zdc_muon:
   stage: collect
-  needs: ["analyze:zdc_muon"]
+  needs: ["bench:zdc_muon"]
   script:
     - ls -al

@@ -24,7 +24,7 @@ def Landau(x, normalization,location,stdev):
 
 import uproot as ur
 arrays_sim={}
-momenta=20, 30, 40, 50, 60,70, 80
+momenta=50,
 for p in momenta:
     filename=f'sim_output/insert_muon/{config}_sim_mu-_{p}GeV.edm4hep.root'
     print("opening file", filename)

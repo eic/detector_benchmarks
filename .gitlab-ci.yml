@@ -136,11 +136,11 @@ include:
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
+  - local: 'benchmarks/tracking_performances_dis/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
-  - local: 'benchmarks/material_maps/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
@@ -166,6 +166,7 @@ deploy_results:
     - "collect_results:zdc_sigma"
     - "collect_results:zdc_lambda"
     - "collect_results:insert_neutron"
+    - "collect_results:tracking_performances_dis"
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
   script:

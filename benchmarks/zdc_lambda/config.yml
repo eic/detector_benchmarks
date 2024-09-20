@@ -1,6 +1,6 @@
 sim:zdc_lambda:
   stage: simulate
-  extends: .phy_benchmark
+  extends: .det_benchmark
   needs: ["common:detector"]
   parallel:
     matrix:
@@ -21,14 +21,14 @@ sim:zdc_lambda:
       - runner_system_failure
 
 analyze:zdc_lambda:
-  stage: analyze
-  extends: .phy_benchmark
+  stage: benchmark
+  extends: .det_benchmark
   needs: ["sim:zdc_lambda"]
   script:
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_lambda 
 
 collect_results:zdc_lambda:
-  stage: collect_results
+  stage: collect
   needs: ["analyze:zdc_lambda"]
   script:
     - ls -al

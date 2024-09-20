@@ -18,7 +18,7 @@ except:
 #read files
 arrays_sim={}
 for p in 20,30,40,50,60,70,80:
-    arrays_sim[p] = ur.open(f'sim_output/insert_neutron/{config}_rec_neutron_{p}GeV.edm4hep.root:events')\
+    arrays_sim[p] = ur.open(f'sim_output/insert_neutron/{config}_rec_neutron_{p}GeV.edm4eic.root:events')\
                     .arrays()
 
 def gauss(x, A,mu, sigma):

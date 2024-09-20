@@ -146,7 +146,6 @@ include:
   - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
-  - local: 'benchmarks/zdc_muon/config.yml'
 deploy_results:
   allow_failure: true
   stage: deploy
@@ -164,7 +163,6 @@ deploy_results:
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
     - "collect_results:insert_muon"
-    - "collect_results:zdc_muon"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

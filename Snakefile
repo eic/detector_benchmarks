@@ -6,6 +6,7 @@ include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
+include: "benchmarks/tracking_performances_dis/Snakefile"
 include: "benchmarks/zdc_lyso/Snakefile"
 include: "benchmarks/zdc_neutron/Snakefile"
 

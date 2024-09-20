@@ -29,6 +29,6 @@ analyze:insert_muon:
 
 collect_results:insert_muon:
   stage: collect
-  needs: ["analyze:insert_muon"]
+  needs: ["bench:insert_muon"]
   script:
     - ls -al

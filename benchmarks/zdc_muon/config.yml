@@ -7,7 +7,7 @@ sim:zdc_muon:
       - P: 50
   timeout: 1 hours
   script:
-    - snakemake --cores 1 sim_output/zdc_muon/epic_zdc_sipm_on_tile_only_rec_mu-_${P}GeV.edm4hep.root 
+    - snakemake --cores 1 sim_output/zdc_muon/epic_zdc_sipm_on_tile_only_sim_mu-_${P}GeV.edm4hep.root 
   retry:
     max: 2
     when:

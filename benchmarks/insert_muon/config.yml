@@ -7,7 +7,7 @@ sim:insert_muon:
       - P: 50
   timeout: 1 hours
   script:
-    - snakemake --cores 1 sim_output/insert_muon/epic_craterlake_rec_mu-_${P}GeV.edm4hep.root 
+    - snakemake --cores 1 sim_output/insert_muon/epic_craterlake_sim_mu-_${P}GeV.edm4hep.root 
   retry:
     max: 2
     when:

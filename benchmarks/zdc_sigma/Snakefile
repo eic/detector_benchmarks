@@ -37,7 +37,7 @@ rule zdc_sigma_recon:
         input:
                 SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV.edm4hep.root"
         output:
-                REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV.edm4eic.root"
         shell:
                 """
 if [[ {wildcards.P} -gt 225 ]]; then
@@ -50,7 +50,7 @@ eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_fil
 
 rule zdc_sigma_analysis:
 	input:
-                expand("sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV.edm4hep.root",
+                expand("sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV.edm4eic.root",
 		    P=[100, 125, 150,175, 200, 225, 250, 275],
 		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
                 script="benchmarks/zdc_sigma/analysis/sigma_plots.py",

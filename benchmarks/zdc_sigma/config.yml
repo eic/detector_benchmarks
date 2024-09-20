@@ -14,7 +14,7 @@ sim:zdc_sigma:
       - P: 275
   timeout: 6 hours
   script:
-    - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4hep.root 
+    - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4eic.root
   retry:
     max: 2
     when:

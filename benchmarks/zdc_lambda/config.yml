@@ -29,6 +29,6 @@ bench:zdc_lambda:
 
 collect_results:zdc_lambda:
   stage: collect
-  needs: ["analyze:zdc_lambda"]
+  needs: ["bench:zdc_lambda"]
   script:
     - ls -al

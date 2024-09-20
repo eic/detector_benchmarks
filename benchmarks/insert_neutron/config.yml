@@ -29,6 +29,6 @@ bench:insert_neutron:
 
 collect_results:insert_neutron:
   stage: collect
-  needs: ["analyze:insert_neutron"]
+  needs: ["bench:insert_neutron"]
   script:
     - ls -al

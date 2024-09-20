@@ -29,6 +29,6 @@ bench:zdc_sigma:
 
 collect_results:zdc_sigma:
   stage: collect
-  needs: ["analyze:zdc_sigma"]
+  needs: ["bench:zdc_sigma"]
   script:
     - ls -al

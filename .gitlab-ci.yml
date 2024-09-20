@@ -44,7 +44,6 @@ stages:
   - simulate
   - calibrate
   - benchmarks
-  - analyze
   - collect
   - deploy
   - status-report

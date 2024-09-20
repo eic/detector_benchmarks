@@ -21,7 +21,7 @@ sim:zdc_sigma:
       - runner_system_failure
 
 analyze:zdc_sigma:
-  stage: benchmark
+  stage: benchmarks
   extends: .det_benchmark
   needs: ["sim:zdc_sigma"]
   script:

@@ -19,7 +19,7 @@ sim:insert_neutron:
     when:
       - runner_system_failure
 
-analyze:insert_neutron:
+bench:insert_neutron:
   stage: benchmarks
   extends: .det_benchmark
   needs: ["sim:insert_neutron"]

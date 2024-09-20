@@ -79,7 +79,7 @@ for p in 50,:
     h = h1 / h2
     pc=plt.pcolor(xedges, yedges, h.T,linewidth=0)
     plt.xlabel("$\\phi^*$ [rad]")
-    plt.ylabel("$\\eta^*$ [rad]")
+    plt.ylabel("$\\eta^*$")
     cb = plt.colorbar(pc)
     cb.set_label("acceptance")
     plt.title(f"$E_{{\\mu^-}}=${p} GeV")

@@ -45,7 +45,7 @@ for array in arrays_sim.values():
     pyp=py
     pzp=pz*np.cos(tilt)+px*np.sin(tilt)
     
-    array['eta_truth']=1/2*np.log((p+pzp)/(p-pzp))
+    array['theta_truth']=np.arctan(np.hypot(pxp,pyp)/pzp)
     array['phi_truth']=np.arctan2(pyp,pxp)
     
 for p in 50,:
@@ -71,15 +71,15 @@ for p in 50,:
 
     plt.figure(figsize=(10,7))
     array=arrays_sim[p]
-    bins=30; r=((-np.pi, np.pi),(2.8, 4.2))
+    bins=30; r=((-np.pi, np.pi),(0, 10))
     selection=np.sum(array["HcalFarForwardZDCHits.energy"]>0.5*MIP,axis=-1)>0
-    h1, xedges, yedges = np.histogram2d(list(array[selection]['phi_truth']),list(array[selection]['eta_truth']), bins=bins, range=r)
-    h2, xedges, yedges = np.histogram2d(list(array['phi_truth']),list(array['eta_truth']), bins=bins, range=r)
+    h1, xedges, yedges = np.histogram2d(list(array[selection]['phi_truth']),list(array[selection]['theta_truth']*1000), bins=bins, range=r)
+    h2, xedges, yedges = np.histogram2d(list(array['phi_truth']),list(array['theta_truth']*1000), bins=bins, range=r)
 
     h = h1 / h2
     pc=plt.pcolor(xedges, yedges, h.T,linewidth=0)
     plt.xlabel("$\\phi^*$ [rad]")
-    plt.ylabel("$\\eta^*$ [rad]")
+    plt.ylabel("$\\theta^*$ [mrad]")
     cb = plt.colorbar(pc)
     cb.set_label("acceptance")
     plt.title(f"$E_{{\\mu^-}}=${p} GeV")

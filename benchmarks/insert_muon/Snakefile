@@ -44,7 +44,7 @@ eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_fil
 
 rule insert_muon_analysis:
 	input:
-                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root",
+                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root",
 		    P=[50],
 		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
                 script="benchmarks/insert_muon/analysis/muon_plots.py",

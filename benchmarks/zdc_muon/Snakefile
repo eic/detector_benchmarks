@@ -2,8 +2,8 @@ rule zdc_muon_generate:
 	input:
                 script="benchmarks/zdc_muon/analysis/gen_particles.cxx",
 	params:
-		NEVENTS_GEN=1000,
-		th_max=0.23,
+		NEVENTS_GEN=5000,
+		th_max=0.6,
 		th_min=0
 	output:
 		GEN_FILE="sim_output/zdc_muon/mu-_{P}GeV.hepmc"
@@ -21,7 +21,7 @@ rule zdc_muon_simulate:
 		SIM_FILE="sim_output/zdc_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root"
 	shell:
 		"""
-NEVENTS_SIM=1000
+NEVENTS_SIM=5000
 # Running simulation
 npsim \
    --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
@@ -38,13 +38,13 @@ rule zdc_muon_recon:
                 REC_FILE="sim_output/zdc_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root"
         shell:
                 """
-NEVENTS_REC=1000
+NEVENTS_REC=5000
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits, -Pjana:nevents=$NEVENTS_REC
 """
 
 rule zdc_muon_analysis:
 	input:
-                expand("sim_output/zdc_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root",
+                expand("sim_output/zdc_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root",
 		    P=[50],
 		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
                 script="benchmarks/zdc_muon/analysis/muon_plots.py",

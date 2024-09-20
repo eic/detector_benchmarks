@@ -20,7 +20,7 @@ sim:zdc_lambda:
     when:
       - runner_system_failure
 
-analyze:zdc_lambda
+analyze:zdc_lambda:
   stage: analyze
   extends: .phy_benchmark
   needs: ["sim:zdc_lambda"]

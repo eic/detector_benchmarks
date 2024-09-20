@@ -25,6 +25,7 @@ bench:zdc_lambda:
   extends: .det_benchmark
   needs: ["sim:zdc_lambda"]
   script:
+    - mkdir results/epic_zdc_sipm_on_tile_only/zdc_lambda
     - python benchmarks/zdc_lambda/analysis/lambda_plots.py results/epic_zdc_sipm_on_tile_only/zdc_lambda 
 
 collect_results:zdc_lambda:

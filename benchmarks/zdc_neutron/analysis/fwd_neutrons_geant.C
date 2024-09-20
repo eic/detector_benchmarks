@@ -90,13 +90,13 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
     h3a_hcal->GetYaxis()->SetTitle("Number of cells hit per event");h3a_hcal->GetYaxis()->CenterTitle();
     h3a_hcal->SetLineColor(kBlue);h3a_hcal->SetLineWidth(3);
 
-    //Cut on theta* < 3.5mRad
+    //Cut on theta* < 3.5 mRad
     TH1 *h3b_hcal = new TH1D("h3b_hcal","Cells w/ non-zero energy deposit ",100,0,64);
     h3b_hcal->GetXaxis()->SetTitle("Layer Number in ZDC HCal"); h3b_hcal->GetXaxis()->CenterTitle();
     h3b_hcal->GetYaxis()->SetTitle("Number of cells hit per event");h3b_hcal->GetYaxis()->CenterTitle();
     h3b_hcal->SetLineColor(kBlue);h3b_hcal->SetLineWidth(3);
 
-    //Cut on 6mRad < theta* < 8mRad
+    //Cut on 3.5 mRad < theta* < 6 mRad
     TH1 *h3c_hcal = new TH1D("h3c_hcal","Cells w/ non-zero energy deposit ",100,0,64);
     h3c_hcal->GetXaxis()->SetTitle("Layer Number in ZDC HCal"); h3c_hcal->GetXaxis()->CenterTitle();
     h3c_hcal->GetYaxis()->SetTitle("Number of cells hit per event");h3c_hcal->GetYaxis()->CenterTitle();
@@ -135,7 +135,7 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
     TTreeReaderArray<float> hcal_hit_z(tr, "HcalFarForwardZDCHits.position.z");
 
     //Other variables
-    int counter(0),counter_3p5(0),counter_6to8(0);
+    int counter(0),counter_3p5(0),counter_3p5to6(0);
     
     TLorentzVector neut_true; //True neutron in lab coordinates
     TLorentzVector neut_true_rot; //True neutron wrt proton beam direction
@@ -188,7 +188,7 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
               
               h3a_hcal->Fill(layer_number);
               if( neut_true_rot.Theta()*1000. < 3.5 ) h3b_hcal->Fill(layer_number);
-              if( neut_true_rot.Theta()*1000. > 6 &&  neut_true_rot.Theta()*1000 < 8) h3c_hcal->Fill(layer_number);
+              if( neut_true_rot.Theta()*1000. > 3.5 &&  neut_true_rot.Theta()*1000 < 6.) h3c_hcal->Fill(layer_number);
               
        } //End loop over HCal hits
 
@@ -217,8 +217,8 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
               counter_3p5++;
        }
        
-       if( neut_true_rot.Theta()*1000. > 6 &&  neut_true_rot.Theta()*1000 < 8){
-              counter_6to8++;       
+       if( neut_true_rot.Theta()*1000. > 3.5 &&  neut_true_rot.Theta()*1000 < 6.){
+              counter_3p5to6++;       
        }
 
     } //End loop over events
@@ -226,7 +226,7 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
     //Scale histograms
     h3a_hcal->Scale(1./counter);
     h3b_hcal->Scale(1./counter_3p5);
-    h3c_hcal->Scale(1./counter_6to8);
+    h3c_hcal->Scale(1./counter_3p5to6);
 
     //Make plots
     TCanvas *c1 = new TCanvas("c1");
@@ -309,7 +309,7 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
 
     TLegend *leg6c = new TLegend(0.5,0.6,0.9,0.8);
     leg6c->SetBorderSize(0);leg6c->SetFillStyle(0);
-    leg6c->SetHeader("Average over events w/ neutron 6 < #theta^{*} < 8 mRad");
+    leg6c->SetHeader("Average over events w/ neutron 3.5 < #theta^{*} < 6 mRad");
     leg6c->Draw();
 
     //Print plots to file

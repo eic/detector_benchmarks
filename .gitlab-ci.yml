@@ -141,6 +141,7 @@ include:
   - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
+  - local: 'benchmarks/zdc_neutron/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/timing/config.yml'
@@ -162,6 +163,7 @@ deploy_results:
     - "collect_results:tracking_performances_dis"
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
+    - "collect_results:zdc_neutron"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

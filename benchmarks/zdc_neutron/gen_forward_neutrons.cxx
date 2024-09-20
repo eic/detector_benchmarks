@@ -22,7 +22,7 @@ void gen_forward_neutrons(int n_events = 10000, UInt_t seed = 0, const char* out
 {
 
   double theta_min = 0.0; //in mRad
-  double theta_max = 6.5; //in mRad
+  double theta_max = 6.0; //in mRad
   double cost_min = std::cos(theta_max/1000.) ; //Minimum value of cos(theta)
   double cost_max = std::cos(theta_min/1000.) ; //Maximum value of cos(theta)
 

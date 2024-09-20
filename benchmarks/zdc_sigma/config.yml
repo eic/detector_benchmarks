@@ -1,4 +1,4 @@
-simulate:zdc_sigma:
+sim:zdc_sigma:
   stage: simulate
   extends: .phy_benchmark
   needs: ["common:detector"]
@@ -23,7 +23,7 @@ simulate:zdc_sigma:
 analyze:zdc_sigma:
   stage: analyze
   extends: .phy_benchmark
-  needs: ["simulate:zdc_sigma"]
+  needs: ["sim:zdc_sigma"]
   script:
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma 
 

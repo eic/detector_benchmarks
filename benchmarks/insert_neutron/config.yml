@@ -1,4 +1,4 @@
-simulate:insert_neutron:
+sim:insert_neutron:
   stage: simulate
   extends: .phy_benchmark
   needs: ["common:detector"]
@@ -22,7 +22,7 @@ simulate:insert_neutron:
 analyze:insert_neutron:
   stage: analyze
   extends: .phy_benchmark
-  needs: ["simulate:insert_neutron"]
+  needs: ["sim:insert_neutron"]
   script:
     - mkdir -p results/epic_craterlake
     - python benchmarks/insert_neutron/analysis/neutron_plots.py results/epic_craterlake/insert_neutron

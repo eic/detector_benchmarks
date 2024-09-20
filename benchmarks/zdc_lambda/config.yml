@@ -1,4 +1,4 @@
-simulate:zdc_lambda:
+sim:zdc_lambda:
   stage: simulate
   extends: .phy_benchmark
   needs: ["common:detector"]
@@ -23,7 +23,7 @@ simulate:zdc_lambda:
 analyze:zdc_lambda
   stage: analyze
   extends: .phy_benchmark
-  needs: ["simulate:zdc_lambda"]
+  needs: ["sim:zdc_lambda"]
   script:
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_lambda 
 

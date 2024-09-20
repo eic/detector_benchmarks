@@ -28,7 +28,7 @@ analyze:zdc_muon:
     - python benchmarks/zdc_muon/analysis/muon_plots.py results/epic_craterlake/zdc_muon
 
 collect_results:zdc_muon:
-  stage: collect_results
+  stage: collect
   needs: ["analyze:zdc_muon"]
   script:
     - ls -al

@@ -31,3 +31,6 @@ collect_results:insert_neutron:
   needs: ["bench:insert_neutron"]
   script:
     - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output results/epic_craterlake/insert_neutron
+    - mv results{_save,}/

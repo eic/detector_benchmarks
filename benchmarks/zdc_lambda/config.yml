@@ -32,3 +32,6 @@ collect_results:zdc_lambda:
   needs: ["bench:zdc_lambda"]
   script:
     - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output results/epic_zdc_sipm_on_tile_only/zdc_lambda
+    - mv results{_save,}/

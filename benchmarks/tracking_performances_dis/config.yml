@@ -28,3 +28,8 @@ collect_results:tracking_performances_dis:
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake --cores 1 --delete-all-output trk_dis_run_locally_trk_only
     - mv results{_save,}/
+    # convert to png
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plot_%03d.png' \
+        results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf

@@ -11,7 +11,7 @@ sim:zdc_sigma:
       - P: 225
       - P: 250
       - P: 275
-  timeout: 6 hours
+  timeout: 1 hours
   script:
     - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
     - md5sum benchmarks/*/analysis/gen_sigma_decay.cxx

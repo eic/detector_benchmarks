@@ -18,7 +18,7 @@ bench:insert_muon:
   extends: .det_benchmark
   needs: ["sim:insert_muon"]
   script:
-    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/insert_muon
+    - snakemake --cores 1 results/epic_craterlake/insert_muon
 
 collect_results:insert_muon:
   stage: collect
@@ -26,5 +26,5 @@ collect_results:insert_muon:
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output results/epic_zdc_sipm_on_tile_only/insert_muon
+    - snakemake --cores 1 --delete-all-output results/epic_craterlake/insert_muon
     - mv results{_save,}/

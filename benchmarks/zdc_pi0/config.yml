@@ -18,7 +18,8 @@ sim:zdc_pi0:
       - runner_system_failure
 
 bench:zdc_pi0:
-  stage: analyze
+  stage: benchmarks
+  
   extends: .det_benchmark
   needs: ["sim:zdc_pi0"]
   script:

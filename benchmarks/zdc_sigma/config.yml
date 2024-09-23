@@ -14,10 +14,7 @@ sim:zdc_sigma:
   timeout: 1 hours
   script:
     - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
-    - md5sum benchmarks/*/analysis/gen_sigma_decay.cxx
     - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4eic.root
-    - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
-    - md5sum benchmarks/*/analysis/gen_sigma_decay.cxx
   retry:
     max: 2
     when:
@@ -29,10 +26,7 @@ bench:zdc_sigma:
   needs: ["sim:zdc_sigma"]
   script:
     - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
-    - md5sum benchmarks/*/analysis/gen_sigma_decay.cxx
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma
-    - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
-    - md5sum benchmarks/*/analysis/gen_sigma_decay.cxx
 
 collect_results:zdc_sigma:
   stage: collect

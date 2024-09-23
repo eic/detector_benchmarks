@@ -1,0 +1,56 @@
+rule zdc_pi0_generate:
+	input:
+                script="benchmarks/zdc_pi0/analysis/gen_pi0_decay.cxx",
+	params:
+		NEVENTS_GEN=1000,
+	output:
+		GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc"
+	shell:
+		"""
+mkdir -p sim_output/zdc_pi0
+root -l -b -q '{input.script}({params.NEVENTS_GEN},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+"""
+
+rule zdc_pi0_simulate:
+	input:
+		GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc"
+	params:
+		PHYSICS_LIST="FTFP_BERT"
+	output:
+		SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV.edm4hep.root"
+	shell:
+		"""
+NEVENTS_SIM=1000
+# Running simulation
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --numberOfEvents $NEVENTS_SIM \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule zdc_pi0_recon:
+        input:
+                SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV.edm4hep.root"
+        output:
+                REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV.edm4hep.root"
+        shell:
+                """
+NEVENTS_REC=1000
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits  -Pjana:nevents=$NEVENTS_REC
+"""
+
+rule zdc_pi0_analysis:
+	input:
+                expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV.edm4hep.root",
+		    P=[60, 80, 100, 130, 160],
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+                script="benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py",
+	output:
+		results_dir=directory("results/{DETECTOR_CONFIG}/zdc_pi0"),
+	shell:
+		"""
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

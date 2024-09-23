@@ -223,8 +223,8 @@ fnc=lambda E,a,b: a+b*E
 coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,1),
                                  sigma=dresvals)
 xx=np.linspace(55, 200, 100)
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times E$ MeV')
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.1f}\\times [E\,in\,GeV]$ MeV')
+#plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times E$ MeV')
+plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $({coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times [E\,in\,GeV])$ MeV')
 plt.legend()
 
 

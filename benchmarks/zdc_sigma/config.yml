@@ -13,7 +13,6 @@ sim:zdc_sigma:
       - P: 275
   timeout: 1 hours
   script:
-    - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
     - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4eic.root
   retry:
     max: 2
@@ -25,7 +24,6 @@ bench:zdc_sigma:
   extends: .det_benchmark
   needs: ["sim:zdc_sigma"]
   script:
-    - ls -la benchmarks/*/analysis/gen_sigma_decay.cxx
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma
 
 collect_results:zdc_sigma:

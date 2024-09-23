@@ -19,8 +19,8 @@ rule zdc_sigma_simulate:
 		SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV.edm4hep.root"
 	shell:
 		"""
-if [[ {wildcards.P} -gt 225 ]]; then
-   NEVENTS_SIM=1000
+if [[ {wildcards.P} -gt 220 ]]; then
+   NEVENTS_SIM=500
 else
    NEVENTS_SIM=1000
 fi
@@ -40,8 +40,8 @@ rule zdc_sigma_recon:
                 REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV.edm4eic.root"
         shell:
                 """
-if [[ {wildcards.P} -gt 225 ]]; then
-   NEVENTS_REC=1000
+if [[ {wildcards.P} -gt 220 ]]; then
+   NEVENTS_REC=500
 else
    NEVENTS_REC=1000
 fi

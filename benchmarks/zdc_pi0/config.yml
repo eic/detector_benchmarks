@@ -1,0 +1,34 @@
+sim:zdc_pi0:
+  stage: simulate
+  extends: .det_benchmark
+  needs: ["common:detector"]
+  parallel:
+    matrix:
+      - P: 60
+      - P: 80
+      - P: 100
+      - P: 130
+      - P: 160
+  timeout: 1 hours
+  script:
+    - snakemake --cores 1 sim_output/zdc_pi0/epic_zdc_sipm_on_tile_only_rec_zdc_pi0_${P}GeV.edm4hep.root 
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:zdc_pi0:
+  stage: benchmarks
+  
+  extends: .det_benchmark
+  needs: ["sim:zdc_pi0"]
+  script:
+    - mkdir -p results/epic_zdc_sipm_on_tile_only
+    - python benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py results/epic_zdc_sipm_on_tile_only/zdc_pi0
+
+collect_results:zdc_pi0:
+  stage: collect
+  extends: .det_benchmark
+  needs: ["bench:zdc_pi0"]
+  script:
+    - ls -al

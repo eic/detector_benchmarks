@@ -25,7 +25,7 @@ bench:zdc_pi0:
     - mkdir -p results/epic_zdc_sipm_on_tile_only
     - python benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py results/epic_zdc_sipm_on_tile_only/zdc_pi0
 
-collect_results:zdc_pi0:results
+collect_results:zdc_pi0:
   stage: collect
   extends: .det_benchmark
   needs: ["bench:zdc_pi0"]

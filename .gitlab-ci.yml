@@ -3,7 +3,6 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
   GITHUB_SHA: ''
   GITHUB_REPOSITORY: ''
 
@@ -89,13 +88,6 @@ common:setup:
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
-
-
-common:detector:
-  stage: initialize
-  needs: ["common:setup"]
-  script:
-    - source .local/bin/env.sh && build_detector.sh
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
@@ -103,7 +95,7 @@ common:detector:
 
 get_data:
   stage: data_init
-  needs: ["common:detector"]
+  needs: ["common:setup"]
   script:
     - source .local/bin/env.sh
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
@@ -112,10 +104,11 @@ get_data:
 
 .det_benchmark:
   needs:
-    - ["get_data","common:detector"]
+    - ["get_data","common:setup"]
   before_script:
     - mc config host add S3 https://eics3.sdcc.bnl.gov:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY}
     - source .local/bin/env.sh
+    - source /opt/detector/epic-main/setup.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data

@@ -1,7 +1,6 @@
 sim:insert_muon:
   stage: simulate
   extends: .det_benchmark
-  needs: ["common:detector"]
   parallel:
     matrix:
       - P: 50

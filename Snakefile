@@ -1,12 +1,20 @@
 configfile: "snakemake.yml"
 
 include: "benchmarks/backgrounds/Snakefile"
+include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
-include: "benchmarks/zdc_lyso/Snakefile"
+include: "benchmarks/tracking_performances_dis/Snakefile"
 include: "benchmarks/lfhcal/Snakefile"
+include: "benchmarks/insert_muon/Snakefile"
+include: "benchmarks/zdc_lambda/Snakefile"
+include: "benchmarks/zdc_lyso/Snakefile"
+include: "benchmarks/zdc_photon/Snakefile"
+include: "benchmarks/zdc_pi0/Snakefile"
+include: "benchmarks/zdc_sigma/Snakefile"
+include: "benchmarks/insert_neutron/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
@@ -24,8 +32,10 @@ def get_remote_path(path):
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
+    cache: True
+    retries: 3
     shell: """
-xrdcp root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
 """ if use_xrootd else """
 mc cp S3/eictest/{output.filepath} {output.filepath}
 """ if use_s3 else f"""

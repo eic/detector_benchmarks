@@ -1,0 +1,35 @@
+sim:femc_electron:
+  stage: simulate
+  extends: .det_benchmark
+  parallel:
+    matrix:
+      - P: 20
+      - P: 30
+      - P: 40
+      - P: 50
+      - P: 60
+      - P: 70
+      - P: 80
+  timeout: 1 hours
+  script:
+    - snakemake --cores 1 sim_output/femc_electron/epic_craterlake_rec_e-_${P}GeV.edm4eic.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:femc_electron:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs: ["sim:femc_electron"]
+  script:
+    - snakemake --cores 1 results/epic_craterlake/femc_electron
+
+collect_results:femc_electron:
+  stage: collect
+  needs: ["bench:femc_electron"]
+  script:
+    - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output results/epic_craterlake/femc_electron
+    - mv results{_save,}/

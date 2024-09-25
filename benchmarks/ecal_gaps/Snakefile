@@ -3,7 +3,7 @@ import os
 
 rule ecal_gaps_sim:
     input:
-        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
+        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -18,7 +18,8 @@ rule ecal_gaps_sim:
         N_EVENTS=1000
     shell:
         """
-ddsim \
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
@@ -41,9 +42,10 @@ rule ecal_gaps_recon:
     wildcard_constraints:
         INDEX="\d{4}",
     shell: """
-env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
+  -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 
 

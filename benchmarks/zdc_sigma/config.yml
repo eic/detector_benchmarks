@@ -1,0 +1,36 @@
+sim:zdc_sigma:
+  stage: simulate
+  extends: .det_benchmark
+  parallel:
+    matrix:
+      - P: 100
+      - P: 125
+      - P: 150
+      - P: 175
+      - P: 200
+      - P: 225
+      - P: 250
+      - P: 275
+  timeout: 1 hours
+  script:
+    - snakemake --cores 1 sim_output/zdc_sigma/epic_zdc_sipm_on_tile_only_rec_sigma_dec_${P}GeV.edm4eic.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:zdc_sigma:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs: ["sim:zdc_sigma"]
+  script:
+    - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma
+
+collect_results:zdc_sigma:
+  stage: collect
+  needs: ["bench:zdc_sigma"]
+  script:
+    - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output results/epic_zdc_sipm_on_tile_only/zdc_sigma
+    - mv results{_save,}/

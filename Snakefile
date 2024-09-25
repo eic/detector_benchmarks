@@ -10,12 +10,11 @@ include: "benchmarks/tracking_performances_dis/Snakefile"
 include: "benchmarks/zdc_lyso/Snakefile"
 include: "benchmarks/insert_muon/Snakefile"
 include: "benchmarks/zdc_lambda/Snakefile"
-include: "benchmarks/zdc_lyso/Snakefile"
 include: "benchmarks/zdc_photon/Snakefile"
 include: "benchmarks/zdc_pi0/Snakefile"
 include: "benchmarks/zdc_sigma/Snakefile"
 include: "benchmarks/insert_neutron/Snakefile"
-
+include: "benchmarks/insert_tau/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"

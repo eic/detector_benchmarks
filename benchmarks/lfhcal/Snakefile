@@ -1,86 +1,133 @@
-import os
-
-rule lfhcal_sim_hepmc:
-    input:
-        script = "benchmarks/lfhcal/gen_particles.cxx",
-    output:
-        hepmcfile="data_lfhcal/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
-    log:
-        "data_lfhcal/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
-    params:
-        num_events=1000,
-    shell:
-        """
-root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildcards.PARTICLE}", {wildcards.THETA_MIN}, {wildcards.THETA_MAX}, 0, 360, {wildcards.BEAM_ENERGY})'
-"""
-
-
 rule lfhcal_sim:
     input:
-        hepmcfile="data_lfhcal/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
-        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="pi-",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="3to50deg",
+        INDEX="\d{4}",
     params:
-        num_events=1000,
+        N_EVENTS=10000
     shell:
         """
-npsim \
+ddsim \
   --runType batch \
+  --enableGun \
+  --steeringFile "{input.steering_file}" \
+  --random.seed 1{wildcards.INDEX} \
+  --filter.tracker edep0 \
   -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-  --numberOfEvents {params.num_events} \
-  --inputFiles {input.hepmcfile} \
   --outputFile {output}
 """
 
 
-rule lfhcal_reco:
+rule lfhcal_recon:
     input:
-        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     output:
-        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
     log:
-        "sim_output/lfhcal/lfhcal_{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
-    shell:
-        """
-eicrecon -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEnd\
-capPHits {input}
-mv podio_output.root {output}
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX="\d{4}",
+    shell: """
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_include_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
 """
 
 
-rule lfhcal_analysis:
+rule lfhcal_at_momentum:
     input:
-        expand("sim_output/lfhcal/lfhcal_{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
-               PARTICLE=["neutron","gamma"],
-               BEAM_ENERGY=["2", "5", "10", "20", "40"],
-               THETA_MIN=["0"],
-               THETA_MAX=["50"]),	
-	script="benchmarks/lfhcal/analysis/analysis.py",
+        script="benchmarks/lfhcal/LFHCAL_performance.C",
+        # TODO pass as a file list?
+        sim=lambda wildcards:
+          expand(
+              "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              DETECTOR_CONFIG="epic_craterlake",
+              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+              PHASE_SPACE=["3to50deg"],
+              INDEX=range(1),
+          )
+          if wildcards.CAMPAIGN == "local" else
+          expand(
+              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              DETECTOR_CONFIG="epic_craterlake",
+              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+              PHASE_SPACE=["3to50deg"],
+              INDEX=range(1),
+          ),
     output:
-        "results/{DETECTOR_CONFIG}/lfhcal/lfhcal_plots.pdf",
+	"{CAMPAIGN}/pi-/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",
+	combined_root="{CAMPAIGN}/pi-/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",   
     shell:
         """
-python {input.script}
+hadd {output} {input.sim}
+cd {wildcards.CAMPAIGN}
+root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15)'
 """
 
 
-# Examples of invocation
-rule lfhcal_create_all_hepmc:
+
+rule lfhcal_debug_montage:
     input:
-        expand("data/lfhcal_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
-               PARTICLE=["neutron","gamma"],
-               BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
-               THETA_MIN=["0"],
-               THETA_MAX=["0.3"])
+        expand(
+            [
+                "{{CAMPAIGN}}/Debug_Plots/pi-/mom/lfhcal_mom_resol_mom{MOMENTUM:.1f}_{{ETA_BIN}}.png",
+            ],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
+        ),
+    output:
+        "{CAMPAIGN}/Debug_Plots/pi-/mom/lfhcal_mom_resol_debug_{ETA_BIN}.png",
+    shell:
+        """
+montage -mode concatenate {input} {output} || true
+ls {output}
+"""
 
 
-rule lfhcal_run_all_locally:
-   input:
-        "results/" + os.environ["DETECTOR_CONFIG"] + "/lfhcal/lfhcal_plots.pdf",
-   message:
-        "See output in {input[0]}"
+LFHCAL_ETA_BINS = [1.2,1.5,2.0,2.5,3.0,3.5]
 
+rule lfhcal:
+    input:
+        expand(
+            [
+                "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.png",
+                "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
+                "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
+            ],
+            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
+        ),
+    output:
+        directory("results/lfhcal/{CAMPAIGN}/")
+    shell:
+        """
+mkdir {output}
+cp {input} {output}
+"""
+
+
+rule lfhcal_local:
+    input:
+        "results/lfhcal/local",
+
+
+rule lfhcal_campaigns:
+    input:
+        expand(
+            "results/lfhcal/{CAMPAIGN}",
+            CAMPAIGN=[
+                "23.10.0",
+                "23.11.0",
+                "23.12.0",
+                "24.03.1",
+                "24.04.0",
+            ],
+        )

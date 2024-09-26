@@ -1,25 +1,25 @@
-rule femc_electron_generate:
+rule femc_pi0_generate:
 	input:
-                script="benchmarks/femc_electron/analysis/gen_particles.cxx",
+                script="benchmarks/femc_pi0/analysis/gen_particles.cxx",
 	params:
 		NEVENTS_GEN=1000,
 		th_max=28,
 		th_min=2.0
 	output:
-		GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+		GEN_FILE="sim_output/femc_pi0/pi0_{P}GeV.hepmc"
 	shell:
 		"""
-mkdir -p sim_output/femc_electron
-root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "e-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+mkdir -p sim_output/femc_pi0
+root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
 """
 
-rule femc_electron_simulate:
+rule femc_pi0_simulate:
 	input:
-		GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+		GEN_FILE="sim_output/femc_pi0/pi0_{P}GeV.hepmc"
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:
-		SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+		SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
 	shell:
 		"""
 NEVENTS_SIM=1000
@@ -32,26 +32,26 @@ npsim \
    --outputFile {output.SIM_FILE}
 """
 
-rule femc_electron_recon:
+rule femc_pi0_recon:
         input:
-                SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
         output:
-                REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4hep.root"
         shell:
                 """
 NEVENTS_REC=1000
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
-rule femc_electron_analysis:
+rule femc_pi0_analysis:
 	input:
-                expand("sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4hep.root",
+                expand("sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4hep.root",
 		    P=[20, 30, 40, 50, 60, 70, 80],
 		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
 		    particle=["{particle}"]),
-                script="benchmarks/femc_electron/analysis/femc_electron_plots.py",
+                script="benchmarks/femc_pi0/analysis/femc_pi0_plots.py",
 	output:
-		results_dir=directory("results/{DETECTOR_CONFIG}/femc_electron"),
+		results_dir=directory("results/{DETECTOR_CONFIG}/femc_pi0"),
 	shell:
 		"""
 mkdir -p {output.results_dir}

@@ -17,7 +17,7 @@ except:
     pass
 
 import uproot as ur
-arrays_sim={p:ur.open(f'/sim_output/femc_electron/{config}_rec_e-_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
+arrays_sim={p:ur.open(f'sim_output/femc_photon/{config}_rec_e-_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
 
 for p in arrays_sim:
     array=arrays_sim[p]

@@ -145,6 +145,8 @@ include:
   - local: 'benchmarks/zdc_lambda/config.yml'
   - local: 'benchmarks/insert_neutron/config.yml'
   - local: 'benchmarks/femc_electron/config.yml'
+  - local: 'benchmarks/femc_photon/config.yml'
+  - local: 'benchmarks/femc_pi0/config.yml'
 deploy_results:
   allow_failure: true
   stage: deploy
@@ -168,6 +170,8 @@ deploy_results:
     - "collect_results:zdc_photon"
     - "collect_results:zdc_pi0"
     - "collect_results:femc_electron"
+    - "collect_results:femc_photon"
+    - "collect_results:femc_pi0"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

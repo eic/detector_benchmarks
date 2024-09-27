@@ -17,7 +17,7 @@ except:
     pass
 
 import uproot as ur
-arrays_sim={p:ur.open(f'/sim_output/femc_electron/{config}_rec_e-_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
+arrays_sim={p:ur.open(f'sim_output/femc_electron/{config}_rec_e-_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
 
 for p in arrays_sim:
     array=arrays_sim[p]
@@ -155,7 +155,7 @@ fnc = lambda E, a, b: np.hypot(a,b/np.sqrt(E))
 p0=(.05, .12)
 coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0,sigma=dres)
 xx=np.linspace(15, 85, 100)
-plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.0f}%$\\oplus\\frac{{{100*coeff[1]:.1f}\\%}}{{\\sqrt{{E}}}}$')
+plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
 plt.legend()
 plt.ylim(0)
 plt.ylabel("E resolution [%]")
@@ -169,3 +169,54 @@ plt.axhline(100, color='0.5', alpha=0.5, ls='--')
 plt.ylim(0, 110)
 plt.tight_layout()
 plt.savefig(outdir+"/energy_res.pdf")
+
+#energy res in eta bins
+fig, axs=plt.subplots(1,2, figsize=(16,8))
+
+partitions=[1.5, 2.0, 2.5, 3.0]
+for eta_min, eta_max in zip(partitions[:-1], partitions[1:]):
+    pvals=[]
+    res=[]
+    dres=[]
+    scale=[]
+    dscale=[]
+    for p in arrays_sim:
+        bins=np.linspace(15*p/20,22*p/20, 50)
+        eta_truth=arrays_sim[p]['eta_truth']
+        y,x=np.histogram(ak.flatten(arrays_sim[p][(eta_truth<eta_max)&(eta_truth>eta_min)]['EcalEndcapPClusters.energy']), bins=bins)
+        bcs=(x[1:]+x[:-1])/2
+
+        fnc=gauss
+        slc=abs(bcs-p)<3
+        sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
+        p0=(100, p, 3)
+
+        try:
+            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            pvals.append(p)
+            res.append(abs(coeff[2])/coeff[1])
+            dres.append(np.sqrt(var_matrix[2][2])/coeff[1])
+            scale.append(abs(coeff[1])/p)
+            dscale.append(np.sqrt(var_matrix[1][1])/p)
+        except:
+            pass
+    plt.sca(axs[0])
+    plt.errorbar(pvals, 100*np.array(res), 100*np.array(dres), ls='', marker='o', label=f'${eta_min:.1f}<\\eta<{eta_max:.1f}$')
+    
+    plt.sca(axs[1])
+    plt.errorbar(pvals, 100*np.array(scale), 100*np.array(dscale), ls='', marker='o', label=f'${eta_min:.1f}<\\eta<{eta_max:.1f}$')
+
+plt.sca(axs[0])
+plt.legend()
+plt.ylim(0)
+plt.ylabel("E resolution [%]")
+plt.xlabel("E truth [GeV]")
+
+plt.sca(axs[1])
+plt.ylabel("energy scale [%]")
+plt.xlabel("E truth [GeV]")
+plt.axhline(100, color='0.5', alpha=0.5, ls='--')
+plt.ylim(0, 110)
+
+plt.tight_layout()
+plt.savefig(outdir+"/energy_res_eta_partitions.pdf")

@@ -47,8 +47,7 @@ rule femc_electron_analysis:
 	input:
                 expand("sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4hep.root",
 		    P=[20, 30, 40, 50, 60, 70, 80],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-		    particle=["{particle}"]),
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
                 script="benchmarks/femc_electron/analysis/femc_electron_plots.py",
 	output:
 		results_dir=directory("results/{DETECTOR_CONFIG}/femc_electron"),

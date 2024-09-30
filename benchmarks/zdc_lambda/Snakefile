@@ -12,7 +12,8 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},0,"{output.GEN_FILE}",{wildca
 
 rule zdc_lambda_simulate:
 	input:
-		GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc"
+                GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:

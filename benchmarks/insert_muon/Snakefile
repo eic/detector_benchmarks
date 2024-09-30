@@ -14,7 +14,8 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {
 
 rule insert_muon_simulate:
 	input:
-		GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc"
+                GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:

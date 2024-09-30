@@ -15,7 +15,8 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "neutron
 
 rule insert_neutron_simulate:
 	input:
-		GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc"
+                GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:

@@ -15,7 +15,8 @@ root -l -b -q '{input.script}('$NEVENTS_GEN',"{output.GEN_FILE}", "gamma", {para
 
 rule zdc_photon_simulate:
 	input:
-		GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc"
+                GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:

@@ -19,13 +19,10 @@ import uproot as ur
 arrays_sim={}
 momenta=100, 125, 150, 175,200,225,250,275
 for p in momenta:
-    filename=f'sim_output/zdc_sigma/{config}_rec_sigma_dec_{p}GeV.edm4eic.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()[:-1] #remove last event, which for some reason is blank
-    import gc
-    gc.collect()
-    print("read", filename)
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/zdc_sigma/{config}_rec_sigma_dec_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
 
 def gauss(x, A,mu, sigma):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))

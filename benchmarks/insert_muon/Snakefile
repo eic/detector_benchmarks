@@ -18,13 +18,14 @@ rule insert_muon_simulate:
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:
-		SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root"
+		SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root"
 	shell:
 		"""
-NEVENTS_SIM=5000
+NEVENTS_SIM=1000
 # Running simulation
 npsim \
    --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
@@ -33,20 +34,22 @@ npsim \
 
 rule insert_muon_recon:
         input:
-                SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root"
         output:
-                REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root"
         shell:
                 """
-NEVENTS_REC=5000
+NEVENTS_REC=1000
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_muon_analysis:
 	input:
-                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV.edm4hep.root",
+                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
 		    P=[50],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+                    INDEX=range(5),
+                ),
                 script="benchmarks/insert_muon/analysis/muon_plots.py",
 	output:
 		results_dir=directory("results/{DETECTOR_CONFIG}/insert_muon"),

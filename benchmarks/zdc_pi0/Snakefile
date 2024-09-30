@@ -17,13 +17,14 @@ rule zdc_pi0_simulate:
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:
-		SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV.edm4hep.root"
+		SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root"
 	shell:
 		"""
-NEVENTS_SIM=1000
+NEVENTS_SIM=200
 # Running simulation
 npsim \
    --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
@@ -32,20 +33,22 @@ npsim \
 
 rule zdc_pi0_recon:
         input:
-                SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root"
         output:
-                REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root"
         shell:
                 """
-NEVENTS_REC=1000
+NEVENTS_REC=200
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule zdc_pi0_analysis:
 	input:
-                expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV.edm4hep.root",
+                expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
 		    P=[60, 80, 100, 130, 160],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+                    INDEX=range(5),
+                ),
                 script="benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py",
 	output:
 		results_dir=directory("results/{DETECTOR_CONFIG}/zdc_pi0"),

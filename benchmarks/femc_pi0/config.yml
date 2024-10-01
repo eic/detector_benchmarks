@@ -3,6 +3,7 @@ sim:femc_pi0:
   extends: .det_benchmark
   parallel:
     matrix:
+      - P: 10
       - P: 20
       - P: 30
       - P: 40

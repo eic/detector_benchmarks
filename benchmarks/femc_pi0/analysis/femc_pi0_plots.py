@@ -17,7 +17,7 @@ except:
     pass
 
 import uproot as ur
-arrays_sim={p:ur.open(f'sim_output/femc_pi0/{config}_rec_pi0_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
+arrays_sim={p:ur.open(f'sim_output/femc_pi0/{config}_rec_pi0_{p}GeV.edm4hep.root:events').arrays() for p in (10, 20, 30, 40, 50, 60,70,80)}
 
 for p in arrays_sim:
     array=arrays_sim[p]
@@ -60,10 +60,41 @@ for eta_min, eta_max, field in (1.5, 2.8, 'nclust_endcap'),:
     plt.legend()
     plt.savefig(outdir+f"/{field}.pdf")
 
-fig, axs=plt.subplots(1,2, figsize=(16,8))
-avgs=[]
-stds=[]
-pvals=[]
+#number of clusters
+plt.figure()
+for eta_min, eta_max, field in (1.5, 2.8, 'nclust_endcap'),:
+    pvals=[]
+    f0=[]
+    f1=[]
+    f2=[]
+    f3=[]
+    f4=[]
+    f5p=[]
+    for p in arrays_sim:
+        array=arrays_sim[p]
+        n=array[field][(array['eta_truth']>eta_min)&(array['eta_truth']<eta_max)]
+        pvals.append(p)
+        tot=len(n)
+        f0.append(np.sum(1*(n==0))/tot)
+        f1.append(np.sum(1*(n==1))/tot)
+        f2.append(np.sum(1*(n==2))/tot)
+        f3.append(np.sum(1*(n==3))/tot)
+        f4.append(np.sum(1*(n==4))/tot)
+        f5p.append(np.sum(1*(n>=5))/tot)
+    plt.errorbar(pvals, f0, label="$n_{cl}$=0")
+    plt.errorbar(pvals, f1, label="$n_{cl}$=1")
+    plt.errorbar(pvals, f2, label="$n_{cl}$=2")
+    plt.errorbar(pvals, f3, label="$n_{cl}$=3")
+    plt.errorbar(pvals, f4, label="$n_{cl}$=4")
+    plt.errorbar(pvals, f5p, label="$n_{cl}\\geq$5")
+    plt.legend()
+    plt.ylabel("fraction of events")
+    plt.xlabel("$E_{\\pi^0}$ [GeV]")
+    plt.ylim(0, 1)
+    plt.legend(fontsize=20, ncol=2)
+    plt.savefig(outdir+f"/nclust.pdf")
+
+
 
 #number of hits per cluster
 fig, axs=plt.subplots(1,2, figsize=(16,8))
@@ -78,6 +109,8 @@ for p in arrays_sim:
     nn=-a['EcalEndcapPClusters.hits_begin']+a['EcalEndcapPClusters.hits_end']
     E=a['EcalEndcapPClusters.energy']
     for evt in range(len(array)):
+        if len(E[evt])==0:
+            continue
         maxE=np.max(E[evt])
         found=False
         for i in range(len(E[evt])):
@@ -122,11 +155,11 @@ for p in arrays_sim:
     if p==50:
         plt.sca(axs[0])
         plt.title(f"E={p} GeV")
-        y,x,_=plt.hist(ak.flatten(arrays_sim[p]['EcalEndcapPClusters.energy']), bins=bins, histtype='step')
+        y,x,_=plt.hist(np.sum(arrays_sim[p]['EcalEndcapPClusters.energy'], axis=-1), bins=bins, histtype='step')
         plt.ylabel("events")
         plt.xlabel("$E^{rec}_{\\pi^0}$ [GeV]")
     else:
-        y,x=np.histogram(ak.flatten(arrays_sim[p]['EcalEndcapPClusters.energy']), bins=bins)
+        y,x=np.histogram(np.sum(arrays_sim[p]['EcalEndcapPClusters.energy'], axis=-1), bins=bins)
     bcs=(x[1:]+x[:-1])/2
 
     fnc=gauss
@@ -183,7 +216,7 @@ for eta_min, eta_max in zip(partitions[:-1], partitions[1:]):
     for p in arrays_sim:
         bins=np.linspace(15*p/20,22*p/20, 50)
         eta_truth=arrays_sim[p]['eta_truth']
-        y,x=np.histogram(ak.flatten(arrays_sim[p][(eta_truth<eta_max)&(eta_truth>eta_min)]['EcalEndcapPClusters.energy']), bins=bins)
+        y,x=np.histogram(np.sum(arrays_sim[p][(eta_truth<eta_max)&(eta_truth>eta_min)]['EcalEndcapPClusters.energy'], axis=-1), bins=bins)
         bcs=(x[1:]+x[:-1])/2
 
         fnc=gauss

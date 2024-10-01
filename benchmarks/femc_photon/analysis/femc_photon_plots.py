@@ -17,7 +17,7 @@ except:
     pass
 
 import uproot as ur
-arrays_sim={p:ur.open(f'sim_output/femc_photon/{config}_rec_photon_{p}GeV.edm4hep.root:events').arrays() for p in (20, 30, 40, 50, 60,70,80)}
+arrays_sim={p:ur.open(f'sim_output/femc_photon/{config}_rec_photon_{p}GeV.edm4hep.root:events').arrays() for p in (10, 20, 30, 40, 50, 60,70,80)}
 
 for p in arrays_sim:
     array=arrays_sim[p]
@@ -154,7 +154,7 @@ plt.errorbar(pvals, 100*np.array(res), 100*np.array(dres), ls='', marker='o')
 fnc = lambda E, a, b: np.hypot(a,b/np.sqrt(E))
 p0=(.05, .12)
 coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0,sigma=dres)
-xx=np.linspace(15, 85, 100)
+xx=np.linspace(7, 85, 100)
 plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
 plt.legend()
 plt.ylim(0)

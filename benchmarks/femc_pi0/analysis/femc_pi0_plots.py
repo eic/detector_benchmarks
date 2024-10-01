@@ -226,6 +226,8 @@ for eta_min, eta_max in zip(partitions[:-1], partitions[1:]):
 
         try:
             coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            if abs(coeff[1])>100 or np.sqrt(var_matrix[1][1])>100:
+                continue
             pvals.append(p)
             res.append(abs(coeff[2])/coeff[1])
             dres.append(np.sqrt(var_matrix[2][2])/coeff[1])

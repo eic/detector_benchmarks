@@ -21,13 +21,10 @@ import uproot as ur
 arrays_sim={}
 momenta=60, 80, 100, 130, 160,
 for p in momenta:
-    filename=f'sim_output/zdc_pi0/{config}_rec_zdc_pi0_{p}GeV.edm4hep.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()
-    import gc
-    gc.collect()
-    print("read", filename)
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/zdc_pi0/{config}_rec_zdc_pi0_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
 
 #energy res plot
 fig,axs=plt.subplots(1,3, figsize=(24, 8))

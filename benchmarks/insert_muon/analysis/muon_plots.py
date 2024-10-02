@@ -26,13 +26,10 @@ import uproot as ur
 arrays_sim={}
 momenta=50,
 for p in momenta:
-    filename=f'sim_output/insert_muon/{config}_sim_mu-_{p}GeV.edm4hep.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()
-    import gc
-    gc.collect()
-    print("read", filename)
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/insert_muon/{config}_sim_mu-_{p}GeV_{index}.edm4hep.root': 'events'
+        for index in range(5)
+    })
 
 for array in arrays_sim.values():
     tilt=-0.025

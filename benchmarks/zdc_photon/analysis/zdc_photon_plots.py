@@ -23,14 +23,11 @@ import uproot as ur
 arrays_sim={}
 momenta=20, 30, 50, 70, 100, 150, 200, 275
 for p in momenta:
-    filename=f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV.edm4hep.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()#[:-1] #remove last event, which for some reason is blank
-    import gc
-    gc.collect()
-    print("read", filename)
-    
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
+
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 pvals=[]
 resvals=[]

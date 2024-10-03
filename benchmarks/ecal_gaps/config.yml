@@ -13,7 +13,8 @@ bench:ecal_gaps:
     - ["sim:ecal_gaps"]
   script:
     - ln -s $LOCAL_DATA_PATH/input input
-    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - unset PYTHONPATH
+    - python -m venv .venv; source .venv/bin/activate
     - pip install -r benchmarks/ecal_gaps/requirements.txt
     - snakemake --cores 8 ecal_gaps
 

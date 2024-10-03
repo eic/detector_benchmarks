@@ -24,7 +24,8 @@ bench:backwards_ecal:
   needs:
     - ["sim:backwards_ecal"]
   script:
-    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - unset PYTHONPATH
+    - python -m venv .venv; source .venv/bin/activate
     - pip install -r benchmarks/backwards_ecal/requirements.txt
     - snakemake --cores 1 backwards_ecal
 

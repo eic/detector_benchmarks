@@ -8,9 +8,11 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TMath.h"
+#include "TVector3.h"
+
 #define mpi 0.139  // 1.864 GeV/c^2
 
-void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, TString name = "")
+void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.0, TString name = "")
 {
 
   // style of the plot
@@ -24,21 +26,16 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    gStyle->SetOptStat(1);
    
    TString dir = "";
-   TString dist_dir_mom = ""; TString dist_dir_dca = "";
-   if (name=="") {dist_dir_mom = "mom_resol_truth"; dist_dir_dca = "dca_resol_truth"; dir = "truthseed";}
-   else {dist_dir_mom = "mom_resol_realseed"; dist_dir_dca = "dca_resol_realseed"; dir = "realseed";}
-   
+   TString dist_dir_mom = "mom_resol";
+      
    bool debug=true;	  
   // Tree with reconstructed tracks
    const int nbins_eta = 5;
-   int theta_val[nbins_eta+1] ={3,50,45,135,130,177};
    int nfiles = 100; 
-   double eta[nbins_eta+1]={-3.5,-2.5,-1.0,1.0,2.5,3.5};
+   double eta[nbins_eta+1]={1.2,1.5,2,2.5,3,3.5};
    double pt[nbins_eta+1]={0.5,1.0,2.0,5.0,10.0,20.1};
    TH1D *histp[nbins_eta]; 
    
-    TH3D *h_d0xy_3d= new TH3D("h_d0xy_3d","Transverse Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
-    TH3D *h_d0z_3d= new TH3D("h_d0z_3d","Longitudinal Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
    
    for (int i=0; i<nbins_eta; i++){
    histp[i] = new TH1D(Form("hist_etabin%d",i),Form("hist_etabin%d",i),600,-0.3,0.3);
@@ -55,51 +52,89 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 
    TTreeReaderArray<Double_t> vy_mc(myReader, "MCParticles.vertex.y"); 
-   TTreeReaderArray<Double_t> vz_mc(myReader, "MCParticles.vertex.z"); 
+   TTreeReaderArray<Double_t> vz_mc(myReader, "MCParticles.vertex.z");
    TTreeReaderArray<Float_t> px_mc(myReader, "MCParticles.momentum.x"); 
    TTreeReaderArray<Float_t> py_mc(myReader, "MCParticles.momentum.y"); 
-   TTreeReaderArray<Float_t> pz_mc(myReader, "MCParticles.momentum.z"); 
+   TTreeReaderArray<Float_t> pz_mc(myReader, "MCParticles.momentum.z");
    TTreeReaderArray<Int_t> status(myReader, "MCParticles.generatorStatus"); 
-   TTreeReaderArray<Int_t> pdg(myReader, "MCParticles.PDG"); 
-   TTreeReaderArray<Int_t> match_flag(myReader, Form("CentralCKF%sTrackParameters.type",name.Data()));
-   TTreeReaderArray<Float_t> d0xy(myReader, Form("CentralCKF%sTrackParameters.loc.a",name.Data())); 
-   TTreeReaderArray<Float_t> d0z(myReader, Form("CentralCKF%sTrackParameters.loc.b",name.Data()));    
-   TTreeReaderArray<Float_t> theta(myReader, Form("CentralCKF%sTrackParameters.theta",name.Data()));  
-   TTreeReaderArray<Float_t> phi(myReader, Form("CentralCKF%sTrackParameters.phi",name.Data()));
-   TTreeReaderArray<Float_t> qoverp(myReader, Form("CentralCKF%sTrackParameters.qOverP",name.Data()));  
+   TTreeReaderArray<Int_t> pdg(myReader, "MCParticles.PDG");
+
+   TTreeReaderArray<Float_t> pe_lc(myReader, "LFHCALClusters.energy"); 
+   TTreeReaderArray<Float_t> px_lc(myReader, "LFHCALClusters.position.x"); 
+   TTreeReaderArray<Float_t> py_lc(myReader, "LFHCALClusters.position.y"); 
+   TTreeReaderArray<Float_t> pz_lc(myReader, "LFHCALClusters.position.z"); 
+   TTreeReaderArray<Float_t> pe_ec(myReader, "EcalEndcapPClusters.energy"); 
+   TTreeReaderArray<Float_t> px_ec(myReader, "EcalEndcapPClusters.position.x"); 
+   TTreeReaderArray<Float_t> py_ec(myReader, "EcalEndcapPClusters.position.y"); 
+   TTreeReaderArray<Float_t> pz_ec(myReader, "EcalEndcapPClusters.position.z"); 
 
   int count =0;
   int matchId = 1; // Always matched track assigned the index 0 
   while (myReader.Next()) 
-  {
-   if (match_flag.GetSize()==0) continue;  // Events with no reco tracks skip them
-   for (int i = 0; i < matchId; ++i){
-   
-     for (int j = 0; j < pdg.GetSize(); ++j){
-     	
-      if (status[j] !=1 && pdg.GetSize()!=1) continue;
-      Double_t ptmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]); 
-      
-      if (fabs(ptmc) < pTcut) continue;
+    {
+      for (int j = 0; j < pdg.GetSize(); ++j)
+	{
+	  if (status[j] !=1 && pdg.GetSize()!=1) continue;
+	  Double_t pzmc = pz_mc[j];  
+	  Double_t ptmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]); 
+	  Double_t pmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec
+	  Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
+	  Double_t phimc = TMath::ATan2(py_mc[j],px_mc[j]);
+	  if (fabs(ptmc) < pTcut) continue;
 
-      Double_t pmc = (1./charge[j])*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec
-      Double_t prec = 1./qoverp[j]; 
+	  Double_t l_px_tot;
+	  Double_t l_py_tot;
+	  Double_t l_pz_tot;
+	  Double_t l_e_tot;
 
-      Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);  
-      Double_t pzmc = pz_mc[j];  
-      
-      Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
-      Double_t p_resol = (prec-pmc)/pmc;
-      
-      for (int ibin=0; ibin<nbins_eta; ++ibin){ 
-      if(etamc>eta[ibin] && etamc<eta[ibin+1]) histp[ibin]->Fill(p_resol); 
-      }
-      h_d0xy_3d->Fill(d0xy[j]*0.1, etamc, ptmc); // cm
-      h_d0z_3d->Fill(d0z[j]*0.1, etamc, ptmc); // cm
-      } // Generated Tracks  
-     } // Reco Tracks
-       
-   }// event loop ends    
+	  for (int jl = 0;jl<px_lc.GetSize();jl++)
+	    {
+	      float e = pe_lc[jl];
+	      TVector3 v(px_lc[jl],py_lc[jl],pz_lc[jl]);
+	      float eta = v.PseudoRapidity();
+	      float phi = v.Phi();
+	      float pt = e/cosh(eta);
+	      l_e_tot += e;
+	      l_px_tot += pt*cos(phi);
+	      l_py_tot += pt*sin(phi);
+	      l_pz_tot += pt*sinh(eta);
+	    }
+	  
+	  Double_t e_px_tot;
+	  Double_t e_py_tot;
+	  Double_t e_pz_tot;
+	  Double_t e_e_tot;
+
+	  for (int je = 0;je<px_ec.GetSize();je++)
+	    {
+	      float e = pe_ec[je];
+	      TVector3 v(px_ec[je],py_ec[je],pz_ec[je]);
+	      float eta = v.PseudoRapidity();
+	      float phi = v.Phi();
+	      float pt = e/cosh(eta);
+	      e_e_tot += e;
+	      e_px_tot += pt*cos(phi);
+	      e_py_tot += pt*sin(phi);
+	      e_pz_tot += pt*sinh(eta);
+	    }
+
+	  Double_t px_tot = l_px_tot;
+	  Double_t py_tot = l_py_tot;
+	  Double_t pz_tot = l_pz_tot;
+	  Double_t e_tot = l_e_tot;
+	  
+	  Double_t prec = sqrt(px_tot*px_tot+py_tot*py_tot+pz_tot*pz_tot);
+	  Double_t ptrec = sqrt(px_tot*px_tot+py_tot*py_tot);
+	  Double_t pzrec = pz_tot;
+	  
+	  Double_t p_resol = (e_tot-pmc)/pmc;
+	  
+	  for (int ibin=0; ibin<nbins_eta; ++ibin){ 
+	    if(etamc>eta[ibin] && etamc<eta[ibin+1]) histp[ibin]->Fill(p_resol); 
+	  }
+	} // Generated Tracks  
+  
+    }// event loop ends    
   
    TFile *fout_mom = new TFile(Form("%s/mom/lfhcal_mom_%1.1f_%s_%s.root",particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
    fout_mom->cd();

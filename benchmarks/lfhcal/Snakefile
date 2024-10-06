@@ -49,20 +49,18 @@ rule lfhcal_at_momentum:
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(
-              "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
               DETECTOR_CONFIG="epic_craterlake",
               ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg"],
-	      PARTICLE=["neutron", "pi-"],
               INDEX=range(1),
           )
           if wildcards.CAMPAIGN == "local" else
           ancient(expand(
-              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
               DETECTOR_CONFIG="epic_craterlake",
               ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg"],
-	      PARTICLE=["neutron", "pi-"],
               INDEX=range(1),
           )),
     output:

@@ -8,7 +8,7 @@ rule lfhcal_sim:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
     wildcard_constraints:
         ENERGY="[0-9]+[kMG]eV",
-	PARTICLE="pi-",
+	PARTICLE="(neutron|pi-)",
         PHASE_SPACE="3to50deg",
         INDEX="\d{4}",
     params:
@@ -53,7 +53,7 @@ rule lfhcal_at_momentum:
               DETECTOR_CONFIG="epic_craterlake",
               ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg"],
-	      PARTICLE=["pi-"],
+	      PARTICLE=["neutron", "pi-"],
               INDEX=range(1),
           )
           if wildcards.CAMPAIGN == "local" else
@@ -62,7 +62,7 @@ rule lfhcal_at_momentum:
               DETECTOR_CONFIG="epic_craterlake",
               ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg"],
-	      PARTICLE=["pi-"],
+	      PARTICLE=["neutron", "pi-"],
               INDEX=range(1),
           )),
     output:
@@ -82,7 +82,7 @@ rule lfhcal_summary_at_eta:
                 "{{CAMPAIGN}}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM:.1f}_mom_resol_{PARTICLE}.root",
             ],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
-	    PARTICLE=["pi-"]
+	    PARTICLE=["neutron", "pi-"]
         ),
         script="benchmarks/lfhcal/doCompare_widebins_mom.C",
     output:
@@ -105,7 +105,7 @@ else
 	EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
 cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q ../{input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
 """
 
 LFHCAL_ETA_BINS = [1.2,1.5,2,2.5,3,3.5]
@@ -118,7 +118,7 @@ rule lfhcal:
 	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{ETA_BIN}.root",
             ],
 	    ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
-	    PARTICLE="pi-",
+	    PARTICLE=["neutron", "pi-"],
         )
     output:
         directory("results/lfhcal/{CAMPAIGN}/")

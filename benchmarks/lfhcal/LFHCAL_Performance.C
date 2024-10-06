@@ -38,7 +38,7 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
    
    
    for (int i=0; i<nbins_eta; i++){
-   histp[i] = new TH1D(Form("hist_etabin%d",i),Form("hist_etabin%d",i),600,-0.3,0.3);
+   histp[i] = new TH1D(Form("hist_etabin%d",i),Form("hist_etabin%d",i),600,-1,1);
    histp[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f ",eta[i],eta[i+1],mom));
    histp[i]->SetName(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
@@ -72,6 +72,7 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
   int matchId = 1; // Always matched track assigned the index 0 
   while (myReader.Next()) 
     {
+      std::cout << "events = " << count++ << std::endl;
       for (int j = 0; j < pdg.GetSize(); ++j)
 	{
 	  if (status[j] !=1 && pdg.GetSize()!=1) continue;
@@ -80,30 +81,35 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
 	  Double_t pmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec
 	  Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
 	  Double_t phimc = TMath::ATan2(py_mc[j],px_mc[j]);
+	  std::cout << "neutron p=" << pmc << " pt=" << ptmc << std::endl;
+	  
 	  if (fabs(ptmc) < pTcut) continue;
 
-	  Double_t l_px_tot;
-	  Double_t l_py_tot;
-	  Double_t l_pz_tot;
-	  Double_t l_e_tot;
+	  float l_px_tot=0;
+	  float l_py_tot=0;
+	  float l_pz_tot=0;
+	  float l_e_tot=0;
 
+	  std::cout << "LFHCAL nclus=" << px_lc.GetSize() << " ECAL nclus=" << pe_ec.GetSize() << std::endl;
 	  for (int jl = 0;jl<px_lc.GetSize();jl++)
 	    {
 	      float e = pe_lc[jl];
 	      TVector3 v(px_lc[jl],py_lc[jl],pz_lc[jl]);
+	      v.Print();
 	      float eta = v.PseudoRapidity();
 	      float phi = v.Phi();
 	      float pt = e/cosh(eta);
+	      std::cout << "LFHCAL clus: e=" << e << " eta=" << eta << " pt=" << pt << std::endl;
 	      l_e_tot += e;
 	      l_px_tot += pt*cos(phi);
 	      l_py_tot += pt*sin(phi);
 	      l_pz_tot += pt*sinh(eta);
 	    }
 	  
-	  Double_t e_px_tot;
-	  Double_t e_py_tot;
-	  Double_t e_pz_tot;
-	  Double_t e_e_tot;
+	  float e_px_tot=0;
+	  float e_py_tot=0;
+	  float e_pz_tot=0;
+	  float e_e_tot=0;
 
 	  for (int je = 0;je<px_ec.GetSize();je++)
 	    {
@@ -112,23 +118,25 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
 	      float eta = v.PseudoRapidity();
 	      float phi = v.Phi();
 	      float pt = e/cosh(eta);
+	      std::cout << "ECAL clus: e=" << e << " eta=" << eta << " pt=" << pt << std::endl;
 	      e_e_tot += e;
 	      e_px_tot += pt*cos(phi);
 	      e_py_tot += pt*sin(phi);
 	      e_pz_tot += pt*sinh(eta);
 	    }
 
-	  Double_t px_tot = l_px_tot;
-	  Double_t py_tot = l_py_tot;
-	  Double_t pz_tot = l_pz_tot;
-	  Double_t e_tot = l_e_tot;
+	  std::cout << "LFHCAL e=" <<l_e_tot << " ECAL e=" << e_e_tot << std::endl;
+	  float px_tot = l_px_tot+e_px_tot;
+	  float py_tot = l_py_tot+e_py_tot;
+	  float pz_tot = l_pz_tot+e_pz_tot;
+	  float e_tot = l_e_tot+e_e_tot;
 	  
-	  Double_t prec = sqrt(px_tot*px_tot+py_tot*py_tot+pz_tot*pz_tot);
-	  Double_t ptrec = sqrt(px_tot*px_tot+py_tot*py_tot);
-	  Double_t pzrec = pz_tot;
+	  float prec = sqrt(px_tot*px_tot+py_tot*py_tot+pz_tot*pz_tot);
+	  float ptrec = sqrt(px_tot*px_tot+py_tot*py_tot);
+	  float pzrec = pz_tot;
 	  
-	  Double_t p_resol = (e_tot-pmc)/pmc;
-	  
+	  float p_resol = (e_tot-pmc)/pmc;
+	  std::cout << "p_resol = " << p_resol << std::endl;
 	  for (int ibin=0; ibin<nbins_eta; ++ibin){ 
 	    if(etamc>eta[ibin] && etamc<eta[ibin+1]) histp[ibin]->Fill(p_resol); 
 	  }

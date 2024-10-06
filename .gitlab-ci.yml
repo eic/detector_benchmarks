@@ -132,6 +132,7 @@ include:
   - local: 'benchmarks/tracking_performances_dis/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
+  - local: 'benchmarks/lfhcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
   - local: 'benchmarks/zdc_photon/config.yml'

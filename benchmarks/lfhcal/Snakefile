@@ -77,15 +77,14 @@ rule lfhcal_summary_at_eta:
     input:
         expand(
             [
-                "{{CAMPAIGN}}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM:.1f}_mom_resol_{PARTICLE}.root",
+                "{{CAMPAIGN}}/{{PARTICLE}}/mom/lfhcal_mom_{MOMENTUM:.1f}_mom_resol_{{PARTICLE}}.root",
             ],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
-	    PARTICLE=["neutron", "pi-"]
         ),
         script="benchmarks/lfhcal/doCompare_widebins_mom.C",
     output:
-        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
-        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
+        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.png",
+        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.root",
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -112,8 +111,8 @@ rule lfhcal:
     input:
         expand(
             [
-	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{ETA_BIN}.png",
-	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{ETA_BIN}.root",
+	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
+	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
             ],
 	    ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
 	    PARTICLE=["neutron", "pi-"],

@@ -100,7 +100,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
   }
   
   
-  TFile *fout = new TFile(Form("Final_Results/%s/mom/lfhcal_mom_resol_%1.1f_eta_%1.1f.root",particle.Data(),etamin,etamax),"recreate");
+  TFile *fout = new TFile(Form("Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.root",particle.Data(),particle.Data(),etamin,etamax),"recreate");
   TGraphErrors *gr1 = new TGraphErrors(size,p,sigma_p,err_p,err_sigma_p);
   gr1->SetName("grseed");
   gr1->SetMarkerStyle(25);
@@ -119,7 +119,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
   lmom->AddEntry(gr1,"Nominal");
   lmom->Draw("same");
   //draw_req_Mom(etamin,etamax,0.,mgMom->GetXaxis()->GetXmax());
-  c_mom->SaveAs(Form("Final_Results/%s/mom/lfhcal_mom_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
+  c_mom->SaveAs(Form("Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.png",particle.Data(),particle.Data(),etamin,etamax));
   
   // Write the numbers in output file for comparisons
   outfile << extra_legend << endl;

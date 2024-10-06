@@ -15,17 +15,19 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "neutron
 
 rule insert_neutron_simulate:
 	input:
-		GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc"
+                GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:
-		SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV.edm4hep.root"
+		SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
 	shell:
 		"""
-NEVENTS_SIM=1000
+NEVENTS_SIM=200
 # Running simulation
 npsim \
    --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
@@ -34,20 +36,22 @@ npsim \
 
 rule insert_neutron_recon:
         input:
-                SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
         output:
-                REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV.edm4eic.root"
+                REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root"
         shell:
                 """
-NEVENTS_REC=1000
+NEVENTS_REC=200
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_neutron_analysis:
 	input:
-                expand("sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV.edm4eic.root",
+                expand("sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root",
 		    P=[20, 30, 40, 50, 60, 70, 80],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+                    INDEX=range(5),
+                ),
                 script="benchmarks/insert_neutron/analysis/neutron_plots.py",
 	output:
 		results_dir=directory("results/{DETECTOR_CONFIG}/insert_neutron"),

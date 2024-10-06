@@ -43,7 +43,6 @@ void gen_lambda_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = 
   //const double p_max = 275.; // in GeV/c
 
   WriterAscii hepmc_output(out_fname);
-  int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);
 
   // Random number generator
@@ -71,10 +70,11 @@ void gen_lambda_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = 
   double photon_mass = std::get<0>(photon_info);
   int photon_pdgID = std::get<1>(photon_info);
 
-  for (events_parsed = 0; events_parsed < n_events; events_parsed++) {
+  int accepted_events = 0;
+  while (accepted_events < n_events) {
 
     //Set the event number
-    evt.set_event_number(events_parsed);
+    evt.set_event_number(accepted_events);
 
     // FourVector(px,py,pz,e,pdgid,status)
     // type 4 is beam
@@ -218,7 +218,7 @@ void gen_lambda_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = 
     
     evt.add_vertex(v_pi0_decay);
 
-    if (events_parsed == 0) {
+    if (accepted_events == 0) {
       std::cout << "First event: " << std::endl;
       Print::listing(evt);
     }
@@ -227,13 +227,14 @@ void gen_lambda_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = 
     TVector3 extrap_gamma1=lambda_decay_position+gamma1_lab.Vect()*((zdc_z-pbeam_dir.Dot(lambda_decay_position))/(pbeam_dir.Dot(gamma1_lab.Vect())));
     TVector3 extrap_gamma2=lambda_decay_position+gamma2_lab.Vect()*((zdc_z-pbeam_dir.Dot(lambda_decay_position))/(pbeam_dir.Dot(gamma2_lab.Vect())));
     if (extrap_neutron.Angle(pbeam_dir)<0.004 && extrap_gamma1.Angle(pbeam_dir)<0.004 && extrap_gamma2.Angle(pbeam_dir)<0.004 && lambda_decay_position.Dot(pbeam_dir)<zdc_z)
+      accepted_events++;
       hepmc_output.write_event(evt);
-    if (events_parsed % 1000 == 0) {
-      std::cout << "Event: " << events_parsed << std::endl;
+    if (accepted_events % 1000 == 0) {
+      std::cout << "Event: " << accepted_events << std::endl;
     }
     evt.clear();
   }
   hepmc_output.close();
 
-  std::cout << "Events parsed and written: " << events_parsed << std::endl;
+  std::cout << "Events parsed and written: " << accepted_events << std::endl;
 }

@@ -12,7 +12,7 @@ rule lfhcal_sim:
         PHASE_SPACE="3to50deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=100
+        N_EVENTS=1000
     shell:
         """
 ddsim \

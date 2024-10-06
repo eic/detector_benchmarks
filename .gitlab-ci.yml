@@ -129,27 +129,7 @@ deploy_results:
   allow_failure: true
   stage: deploy
   needs:
-    - "collect_results:backgrounds"
-    - "collect_results:backwards_ecal"
-    - "collect_results:barrel_ecal"
-    - "collect_results:barrel_hcal"
-    - "collect_results:ecal_gaps"
-    - "collect_results:material_scan"
-    - "collect_results:pid"
-    - "collect_results:tracking_performance"
-    - "collect_results:tracking_performance_campaigns"
-    - "collect_results:zdc_sigma"
-    - "collect_results:zdc_lambda"
-    - "collect_results:insert_neutron"
-    - "collect_results:tracking_performances_dis"
-    - "collect_results:zdc"
-    - "collect_results:zdc_lyso"
-    - "collect_results:insert_muon"
-    - "collect_results:zdc_photon"
-    - "collect_results:zdc_pi0"
-    - "collect_results:femc_electron"
-    - "collect_results:femc_photon"
-    - "collect_results:femc_pi0"
+    - "collect_results:lfhcal"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

@@ -3,7 +3,7 @@ sim:lfhcal:
   stage: simulate
   parallel:
     matrix:
-      - PARTICLE: ["pi-"]
+      - PARTICLE: ["neutron", "pi-"]
         MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
   script:
     - |

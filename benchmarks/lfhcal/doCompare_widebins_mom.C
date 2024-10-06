@@ -62,7 +62,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
     cp->SetMargin(0.10, 0.05 ,0.1,0.07);
 
     //pi-/mom/lfhcal_mom_20.0_mom_resol_pi-.root
-    fmom[i] = TFile::Open(Form("./pi-/mom/lfhcal_mom_%1.1f_mom_resol_%s.root",mom[i],particle.Data()));
+    fmom[i] = TFile::Open(Form("./%s/mom/lfhcal_mom_%1.1f_mom_resol_%s.root",particle.Data(),mom[i],particle.Data()));
     
     TH1D *hist = (TH1D*) fmom[i]->Get(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
     hist->Rebin(2);

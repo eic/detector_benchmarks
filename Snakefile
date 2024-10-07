@@ -34,7 +34,7 @@ def get_remote_path(path):
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
-     params:
+    params:
         # wildcards are not included in hash for caching, we need to add them as params
         PATH=lambda wildcards: wildcards.PATH
     cache: True

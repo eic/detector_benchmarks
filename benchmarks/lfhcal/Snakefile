@@ -109,13 +109,13 @@ LFHCAL_ETA_BINS = [1.2,1.5,2,2.5,3,3.5]
 
 rule lfhcal:
     input:
-        expand(
+        lambda wildcards: expand(
             [
 	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
 	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
             ],
 	    ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
-	    PARTICLE=["neutron", "pi-"],
+	    PARTICLE=["neutron", "pi-"] if wildcards.CAMPAIGN == "local" else ["pi-"],
         )
     output:
         directory("results/lfhcal/{CAMPAIGN}/")

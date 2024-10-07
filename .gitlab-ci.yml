@@ -123,8 +123,31 @@ get_data:
     when:
       - runner_system_failure
 
-include:
+include: 
+  - local: 'benchmarks/backgrounds/config.yml'
+  - local: 'benchmarks/backwards_ecal/config.yml'
+  - local: 'benchmarks/ecal_gaps/config.yml'
+  - local: 'benchmarks/tracking_detectors/config.yml'
+  - local: 'benchmarks/tracking_performances/config.yml'
+  - local: 'benchmarks/tracking_performances_dis/config.yml'
+  - local: 'benchmarks/barrel_ecal/config.yml'
+  - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/lfhcal/config.yml'
+  - local: 'benchmarks/zdc/config.yml'
+  - local: 'benchmarks/zdc_lyso/config.yml'
+  - local: 'benchmarks/zdc_photon/config.yml'
+  - local: 'benchmarks/zdc_pi0/config.yml'
+  - local: 'benchmarks/material_scan/config.yml'
+  - local: 'benchmarks/pid/config.yml'
+  - local: 'benchmarks/timing/config.yml'
+  - local: 'benchmarks/b0_tracker/config.yml'
+  - local: 'benchmarks/insert_muon/config.yml'
+  - local: 'benchmarks/zdc_sigma/config.yml'
+  - local: 'benchmarks/zdc_lambda/config.yml'
+  - local: 'benchmarks/insert_neutron/config.yml'
+  - local: 'benchmarks/femc_electron/config.yml'
+  - local: 'benchmarks/femc_photon/config.yml'
+  - local: 'benchmarks/femc_pi0/config.yml'
 deploy_results:
   allow_failure: true
   stage: deploy

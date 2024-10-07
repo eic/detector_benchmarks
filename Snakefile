@@ -35,6 +35,10 @@ def get_remote_path(path):
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
+    params:
+        # wildcards are not included in hash for caching, we need to add them as params
+        PATH=lambda wildcards: wildcards.PATH
+    cache: True
     retries: 3
     shell: """
 xrdcp --debug 2 root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}

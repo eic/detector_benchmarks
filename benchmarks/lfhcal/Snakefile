@@ -8,7 +8,7 @@ rule lfhcal_sim:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
     wildcard_constraints:
         ENERGY="[0-9]+[kMG]eV",
-	PARTICLE="(neutron|pi-)",
+	PARTICLE="(neutron|pi-|gamma)",
         PHASE_SPACE="3to50deg",
         INDEX="\d{4}",
     params:
@@ -115,7 +115,7 @@ rule lfhcal:
 	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
             ],
 	    ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
-	    PARTICLE=["neutron", "pi-"] if wildcards.CAMPAIGN == "local" else ["pi-"],
+	    PARTICLE=["neutron", "pi-", "gamma"] if wildcards.CAMPAIGN == "local" else ["pi-"],
         )
     output:
         directory("results/lfhcal/{CAMPAIGN}/")

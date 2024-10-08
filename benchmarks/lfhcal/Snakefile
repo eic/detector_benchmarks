@@ -40,7 +40,7 @@ rule lfhcal_recon:
     shell: """
 env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_include_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
+  -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
 """
 
 rule lfhcal_at_momentum:

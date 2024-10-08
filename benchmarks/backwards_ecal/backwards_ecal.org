@@ -113,6 +113,122 @@ for energy in energies:
     ))
 #+end_src
 
+** Energy resolution
+
+#+begin_src jupyter-python
+fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+
+fig.suptitle(PLOT_TITLE)
+
+axs = np.ravel(np.array(axs))
+
+sigmas_rel_FWHM_cb = {}
+fractions_below = {}
+
+for ix, energy in enumerate(energies):
+    for use_clusters in [False, True]:
+        energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
+        if use_clusters:
+            clf_label = "leading cluster"
+        else:
+            clf_label = "sum all hits"
+        def clf(events):
+            if use_clusters:
+                return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
+            else:
+                return ak.sum(events["EcalEndcapNRecHits.energy"], axis=-1) / energy_value
+        e_pred = clf(e_eval[energy])
+
+        plt.sca(axs[ix])
+        counts, bins, patches = plt.hist(e_pred, weights=np.full_like(e_pred, 1.0 / ak.num(e_pred, axis=0)), bins=np.linspace(0.01, 1.01, 101), label=rf"$e^-$ {clf_label}", hatch=None if use_clusters else r"xxx", alpha=0.8 if use_clusters else 1.)
+        plt.title(f"{energy}")
+
+        e_over_p = (bins[1:] + bins[:-1]) / 2
+        import scipy.stats
+        def f(x, n, beta, m, loc, scale):
+            return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
+        p0 = (np.sum(counts[10:]), 2., 3., 0.95, 0.05)
+
+        try:
+            import scipy.optimize
+            par, pcov = scipy.optimize.curve_fit(f, e_over_p[5:], counts[5:], p0=p0, maxfev=10000)
+        except RuntimeError:
+            par = None
+        plt.plot(e_over_p, f(e_over_p, *par), label=rf"Crystal Ball fit", color="tab:green" if use_clusters else "green", lw=0.8)
+
+        def summarize_fit(par):
+            _, _, _, loc_cb, scale_cb = par
+            # Calculate FWHM
+            y_max = np.max(f(np.linspace(0., 1., 100), *par))
+            f_prime = lambda x: f(x, *par) - y_max / 2
+            x_plus, = scipy.optimize.root(f_prime, loc_cb + scale_cb).x
+            x_minus, = scipy.optimize.root(f_prime, loc_cb - scale_cb).x
+            color = "cyan" if use_clusters else "orange"
+            plt.axvline(x_minus, ls="--", lw=0.75, color=patches[0].get_facecolor(), label=r"$\mu - $FWHM")
+            plt.axvline(x_plus, ls=":", lw=0.75, color=patches[0].get_facecolor(), label=r"$\mu + $FWHM")
+            fwhm = (x_plus - x_minus) / loc_cb
+            sigma_rel_FWHM_cb = fwhm / 2 / np.sqrt(2 * np.log(2))
+
+            cutoff_x = loc_cb - fwhm
+            fraction_below = np.sum(counts[e_over_p < cutoff_x]) / ak.num(e_pred, axis=0)
+
+            return sigma_rel_FWHM_cb, fraction_below
+
+        sigma_rel_FWHM_cb, fraction_below = summarize_fit(par)
+        sigmas_rel_FWHM_cb.setdefault(clf_label, {})[energy] = sigma_rel_FWHM_cb
+        fractions_below.setdefault(clf_label, {})[energy] = fraction_below
+
+        plt.legend()
+        plt.xlabel("$E/p$", loc="right")
+        plt.ylabel("Event yield", loc="top")
+
+fig.savefig(output_dir / f"resolution_plots.pdf", bbox_inches="tight")
+plt.show()
+plt.close(fig)
+
+plt.figure()
+energy_values = np.array([float(energy.replace("GeV", "").replace("MeV", "e-3")) for energy in energies])
+
+for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
+    sigma_over_e = np.array([sigma_rel_FWHM_cb[energy] for energy in energies]) * 100 # convert to %
+
+    def f(energy, stochastic, constant):
+        return np.sqrt((stochastic / np.sqrt(energy)) ** 2 + constant ** 2)
+    cond = energy_values >= 0.5
+    try:
+        import scipy.optimize
+        par, pcov = scipy.optimize.curve_fit(f, energy_values[cond], sigma_over_e[cond], maxfev=10000)
+    except RuntimeError:
+        par = None
+    stochastic, constant = par
+
+    plt.plot(
+        energy_values,
+        sigma_over_e,
+        marker=".",
+        label=f"{clf_label}"
+    )
+    plt.plot(
+        energy_values[cond],
+        f(energy_values[cond], *par),
+        color="black",
+        ls="--",
+        lw=0.5,
+        label=f"{clf_label}, ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
+    )
+plt.plot(
+    energy_values,
+    np.sqrt((1 / energy_values) ** 2 + (1 / np.sqrt(energy_values)) ** 2 + 1 ** 2),
+    color="black", label=r"YR requirement $1\% / E \oplus 2.5\% / \sqrt{E} \oplus 1\%$",
+)
+plt.title(INPUT_PATH_FORMAT)
+plt.legend()
+plt.xlabel("Energy, GeV", loc="right")
+plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, %", loc="top")
+plt.savefig(output_dir / f"resolution.pdf", bbox_inches="tight")
+plt.show()
+#+end_src
+
 ** Pion rejection
 
 #+begin_src jupyter-python

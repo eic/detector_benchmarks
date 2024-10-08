@@ -70,7 +70,9 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
     hist->SetTitle(Form("Momentum = %1.1f && %1.1f<#eta<%1.1f;#Delta p/p; Entries(a.u.)",particle.Data(),mom[i],etamin,etamax));
     
     double mu = hist->GetMean(); 
-    double sigma = hist->GetStdDev();
+    double sigma = hist->GetRMS();
+    double sigma_err = hist->GetRMSError();
+    /*
     hist->GetXaxis()->SetRangeUser(-1.0*range,1.0*range);
     func->SetRange(mu-2.0*sigma,mu+2.0*sigma); // fit with in 2 sigma range
     hist->Fit(func,"NR+");
@@ -80,9 +82,10 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
     hist->Fit(func,"R+");
     float par2 = func->GetParameter(2)*100;
     float par2_err = func->GetParError(2)*100;
+    */
     momV.push_back(mom[i]);
-    momresolV.push_back(par2);
-    err_momresolV.push_back(par2_err);
+    momresolV.push_back(sigma);
+    err_momresolV.push_back(sigma_err);
     
     cp->cd();
     hist->Draw();

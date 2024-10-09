@@ -1,6 +1,6 @@
 sim:femc_pi0:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 10
@@ -11,7 +11,6 @@ sim:femc_pi0:
       - P: 60
       - P: 70
       - P: 80
-  timeout: 1 hours
   script:
     - snakemake --cores 1 sim_output/femc_pi0/epic_craterlake_rec_pi0_${P}GeV.edm4eic.root
   retry:
@@ -20,13 +19,14 @@ sim:femc_pi0:
       - runner_system_failure
 
 bench:femc_pi0:
-  stage: benchmarks
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:femc_pi0"]
   script:
     - snakemake --cores 1 results/epic_craterlake/femc_pi0
 
 collect_results:femc_pi0:
+  extends: .det_benchmark
   stage: collect
   needs: ["bench:femc_pi0"]
   script:

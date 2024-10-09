@@ -1,6 +1,6 @@
 sim:zdc_photon:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 20
@@ -19,14 +19,15 @@ sim:zdc_photon:
       - runner_system_failure
 
 bench:zdc_photon:
-  stage: benchmarks
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:zdc_photon"]
   script:
     - mkdir -p results/epic_zdc_sipm_on_tile_only
     - python benchmarks/zdc_photon/analysis/zdc_photon_plots.py results/epic_zdc_sipm_on_tile_only/zdc_photon
 
 collect_results:zdc_photon:
+  extends: .det_benchmark
   stage: collect
   extends: .det_benchmark
   needs: ["bench:zdc_photon"]

@@ -1,6 +1,6 @@
 sim:zdc_sigma:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 100
@@ -19,13 +19,14 @@ sim:zdc_sigma:
       - runner_system_failure
 
 bench:zdc_sigma:
-  stage: benchmarks
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:zdc_sigma"]
   script:
     - snakemake --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_sigma
 
 collect_results:zdc_sigma:
+  extends: .det_benchmark
   stage: collect
   needs: ["bench:zdc_sigma"]
   script:

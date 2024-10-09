@@ -1,6 +1,6 @@
 sim:femc_electron:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 10
@@ -20,13 +20,14 @@ sim:femc_electron:
       - runner_system_failure
 
 bench:femc_electron:
-  stage: benchmarks
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:femc_electron"]
   script:
     - snakemake --cores 1 results/epic_craterlake/femc_electron
 
 collect_results:femc_electron:
+  extends: .det_benchmark
   stage: collect
   needs: ["bench:femc_electron"]
   script:

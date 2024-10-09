@@ -183,6 +183,7 @@ for ix, energy in enumerate(energies):
         plt.ylabel("Event yield", loc="top")
 
 fig.savefig(output_dir / f"resolution_plots.pdf", bbox_inches="tight")
+fig.savefig(output_dir / f"resolution_plots.png", bbox_inches="tight")
 plt.show()
 plt.close(fig)
 
@@ -226,6 +227,7 @@ plt.legend()
 plt.xlabel("Energy, GeV", loc="right")
 plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, %", loc="top")
 plt.savefig(output_dir / f"resolution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / f"resolution.png", bbox_inches="tight")
 plt.show()
 #+end_src
 
@@ -292,10 +294,13 @@ for ix, energy in enumerate(energies):
         plt.ylabel("Pion rejection factor")
 
 fig.savefig(output_dir / f"pred.pdf", bbox_inches="tight")
+fig.savefig(output_dir / f"pred.png", bbox_inches="tight")
 plt.close(fig)
 fig_log.savefig(output_dir / f"pred_log.pdf", bbox_inches="tight")
+fig_log.savefig(output_dir / f"pred_log.png", bbox_inches="tight")
 fig_log.show()
 fig_roc.savefig(output_dir / f"roc.pdf", bbox_inches="tight")
+fig_roc.savefig(output_dir / f"roc.png", bbox_inches="tight")
 fig_roc.show()
 
 plt.figure()
@@ -312,5 +317,6 @@ plt.legend()
 plt.xlabel("Energy, GeV")
 plt.ylabel("Pion rejection at 95%")
 plt.savefig(output_dir / f"pion_rej.pdf", bbox_inches="tight")
+plt.savefig(output_dir / f"pion_rej.png", bbox_inches="tight")
 plt.show()
 #+end_src

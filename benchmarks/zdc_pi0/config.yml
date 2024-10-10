@@ -1,6 +1,6 @@
 sim:zdc_pi0:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 60
@@ -16,17 +16,16 @@ sim:zdc_pi0:
       - runner_system_failure
 
 bench:zdc_pi0:
-  stage: benchmarks
-  
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:zdc_pi0"]
   script:
     - mkdir -p results/epic_zdc_sipm_on_tile_only
     - python benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py results/epic_zdc_sipm_on_tile_only/zdc_pi0
 
 collect_results:zdc_pi0:
-  stage: collect
   extends: .det_benchmark
+  stage: collect
   needs: ["bench:zdc_pi0"]
   script:
     - ls -al

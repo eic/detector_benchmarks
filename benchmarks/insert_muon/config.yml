@@ -1,6 +1,6 @@
 sim:insert_muon:
-  stage: simulate
   extends: .det_benchmark
+  stage: simulate
   parallel:
     matrix:
       - P: 50
@@ -12,13 +12,14 @@ sim:insert_muon:
       - runner_system_failure
 
 bench:insert_muon:
-  stage: benchmarks
   extends: .det_benchmark
+  stage: benchmarks
   needs: ["sim:insert_muon"]
   script:
     - snakemake --cores 1 results/epic_craterlake/insert_muon
 
 collect_results:insert_muon:
+  extends: .det_benchmark
   stage: collect
   needs: ["bench:insert_muon"]
   script:

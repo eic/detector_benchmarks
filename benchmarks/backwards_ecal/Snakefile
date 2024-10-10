@@ -4,11 +4,29 @@ def get_n_events(wildcards):
     n_events = int(n_events // (energy ** 0.5))
     return n_events
 
+import functools
+import json
+import ctypes.util
+import warnings
+from snakemake.logging import logger
+
+@functools.cache
+def get_spack_package_hash(package_name):
+    try:
+        ver_info = json.loads(subprocess.check_output(["spack", "find", "--json", package_name]))
+        return ver_info[0]["package_hash"]
+    except FileNotFoundError as e:
+        logger.warning("Spack is not installed")
+        return ""
+    except subprocess.CalledProcessError as e:
+        print(e)
+        return ""
 
 rule backwards_ecal_sim:
     input:
         steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=os.environ["DETECTOR_PATH"] + "/../../lib/" + ctypes.util.find_library("epic"),
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
@@ -19,7 +37,13 @@ rule backwards_ecal_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=get_n_events
+        N_EVENTS=get_n_events,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -27,11 +51,11 @@ exec ddsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
-  --random.seed 1{wildcards.INDEX} \
+  --random.seed {params.SEED} \
   --filter.tracker edep0 \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
-  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --outputFile {output}
 """
 

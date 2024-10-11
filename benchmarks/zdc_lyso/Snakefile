@@ -3,7 +3,7 @@ import os
 
 rule zdc_lyso_sim_hepmc:
     input:
-        script = "benchmarks/zdc_lyso/gen_particles.cxx",
+        script="benchmarks/zdc_lyso/gen_particles.cxx",
     output:
         hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
     log:
@@ -54,12 +54,14 @@ mv podio_output.root {output}
 
 rule zdc_lyso_analysis:
     input:
-        expand("sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
-               PARTICLE=["gamma"],
-               BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
-               THETA_MIN=["0"],
-               THETA_MAX=["0.3"]),	
-	script="benchmarks/zdc_lyso/analysis/analysis.py",
+        expand(
+            "sim_output/zdc_lyso/{{DETECTOR_CONFIG}}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
+            PARTICLE=["gamma"],
+            BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
+            THETA_MIN=["0"],
+            THETA_MAX=["0.3"],
+        ),
+        script="benchmarks/zdc_lyso/analysis/analysis.py",
     output:
         "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
     shell:
@@ -71,16 +73,17 @@ python {input.script}
 # Examples of invocation
 rule zdc_lyso_hepmc:
     input:
-        expand("data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
-               PARTICLE=["gamma"],
-               BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
-               THETA_MIN=["0"],
-               THETA_MAX=["0.3"])
+        expand(
+            "data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
+            PARTICLE=["gamma"],
+            BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
+            THETA_MIN=["0"],
+            THETA_MAX=["0.3"],
+        ),
 
 
 rule zdc_lyso_local:
-   input:
+    input:
         "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
-   message:
+    message:
         "See output in {input[0]}"
-

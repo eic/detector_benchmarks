@@ -1,5 +1,6 @@
 configfile: "snakemake.yml"
 
+
 include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
@@ -19,6 +20,7 @@ include: "benchmarks/femc_electron/Snakefile"
 include: "benchmarks/femc_photon/Snakefile"
 include: "benchmarks/femc_pi0/Snakefile"
 
+
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
 
@@ -29,32 +31,45 @@ def get_remote_path(path):
     elif use_xrootd:
         return f"root://dtn-eic.jlab.org//work/eic2/{path}"
     else:
-        raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
+        raise runtime_exception(
+            'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
+        )
 
 
 rule fetch_epic:
     output:
-        filepath="EPIC/{PATH}"
+        filepath="EPIC/{PATH}",
     params:
         # wildcards are not included in hash for caching, we need to add them as params
-        PATH=lambda wildcards: wildcards.PATH
+        PATH=lambda wildcards: wildcards.PATH,
     cache: True
     retries: 3
-    shell: """
+    shell:
+        (
+            """
 xrdcp --debug 2 root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
-""" if use_xrootd else """
-mc cp S3/eictest/{output.filepath} {output.filepath}
-""" if use_s3 else f"""
-echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
-exit 1
 """
+            if use_xrootd
+            else (
+                """
+mc cp S3/eictest/{output.filepath} {output.filepath}
+"""
+                if use_s3
+                else f"""
+                        echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
+                        exit 1
+                        """
+            )
+        )
 
 
 rule warmup_run:
     output:
         "warmup/{DETECTOR_CONFIG}.edm4hep.root",
-    message: "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
-    shell: """
+    message:
+        "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
+    shell:
+        """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
   --runType batch \
@@ -80,7 +95,7 @@ rule org2py:
         notebook=workflow.basedir + "/{NOTEBOOK}.org",
         converter=workflow.source_path("benchmarks/common/org2py.awk"),
     output:
-        "{NOTEBOOK}.py"
+        "{NOTEBOOK}.py",
     shell:
         """
 awk -f {input.converter} {input.notebook} > {output}

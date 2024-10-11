@@ -1,5 +1,6 @@
 import os
 
+
 rule compile_analysis:
     input:
         "{path}/{filename}.cxx",
@@ -12,10 +13,12 @@ rule compile_analysis:
 root -l -b -q -e '.L {input}+'
 """
 
+
 rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-        "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
+        "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
+
 
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
@@ -38,6 +41,7 @@ ddsim \
   --outputFile {output}
 """
 
+
 # Process the files produced in the previous step through EICRecon
 rule trk_dis_reco:
     input:
@@ -52,6 +56,7 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations
 """
 
+
 # Process the files -- either from the campaign or local running -- through the analysis script
 rule trk_dis_analysis:
     input:
@@ -62,10 +67,10 @@ rule trk_dis_analysis:
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
         hists="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/hists.root",
     wildcard_constraints:
-        PREFIX= ".*",
+        PREFIX=".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         INDEX="\d+",
     shell:
         """
@@ -82,18 +87,22 @@ EOF
 root -l -b -q '{input.script}+("{output.config}")'
 """
 
-#Merge all the files produced in the previous step
+
+# Merge all the files produced in the previous step
 rule trk_dis_combine:
     input:
-        lambda wildcards: [f"results/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
+        lambda wildcards: [
+            f"results/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root"
+            for ix in range(1, int(wildcards.NUM_FILES) + 1)
+        ],
     output:
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
         hists="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/hists.root",
     wildcard_constraints:
-        PREFIX= ".*",
+        PREFIX=".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         NUM_FILES="\d+",
     shell:
         """
@@ -111,19 +120,20 @@ EOF
 hadd {output.hists} {input}
 """
 
-#Process the merged file through the plotting script
+
+# Process the merged file through the plotting script
 rule trk_dis_plots:
     input:
         script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
         script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:
-        "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
+        "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf",
     wildcard_constraints:
-        PREFIX= ".*",
+        PREFIX=".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         NUM_FILES="\d+",
     shell:
         """
@@ -131,10 +141,12 @@ root -l -b -q '{input.script}+("{input.config}")'
 """
 
 
-#Examples of invocation
+# Examples of invocation
 rule trk_dis_run_locally:
     input:
-        "results/tracking_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+        "results/tracking_performances_dis/"
+        + os.environ["DETECTOR_CONFIG"]
+        + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
     message:
         "See output in {input[0]}"
 
@@ -144,5 +156,3 @@ rule trk_dis_run_locally_trk_only:
         "results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
     message:
         "See output in {input[0]}"
-
-

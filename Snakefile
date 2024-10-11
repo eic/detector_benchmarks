@@ -56,9 +56,9 @@ mc cp S3/eictest/{output.filepath} {output.filepath}
 """
                 if use_s3
                 else f"""
-                echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
-                exit 1
-                """
+                        echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
+                        exit 1
+                        """
             )
         )
 

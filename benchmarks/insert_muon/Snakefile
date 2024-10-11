@@ -1,27 +1,28 @@
 rule insert_muon_generate:
-	input:
-                script="benchmarks/insert_muon/analysis/gen_particles.cxx",
-	params:
-		NEVENTS_GEN=5000,
-		th_max=7.0,
-		th_min=1.7
-	output:
-		GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc"
-	shell:
-		"""
+    input:
+        script="benchmarks/insert_muon/analysis/gen_particles.cxx",
+    params:
+        NEVENTS_GEN=5000,
+        th_max=7.0,
+        th_min=1.7,
+    output:
+        GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
+    shell:
+        """
 root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
 """
 
+
 rule insert_muon_simulate:
-	input:
-                GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-	params:
-		PHYSICS_LIST="FTFP_BERT"
-	output:
-		SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root"
-	shell:
-		"""
+    input:
+        GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    params:
+        PHYSICS_LIST="FTFP_BERT",
+    output:
+        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+    shell:
+        """
 NEVENTS_SIM=1000
 # Running simulation
 npsim \
@@ -33,29 +34,32 @@ npsim \
    --outputFile {output.SIM_FILE}
 """
 
+
 rule insert_muon_recon:
-        input:
-                SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root"
-        output:
-                REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root"
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+    output:
+        REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root",
+    shell:
+        """
 NEVENTS_REC=1000
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
+
 rule insert_muon_analysis:
-	input:
-                expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
-		    P=[50],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-                    INDEX=range(5),
-                ),
-                script="benchmarks/insert_muon/analysis/muon_plots.py",
-	output:
-		results_dir=directory("results/{DETECTOR_CONFIG}/insert_muon"),
-	shell:
-		"""
+    input:
+        expand(
+            "sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+            P=[50],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/insert_muon/analysis/muon_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/insert_muon"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

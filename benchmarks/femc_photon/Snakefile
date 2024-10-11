@@ -1,27 +1,28 @@
 rule femc_photon_generate:
-	input:
-                script="benchmarks/femc_photon/analysis/gen_particles.cxx",
-	params:
-		NEVENTS_GEN=1000,
-		th_max=28,
-		th_min=2.0
-	output:
-		GEN_FILE="sim_output/femc_photon/photon_{P}GeV.hepmc"
-	shell:
-		"""
+    input:
+        script="benchmarks/femc_photon/analysis/gen_particles.cxx",
+    params:
+        NEVENTS_GEN=1000,
+        th_max=28,
+        th_min=2.0,
+    output:
+        GEN_FILE="sim_output/femc_photon/photon_{P}GeV.hepmc",
+    shell:
+        """
 mkdir -p sim_output/femc_photon
 root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "gamma", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
 """
 
+
 rule femc_photon_simulate:
-	input:
-		GEN_FILE="sim_output/femc_photon/photon_{P}GeV.hepmc"
-	params:
-		PHYSICS_LIST="FTFP_BERT"
-	output:
-		SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root"
-	shell:
-		"""
+    input:
+        GEN_FILE="sim_output/femc_photon/photon_{P}GeV.hepmc",
+    params:
+        PHYSICS_LIST="FTFP_BERT",
+    output:
+        SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root",
+    shell:
+        """
 NEVENTS_SIM=1000
 # Running simulation
 npsim \
@@ -32,27 +33,31 @@ npsim \
    --outputFile {output.SIM_FILE}
 """
 
+
 rule femc_photon_recon:
-        input:
-                SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root"
-        output:
-                REC_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root"
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root",
+    output:
+        REC_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root",
+    shell:
+        """
 NEVENTS_REC=1000
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
+
 rule femc_photon_analysis:
-	input:
-                expand("sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root",
-		    P=[10, 20, 30, 40, 50, 60, 70, 80],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
-                script="benchmarks/femc_photon/analysis/femc_photon_plots.py",
-	output:
-		results_dir=directory("results/{DETECTOR_CONFIG}/femc_photon"),
-	shell:
-		"""
+    input:
+        expand(
+            "sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root",
+            P=[10, 20, 30, 40, 50, 60, 70, 80],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+        ),
+        script="benchmarks/femc_photon/analysis/femc_photon_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/femc_photon"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

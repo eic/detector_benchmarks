@@ -12,7 +12,7 @@ rule lfhcal_sim:
         PHASE_SPACE="3to50deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=1000
+        N_EVENTS=1000,
     shell:
         """
 ddsim \
@@ -37,32 +37,45 @@ rule lfhcal_recon:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX="\d{4}",
-    shell: """
+    shell:
+        """
 env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
 """
 
+
 rule lfhcal_at_momentum:
     input:
         script="benchmarks/lfhcal/LFHCAL_Performance.C",
         # TODO pass as a file list?
-        sim=lambda wildcards:
-          expand(
-              "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg"],
-              INDEX=range(1),
-          )
-          if wildcards.CAMPAIGN == "local" else
-          ancient(expand(
-              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg"],
-              INDEX=range(1),
-          )),
+        sim=lambda wildcards: (
+            expand(
+                "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+                DETECTOR_CONFIG="epic_craterlake",
+                ENERGY=(
+                    f"{float(wildcards.MOMENTUM):.0f}GeV"
+                    if float(wildcards.MOMENTUM) >= 1
+                    else f"{float(wildcards.MOMENTUM)*1000:.0f}MeV"
+                ),
+                PHASE_SPACE=["3to50deg"],
+                INDEX=range(1),
+            )
+            if wildcards.CAMPAIGN == "local"
+            else ancient(
+                expand(
+                    "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+                    DETECTOR_CONFIG="epic_craterlake",
+                    ENERGY=(
+                        f"{float(wildcards.MOMENTUM):.0f}GeV"
+                        if float(wildcards.MOMENTUM) >= 1
+                        else f"{float(wildcards.MOMENTUM)*1000:.0f}MeV"
+                    ),
+                    PHASE_SPACE=["3to50deg"],
+                    INDEX=range(1),
+                )
+            )
+        ),
     output:
         "{CAMPAIGN}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",
         combined_root=temp("{CAMPAIGN}/lfhcal_sim_{MOMENTUM}_{PARTICLE}.root"),
@@ -72,6 +85,7 @@ hadd {output.combined_root} {input.sim}
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15)'
 """
+
 
 rule lfhcal_summary_at_eta:
     input:
@@ -105,20 +119,29 @@ cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
 """
 
-LFHCAL_ETA_BINS = [1.2,1.5,2,2.5,3,3.5]
+
+LFHCAL_ETA_BINS = [1.2, 1.5, 2, 2.5, 3, 3.5]
+
 
 rule lfhcal:
     input:
         lambda wildcards: expand(
             [
-              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
-              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
+                "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
+                    "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
+                ],
+                ETA_BIN=[
+                f"{eta_min:.1f}_eta_{eta_max:.1f}"
+                for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])
             ],
-            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
-            PARTICLE=["neutron", "pi-", "gamma"] if wildcards.CAMPAIGN == "local" else ["pi-"],
-        )
+            PARTICLE=(
+                ["neutron", "pi-", "gamma"]
+                if wildcards.CAMPAIGN == "local"
+                else ["pi-"]
+            ),
+        ),
     output:
-        directory("results/lfhcal/{CAMPAIGN}/")
+        directory("results/lfhcal/{CAMPAIGN}/"),
     shell:
         """
 mkdir {output}
@@ -142,4 +165,4 @@ rule lfhcal_campaigns:
                 "24.03.1",
                 "24.04.0",
             ],
-        )
+        ),

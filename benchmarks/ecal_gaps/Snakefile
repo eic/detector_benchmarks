@@ -3,7 +3,9 @@ import os
 
 rule ecal_gaps_sim:
     input:
-        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
+        steering_file=ancient(
+            "EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"
+        ),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -15,7 +17,7 @@ rule ecal_gaps_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=1000
+        N_EVENTS=1000,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -41,7 +43,8 @@ rule ecal_gaps_recon:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX="\d{4}",
-    shell: """
+    shell:
+        """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
@@ -49,7 +52,8 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 """
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
+
 
 rule ecal_gaps:
     input:

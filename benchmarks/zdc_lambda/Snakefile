@@ -1,25 +1,26 @@
 rule zdc_lambda_generate:
-	input:
-                script="benchmarks/zdc_lambda/analysis/gen_lambda_decay.cxx",
-	params:
-		NEVENTS_GEN=1000,
-	output:
-		GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc"
-	shell:
-		"""
+    input:
+        script="benchmarks/zdc_lambda/analysis/gen_lambda_decay.cxx",
+    params:
+        NEVENTS_GEN=1000,
+    output:
+        GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
+    shell:
+        """
 root -l -b -q '{input.script}({params.NEVENTS_GEN},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
 """
 
+
 rule zdc_lambda_simulate:
-	input:
-                GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-	params:
-		PHYSICS_LIST="FTFP_BERT"
-	output:
-		SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root"
-	shell:
-		"""
+    input:
+        GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    params:
+        PHYSICS_LIST="FTFP_BERT",
+    output:
+        SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root",
+    shell:
+        """
 NEVENTS_SIM=200
 # Running simulation
 npsim \
@@ -31,29 +32,32 @@ npsim \
    --outputFile {output.SIM_FILE}
 """
 
+
 rule zdc_lambda_recon:
-        input:
-                SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root"
-        output:
-                REC_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_rec_lambda_dec_{P}GeV_{INDEX}.edm4eic.root"
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root",
+    output:
+        REC_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_rec_lambda_dec_{P}GeV_{INDEX}.edm4eic.root",
+    shell:
+        """
 NEVENTS_REC=200
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits  -Pjana:nevents=$NEVENTS_REC
 """
 
+
 rule zdc_lambda_analysis:
-	input:
-                expand("sim_output/zdc_lambda/{DETECTOR_CONFIG}_rec_lambda_dec_{P}GeV_{INDEX}.edm4eic.root",
-		    P=[100, 125, 150,175, 200, 225, 250, 275],
-                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-                    INDEX=range(5),
-                ),
-                script="benchmarks/zdc_lambda/analysis/lambda_plots.py",
-	output:
-		results_dir=directory("results/{DETECTOR_CONFIG}/zdc_lambda"),
-	shell:
-		"""
+    input:
+        expand(
+            "sim_output/zdc_lambda/{DETECTOR_CONFIG}_rec_lambda_dec_{P}GeV_{INDEX}.edm4eic.root",
+            P=[100, 125, 150, 175, 200, 225, 250, 275],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/zdc_lambda/analysis/lambda_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/zdc_lambda"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

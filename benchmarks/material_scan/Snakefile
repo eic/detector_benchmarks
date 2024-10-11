@@ -1,9 +1,11 @@
 rule material_scan_fetch_script:
     output:
-      "material_scan.py",
-    shell: """
+        "material_scan.py",
+    shell:
+        """
 curl -L --output {output} https://github.com/eic/epic/raw/main/scripts/subdetector_tests/material_scan.py
 """
+
 
 rule material_scan:
     input:
@@ -14,8 +16,10 @@ rule material_scan:
         "{DETECTOR_CONFIG}/results/material_scan_details.pdf",
     log:
         "{DETECTOR_CONFIG}/results/material_scan.log",
-    shadow: "full" # avoid putting calibrations/fieldmaps to results
-    shell: """
+    shadow:
+        "full"  # avoid putting calibrations/fieldmaps to results
+    shell:
+        """
 cd {wildcards.DETECTOR_CONFIG}/results
 python ../../{input.script} $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml
 """

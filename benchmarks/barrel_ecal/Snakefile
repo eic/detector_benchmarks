@@ -6,7 +6,7 @@ rule emcal_barrel_particles_gen:
         workflow.source_path("scripts/emcal_barrel_common_functions.h"),
         script=workflow.source_path("scripts/emcal_barrel_particles_gen.cxx"),
     params:
-        JUGGLER_N_EVENTS = 100,
+        JUGGLER_N_EVENTS=100,
     output:
         "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
     shell:
@@ -19,13 +19,14 @@ env \
 
 rule emcal_barrel_particles:
     input:
-        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc"
+        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
     params:
-        JUGGLER_N_EVENTS = 100,
+        JUGGLER_N_EVENTS=100,
     output:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root",
     shell:
-        """
+        (
+            """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
    --runType batch \
@@ -33,10 +34,13 @@ exec ddsim \
    --part.minimalKineticEnergy 0.5*GeV  \
    --filter.tracker edep0 \
    --numberOfEvents {params.JUGGLER_N_EVENTS} \
-   --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
-   --inputFiles {input} \
-   --outputFile {output}
-"""
+   --compactFile """
+            + DETECTOR_PATH
+            + """/{wildcards.DETECTOR_CONFIG}.xml \
+           --inputFiles {input} \
+           --outputFile {output}
+        """
+        )
 
 
 # This is needed to bridge snakemake rule files to "normal" benchmarks
@@ -73,7 +77,7 @@ rule emcal_barrel_particles_analysis:
         script=workflow.source_path("scripts/emcal_barrel_particles_analysis.cxx"),
         sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
     wildcard_constraints:
-        PARTICLE="(electron|photon|piplus|piminus)", # avoid clash with "pions"
+        PARTICLE="(electron|photon|piplus|piminus)",  # avoid clash with "pions"
     output:
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_calibration.json",
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Ethr.png",
@@ -123,7 +127,7 @@ rule emcal_barrel_pi0_analysis:
             var_name=["Ethr", "nhits", "Esim", "dE_rel"],
             extension=["pdf", "png"],
         ),
-        "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json"
+        "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json",
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
@@ -131,11 +135,16 @@ root -l -b -q '{input.script}+("../{input.sim}")'
 """
 
 
-ENERGY_SCAN_ENERGIES = [0.5, 1., 2., 5., 10.]
+ENERGY_SCAN_ENERGIES = [0.5, 1.0, 2.0, 5.0, 10.0]
+
+
 rule emcal_energy_scan:
     input:
         # Require all simulations produced for this rule
-        expand("{{DETECTOR_CONFIG}}/sim_output/energy_scan/{energy}/sim_emcal_barrel_{{PARTICLE}}.edm4hep.root", energy=ENERGY_SCAN_ENERGIES),
+        expand(
+            "{{DETECTOR_CONFIG}}/sim_output/energy_scan/{energy}/sim_emcal_barrel_{{PARTICLE}}.edm4hep.root",
+            energy=ENERGY_SCAN_ENERGIES,
+        ),
     output:
         "{DETECTOR_CONFIG}/sim_output/emcal_barrel_energy_scan_points_{PARTICLE}.txt",
     run:
@@ -154,7 +163,15 @@ rule emcal_barrel_particles_energy_scan_analysis:
         expand(
             "{{DETECTOR_CONFIG}}/results/energy_scan/{energy}/emcal_barrel_{{PARTICLE}}_{plot}.png",
             energy=ENERGY_SCAN_ENERGIES,
-            plot=["Esim_layer", "Layer_nodep", "Layer_Esim_mean", "Ethr", "nhits", "Esim", "fsam"],
+            plot=[
+                "Esim_layer",
+                "Layer_nodep",
+                "Layer_Esim_mean",
+                "Ethr",
+                "nhits",
+                "Esim",
+                "fsam",
+            ],
         ),
     shell:
         """
@@ -174,7 +191,16 @@ rule emcal_barrel_pion_rejection_analysis:
         "{DETECTOR_CONFIG}/results/Barrel_emcal_pion_rej.json",
         expand(
             "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_{var_save}.png",
-            var_save=["Esim", "EsimTot", "EDep6", "EDep6OverP", "pT", "eta", "EsimScFi", "EsimScFiOverP"],
+            var_save=[
+                "Esim",
+                "EsimTot",
+                "EDep6",
+                "EDep6OverP",
+                "pT",
+                "eta",
+                "EsimScFi",
+                "EsimScFiOverP",
+            ],
         ),
         expand(
             "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_E{i}Eta{j}.png",
@@ -187,7 +213,13 @@ rule emcal_barrel_pion_rejection_analysis:
             eta_bin=range(2, 4),
             tag=(
                 ["cut_mom_ele", "cut_mom_pim", "cut_ratio_pim"]
-                + sum([[f"cut_{var}_ele", f"cut_{var}_pim", f"cut_{var}_comb"] for var in ["pT", "EDep6OverP"]], [])
+                + sum(
+                    [
+                        [f"cut_{var}_ele", f"cut_{var}_pim", f"cut_{var}_comb"]
+                        for var in ["pT", "EDep6OverP"]
+                    ],
+                    [],
+                )
             ),
             extension=["pdf", "png"],
         ),

@@ -102,13 +102,13 @@ MATPLOTLIBRC={input.matplotlibrc} \
 DETECTOR_CONFIG="""
             + DETECTOR_CONFIG
             + """ \
-        PLOT_TITLE="""
+                PLOT_TITLE="""
             + DETECTOR_CONFIG
             + """ \
-        INPUT_PATH_FORMAT=sim_output/backwards_ecal/"""
+                INPUT_PATH_FORMAT=sim_output/backwards_ecal/"""
             + DETECTOR_CONFIG
             + """/{{particle}}/{{energy}}/130to177deg/{{particle}}_{{energy}}_130to177deg.{{ix:04d}}.eicrecon.tree.edm4eic.root \
-        OUTPUT_DIR={output} \
-        python {input.script}
-        """
+                OUTPUT_DIR={output} \
+                python {input.script}
+                """
         )

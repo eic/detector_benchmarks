@@ -37,9 +37,9 @@ exec ddsim \
    --compactFile """
             + DETECTOR_PATH
             + """/{wildcards.DETECTOR_CONFIG}.xml \
-                   --inputFiles {input} \
-                   --outputFile {output}
-                """
+                           --inputFiles {input} \
+                           --outputFile {output}
+                        """
         )
 
 

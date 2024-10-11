@@ -1,13 +1,15 @@
 def get_n_events(wildcards):
     energy = float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))
     n_events = 1000 if wildcards.PARTICLE == "e-" else 2000
-    n_events = int(n_events // (energy ** 0.5))
+    n_events = int(n_events // (energy**0.5))
     return n_events
 
 
 rule backwards_ecal_sim:
     input:
-        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
+        steering_file=ancient(
+            "EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"
+        ),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -19,7 +21,7 @@ rule backwards_ecal_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=get_n_events
+        N_EVENTS=get_n_events,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -45,7 +47,8 @@ rule backwards_ecal_recon:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX="\d{4}",
-    shell: """
+    shell:
+        """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
@@ -60,15 +63,20 @@ rule backwards_ecal_recon_many:
             INDEX=range(20),
         ),
     output:
-        touch("sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag"),
+        touch(
+            "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag"
+        ),
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
+
 
 rule backwards_ecal:
     input:
         expand(
-            "sim_output/backwards_ecal/" + DETECTOR_CONFIG + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
+            "sim_output/backwards_ecal/"
+            + DETECTOR_CONFIG
+            + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/flag",
             PARTICLE=["pi-", "e-"],
             ENERGY=[
                 "100MeV",
@@ -85,14 +93,22 @@ rule backwards_ecal:
         matplotlibrc=".matplotlibrc",
         script="benchmarks/backwards_ecal/backwards_ecal.py",
     output:
-        directory("results/backwards_ecal")
+        directory("results/backwards_ecal"),
     shell:
-        """
+        (
+            """
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
-DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \
-PLOT_TITLE=""" + DETECTOR_CONFIG + """ \
-INPUT_PATH_FORMAT=sim_output/backwards_ecal/""" + DETECTOR_CONFIG + """/{{particle}}/{{energy}}/130to177deg/{{particle}}_{{energy}}_130to177deg.{{ix:04d}}.eicrecon.tree.edm4eic.root \
-OUTPUT_DIR={output} \
-python {input.script}
-"""
+DETECTOR_CONFIG="""
+            + DETECTOR_CONFIG
+            + """ \
+        PLOT_TITLE="""
+            + DETECTOR_CONFIG
+            + """ \
+        INPUT_PATH_FORMAT=sim_output/backwards_ecal/"""
+            + DETECTOR_CONFIG
+            + """/{{particle}}/{{energy}}/130to177deg/{{particle}}_{{energy}}_130to177deg.{{ix:04d}}.eicrecon.tree.edm4eic.root \
+        OUTPUT_DIR={output} \
+        python {input.script}
+        """
+        )

@@ -1,6 +1,8 @@
 rule tracking_performance_sim:
     input:
-        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
+        steering_file=ancient(
+            "EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"
+        ),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -12,7 +14,7 @@ rule tracking_performance_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=10000
+        N_EVENTS=10000,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -38,7 +40,8 @@ rule tracking_performance_recon:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX="\d{4}",
-    shell: """
+    shell:
+        """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
@@ -50,26 +53,39 @@ rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
         # TODO pass as a file list?
-        sim=lambda wildcards:
-          expand(
-              "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake_tracking_only",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
-              INDEX=range(1),
-          )
-          if wildcards.CAMPAIGN == "local" else
-          ancient(expand(
-              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
-              INDEX=range(1),
-          )),
+        sim=lambda wildcards: (
+            expand(
+                "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+                DETECTOR_CONFIG="epic_craterlake_tracking_only",
+                ENERGY=(
+                    f"{float(wildcards.MOMENTUM):.0f}GeV"
+                    if float(wildcards.MOMENTUM) >= 1
+                    else f"{float(wildcards.MOMENTUM)*1000:.0f}MeV"
+                ),
+                PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+                INDEX=range(1),
+            )
+            if wildcards.CAMPAIGN == "local"
+            else ancient(
+                expand(
+                    "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+                    DETECTOR_CONFIG="epic_craterlake",
+                    ENERGY=(
+                        f"{float(wildcards.MOMENTUM):.0f}GeV"
+                        if float(wildcards.MOMENTUM) >= 1
+                        else f"{float(wildcards.MOMENTUM)*1000:.0f}MeV"
+                    ),
+                    PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+                    INDEX=range(1),
+                )
+            )
+        ),
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
-        combined_root=temp("{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
+        combined_root=temp(
+            "{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"
+        ),
     shell:
         """
 if [[ "{wildcards.SEEDING}" == "truthseed" ]]; then
@@ -106,18 +122,18 @@ rule tracking_performance_summary_at_eta:
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
-	set +e
-	EPIC_VERSION="${{DETECTOR_VERSION:-}}"
-	EICRECON_VERSION="$(eicrecon -v | sed -n -e 's/.*\(v[0-9\.]\+\).*/\\1/p')"
-	# Legacy detection
-	: ${{EPIC_VERSION:="$(echo $DETECTOR_PATH | sed -n -e 's/.*epic-\([^-/]\+\).*/\\1/p')"}}
-	set -e
+    set +e
+    EPIC_VERSION="${{DETECTOR_VERSION:-}}"
+    EICRECON_VERSION="$(eicrecon -v | sed -n -e 's/.*\(v[0-9\.]\+\).*/\\1/p')"
+    # Legacy detection
+    : ${{EPIC_VERSION:="$(echo $DETECTOR_PATH | sed -n -e 's/.*epic-\([^-/]\+\).*/\\1/p')"}}
+    set -e
 
-	echo "ePIC version: $EPIC_VERSION"
-	echo "EICrecon version: $EICRECON_VERSION"
-	EXTRA_LEGEND="ePIC $EPIC_VERSION / EICrecon $EICRECON_VERSION"
+    echo "ePIC version: $EPIC_VERSION"
+    echo "EICrecon version: $EICRECON_VERSION"
+    EXTRA_LEGEND="ePIC $EPIC_VERSION / EICrecon $EICRECON_VERSION"
 else
-	EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
+    EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
@@ -144,18 +160,25 @@ ls {output}
 
 TRACKING_PERFORMANCE_ETA_BINS = [-3.5, -2.5, -1.0, 1.0, 2.5, 3.5]
 
+
 rule tracking_performance:
     input:
         expand(
             [
                 "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.png",
-                "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
-                "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
+                    "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
+                    "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
+                ],
+                ETA_BIN=[
+                f"{eta_min:.1f}_eta_{eta_max:.1f}"
+                for eta_min, eta_max in zip(
+                    TRACKING_PERFORMANCE_ETA_BINS[:-1],
+                    TRACKING_PERFORMANCE_ETA_BINS[1:],
+                )
             ],
-            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
         ),
     output:
-        directory("results/tracking_performances/{CAMPAIGN}/")
+        directory("results/tracking_performances/{CAMPAIGN}/"),
     shell:
         """
 mkdir {output}
@@ -179,4 +202,4 @@ rule tracking_performance_campaigns:
                 "24.03.1",
                 "24.04.0",
             ],
-        )
+        ),

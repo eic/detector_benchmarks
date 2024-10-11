@@ -65,7 +65,7 @@ rule trk_dis_analysis:
         PREFIX= ".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         INDEX="\d+",
     shell:
         """
@@ -93,7 +93,7 @@ rule trk_dis_combine:
         PREFIX= ".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         NUM_FILES="\d+",
     shell:
         """
@@ -123,7 +123,7 @@ rule trk_dis_plots:
         PREFIX= ".*",
         EBEAM="\d+",
         PBEAM="\d+",
-	MINQ2="\d+",
+        MINQ2="\d+",
         NUM_FILES="\d+",
     shell:
         """

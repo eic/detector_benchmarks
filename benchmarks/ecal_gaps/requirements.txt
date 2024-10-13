@@ -3,5 +3,7 @@ dask >= 2023
 dask_awkward
 dask_histogram
 distributed >= 2023
+matplotlib
+numpy
 pyhepmc
-uproot ~= 5.2.0
+uproot

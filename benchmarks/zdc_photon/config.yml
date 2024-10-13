@@ -29,7 +29,6 @@ bench:zdc_photon:
 collect_results:zdc_photon:
   extends: .det_benchmark
   stage: collect
-  extends: .det_benchmark
   needs: ["bench:zdc_photon"]
   script:
     - ls -al

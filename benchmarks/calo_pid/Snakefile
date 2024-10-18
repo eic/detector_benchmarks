@@ -1,0 +1,97 @@
+def format_energy_for_dd4hep(s):
+    return s.rstrip("kMGeV") + "*" + s.lstrip("0123456789")
+
+rule calo_pid_sim:
+    input:
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="(e-|pi-)",
+        ENERGY_MIN="[0-9]+[kMG]eV",
+        ENERGY_MAX="[0-9]+[kMG]eV",
+        THETA_MIN="[0-9]+",
+        THETA_MAX="[0-9]+",
+        INDEX="\d{4}",
+    params:
+        N_EVENTS=1000,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        ENERGY_MIN=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MIN),
+        ENERGY_MAX=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MAX),
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
+  --runType batch \
+  --enableGun \
+  --gun.momentumMin "{params.ENERGY_MIN}" \
+  --gun.momentumMax "{params.ENERGY_MAX}" \
+  --gun.thetaMin "{wildcards.THETA_MIN}*deg" \
+  --gun.thetaMax "{wildcards.THETA_MAX}*deg" \
+  --gun.particle {wildcards.PARTICLE} \
+  --gun.distribution eta \
+  --random.seed {params.SEED} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule calo_pid_recon:
+    input:
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    output:
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+    log:
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX="\d{4}",
+    shell: """
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget
+"""
+
+
+rule calo_pid:
+    input:
+        electrons=expand(
+            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            PARTICLE=["e-"],
+            ENERGY=["100MeVto20GeV"],
+            PHASE_SPACE=["130to177deg"],
+            INDEX=range(100),
+        ),
+        pions=expand(
+            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            PARTICLE=["pi-"],
+            ENERGY=["100MeVto20GeV"],
+            PHASE_SPACE=["130to177deg"],
+            INDEX=range(100),
+        ),
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/calo_pid/calo_pid.py",
+    output:
+        directory("results/{DETECTOR_CONFIG}/calo_pid")
+    shell:
+        """
+env \
+MATPLOTLIBRC={input.matplotlibrc} \
+DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+PLOT_TITLE={wildcards.DETECTOR_CONFIG} \
+INPUT_ELECTRONS="{input.electrons}" \
+INPUT_PIONS="{input.pions}" \
+OUTPUT_DIR={output} \
+python {input.script}
+"""

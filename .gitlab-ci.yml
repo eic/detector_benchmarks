@@ -5,6 +5,7 @@ variables:
   DETECTOR_CONFIG: epic_craterlake
   GITHUB_SHA: ''
   GITHUB_REPOSITORY: ''
+  SNAKEMAKE_FLAGS: '--cache --rerun-triggers code input params software-env'
 
 workflow:
   name: '$PIPELINE_NAME'

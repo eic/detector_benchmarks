@@ -16,7 +16,7 @@ bench:lfhcal:
   needs:
     - ["sim:lfhcal"]
   script:
-    - snakemake --cores 3 lfhcal_local
+    - snakemake $SNAKEMAKE_FLAGS --cores 3 lfhcal_local
 
 collect_results:lfhcal:
   extends: .det_benchmark
@@ -26,7 +26,7 @@ collect_results:lfhcal:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output lfhcal_local
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lfhcal_local
     - mv results{_save,}/
 
 bench:lfhcal_campaigns:
@@ -34,7 +34,7 @@ bench:lfhcal_campaigns:
   stage: benchmarks
   #when: manual
   script:
-    - snakemake --cores 1 lfhcal_campaigns
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 lfhcal_campaigns
 
 collect_results:lfhcal_campaigns:
   extends: .det_benchmark
@@ -44,5 +44,5 @@ collect_results:lfhcal_campaigns:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output lfhcal_campaigns
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lfhcal_campaigns
     - mv results{_save,}/

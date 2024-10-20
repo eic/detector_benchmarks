@@ -69,9 +69,13 @@ rule backwards_ecal_recon:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX="\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell: """
 set -m # monitor mode to prevent lingering processes
-exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters
 """

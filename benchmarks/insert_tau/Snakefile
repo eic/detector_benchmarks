@@ -39,7 +39,7 @@ rule insert_tau_recon:
         shell:
                 """
 NEVENTS_REC=1000
-eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPClusters,LFHCALClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_tau_analysis:

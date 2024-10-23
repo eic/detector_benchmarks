@@ -6,7 +6,7 @@ rule insert_tau_generate:
 		th_max=7.0,
 		th_min=1.7
 	output:
-		GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc"
+		GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
 	shell:
 		"""
 root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'

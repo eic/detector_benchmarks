@@ -1,30 +1,36 @@
-sim:insert_muon:
+sim:insert_tau:
   stage: simulate
   extends: .det_benchmark
   needs: ["common:detector"]
   parallel:
     matrix:
+      - P: 20
+      - P: 30
+      - P: 40
       - P: 50
+      - P: 60
+      - P: 80
+      - P: 100
   timeout: 1 hours
   script:
-    - snakemake --cores 1 sim_output/insert_muon/epic_craterlake_sim_mu-_${P}GeV.edm4hep.root 
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_tau/epic_craterlake_sim_tau-_${P}GeV_{0,1,2,3,4}.edm4hep.root
   retry:
     max: 2
     when:
       - runner_system_failure
 
-bench:insert_muon:
+bench:insert_tau:
   stage: benchmarks
   extends: .det_benchmark
-  needs: ["sim:insert_muon"]
+  needs: ["sim:insert_tau"]
   script:
-    - snakemake --cores 1 results/epic_craterlake/insert_muon
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/insert_tau
 
-collect_results:insert_muon:
+collect_results:insert_tau:
   stage: collect
-  needs: ["bench:insert_muon"]
+  needs: ["bench:insert_tau"]
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output results/epic_craterlake/insert_muon
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/insert_tau
     - mv results{_save,}/

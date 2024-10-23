@@ -15,10 +15,11 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "tau-", 
 rule insert_tau_simulate:
 	input:
 		GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc"
+		warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root"
 	params:
 		PHYSICS_LIST="FTFP_BERT"
 	output:
-		SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV.edm4hep.root"
+		SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root"
 	shell:
 		"""
 NEVENTS_SIM=1000
@@ -26,6 +27,7 @@ NEVENTS_SIM=1000
 npsim \
    --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
    --numberOfEvents $NEVENTS_SIM \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
    --outputFile {output.SIM_FILE}
@@ -33,9 +35,9 @@ npsim \
 
 rule insert_tau_recon:
         input:
-                SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV.edm4hep.root"
+                SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root"
         output:
-                REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV.edm4hep.root"
+                REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4hep.root"
         shell:
                 """
 NEVENTS_REC=1000
@@ -44,9 +46,11 @@ eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_fil
 
 rule insert_tau_analysis:
 	input:
-                expand("sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV.edm4hep.root",
+                expand("sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV.edm4hep_{INDEX}.root",
 		    P=[20,30, 40,50,60, 80, 100],
-		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+		    INDEX=range(5),
+                 ),
                 script="benchmarks/insert_tau/analysis/tau_plots.py",
 	output:
 		results_dir=directory("results/{DETECTOR_CONFIG}/insert_tau"),

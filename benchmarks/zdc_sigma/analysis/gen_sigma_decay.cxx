@@ -36,14 +36,12 @@ void gen_sigma_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = "
 		      double p_min = 100., // in GeV/c
 		      double p_max = 275.) // in GeV/c
 {
-  int accepted_events=0;
   const double theta_min = 0.0; // in mRad
   const double theta_max = 3.0; // in mRad
   //const double p_min = 100.; // in GeV/c
   //const double p_max = 275.; // in GeV/c
 
   WriterAscii hepmc_output(out_fname);
-  int events_parsed = 0;
   GenEvent evt(Units::GEV, Units::MM);
 
   // Random number generator
@@ -76,10 +74,11 @@ void gen_sigma_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = "
   double photon_mass = std::get<0>(photon_info);
   int photon_pdgID = std::get<1>(photon_info);
 
-  for (events_parsed = 0; events_parsed < n_events; events_parsed++) {
+  int accepted_events = 0;
+  while (accepted_events < n_events) {
 
     //Set the event number
-    evt.set_event_number(events_parsed);
+    evt.set_event_number(accepted_events);
 
     // FourVector(px,py,pz,e,pdgid,status)
     // type 4 is beam
@@ -281,7 +280,7 @@ void gen_sigma_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = "
     
     evt.add_vertex(v_pi0_decay);
 
-    if (events_parsed == 0) {
+    if (accepted_events == 0) {
       std::cout << "First event: " << std::endl;
       Print::listing(evt);
     }
@@ -294,12 +293,12 @@ void gen_sigma_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = "
       hepmc_output.write_event(evt);
       accepted_events ++;
     }
-    if (events_parsed % 1000 == 0) {
-      std::cout << "Event: " << events_parsed << " ("<<accepted_events<<" accepted)"<< std::endl;
+    if (accepted_events % 1000 == 0) {
+      std::cout << "Event: " << accepted_events << std::endl;
     }
     evt.clear();
   }
   hepmc_output.close();
 
-  std::cout << "Events generated: " << events_parsed << " ("<<accepted_events<<" accepted)"<< std::endl;
+  std::cout << "Events parsed and written: " << accepted_events << std::endl;
 }

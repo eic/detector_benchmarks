@@ -26,13 +26,10 @@ import uproot as ur
 arrays_sim={}
 momenta=50,
 for p in momenta:
-    filename=f'sim_output/insert_muon/{config}_sim_mu-_{p}GeV.edm4hep.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()
-    import gc
-    gc.collect()
-    print("read", filename)
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/insert_muon/{config}_sim_mu-_{p}GeV_{index}.edm4hep.root': 'events'
+        for index in range(5)
+    })
 
 for array in arrays_sim.values():
     tilt=-0.025
@@ -58,7 +55,7 @@ for p in 50,:
     p0=[100, .5, .05]
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
+                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     print(coeff)
     xx=np.linspace(0,.7, 100)
     MIP=coeff[1]/1000

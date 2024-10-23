@@ -3,9 +3,9 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
   GITHUB_SHA: ''
   GITHUB_REPOSITORY: ''
+  SNAKEMAKE_FLAGS: '--cache'
 
 workflow:
   name: '$PIPELINE_NAME'
@@ -89,13 +89,6 @@ common:setup:
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
-
-
-common:detector:
-  stage: initialize
-  needs: ["common:setup"]
-  script:
-    - source .local/bin/env.sh && build_detector.sh
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
@@ -103,7 +96,7 @@ common:detector:
 
 get_data:
   stage: data_init
-  needs: ["common:detector"]
+  needs: ["common:setup"]
   script:
     - source .local/bin/env.sh
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
@@ -112,10 +105,11 @@ get_data:
 
 .det_benchmark:
   needs:
-    - ["get_data","common:detector"]
+    - ["get_data","common:setup"]
   before_script:
     - mc config host add S3 https://eics3.sdcc.bnl.gov:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY}
     - source .local/bin/env.sh
+    - source /opt/detector/epic-main/setup.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
@@ -139,6 +133,7 @@ include:
   - local: 'benchmarks/tracking_performances_dis/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
   - local: 'benchmarks/barrel_hcal/config.yml'
+  - local: 'benchmarks/lfhcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
   - local: 'benchmarks/zdc_photon/config.yml'
@@ -152,7 +147,9 @@ include:
   - local: 'benchmarks/zdc_sigma/config.yml'
   - local: 'benchmarks/zdc_lambda/config.yml'
   - local: 'benchmarks/insert_neutron/config.yml'
-
+  - local: 'benchmarks/femc_electron/config.yml'
+  - local: 'benchmarks/femc_photon/config.yml'
+  - local: 'benchmarks/femc_pi0/config.yml'
 deploy_results:
   allow_failure: true
   stage: deploy
@@ -176,6 +173,9 @@ deploy_results:
     - "collect_results:insert_tau"
     - "collect_results:zdc_photon"
     - "collect_results:zdc_pi0"
+    - "collect_results:femc_electron"
+    - "collect_results:femc_photon"
+    - "collect_results:femc_pi0"
   script:
     - echo "deploy results!"
     - find results -print | sort | tee summary.txt

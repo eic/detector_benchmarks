@@ -1,0 +1,66 @@
+def get_n_events(wildcards):
+    energy = float(wildcards.P)
+    n_events = 1000
+    n_events = int(n_events // ((energy / 20) ** 0.5))
+    return n_events
+
+
+rule femc_pi0_generate:
+    input:
+        script="benchmarks/femc_pi0/analysis/gen_particles.cxx",
+    params:
+        N_EVENTS=get_n_events,
+        th_max=28,
+        th_min=2.0
+    output:
+        GEN_FILE="sim_output/femc_pi0/pi0_{P}GeV.hepmc"
+    shell:
+        """
+mkdir -p sim_output/femc_pi0
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+"""
+
+rule femc_pi0_simulate:
+    input:
+        GEN_FILE="sim_output/femc_pi0/pi0_{P}GeV.hepmc"
+    params:
+        N_EVENTS=get_n_events,
+        PHYSICS_LIST="FTFP_BERT"
+    output:
+        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
+    shell:
+        """
+# Running simulation
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --numberOfEvents {params.N_EVENTS} \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule femc_pi0_recon:
+    input:
+        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
+    output:
+        REC_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4eic.root"
+    params:
+        N_EVENTS=get_n_events,
+    shell:
+        """
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
+"""
+
+rule femc_pi0_analysis:
+    input:
+        expand("sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4eic.root",
+            P=[10, 20, 30, 40, 50, 60, 70, 80],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+        script="benchmarks/femc_pi0/analysis/femc_pi0_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/femc_pi0"),
+    shell:
+        """
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

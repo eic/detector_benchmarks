@@ -18,8 +18,10 @@ except:
 #read files
 arrays_sim={}
 for p in 20,30,40,50,60,70,80:
-    arrays_sim[p] = ur.open(f'sim_output/insert_neutron/{config}_rec_neutron_{p}GeV.edm4eic.root:events')\
-                    .arrays()
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/insert_neutron/{config}_rec_neutron_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
 
 def gauss(x, A,mu, sigma):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
@@ -77,7 +79,7 @@ slc=abs(bc)<3
 fnc=gauss
 sigma=np.sqrt(y[slc])+(y[slc]==0)
 p0=(100, 0, 5)
-coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
 xx=np.linspace(-5,5,100)
 plt.plot(xx,fnc(xx,*coeff))
 # except:
@@ -102,7 +104,7 @@ for eta_min, eta_max in zip(r[:-1],r[1:]):
         #print(bc[slc],y[slc])
         sigma=np.sqrt(y[slc])+(y[slc]==0)
         try:
-            coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
             sigmas.append(np.abs(coeff[2]))
             dsigmas.append(np.sqrt(var_matrix[2][2]))
             xvals.append(p)
@@ -149,7 +151,7 @@ for p in 20, 30,40,50,60,70, 80:
         sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
         p0=(100, np.mean(r), np.std(r))
         try:
-            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
             res=np.abs(coeff[2]/coeff[1])
             
             if res<best_res:
@@ -232,7 +234,7 @@ for eta_min, eta_max in zip(partitions[:-1],partitions[1:]):
         sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
         p0=(100, np.mean(r), np.std(r))
         try:
-            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
             res=np.abs(coeff[2]/coeff[1])
 
             if res<best_res:

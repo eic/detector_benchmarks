@@ -23,14 +23,11 @@ import uproot as ur
 arrays_sim={}
 momenta=20, 30, 50, 70, 100, 150, 200, 275
 for p in momenta:
-    filename=f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV.edm4hep.root'
-    print("opening file", filename)
-    events = ur.open(filename+':events')
-    arrays_sim[p] = events.arrays()#[:-1] #remove last event, which for some reason is blank
-    import gc
-    gc.collect()
-    print("read", filename)
-    
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
+
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 pvals=[]
 resvals=[]
@@ -60,7 +57,7 @@ for p in momenta:
     p0=[100, p, 10]
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
+                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     if p==100:
         xx=np.linspace(p*0.75,p*1.25, 100)
         plt.plot(xx, fnc(xx,*coeff))
@@ -81,7 +78,7 @@ xx=np.linspace(15, 275, 100)
 fnc=lambda E,a: a/np.sqrt(E)
 #pvals, resvals, dresvals
 coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
-                                 sigma=dresvals)
+                                 sigma=dresvals, maxfev=10000)
 
 xx=np.linspace(15, 275, 100)
 plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}$')
@@ -132,7 +129,7 @@ for p in momenta:
     p0=[100, 0, 0.1]
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
+                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     if p==100:
         xx=np.linspace(-0.5,0.5, 100)
         plt.plot(xx, fnc(xx,*coeff))
@@ -146,7 +143,7 @@ plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
 fnc=lambda E,a, b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals
 coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.1),
-                                 sigma=dresvals)
+                                 sigma=dresvals, maxfev=10000)
 
 xx=np.linspace(15, 275, 100)
 

@@ -7,6 +7,9 @@ include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
 include: "benchmarks/tracking_performances_dis/Snakefile"
+include: "benchmarks/lfhcal/Snakefile"
+include: "benchmarks/insert_muon/Snakefile"
+include: "benchmarks/zdc_lambda/Snakefile"
 include: "benchmarks/zdc_lyso/Snakefile"
 include: "benchmarks/insert_muon/Snakefile"
 include: "benchmarks/zdc_lambda/Snakefile"
@@ -15,6 +18,9 @@ include: "benchmarks/zdc_pi0/Snakefile"
 include: "benchmarks/zdc_sigma/Snakefile"
 include: "benchmarks/insert_neutron/Snakefile"
 include: "benchmarks/insert_tau/Snakefile"
+include: "benchmarks/femc_electron/Snakefile"
+include: "benchmarks/femc_photon/Snakefile"
+include: "benchmarks/femc_pi0/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
@@ -32,6 +38,9 @@ def get_remote_path(path):
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
+    params:
+        # wildcards are not included in hash for caching, we need to add them as params
+        PATH=lambda wildcards: wildcards.PATH
     cache: True
     retries: 3
     shell: """

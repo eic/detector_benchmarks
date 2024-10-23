@@ -191,7 +191,7 @@ slc=abs(bc)<0.3
 fnc=gauss
 p0=[100, 0, 0.05]
 coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0))
+                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
 x=np.linspace(-1, 1)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
@@ -214,7 +214,7 @@ for p in momenta:
     #print(bc[slc],y[slc])
     sigma=np.sqrt(y[slc])+(y[slc]==0)
     try:
-        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
         sigmas.append(coeff[2])
         dsigmas.append(np.sqrt(var_matrix[2][2]))
         xvals.append(p)
@@ -259,7 +259,7 @@ slc=abs(bc)<5
 fnc=gauss
 p0=[100, 0, 1]
 coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0))
+                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
 x=np.linspace(-5, 5)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 print(coeff[2], np.sqrt(var_matrix[2][2]))
@@ -284,7 +284,7 @@ for p in momenta:
     #print(bc[slc],y[slc])
     sigma=np.sqrt(y[slc])+(y[slc]==0)
     try:
-        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
         sigmas.append(coeff[2])
         dsigmas.append(np.sqrt(var_matrix[2][2]))
         xvals.append(p)
@@ -327,7 +327,7 @@ slc=abs(bc-lambda_mass)<0.07
 fnc=gauss
 p0=[100, lambda_mass, 0.04]
 coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0))
+                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
 x=np.linspace(0.8, 1.3, 200)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 print(coeff[2], np.sqrt(var_matrix[2][2]))
@@ -350,7 +350,7 @@ for p in momenta:
     p0=[100, lambda_mass, 0.05]
     try:
         coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                       sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
+                                       sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
         x=np.linspace(0.8, 1.3, 200)
         sigmas.append(coeff[2])
         dsigmas.append(np.sqrt(var_matrix[2][2]))

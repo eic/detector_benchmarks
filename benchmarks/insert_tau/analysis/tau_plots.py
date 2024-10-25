@@ -36,15 +36,7 @@ for a in arrays_sim.values():
     
         E=a[f'{det}Clusters.energy']
         
-        
-        #if det=="EcalEndcapPInsert":
-        #    E=E/1.08
-        E=E*(-0*E+1.2)
-        
-        
-        #uncorr=(e/w+h)
-        #s=-0.0064*uncorr+1.80
-        #r=uncorr*s #reconstructed energy with correction
+        #todo apply corrections depending on whether this is an electromagnetic or hadronic shower.  
         
         x=a[f'{det}Clusters.position.x']
         y=a[f'{det}Clusters.position.y']

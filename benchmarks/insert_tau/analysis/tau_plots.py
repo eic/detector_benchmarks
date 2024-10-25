@@ -17,7 +17,14 @@ except:
     pass
 
 import uproot as ur
-arrays_sim={p:ur.open(f'sim_output/insert_tau/{config}_rec_tau-_{p}GeV.edm4eic.root:events').arrays() for p in (20, 30, 40, 50, 60,80,100)}
+arrays_sim={}
+momenta=20, 30, 40, 50, 60,80,100
+for p in momenta:
+    arrays_sim[p] = ur.concatenate({
+        f'sim_output/insert_tau/{config}_rec_tau-_{p}GeV_{index}.edm4eic.root': 'events'
+        for index in range(5)
+    })
+
 
 for a in arrays_sim.values():
     #recon

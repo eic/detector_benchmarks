@@ -16,6 +16,8 @@ rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
         "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
+	"benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
+        "benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so"
 
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
@@ -49,7 +51,7 @@ rule trk_dis_reco:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations
+  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations,CentralTrackVertices,
 """
 
 # Process the files -- either from the campaign or local running -- through the analysis script
@@ -61,6 +63,35 @@ rule trk_dis_analysis:
     output:
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
         hists="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/hists.root",
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        INDEX="\d+",
+    shell:
+        """
+cat > {output.config} <<EOF
+{{
+  "rec_file": "{input.data}",
+  "detector": "{wildcards.DETECTOR_CONFIG}",
+  "ebeam": {wildcards.EBEAM},
+  "pbeam": {wildcards.PBEAM},
+  "Min_Q2": {wildcards.MINQ2},
+  "output_prefix": "$(dirname "{output.hists}")/hists"
+}}
+EOF
+root -l -b -q '{input.script}+("{output.config}")'
+"""
+
+rule vtx_dis_analysis:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis.cxx",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
+        data="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+    output:
+        config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
+        hists="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/hists.root",
     wildcard_constraints:
         PREFIX= ".*",
         EBEAM="\d+",
@@ -111,6 +142,34 @@ EOF
 hadd {output.hists} {input}
 """
 
+rule vtx_dis_combine:
+    input:
+        lambda wildcards: [f"results/vertexing_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
+    output:
+        config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        hists="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/hists.root",
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        NUM_FILES="\d+",
+    shell:
+        """
+cat > {output.config} <<EOF
+{{
+  "hists_file": "{output.hists}",
+  "detector": "{wildcards.DETECTOR_CONFIG}",
+  "ebeam": {wildcards.EBEAM},
+  "pbeam": {wildcards.PBEAM},
+  "Min_Q2": {wildcards.MINQ2},
+  "nfiles": {wildcards.NUM_FILES},
+  "output_prefix": "$(dirname "{output.hists}")/plots"
+}}
+EOF
+hadd {output.hists} {input}
+"""
+
 #Process the merged file through the plotting script
 rule trk_dis_plots:
     input:
@@ -130,6 +189,23 @@ rule trk_dis_plots:
 root -l -b -q '{input.script}+("{input.config}")'
 """
 
+rule vtx_dis_plots:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots.cxx",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so",
+        config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+    output:
+        "results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
+    wildcard_constraints:
+        PREFIX= ".*",
+        EBEAM="\d+",
+        PBEAM="\d+",
+	MINQ2="\d+",
+        NUM_FILES="\d+",
+    shell:
+        """
+root -l -b -q '{input.script}+("{input.config}")'
+"""
 
 #Examples of invocation
 rule trk_dis_run_locally:

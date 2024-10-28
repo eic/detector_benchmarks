@@ -20,8 +20,8 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {pa
 
 rule insert_tau_simulate:
     input:
-        GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc"
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root"
+        GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     params:
         N_EVENTS=get_n_events,
         PHYSICS_LIST="FTFP_BERT",
@@ -41,11 +41,11 @@ npsim \
 
 rule insert_tau_recon:
     input:
-        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root"
+        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
     params:
         N_EVENTS=get_n_events,
     output:
-        REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4hep.root"
+        REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4hep.root",
     shell:
         """
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPClusters,LFHCALClusters  -Pjana:nevents={params.N_EVENTS}

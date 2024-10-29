@@ -7,6 +7,7 @@
 #include <TFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TF1.h>
 #include <TMath.h>
 #include <TStyle.h>
 #include <TLegend.h>

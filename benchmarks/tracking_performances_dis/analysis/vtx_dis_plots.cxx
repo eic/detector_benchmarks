@@ -338,7 +338,6 @@ void vtx_dis_plots(const std::string& config_name)
     
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
-    auto output_prefix = "plots";
     // Print plots to pdf file
     c1->Print(fmt::format("{}.pdf[", output_prefix).c_str());
     c2->Print(fmt::format("{}.pdf", output_prefix).c_str());

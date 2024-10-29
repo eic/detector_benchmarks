@@ -214,10 +214,23 @@ rule trk_dis_run_locally:
     message:
         "See output in {input[0]}"
 
+rule vtx_dis_run_locally:
+    input:
+        "results/vertexing_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+    message:
+        "See output in {input[0]}"
+
 
 rule trk_dis_run_locally_trk_only:
     input:
         "results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+    message:
+        "See output in {input[0]}"
+
+
+rule vtx_dis_run_locally_trk_only:
+    input:
+        "results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
     message:
         "See output in {input[0]}"
 

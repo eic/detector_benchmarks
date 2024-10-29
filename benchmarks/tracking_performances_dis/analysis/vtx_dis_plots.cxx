@@ -340,6 +340,7 @@ void vtx_dis_plots(const std::string& config_name)
 
     // Print plots to pdf file
     c1->Print(fmt::format("{}.pdf[", output_prefix).c_str());
+    c1->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c2->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c3->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c4->Print(fmt::format("{}.pdf", output_prefix).c_str());
@@ -356,6 +357,7 @@ void vtx_dis_plots(const std::string& config_name)
     c15->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c16->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c17->Print(fmt::format("{}.pdf", output_prefix).c_str());
+    c18->Print(fmt::format("{}.pdf", output_prefix).c_str());
     c18->Print(fmt::format("{}.pdf]", output_prefix).c_str());
     
 }

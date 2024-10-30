@@ -1,0 +1,48 @@
+sim:lfhcal:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["neutron", "pi-"]
+        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
+  script:
+    - |
+      snakemake --cache --cores 5 \
+        sim_output/lfhcal/epic_craterlake/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.tree.edm4eic.root
+
+bench:lfhcal:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:lfhcal"]
+  script:
+    - snakemake --cores 3 lfhcal_local
+
+collect_results:lfhcal:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:lfhcal"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output lfhcal_local
+    - mv results{_save,}/
+
+bench:lfhcal_campaigns:
+  extends: .det_benchmark
+  stage: benchmarks
+  #when: manual
+  script:
+    - snakemake --cores 1 lfhcal_campaigns
+
+collect_results:lfhcal_campaigns:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:lfhcal_campaigns"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output lfhcal_campaigns
+    - mv results{_save,}/

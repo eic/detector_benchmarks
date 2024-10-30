@@ -1,0 +1,58 @@
+rule femc_electron_generate:
+	input:
+                script="benchmarks/femc_electron/analysis/gen_particles.cxx",
+	params:
+		NEVENTS_GEN=1000,
+		th_max=28,
+		th_min=2.0
+	output:
+		GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+	shell:
+		"""
+mkdir -p sim_output/femc_electron
+root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "e-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+"""
+
+rule femc_electron_simulate:
+	input:
+		GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+	params:
+		PHYSICS_LIST="FTFP_BERT"
+	output:
+		SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+	shell:
+		"""
+NEVENTS_SIM=1000
+# Running simulation
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --numberOfEvents $NEVENTS_SIM \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule femc_electron_recon:
+        input:
+                SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+        output:
+                REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root"
+        shell:
+                """
+NEVENTS_REC=1000
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters  -Pjana:nevents=$NEVENTS_REC
+"""
+
+rule femc_electron_analysis:
+	input:
+                expand("sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root",
+		    P=[10, 20, 30, 40, 50, 60, 70, 80],
+		    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"]),
+                script="benchmarks/femc_electron/analysis/femc_electron_plots.py",
+	output:
+		results_dir=directory("results/{DETECTOR_CONFIG}/femc_electron"),
+	shell:
+		"""
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

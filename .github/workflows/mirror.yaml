@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: mirror
+  group: mirror-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:

@@ -1,0 +1,35 @@
+sim:tracking_performances_dis:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - snakemake --cache --cores 5 results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/hists.root 
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:tracking_performances_dis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:tracking_performances_dis"]
+  script:
+    - snakemake --cores 1 trk_dis_run_locally_trk_only
+    # avoid uploading intermediate results
+    - find results/tracking_performances_dis/ -mindepth 2 -maxdepth 2 -type d ! -name "*combined*" | xargs rm -rfv
+
+collect_results:tracking_performances_dis:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:tracking_performances_dis"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake --cores 1 --delete-all-output trk_dis_run_locally_trk_only
+    - mv results{_save,}/
+    # convert to png
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plot_%03d.png' \
+        results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf

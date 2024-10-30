@@ -1,0 +1,62 @@
+rule zdc_photon_generate:
+	input:
+                script="benchmarks/zdc_photon/analysis/gen_particles.cxx",
+	params:
+		th_max=0.23,
+		th_min=0
+	output:
+		GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc"
+	shell:
+		"""
+NEVENTS_GEN=200
+mkdir -p sim_output/zdc_photon
+root -l -b -q '{input.script}('$NEVENTS_GEN',"{output.GEN_FILE}", "gamma", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+"""
+
+rule zdc_photon_simulate:
+	input:
+                GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+	params:
+		PHYSICS_LIST="FTFP_BERT"
+	output:
+		SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root"
+	shell:
+		"""
+# Running simulation
+NEVENTS_SIM=200
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --physicsList {params.PHYSICS_LIST} \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
+   --numberOfEvents $NEVENTS_SIM \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule zdc_photon_recon:
+        input:
+                SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root"
+        output:
+                REC_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root"
+        shell:
+                """
+NEVENTS_REC=200
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits -Pjana:nevents=$NEVENTS_REC
+"""
+
+rule zdc_photon_analysis:
+	input:
+                expand("sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
+		    P=[20, 30, 50, 70, 100, 150, 200, 275],
+                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+                    INDEX=range(5),
+                ),
+                script="benchmarks/zdc_photon/analysis/zdc_photon_plots.py",
+	output:
+		results_dir=directory("results/{DETECTOR_CONFIG}/zdc_photon"),
+	shell:
+		"""
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

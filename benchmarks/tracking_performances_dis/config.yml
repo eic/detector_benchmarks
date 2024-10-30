@@ -3,7 +3,6 @@ sim:tracking_performances_dis:
   stage: simulate
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 5 results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/hists.root
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/hists.root
   retry:
     max: 2
     when:

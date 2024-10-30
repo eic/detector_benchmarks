@@ -1,25 +1,30 @@
 rule beamline_sim:
     input:
-        inputfile="/scratch/EIC/Events/el_beam_18.hepmc",
+        macro="beamGPS.mac",
     output:
         "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
     log:
         "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root.log",
-    params:
-        N_EVENTS=10000
     shell:
         """
             exec npsim \
-            --runType batch \
-            --inputFiles {input.inputfile} \
-            --random.seed 1234 \
-            --numberOfEvents {params.N_EVENTS} \
+            --runType run \
+            --enableG4GPS \
+            --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
-            --outputFile {output}
+            --outputFile {output} \
         """
-rule beamline_analysis
+
+rule beamline_analysis:
     input:
         "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
     output:
         "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis.root"
     log:
+        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis.root.log"
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    shell:
+        """
+            root -l -b -q 'analysis.C("{input}", "{output}", "{params.xml}")'
+        """

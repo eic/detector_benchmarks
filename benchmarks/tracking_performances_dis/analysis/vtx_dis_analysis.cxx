@@ -130,7 +130,7 @@ void vtx_dis_analysis(const std::string& config_name)
     
     TH2D *recoVtxRvsZHist = new TH2D("recoVtxRvsZ","",200,-100.,100.,100,0.,0.8);
     recoVtxRvsZHist->Draw("COLZ");
-    recoVtxRvsZHist->SetTitle("Reconstrcuted Vertex: v_{r} versus v_{z}");
+    recoVtxRvsZHist->SetTitle("Reconstructed Vertex: v_{r} versus v_{z}");
     recoVtxRvsZHist->GetXaxis()->SetTitle("z-coordinate (in mm)");
     recoVtxRvsZHist->GetYaxis()->SetTitle("#sqrt{x^{2} + y^{2}} (in mm)");
     recoVtxRvsZHist->GetXaxis()->CenterTitle(); recoVtxRvsZHist->GetYaxis()->CenterTitle();

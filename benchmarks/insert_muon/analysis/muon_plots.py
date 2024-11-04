@@ -55,7 +55,7 @@ for p in 50,:
     p0=[100, .5, .05]
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)))
+                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     print(coeff)
     xx=np.linspace(0,.7, 100)
     MIP=coeff[1]/1000

@@ -131,7 +131,7 @@ for p in arrays_sim:
     sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
     p0=(100, p, 3)
 
-    coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+    coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
     #res=np.abs(coeff[2]/coeff[1])
     if p==50:
         xx=np.linspace(15*p/20,22*p/20, 100)
@@ -150,7 +150,7 @@ plt.sca(axs[1])
 plt.errorbar(pvals, 100*np.array(res), 100*np.array(dres), ls='', marker='o')
 fnc = lambda E, a, b: np.hypot(a,b/np.sqrt(E))
 p0=(.05, .12)
-coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0,sigma=dres)
+coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0, sigma=dres, maxfev=10000)
 xx=np.linspace(7, 85, 100)
 plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
 plt.legend()
@@ -188,7 +188,7 @@ for eta_min, eta_max in zip(partitions[:-1], partitions[1:]):
         sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
         p0=(100, p, 3)
         try:
-            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0,sigma=list(sigma))
+            coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
             if abs(coeff[1])>100 or np.sqrt(var_matrix[1][1])>100:
                 continue
             pvals.append(p)

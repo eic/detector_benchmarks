@@ -11,7 +11,7 @@ sim:insert_neutron:
       - P: 70
       - P: 80
   script:
-    - snakemake --cores 5 sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
   retry:
     max: 2
     when:
@@ -22,7 +22,7 @@ bench:insert_neutron:
   stage: benchmarks
   needs: ["sim:insert_neutron"]
   script:
-    - snakemake --cores 1 results/epic_craterlake/insert_neutron
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/insert_neutron
 
 collect_results:insert_neutron:
   extends: .det_benchmark
@@ -31,5 +31,5 @@ collect_results:insert_neutron:
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output results/epic_craterlake/insert_neutron
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/insert_neutron
     - mv results{_save,}/

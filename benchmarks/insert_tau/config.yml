@@ -26,6 +26,7 @@ bench:insert_tau:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/insert_tau
 
 collect_results:insert_tau:
+  extends: .det_benchmark
   stage: collect
   needs: ["bench:insert_tau"]
   script:

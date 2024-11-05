@@ -157,6 +157,7 @@ deploy_results:
     - "collect_results:backwards_ecal"
     - "collect_results:barrel_ecal"
     - "collect_results:barrel_hcal"
+    - "collect_results:lfhcal"
     - "collect_results:ecal_gaps"
     - "collect_results:material_scan"
     - "collect_results:pid"

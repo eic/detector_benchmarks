@@ -86,3 +86,23 @@ rule org2py:
         """
 awk -f {input.converter} {input.notebook} > {output}
 """
+
+
+rule metadata:
+    output:
+        "results/metadata.json"
+    shell:
+        """
+cat > {output} <<EOF
+{{
+  "CI_COMMIT_REF_NAME": "${{CI_COMMIT_REF_NAME:-}}",
+  "CI_COMMIT_SHA": "${{CI_COMMIT_SHA:-}}",
+  "CI_PIPELINE_ID": "${{CI_PIPELINE_ID:-}}",
+  "CI_PIPELINE_SOURCE": "${{CI_PIPELINE_SOURCE:-}}",
+  "CI_PROJECT_ID": "${{CI_PROJECT_ID:-}}",
+  "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
+}}
+EOF
+# validate JSON
+jq '.' {output}
+"""

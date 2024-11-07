@@ -16,7 +16,7 @@ sim:backwards_ecal:
         ]
   script:
     - |
-      snakemake --cache --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
+      snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/backwards_ecal/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg/flag
 
 bench:backwards_ecal:
   extends: .det_benchmark
@@ -26,7 +26,7 @@ bench:backwards_ecal:
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
-    - snakemake --cores 1 backwards_ecal
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 backwards_ecal
 
 collect_results:backwards_ecal:
   extends: .det_benchmark
@@ -36,5 +36,5 @@ collect_results:backwards_ecal:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake --cores 1 --delete-all-output backwards_ecal
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output backwards_ecal
     - mv results{_save,}/

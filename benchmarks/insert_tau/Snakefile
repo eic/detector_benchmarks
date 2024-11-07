@@ -1,0 +1,68 @@
+def get_n_events(wildcards):
+    energy = float(wildcards.P)
+    n_events = 1000
+    n_events = int(n_events // ((energy / 20) ** 0.5))
+    return n_events
+
+rule insert_tau_generate:
+    input:
+        script="benchmarks/insert_tau/analysis/gen_particles.cxx",
+    params:
+        N_EVENTS=get_n_events,
+        th_max=7.0,
+        th_min=1.7,
+    output:
+        GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
+    shell:
+        """
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+"""
+
+rule insert_tau_simulate:
+    input:
+        GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    params:
+        N_EVENTS=get_n_events,
+        PHYSICS_LIST="FTFP_BERT",
+    output:
+        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root"
+    shell:
+        """
+# Running simulation
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --numberOfEvents {params.N_EVENTS} \
+   --skipNEvents $(( {params.N_EVENTS} * {wildcards.INDEX} )) \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule insert_tau_recon:
+    input:
+        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=get_n_events,
+    output:
+        REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",
+    shell:
+        """
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPClusters,LFHCALClusters  -Pjana:nevents={params.N_EVENTS}
+"""
+
+rule insert_tau_analysis:
+    input:
+        expand("sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",
+            P=[20, 30, 40, 50, 60, 80, 100],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/insert_tau/analysis/tau_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/insert_tau"),
+    shell:
+        """
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

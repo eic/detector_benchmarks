@@ -195,6 +195,7 @@ void vtx_dis_analysis(const std::string& config_name)
     while (tree_reader.Next()) {
 
 	    if(counter%100==0) std::cout<<"Analyzing event "<<counter<<std::endl;
+	    
 	    counter++;
 
     	//////////////////////////////////////////////////////////////////////////
@@ -299,8 +300,7 @@ void vtx_dis_analysis(const std::string& config_name)
   	}
   
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    
-    recoVtxEffHist->Scale(100./counter);
+    recoVtxEffHist->Scale(100/counter);
     ofile->Write(); // Write histograms to file
     ofile->Close(); // Close output file
 

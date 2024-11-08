@@ -169,9 +169,10 @@ void vtx_dis_plots(const std::string& config_name)
     TCanvas *c2 = new TCanvas("c2","Vertexing Efficiency",800,600);
     int nevents(0);
     for(int i=0; i<=heff->GetNbinsX(); i++) nevents = nevents + heff->GetBinContent(i);
+    heff->Scale(100./nevents);
 	
     c2->cd(1);
-    heff->Draw("p");
+    heff->Draw("pe");
     
     // MC vx versus vy Vertex
     TCanvas *c3 = new TCanvas("c3","MC Vertices",800,600);

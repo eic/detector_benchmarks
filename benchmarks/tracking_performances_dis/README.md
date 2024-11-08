@@ -6,5 +6,6 @@ This benchmark generates and reconstructs DIS events. The generated charged-part
 
 ## Contact
 [Barak Schmookler](baraks@ucr.edu)
+[Khushi Singla](ksingla.phy@gmail.com)
 
 

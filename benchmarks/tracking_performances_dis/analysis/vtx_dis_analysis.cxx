@@ -300,8 +300,6 @@ void vtx_dis_analysis(const std::string& config_name)
   	}
   
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    recoVtxEffHist->Scale(1./counter);
-    recoVtxEffHist->Scale(100.);
     ofile->Write(); // Write histograms to file
     ofile->Close(); // Close output file
 

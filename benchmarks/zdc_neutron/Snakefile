@@ -1,6 +1,3 @@
-import os
-
-
 # Generate the single neutrons and put them into a HepMC file
 rule zdc_neutron_hepmc:
     input:
@@ -25,7 +22,8 @@ rule zdc_neutron_sim:
         num_events=100,
     shell:
         """
-npsim \
+set -m # monitor mode to prevent lingering processes
+exec npsim \
   --runType batch \
   -v WARNING \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \

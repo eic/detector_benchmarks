@@ -51,7 +51,7 @@ rule trk_dis_reco:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations
+  -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations,CentralTrackVertices
 """
 
 # Process the files -- either from the campaign or local running -- through the analysis script

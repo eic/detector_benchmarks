@@ -22,11 +22,21 @@ def get_spack_package_hash(package_name):
         print(e)
         return ""
 
+@functools.cache
+def find_epic_libraries():
+    # if library is not found (not avaliable) we return an empty list to let DAG still evaluate
+    libs = []
+    lib = ctypes.util.find_library("epic")
+    if lib is not None:
+        libs.append(os.environ["DETECTOR_PATH"] + "/../../lib/" + lib)
+    return libs
+
+
 rule backwards_ecal_sim:
     input:
         steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-        geometry_lib=os.environ["DETECTOR_PATH"] + "/../../lib/" + ctypes.util.find_library("epic"),
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:

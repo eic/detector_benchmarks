@@ -180,7 +180,7 @@ deploy_results:
     - "collect_results:femc_photon"
     - "collect_results:femc_pi0"
   script:
-    - echo "deploy results!"
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
     - xrdfs $XROOTD_RW_ENDPOINT mkdir $XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
     - xrdcp -r results $XROOTD_RW_ENDPOINT/$XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID

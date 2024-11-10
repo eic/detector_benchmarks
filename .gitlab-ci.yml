@@ -136,6 +136,7 @@ include:
   - local: 'benchmarks/lfhcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
+  - local: 'benchmarks/zdc_neutron/config.yml'
   - local: 'benchmarks/zdc_photon/config.yml'
   - local: 'benchmarks/zdc_pi0/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
@@ -170,6 +171,7 @@ deploy_results:
     - "collect_results:tracking_performances_dis"
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
+    - "collect_results:zdc_neutron"
     - "collect_results:insert_muon"
     - "collect_results:insert_tau"
     - "collect_results:zdc_photon"

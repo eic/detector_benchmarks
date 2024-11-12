@@ -49,23 +49,20 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 """
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
-
 rule ecal_gaps:
     input:
         matplotlibrc=".matplotlibrc",
         script="benchmarks/ecal_gaps/ecal_gaps.py",
         # TODO pass as a file list?
         _=expand(
-            "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            DETECTOR_CONFIG=DETECTOR_CONFIG,
+            "sim_output/ecal_gaps/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
             PARTICLE=["e-"],
             ENERGY=["500MeV", "5GeV", "20GeV"],
             PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
             INDEX=range(1),
         ),
     output:
-        directory("results/ecal_gaps"),
+        directory("results/{DETECTOR_CONFIG}/ecal_gaps"),
     threads: workflow.cores
     shell:
         """
@@ -85,5 +82,6 @@ WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
 OUTPUT_DIR={output} \
+DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 python {input.script}
 """

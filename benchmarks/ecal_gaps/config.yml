@@ -4,7 +4,7 @@ sim:ecal_gaps:
   script:
     - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
-    - snakemake $SNAKEMAKE_FLAGS --cache --cores 10 results/epic/ecal_gaps --omit-from ecal_gaps
+    - snakemake $SNAKEMAKE_FLAGS --cache --cores 10 results/epic_inner_detector/ecal_gaps --omit-from ecal_gaps
 
 bench:ecal_gaps:
   extends: .det_benchmark
@@ -15,7 +15,7 @@ bench:ecal_gaps:
     - ln -s $LOCAL_DATA_PATH/input input
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/ecal_gaps/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores 8 results/epic/ecal_gaps
+    - snakemake $SNAKEMAKE_FLAGS --cores 8 results/epic_inner_detector/ecal_gaps
 
 collect_results:ecal_gaps:
   extends: .det_benchmark
@@ -25,5 +25,5 @@ collect_results:ecal_gaps:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic/ecal_gaps
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_inner_detector/ecal_gaps
     - mv results{_save,}/

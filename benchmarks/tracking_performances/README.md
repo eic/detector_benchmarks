@@ -2,7 +2,7 @@ Shyam Kumar; INFN Bari, Italy; shyam055119@gmail.com
 Method to produce the tracking performances with ePIC tracker
 The scripts can be used to create the debug plots for the momentum resolutions.
 
-To run a full simulation-reconstruction-analysis chain do:
+To run a full simulation-reconstruction-analysis chain, start in the top-level directory of the detector_benchmarks repository (`cd ../..` relative to this one) and do:
 ```
 snakemake -c2 results/tracking_performances/local
 ```

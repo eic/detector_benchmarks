@@ -12,7 +12,7 @@ rule tracking_performance_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX="\d{4}",
     params:
-        N_EVENTS=10000
+        N_EVENTS=50000
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -94,15 +94,31 @@ rule tracking_performance_summary_at_eta:
             ],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
         ),
-        script="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
+        script_mom="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
+        script_dcaT="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaT.C",
+        script_dcaz="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaz.C",
     output:
         expand(
             "{{CAMPAIGN}}/Debug_Plots/{SEEDING}/pi-/mom/{SEEDING}_mom_resol_mom{MOMENTUM:.1f}_{{ETA_MIN}}_eta_{{ETA_MAX}}.png",
             SEEDING=["real", "truth"],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
         ),
+        expand(
+            "{{CAMPAIGN}}/Debug_Plots/{SEEDING}/pi-/dca/{SEEDING}_dcaxy_resol_mom{MOMENTUM:.1f}_{{ETA_MIN}}_eta_{{ETA_MAX}}.png",
+            SEEDING=["real", "truth"],
+            MOMENTUM=[0.2, 0.3, 0.5,1.0, 1.5, 2.0, 5.0, 8.0, 10., 15.0],
+        ),
+        expand(
+            "{{CAMPAIGN}}/Debug_Plots/{SEEDING}/pi-/dca/{SEEDING}_dcaz_resol_mom{MOMENTUM:.1f}_{{ETA_MIN}}_eta_{{ETA_MAX}}.png",
+            SEEDING=["real", "truth"],
+            MOMENTUM=[0.2, 0.3, 0.5,1.0, 1.5, 2.0, 5.0, 8.0, 10., 15.0],
+        ),
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root", 
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -119,8 +135,12 @@ if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
 else
 	EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
+hadd -f {wildcards.CAMPAIGN}/truthseed/pi-/dca/final_hist_dca_truthseed.root {wildcards.CAMPAIGN}/truthseed/pi-/dca/Performances_dca* 
+hadd -f {wildcards.CAMPAIGN}/realseed/pi-/dca/final_hist_dca_realseed.root {wildcards.CAMPAIGN}/realseed/pi-/dca/Performances_dca*            
 cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q ../{input.script_mom}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q ../{input.script_dcaT}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q ../{input.script_dcaz}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
 """
 
 

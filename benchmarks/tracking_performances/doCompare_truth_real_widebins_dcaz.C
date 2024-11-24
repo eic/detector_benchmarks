@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 void draw_req_DCA(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString epic ="", TString eicrecon = "") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString extra_legend = "") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -33,9 +33,6 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
    TString symbolname = "";
    if (particle == "pi-") symbolname = "#pi^{-}"; 
    else symbolname = particle;
-   // Write the parameters in text file (for comparison)
-   ofstream outfile;
-   outfile.open ("DCAZ_resol.txt",ios_base::app);  
    
    TF1 *f1=new TF1("f1","FitPointingAngle",0.,30.0,2);
    f1->SetParLimits(0,0.,50000);	
@@ -55,7 +52,8 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
 	  lDCAZ = new TLegend(0.70,0.80,0.90,0.93);
 	  lDCAZ->SetTextSize(0.03);
 	  lDCAZ->SetBorderSize(0);
-	  lDCAZ->SetHeader(Form("%s ePIC(%s/%s): %1.1f < #eta < %1.1f",symbolname.Data(),epic.Data(),eicrecon.Data(),etamin,etamax),"C");
+    lDCAZ->SetHeader(extra_legend.Data(), "C");
+    lDCAZ->AddEntry((TObject*)0, Form("%s, %1.1f < #eta < %1.1f", symbolname.Data(), etamin, etamax), "C");
       
     fDCA_truth = TFile::Open(Form("./truthseed/%s/dca/final_hist_dca_truthseed.root",particle.Data()));
 	  fDCA_real = TFile::Open(Form("./realseed/%s/dca/final_hist_dca_realseed.root",particle.Data()));
@@ -85,7 +83,7 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
     TH1D *histd0z_truth_1d = (TH1D*)hist_d0z_truth->ProjectionX(Form("histd0z_truth_eta%1.1f_%1.1f_pt%1.1f_%1.1f",etamin,etamax,ptmin,ptmax),etamin_bin,etamax_bin,ptmin_bin,ptmax_bin,"o");
     histd0z_truth_1d->SetTitle(Form("d0_{z} (truth): %1.1f <#eta< %1.1f && %1.2f <p_{T}< %1.2f",etamin,etamax,ptmin,ptmax));   
     histd0z_truth_1d->SetName(Form("eta_%1.1f_%1.1f_d0z_truth_pt_%1.1f",etamin,etamax,pt[iptbin]));  
-   if (histd0z_truth_1d->GetEntries()<100) continue;
+  // if (histd0z_truth_1d->GetEntries()<100) continue;
    double mu_truth = histd0z_truth_1d->GetMean(); 
    double sigma_truth = histd0z_truth_1d->GetStdDev();
    func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
@@ -104,7 +102,7 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
     histd0z_real_1d->SetTitle(Form("d0_{z} (real): %1.1f <#eta< %1.1f && %1.2f <p_{T}< %1.2f",etamin,etamax,ptmin,ptmax));   
     histd0z_real_1d->SetName(Form("eta_%1.1f_%1.1f_d0z_real_pt_%1.1f",etamin,etamax,pt[iptbin])); 
    
-   if (histd0z_real_1d->GetEntries()<100) continue; 
+ //  if (histd0z_real_1d->GetEntries()<100) continue; 
    double mu_real = histd0z_real_1d->GetMean(); 
    double sigma_real = histd0z_real_1d->GetStdDev();
    func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
@@ -180,16 +178,7 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
    //  draw_req_DCA(etamin,etamax,0.,mgDCAZ->GetXaxis()->GetXmax());
      c_dcaz->SaveAs(Form("Final_Results/%s/dca/dcaz_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
      
-   // Write the numbers in output file for comparisons
-   outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICRecon"<<setw(20)<<eicrecon.Data()<<endl;
-   outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"DCAz Resol #mum (Real)"<<endl;
-   for (Int_t i = 0; i<gr1->GetN(); ++i){
-   double x,ytrue, yreal;
-   gr2->GetPoint(i,x,yreal);  
-   outfile<<etamin<<setw(20)<<etamax<<setw(20)<<x<<setw(20)<<yreal<<endl;
-   } 
-    outfile.close();
-    fout->cd();
+     fout->cd();
      mgDCAZ->SetName(Form("dcaz_resol_%1.1f_eta_%1.1f",etamin,etamax));
      mgDCAZ->Write();
      fout->Close();

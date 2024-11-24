@@ -9,7 +9,7 @@
 #include "TMath.h"
 
 void draw_req_DCA(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString epic ="24.06.0", TString eicrecon = "v1.14.0") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString extra_legend = "") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -33,10 +33,7 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
    TString symbolname = "";
    if (particle == "pi-") symbolname = "#pi^{-}"; 
    else symbolname = particle;
-   // Write the parameters in text file (for comparison)
-   ofstream outfile;
-   outfile.open ("DCAT_resol.txt",ios_base::app);  
-   
+
    
    TF1 *f1=new TF1("f1","FitPointingAngle",0.,30.0,2);
    f1->SetParLimits(0,0.,50000);	
@@ -57,7 +54,8 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
      lDCAT = new TLegend(0.65,0.80,0.90,0.93);
      lDCAT->SetTextSize(0.03);
      lDCAT->SetBorderSize(0);
-     lDCAT->SetHeader(Form("%s ePIC(%s/%s): %1.1f < #eta < %1.1f",symbolname.Data(),epic.Data(),eicrecon.Data(),etamin,etamax),"C");
+     lDCAT->SetHeader(extra_legend.Data(), "C");
+     lDCAT->AddEntry((TObject*)0, Form("%s, %1.1f < #eta < %1.1f", symbolname.Data(), etamin, etamax), "C");
       
       fDCA_truth = TFile::Open(Form("./truthseed/%s/dca/final_hist_dca_truthseed.root",particle.Data()));
       fDCA_real = TFile::Open(Form("./realseed/%s/dca/final_hist_dca_realseed.root",particle.Data()));
@@ -88,7 +86,7 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
     histd0xy_truth_1d->SetTitle(Form("d0_{xy} (truth): %1.1f <#eta< %1.1f && %1.2f <p_{T}< %1.2f",etamin,etamax,ptmin,ptmax));   
     histd0xy_truth_1d->SetName(Form("eta_%1.1f_%1.1f_d0xy_truth_pt_%1.1f",etamin,etamax,pt[iptbin]));  
    
-   if (histd0xy_truth_1d->GetEntries()<100) continue;   
+  // if (histd0xy_truth_1d->GetEntries()<100) continue;   
    double mu_truth = histd0xy_truth_1d->GetMean(); 
    double sigma_truth = histd0xy_truth_1d->GetStdDev();
    func_truth->SetRange(mu_truth-2.0*sigma_truth,mu_truth+2.0*sigma_truth); // fit with in 2 sigma range
@@ -107,7 +105,7 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
     histd0xy_real_1d->SetTitle(Form("d0_{xy} (real): %1.1f <#eta< %1.1f && %1.2f <p_{T}< %1.2f",etamin,etamax,ptmin,ptmax));   
     histd0xy_real_1d->SetName(Form("eta_%1.1f_%1.1f_d0xy_real_pt_%1.1f",etamin,etamax,pt[iptbin])); 
    
-   if (histd0xy_real_1d->GetEntries()<100) continue;    
+  // if (histd0xy_real_1d->GetEntries()<100) continue;    
    double mu_real = histd0xy_real_1d->GetMean(); 
    double sigma_real = histd0xy_real_1d->GetStdDev();
    func_real->SetRange(mu_real-2.0*sigma_real,mu_real+2.0*sigma_real); // fit with in 2 sigma range
@@ -183,16 +181,6 @@ void doCompare_truth_real_widebins_dcaT(TString particle = "pi-",double etamin=-
      draw_req_DCA(etamin,etamax,0.,mgDCAT->GetXaxis()->GetXmax());
      c_dcaxy->SaveAs(Form("Final_Results/%s/dca/dcaxy_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
  
-   // Write the numbers in output file for comparisons
-   outfile<<"ePIC"<<setw(20)<<epic.Data()<<setw(20)<<"EICRecon"<<setw(20)<<eicrecon.Data()<<endl;
-   outfile<<"Etamin"<<setw(20)<<"Etamax"<<setw(20)<<"Pt (GeV/c) \t"<<setw(20)<<"DCAT Resol #mum (Real)"<<endl;
-   for (Int_t i = 0; i<gr1->GetN(); ++i){
-   double x,ytrue, yreal;
-   gr2->GetPoint(i,x,yreal);  
-   outfile<<etamin<<setw(20)<<etamax<<setw(20)<<x<<setw(20)<<yreal<<endl;
-   } 
-    outfile.close();
-     
      fout->cd();
      mgDCAT->SetName(Form("dcaxy_resol_%1.1f_eta_%1.1f",etamin,etamax));
      mgDCAT->Write();

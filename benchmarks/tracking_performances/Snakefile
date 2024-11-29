@@ -83,6 +83,23 @@ root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTIC
 """
 
 
+rule tracking_performance_hadd_final_hist_dca:
+    input:
+        lambda wildcards: expand(
+            [
+                "{{CAMPAIGN}}/{{SEEDING}}/pi-/dca/Performances_dca_{MOMENTUM:.1f}_dca_resol_{SEEDING_ALT}_pi-.root",
+            ],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
+            SEEDING_ALT={"truthseed": "truth", "realseed": "realseed"}[wildcards.SEEDING],
+        ),
+    output:
+        "{CAMPAIGN}/{SEEDING}/pi-/dca/final_hist_dca_{SEEDING}.root",
+    shell:
+        """
+hadd -f {output} {input}
+"""
+
+
 rule tracking_performance_summary_at_eta:
     input:
         expand(
@@ -94,6 +111,8 @@ rule tracking_performance_summary_at_eta:
             ],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
         ),
+        "{CAMPAIGN}/truthseed/pi-/dca/final_hist_dca_truthseed.root",
+        "{CAMPAIGN}/realseed/pi-/dca/final_hist_dca_realseed.root",
         script_mom="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
         script_dcaT="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaT.C",
         script_dcaz="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaz.C",
@@ -135,8 +154,6 @@ if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
 else
 	EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
-hadd -f {wildcards.CAMPAIGN}/truthseed/pi-/dca/final_hist_dca_truthseed.root {wildcards.CAMPAIGN}/truthseed/pi-/dca/Performances_dca* 
-hadd -f {wildcards.CAMPAIGN}/realseed/pi-/dca/final_hist_dca_realseed.root {wildcards.CAMPAIGN}/realseed/pi-/dca/Performances_dca*            
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script_mom}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
 root -l -b -q ../{input.script_dcaT}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'

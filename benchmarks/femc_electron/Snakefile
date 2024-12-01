@@ -8,12 +8,12 @@ def get_n_events(wildcards):
 rule femc_electron_generate:
     input:
         script="benchmarks/femc_electron/analysis/gen_particles.cxx",
+    output:
+        GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc",
     params:
         N_EVENTS=get_n_events,
         th_max=28,
-        th_min=2.0
-    output:
-        GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+        th_min=2.0,
     shell:
         """
 mkdir -p sim_output/femc_electron
@@ -22,17 +22,24 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "e-", {para
 
 rule femc_electron_simulate:
     input:
-        GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc"
+        GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
     params:
         N_EVENTS=get_n_events,
-        PHYSICS_LIST="FTFP_BERT"
-    output:
-        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 # Running simulation
 npsim \
-   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
@@ -41,14 +48,18 @@ npsim \
 
 rule femc_electron_recon:
     input:
-        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root"
+        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
     output:
-        REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root"
+        REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root",
     params:
         N_EVENTS=get_n_events,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell:
         """
-eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
+env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters,EcalEndcapPInsertRecHits,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
 """
 
 rule femc_electron_analysis:

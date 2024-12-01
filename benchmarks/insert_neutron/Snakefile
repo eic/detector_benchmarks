@@ -1,12 +1,12 @@
 rule insert_neutron_generate:
     input:
         script="benchmarks/insert_neutron/analysis/gen_particles.cxx",
+    output:
+        GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
     params:
         NEVENTS_GEN=1000,
         th_max=5.7,
-        th_min=2.0
-    output:
-        GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc"
+        th_min=2.0,
     shell:
         """
 mkdir -p sim_output/insert_neutron
@@ -17,16 +17,22 @@ rule insert_neutron_simulate:
     input:
         GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-    params:
-        PHYSICS_LIST="FTFP_BERT"
+        geometry_lib=find_epic_libraries(),
     output:
-        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
+        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root",
+    params:
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 NEVENTS_SIM=200
 # Running simulation
 npsim \
-   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
@@ -36,13 +42,18 @@ npsim \
 
 rule insert_neutron_recon:
     input:
-        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
+        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root",
     output:
-        REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root"
+        REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell:
         """
 NEVENTS_REC=200
-eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
+env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_neutron_analysis:

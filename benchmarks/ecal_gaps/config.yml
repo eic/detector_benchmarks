@@ -4,7 +4,7 @@ sim:ecal_gaps:
   script:
     - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
-    - snakemake $SNAKEMAKE_FLAGS --cache --cores 10 results/epic_inner_detector/ecal_gaps --omit-from ecal_gaps
+    - snakemake $SNAKEMAKE_FLAGS --cores 10 results/epic_inner_detector/ecal_gaps --omit-from ecal_gaps
 
 bench:ecal_gaps:
   extends: .det_benchmark

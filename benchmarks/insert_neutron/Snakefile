@@ -1,28 +1,28 @@
 rule insert_neutron_generate:
-	input:
-                script="benchmarks/insert_neutron/analysis/gen_particles.cxx",
-	params:
-		NEVENTS_GEN=1000,
-		th_max=5.7,
-		th_min=2.0
-	output:
-		GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc"
-	shell:
-		"""
+    input:
+        script="benchmarks/insert_neutron/analysis/gen_particles.cxx",
+    params:
+        NEVENTS_GEN=1000,
+        th_max=5.7,
+        th_min=2.0
+    output:
+        GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc"
+    shell:
+        """
 mkdir -p sim_output/insert_neutron
 root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "neutron", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
 """
 
 rule insert_neutron_simulate:
-	input:
-                GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-	params:
-		PHYSICS_LIST="FTFP_BERT"
-	output:
-		SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
-	shell:
-		"""
+    input:
+        GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    params:
+        PHYSICS_LIST="FTFP_BERT"
+    output:
+        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
+    shell:
+        """
 NEVENTS_SIM=200
 # Running simulation
 npsim \
@@ -35,28 +35,28 @@ npsim \
 """
 
 rule insert_neutron_recon:
-        input:
-                SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
-        output:
-                REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root"
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root"
+    output:
+        REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root"
+    shell:
+        """
 NEVENTS_REC=200
 eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_neutron_analysis:
-	input:
-                expand("sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root",
-		    P=[20, 30, 40, 50, 60, 70, 80],
-                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-                    INDEX=range(5),
-                ),
-                script="benchmarks/insert_neutron/analysis/neutron_plots.py",
-	output:
-		results_dir=directory("results/{DETECTOR_CONFIG}/insert_neutron"),
-	shell:
-		"""
+    input:
+        expand("sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root",
+            P=[20, 30, 40, 50, 60, 70, 80],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/insert_neutron/analysis/neutron_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/insert_neutron"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

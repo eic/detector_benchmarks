@@ -57,7 +57,6 @@ setup_presentation_style()
 DETECTOR_CONFIG=os.environ.get("DETECTOR_CONFIG")
 PLOT_TITLE=os.environ.get("PLOT_TITLE")
 INPUT_PATH_FORMAT=os.environ.get("INPUT_PATH_FORMAT", "EPIC/RECO/24.04.0/epic_craterlake/SINGLE/{particle}/{energy}/130to177deg/{particle}_{energy}_130to177deg.{ix:04d}.eicrecon.tree.edm4eic.root")
-INPUT_PATH_INDEX_RANGE=list(range(20))
 
 output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -102,13 +101,18 @@ filter_name = [
 pi_eval = {}
 e_eval = {}
 
+def readlist(path):
+    with open(path, "rt") as fp:
+        paths = [line.rstrip() for line in fp.readlines()]
+    return paths
+
 for energy in energies:
     pi_eval[energy] = filter_pointing(uproot.concatenate(
-        {INPUT_PATH_FORMAT.format(particle="pi-", energy=energy, ix=ix): "events" for ix in INPUT_PATH_INDEX_RANGE},
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="pi-", energy=energy))},
         filter_name=filter_name,
     ))
     e_eval[energy] = filter_pointing(uproot.concatenate(
-        {INPUT_PATH_FORMAT.format(particle="e-", energy=energy, ix=ix): "events" for ix in INPUT_PATH_INDEX_RANGE},
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="e-", energy=energy))},
         filter_name=filter_name,
     ))
 #+end_src

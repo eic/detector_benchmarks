@@ -202,12 +202,15 @@ for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
         ls="none",
         label=f"{clf_label}"
     )
+    xmin = np.min(energy_values[cond])
+    xmax = np.max(energy_values[cond])
+    xs = np.arange(xmin, xmax, 0.1)
     plt.plot(
-        energy_values[cond],
-        f(energy_values[cond], *par),
+        xs,
+        f(xs, *par),
         ls="--",
         lw=0.5,
-        label=f"{clf_label}, ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
+        label=f"Functional fit: ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
     )
 plt.fill_between(
     energy_values,

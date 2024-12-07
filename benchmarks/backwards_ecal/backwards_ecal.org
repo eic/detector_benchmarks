@@ -209,12 +209,12 @@ for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
         energy_values,
         sigma_over_e,
         marker=".",
+        ls="none",
         label=f"{clf_label}"
     )
     plt.plot(
         energy_values[cond],
         f(energy_values[cond], *par),
-        color="black",
         ls="--",
         lw=0.5,
         label=f"{clf_label}, ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",

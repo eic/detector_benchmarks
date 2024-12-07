@@ -154,6 +154,11 @@ rule backwards_ecal:
         directory("results/backwards_ecal/{CAMPAIGN}/")
     shell:
         """
+if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
+export PLOT_TITLE="Benchmark simulation"
+else
+export PLOT_TITLE="\\textbf{{ePIC}} Simulation {wildcards.CAMPAIGN}"
+fi
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
 DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \

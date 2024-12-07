@@ -127,7 +127,7 @@ fractions_below = {}
 
 for ix, energy in enumerate(energies):
     energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
-    clf_label = "leading cluster"
+    clf_label = PLOT_TITLE
     def clf(events):
         return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
     e_pred = clf(e_eval[energy])
@@ -242,7 +242,7 @@ rocs = {}
 
 for ix, energy in enumerate(energies):
     energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
-    clf_label = "leading cluster"
+    clf_label = PLOT_TITLE
     def clf(events):
         return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
     e_pred = clf(e_eval[energy])

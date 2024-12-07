@@ -157,7 +157,6 @@ rule backwards_ecal:
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
 DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \
-PLOT_TITLE=""" + DETECTOR_CONFIG + """ \
 INPUT_PATH_FORMAT=listing/backwards_ecal/{wildcards.CAMPAIGN}/""" + DETECTOR_CONFIG + """/{{particle}}/{{energy}}/130to177deg.lst \
 OUTPUT_DIR={output} \
 python {input.script}

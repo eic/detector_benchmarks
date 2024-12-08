@@ -15,7 +15,7 @@ rule lfhcal_sim:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
     wildcard_constraints:
         ENERGY="[0-9]+[kMG]eV",
-	PARTICLE="(neutron|pi-|gamma)",
+        PARTICLE="(neutron|pi-|gamma)",
         PHASE_SPACE="3to50deg",
         INDEX="\d{4}",
     params:
@@ -95,18 +95,18 @@ rule lfhcal_summary_at_eta:
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
-	set +e
-	EPIC_VERSION="${{DETECTOR_VERSION:-}}"
-	EICRECON_VERSION="$(eicrecon -v | sed -n -e 's/.*\(v[0-9\.]\+\).*/\\1/p')"
-	# Legacy detection
-	: ${{EPIC_VERSION:="$(echo $DETECTOR_PATH | sed -n -e 's/.*epic-\([^-/]\+\).*/\\1/p')"}}
-	set -e
+        set +e
+        EPIC_VERSION="${{DETECTOR_VERSION:-}}"
+        EICRECON_VERSION="$(eicrecon -v | sed -n -e 's/.*\(v[0-9\.]\+\).*/\\1/p')"
+        # Legacy detection
+        : ${{EPIC_VERSION:="$(echo $DETECTOR_PATH | sed -n -e 's/.*epic-\([^-/]\+\).*/\\1/p')"}}
+        set -e
 
-	echo "ePIC version: $EPIC_VERSION"
-	echo "EICrecon version: $EICRECON_VERSION"
-	EXTRA_LEGEND="ePIC $EPIC_VERSION / EICrecon $EICRECON_VERSION"
+        echo "ePIC version: $EPIC_VERSION"
+        echo "EICrecon version: $EICRECON_VERSION"
+        EXTRA_LEGEND="ePIC $EPIC_VERSION / EICrecon $EICRECON_VERSION"
 else
-	EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
+        EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
@@ -118,11 +118,11 @@ rule lfhcal:
     input:
         lambda wildcards: expand(
             [
-	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
-	      "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
+              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
+              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
             ],
-	    ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
-	    PARTICLE=["neutron", "pi-", "gamma"] if wildcards.CAMPAIGN == "local" else ["pi-"],
+            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
+            PARTICLE=["neutron", "pi-", "gamma"] if wildcards.CAMPAIGN == "local" else ["pi-"],
         )
     output:
         directory("results/lfhcal/{CAMPAIGN}/")

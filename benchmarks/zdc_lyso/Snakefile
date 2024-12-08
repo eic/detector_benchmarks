@@ -58,8 +58,8 @@ rule zdc_lyso_analysis:
                PARTICLE=["gamma"],
                BEAM_ENERGY=["0.005", "0.01", "0.05", "0.1", "0.5", "1.0"],
                THETA_MIN=["0"],
-               THETA_MAX=["0.3"]),	
-	script="benchmarks/zdc_lyso/analysis/analysis.py",
+               THETA_MAX=["0.3"]),        
+        script="benchmarks/zdc_lyso/analysis/analysis.py",
     output:
         "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
     shell:

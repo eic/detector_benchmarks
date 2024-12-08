@@ -16,7 +16,7 @@ rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
         "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so"
-	"benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
+        "benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
         "benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so"
 
 # Process the generated HepMC files through the simulation

@@ -1,0 +1,22 @@
+sim:output_branch_size_scan:
+  stage: simulate
+  extends: .det_benchmark
+  script:
+    
+    
+
+bench:output_branch_size_scan:
+  stage: benchmarks
+  extends: .det_benchmark
+  needs:
+    - ["sim:output_branch_size_scan"]
+  script:
+    
+
+results:output_branch_size_scan:
+  stage: collect
+  extends: .det_benchmark  
+  needs: 
+    - ["bench:output_branch_size_scan"]
+  script:
+    

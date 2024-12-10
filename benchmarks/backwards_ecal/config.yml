@@ -28,6 +28,16 @@ bench:backwards_ecal:
     - pip install -r benchmarks/backwards_ecal/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/backwards_ecal/local
 
+bench:backwards_ecal_campaigns:
+  extends: .det_benchmark
+  stage: benchmarks
+  when: manual
+  timeout: 4 hours
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/backwards_ecal/24.10.1
+
 collect_results:backwards_ecal:
   extends: .det_benchmark
   stage: collect

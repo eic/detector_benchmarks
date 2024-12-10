@@ -77,7 +77,7 @@ rule backwards_ecal_local_sim_list:
             fp.write("\n".join(input))
 
 
-if False:
+if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
     rule backwards_ecal_campaign_sim_list:
         output:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",

@@ -1,0 +1,20 @@
+sim:zdc_lyso:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 zdc_lyso_local
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+collect_results:zdc_lyso:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "sim:zdc_lyso"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output zdc_lyso_local
+    - mv results{_save,}/

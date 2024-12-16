@@ -1,0 +1,4 @@
+awkward >= 2.4.0
+scikit-learn
+uproot >= 5.2.0
+vector

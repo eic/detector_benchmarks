@@ -1,0 +1,29 @@
+sim:insert_muon:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - P: 50
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_muon/epic_craterlake_sim_mu-_${P}GeV_{0,1,2,3,4}.edm4hep.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:insert_muon:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs: ["sim:insert_muon"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/insert_muon
+
+collect_results:insert_muon:
+  extends: .det_benchmark
+  stage: collect
+  needs: ["bench:insert_muon"]
+  script:
+    - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/insert_muon
+    - mv results{_save,}/

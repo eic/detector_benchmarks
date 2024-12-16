@@ -1,0 +1,59 @@
+rule zdc_sigma_generate:
+        input:
+                script="benchmarks/zdc_sigma/analysis/gen_sigma_decay.cxx",
+        params:
+                NEVENTS_GEN=100000,
+        output:
+                GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc"
+        shell:
+                """
+root -l -b -q '{input.script}({params.NEVENTS_GEN},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+"""
+
+rule zdc_sigma_simulate:
+        input:
+                GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        params:
+                PHYSICS_LIST="FTFP_BERT"
+        output:
+                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root"
+        shell:
+                """
+NEVENTS_SIM=200
+# Running simulation
+npsim \
+   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
+   --numberOfEvents $NEVENTS_SIM \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE}
+"""
+
+rule zdc_sigma_recon:
+        input:
+                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root"
+        output:
+                REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root"
+        shell:
+                """
+NEVENTS_REC=200
+eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits  -Pjana:nevents=$NEVENTS_REC
+"""
+
+rule zdc_sigma_analysis:
+        input:
+                expand("sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root",
+                    P=[100, 125, 150,175, 200, 225, 250, 275],
+                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+                    INDEX=range(5),
+                ),
+                script="benchmarks/zdc_sigma/analysis/sigma_plots.py",
+        output:
+                results_dir=directory("results/{DETECTOR_CONFIG}/zdc_sigma"),
+        shell:
+                """
+mkdir -p {output.results_dir}
+python {input.script} {output.results_dir}
+"""

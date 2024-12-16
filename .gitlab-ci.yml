@@ -3,9 +3,9 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  DETECTOR_REPOSITORYURL: 'https://github.com/eic/epic.git'
   GITHUB_SHA: ''
   GITHUB_REPOSITORY: ''
+  SNAKEMAKE_FLAGS: '--cache'
 
 workflow:
   name: '$PIPELINE_NAME'
@@ -28,6 +28,7 @@ default:
       - .local/bin
       - .local/include
       - .local/share
+      - .snakemake/log
       - results
       - config
       - .env
@@ -45,7 +46,6 @@ stages:
   - benchmarks
   - collect
   - deploy
-  - trigger
   - status-report
 
 .status:
@@ -89,13 +89,6 @@ common:setup:
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source setup/bin/env.sh && ./setup/bin/install_common.sh
-
-
-common:detector:
-  stage: initialize
-  needs: ["common:setup"]
-  script:
-    - source .local/bin/env.sh && build_detector.sh
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
@@ -103,7 +96,7 @@ common:detector:
 
 get_data:
   stage: data_init
-  needs: ["common:detector"]
+  needs: ["common:setup"]
   script:
     - source .local/bin/env.sh
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
@@ -112,9 +105,11 @@ get_data:
 
 .det_benchmark:
   needs:
-    - ["get_data","common:detector"]
+    - ["get_data","common:setup"]
   before_script:
+    - mc config host add S3 https://eics3.sdcc.bnl.gov:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY} || echo "Failed to configure S3."
     - source .local/bin/env.sh
+    - source /opt/detector/epic-main/setup.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data    
@@ -122,6 +117,7 @@ get_data:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:
     max: 2
@@ -130,26 +126,68 @@ get_data:
 
 include: 
 #  - local: 'benchmarks/backgrounds/config.yml'
+#  - local: 'benchmarks/backwards_ecal/config.yml'
+#  - local: 'benchmarks/calo_pid/config.yml'
 #  - local: 'benchmarks/ecal_gaps/config.yml'
 #  - local: 'benchmarks/tracking_detectors/config.yml'
+#  - local: 'benchmarks/tracking_performances/config.yml'
+#  - local: 'benchmarks/tracking_performances_dis/config.yml'
 #  - local: 'benchmarks/barrel_ecal/config.yml'
 #  - local: 'benchmarks/barrel_hcal/config.yml'
+#  - local: 'benchmarks/lfhcal/config.yml'
 #  - local: 'benchmarks/zdc/config.yml'
-#  - local: 'benchmarks/material_maps/config.yml'
+#  - local: 'benchmarks/zdc_lyso/config.yml'
+#  - local: 'benchmarks/zdc_neutron/config.yml'
+#  - local: 'benchmarks/zdc_photon/config.yml'
+#  - local: 'benchmarks/zdc_pi0/config.yml'
 #  - local: 'benchmarks/material_scan/config.yml'
 #  - local: 'benchmarks/pid/config.yml'
 #  - local: 'benchmarks/timing/config.yml'
 #  - local: 'benchmarks/b0_tracker/config.yml'
+#  - local: 'benchmarks/insert_muon/config.yml'
+#  - local: 'benchmarks/insert_tau/config.yml'
+#  - local: 'benchmarks/zdc_sigma/config.yml'
+#  - local: 'benchmarks/zdc_lambda/config.yml'
+#  - local: 'benchmarks/insert_neutron/config.yml'
+#  - local: 'benchmarks/femc_electron/config.yml'
+#  - local: 'benchmarks/femc_photon/config.yml'
+#  - local: 'benchmarks/femc_pi0/config.yml'
 #  - local: 'benchmarks/LOWQ2/analysis/config.yml'
   - local: 'benchmarks/LOWQ2/reconstruction_training/config.yml'
-
 deploy_results:
+  allow_failure: true
   stage: deploy
   needs:
-#    - ["collect_results:zdc","collect_results:barrel_ecal","collect_results:barrel_hcal","collect_results:material_scan"]
+    - "collect_results:backgrounds"
+    - "collect_results:backwards_ecal"
+    - "collect_results:barrel_ecal"
+    - "collect_results:barrel_hcal"
+    - "collect_results:calo_pid"
+    - "collect_results:ecal_gaps"
+    - "collect_results:lfhcal"
+    - "collect_results:material_scan"
+    - "collect_results:pid"
+    - "collect_results:tracking_performance"
+    - "collect_results:tracking_performance_campaigns"
+    - "collect_results:zdc_sigma"
+    - "collect_results:zdc_lambda"
+    - "collect_results:insert_neutron"
+    - "collect_results:tracking_performances_dis"
+    - "collect_results:zdc"
+    - "collect_results:zdc_lyso"
+    - "collect_results:zdc_neutron"
+    - "collect_results:insert_muon"
+    - "collect_results:insert_tau"
+    - "collect_results:zdc_photon"
+    - "collect_results:zdc_pi0"
+    - "collect_results:femc_electron"
+    - "collect_results:femc_photon"
+    - "collect_results:femc_pi0"
   script:
-    - echo "deploy results!"
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
+    - xrdfs $XROOTD_RW_ENDPOINT mkdir $XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
+    - xrdcp -r results $XROOTD_RW_ENDPOINT/$XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
 
 benchmarks:detector:success:
   stage: status-report
@@ -158,6 +196,9 @@ benchmarks:detector:success:
   variables:
     STATE: "success"
     DESCRIPTION: "Succeeded!"
+  after_script:
+    # Cleanup scratch space
+    - rm -rfv $LOCAL_DATA_PATH
   when: on_success
 
 benchmarks:detector:failure:
@@ -168,48 +209,6 @@ benchmarks:detector:failure:
     STATE: "failure"
     DESCRIPTION: "Failed!"
   when: on_failure
-
-benchmarks:reconstruction:
-  stage: trigger
-  variables:
-    GITHUB_SHA: "${GITHUB_SHA}"
-    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
-    DETECTOR: "$DETECTOR"
-    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
-    DETECTOR_VERSION: "$DETECTOR_VERSION"
-    DETECTOR_REPOSITORYURL: "$DETECTOR_REPOSITORYURL"
-    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
-    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
-    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
-    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
-    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
-    PIPELINE_NAME: "$PIPELINE_NAME"
-  trigger:
-    project: EIC/benchmarks/reconstruction_benchmarks
-    strategy: depend
-  needs: ["deploy_results"]
-
-benchmarks:physics:
-  stage: trigger
-  variables:
-    GITHUB_SHA: "${GITHUB_SHA}"
-    GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
-    DETECTOR: "$DETECTOR"
-    DETECTOR_CONFIG: "$DETECTOR_CONFIG"
-    DETECTOR_VERSION: "$DETECTOR_VERSION"
-    DETECTOR_REPOSITORYURL: "$DETECTOR_REPOSITORYURL"
-    DETECTOR_DEPLOY_TOKEN_USERNAME: "${DETECTOR_DEPLOY_TOKEN_USERNAME}"
-    DETECTOR_DEPLOY_TOKEN_PASSWORD: "${DETECTOR_DEPLOY_TOKEN_PASSWORD}"
-    COMMON_BENCH_VERSION: "$COMMON_BENCH_VERSION"
-    BENCHMARKS_TAG: "${BENCHMARKS_TAG}"
-    BENCHMARKS_CONTAINER: "${BENCHMARKS_CONTAINER}"
-    BENCHMARKS_REGISTRY: "${BENCHMARKS_REGISTRY}"
-    PIPELINE_NAME: "$PIPELINE_NAME"
-  trigger:
-    project: EIC/benchmarks/physics_benchmarks
-    strategy: depend
-  needs: ["deploy_results"]
 
 pages:
   stage: deploy

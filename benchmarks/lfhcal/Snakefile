@@ -1,0 +1,152 @@
+def get_n_events(wildcards):
+    energy = float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))
+    n_events = 1000
+    n_events = int(n_events // (energy ** 0.5))
+    return n_events
+
+
+rule lfhcal_sim:
+    input:
+        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        ENERGY="[0-9]+[kMG]eV",
+        PARTICLE="(neutron|pi-|gamma)",
+        PHASE_SPACE="3to50deg",
+        INDEX="\d{4}",
+    params:
+        N_EVENTS=get_n_events,
+    shell:
+        """
+ddsim \
+  --runType batch \
+  --enableGun \
+  --steeringFile "{input.steering_file}" \
+  --random.seed 1{wildcards.INDEX} \
+  --filter.tracker edep0 \
+  -v INFO \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule lfhcal_recon:
+    input:
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    output:
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+    log:
+        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX="\d{4}",
+    shell: """
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
+"""
+
+rule lfhcal_at_momentum:
+    input:
+        script="benchmarks/lfhcal/LFHCAL_Performance.C",
+        # TODO pass as a file list?
+        sim=lambda wildcards:
+          expand(
+              "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              DETECTOR_CONFIG="epic_craterlake",
+              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+              PHASE_SPACE=["3to50deg"],
+              INDEX=range(1),
+          )
+          if wildcards.CAMPAIGN == "local" else
+          ancient(expand(
+              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+              DETECTOR_CONFIG="epic_craterlake",
+              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+              PHASE_SPACE=["3to50deg"],
+              INDEX=range(1),
+          )),
+    output:
+        "{CAMPAIGN}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",
+        combined_root=temp("{CAMPAIGN}/lfhcal_sim_{MOMENTUM}_{PARTICLE}.root"),
+    shell:
+        """
+hadd {output.combined_root} {input.sim}
+cd {wildcards.CAMPAIGN}
+root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15)'
+"""
+
+rule lfhcal_summary_at_eta:
+    input:
+        expand(
+            [
+                "{{CAMPAIGN}}/{{PARTICLE}}/mom/lfhcal_mom_{MOMENTUM:.1f}_mom_resol_{{PARTICLE}}.root",
+            ],
+            MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
+        ),
+        script="benchmarks/lfhcal/doCompare_widebins_mom.C",
+    output:
+        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.png",
+        "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.root",
+    shell:
+        """
+if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
+        set +e
+        EPIC_VERSION="${{DETECTOR_VERSION:-}}"
+        EICRECON_VERSION="$(eicrecon -v | sed -n -e 's/.*\(v[0-9\.]\+\).*/\\1/p')"
+        # Legacy detection
+        : ${{EPIC_VERSION:="$(echo $DETECTOR_PATH | sed -n -e 's/.*epic-\([^-/]\+\).*/\\1/p')"}}
+        set -e
+
+        echo "ePIC version: $EPIC_VERSION"
+        echo "EICrecon version: $EICRECON_VERSION"
+        EXTRA_LEGEND="ePIC $EPIC_VERSION / EICrecon $EICRECON_VERSION"
+else
+        EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
+fi
+cd {wildcards.CAMPAIGN}
+root -l -b -q ../{input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+"""
+
+LFHCAL_ETA_BINS = [1.2,1.5,2,2.5,3,3.5]
+
+rule lfhcal:
+    input:
+        lambda wildcards: expand(
+            [
+              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.png",
+              "{{CAMPAIGN}}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_BIN}.root",
+            ],
+            ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(LFHCAL_ETA_BINS[:-1], LFHCAL_ETA_BINS[1:])],
+            PARTICLE=["neutron", "pi-", "gamma"] if wildcards.CAMPAIGN == "local" else ["pi-"],
+        )
+    output:
+        directory("results/lfhcal/{CAMPAIGN}/")
+    shell:
+        """
+mkdir {output}
+cp {input} {output}
+"""
+
+
+rule lfhcal_local:
+    input:
+        "results/lfhcal/local",
+
+
+rule lfhcal_campaigns:
+    input:
+        expand(
+            "results/lfhcal/{CAMPAIGN}",
+            CAMPAIGN=[
+                "23.10.0",
+                "23.11.0",
+                "23.12.0",
+                "24.03.1",
+                "24.04.0",
+            ],
+        )

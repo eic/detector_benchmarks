@@ -1,11 +1,12 @@
 name: Mirror and Trigger EICweb
 
 on:
+  delete:
   push:
   workflow_dispatch:
 
 concurrency:
-  group: mirror
+  group: mirror-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
@@ -15,6 +16,7 @@ jobs:
     permissions:
       actions: write
       contents: read
+      statuses: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -28,7 +30,9 @@ jobs:
         username: ${{ secrets.GITLAB_USERNAME }}
         ciskip: true
     - name: Trigger EICweb
+      id: trigger_eicweb
       uses: eic/trigger-gitlab-ci@v3
+      if: ${{ github.event_name != 'delete' }}
       with:
         url: https://eicweb.phy.anl.gov
         project_id: 399
@@ -39,3 +43,17 @@ jobs:
           GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_PR=${{ github.event.pull_request.number }}
           PIPELINE_NAME=${{ github.repository }}: ${{ github.event.pull_request.title || github.ref_name }}
+    - name: Set pending EICweb status
+      if: ${{ github.event_name != 'delete' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DETECTOR_CONFIG: epic_craterlake
+      run: |
+        curl \
+          --fail-with-body \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          -d '{"context": "eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')", "state": "pending", "description": "Waiting for response from the EICweb", "target_url": "${{ fromJson(steps.trigger_eicweb.outputs.json).web_url }}"}' \
+          "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha || github.sha }}"

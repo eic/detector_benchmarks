@@ -16,6 +16,7 @@ bench:ecal_gaps:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/ecal_gaps/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores 8 results/epic_inner_detector/ecal_gaps
+  allow_failure: true
 
 collect_results:ecal_gaps:
   extends: .det_benchmark

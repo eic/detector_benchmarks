@@ -2,6 +2,7 @@ sim:output_branch_size_scan:
   stage: simulate
   extends: .det_benchmark
   script:
+    bash generate.sh
     
     
 
@@ -11,6 +12,7 @@ bench:output_branch_size_scan:
   needs:
     - ["sim:output_branch_size_scan"]
   script:
+    bash output_branch_size_scan.sh
     
 
 results:output_branch_size_scan:

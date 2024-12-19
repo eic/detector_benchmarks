@@ -64,22 +64,25 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 """
 
 
-rule calo_pid:
+rule calo_pid_input_list:
     input:
         electrons=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["e-"],
+            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
             ENERGY=["100MeVto20GeV"],
             PHASE_SPACE=["130to177deg"],
             INDEX=range(100),
         ),
-        pions=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["pi-"],
-            ENERGY=["100MeVto20GeV"],
-            PHASE_SPACE=["130to177deg"],
-            INDEX=range(100),
-        ),
+    output:
+        "listing/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input))
+
+
+rule calo_pid:
+    input:
+        electrons="listing/calo_pid/{DETECTOR_CONFIG}/e-.lst",
+        pions="listing/calo_pid/{DETECTOR_CONFIG}/pi-.lst",
         matplotlibrc=".matplotlibrc",
         script="benchmarks/calo_pid/calo_pid.py",
     output:

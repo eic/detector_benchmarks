@@ -1,4 +1,8 @@
 awkward >= 2.4.0
-scikit-learn
+boost_histogram
+dask >= 2024
+dask_awkward >= 2024
+dask_histogram
+distributed >= 2024
 uproot >= 5.2.0
 vector

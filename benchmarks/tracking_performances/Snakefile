@@ -139,7 +139,7 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
     shell:
-        """
+        r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
         set +e
         EPIC_VERSION="${{DETECTOR_VERSION:-}}"

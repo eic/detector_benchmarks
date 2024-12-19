@@ -74,6 +74,9 @@ rule ecal_gaps:
         ),
     output:
         directory("results/{DETECTOR_CONFIG}/ecal_gaps"),
+    log:
+        scheduler=".logs/results/{DETECTOR_CONFIG}/ecal_gaps/scheduler.log",
+        worker=".logs/results/{DETECTOR_CONFIG}/ecal_gaps/worker.log",
     threads: workflow.cores
     shell:
         """
@@ -85,10 +88,10 @@ cleanup() {{
 trap cleanup EXIT
 
 PORT=$RANDOM
-dask scheduler --port $PORT &
+dask scheduler --port $PORT 2>{log.scheduler} &
 export DASK_SCHEDULER=localhost:$PORT
 SCHEDULER_PID=$!
-dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 &
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 2>{log.worker} &
 WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \

@@ -18,7 +18,7 @@ rule backwards_ecal_sim:
         PARTICLE="(e-|pi-)",
         ENERGY="[0-9]+[kMG]eV",
         PHASE_SPACE="(3to50|45to135|130to177)deg",
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
         N_EVENTS=get_n_events,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
@@ -51,7 +51,7 @@ rule backwards_ecal_recon:
     log:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),

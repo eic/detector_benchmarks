@@ -101,11 +101,14 @@ exec ddsim \
 rule matplotlibrc:
     output:
         ".matplotlibrc",
-    run:
-        with open(output[0], "wt") as fp:
-            fp.write("backend: Agg\n")
-            # interactive mode prevents plt.show() from blocking
-            fp.write("interactive : True\n")
+    shell:
+        """
+cat > {output} <<EOF
+backend: Agg
+# interactive mode prevents plt.show() from blocking
+interactive: True
+EOF
+"""
 
 
 rule org2py:

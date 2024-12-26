@@ -1,6 +1,6 @@
 // Code to draw average number of hits vs eta at the generated level
 // Shyam Kumar; shyam055119@gmail.com; shyam.kumar@ba.infn.it
-void NhitsvsEta_ePIC(Double_t mom=0.5)
+void NhitsvsEta_ePIC(TString filePath="")
   {
   
    gStyle->SetPalette(1);
@@ -13,9 +13,14 @@ void NhitsvsEta_ePIC(Double_t mom=0.5)
    gStyle->SetOptStat(0);
    
      // MC Track Properties
-    TFile* file = new TFile(Form("./sim%1.1f.edm4hep.root",mom)); // Tree with tracks and hits
+    TFile* file = new TFile(Form("%s",filePath.Data())); // Tree with tracks and hits
     TTreeReader myReader("events", file); // name of tree and file
-		
+    // Find the last occurrence of '/'
+    Int_t lastSlashPos = filePath.Last('/');
+
+    // Extract the file name
+    TString filename = (lastSlashPos != kNPOS) ? filePath(lastSlashPos + 1, filePath.Length()) : filePath;
+
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 
    TTreeReaderArray<Double_t> vy_mc(myReader, "MCParticles.vertex.y"); 
@@ -103,9 +108,11 @@ void NhitsvsEta_ePIC(Double_t mom=0.5)
    c1->SetMargin(0.10, 0.05 ,0.1,0.07);
    c1->SetGridx();
    c1->SetGridy();
-  
+   
+  filename.Resize(filename.Sizeof()-14); // keep filename up to energy
+ 
   TProfile* hits = new TProfile("hits","Nhits (#theta)",70,-3.5,3.5); 
-  hits->SetTitle(Form("p = %1.1f GeV/c;#eta_{mc};Nhits",mom));
+  hits->SetTitle(Form("%s;#eta_{mc};Nhits",filename.Data()));
   hits->GetXaxis()->CenterTitle();
   hits->GetYaxis()->CenterTitle();
   hits->SetMinimum(0.);
@@ -135,7 +142,7 @@ void NhitsvsEta_ePIC(Double_t mom=0.5)
       }
       if (fabs(eta_Track)>3.5) continue; //outside tracker acceptance
       // Associated hits with the primary track of momentum (mom)
-      if (fabs(pmc-mom)> epsilon) continue; 
+    //  if (fabs(pmc-mom)> epsilon) continue; 
     //  if (eta_Track<3.4) continue; // Debug for the hits in a given eta range
       printf("Eta of the generated track: %f, Momentum (GeV/c): %f \n",eta_Track,pmc);
      // ePIC SVT IB Tracker
@@ -234,8 +241,7 @@ void NhitsvsEta_ePIC(Double_t mom=0.5)
   gPad->SetTicks(1,1);
   hits->SetLineWidth(2);
   hits->Draw("hist");
-  c1->SaveAs(Form("./Output/Nhitsvsmom%1.1f.png",mom));
-  c1->SaveAs(Form("./Output/Nhitsvsmom%1.1f.root",mom));
+  c1->SaveAs(Form("%s.png",filename.Data()));
+  c1->SaveAs(Form("Nhitsvsmom%s.root",filename.Data()));
 }
-
 

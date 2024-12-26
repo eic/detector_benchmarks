@@ -45,10 +45,35 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """
 
+rule tracking_performance_sim_hadd:
+    input:
+        simoutput=lambda wildcards:
+          expand(
+              "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
+              DETECTOR_CONFIG="epic_craterlake_tracking_only",
+              PARTICLE=wildcards.PARTICLE,
+              ENERGY=wildcards.ENERGY,
+              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+              INDEX=range(1),
+          )
+    output:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
+    shell:
+        """
+hadd {output} {input.simoutput}
+"""
 
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
+        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
+        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
+         outsim=lambda wildcards:
+          expand(
+             "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
+             DETECTOR_CONFIG="epic_craterlake_tracking_only", PARTICLE=wildcards.PARTICLE,
+             ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV")
+         if wildcards.CAMPAIGN == "local" else None,
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(
@@ -80,6 +105,8 @@ fi
 hadd {output.combined_root} {input.sim}
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING')'
+root -l -b -q ../{input.script_hitsmap}'("../{input.outsim}")' 
+root -l -b -q ../{input.script_nhits_eta}'("../{input.outsim}")' 
 """
 
 

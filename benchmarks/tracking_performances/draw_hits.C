@@ -8,7 +8,7 @@
 #include <TLegend.h>
 #include <TMath.h>
 
-void draw_hits(double mom=5.0)
+void draw_hits(TString filename="")
 {
 
 //==========Style of the plot============
@@ -22,7 +22,7 @@ void draw_hits(double mom=5.0)
    gStyle->SetOptStat(0);
 
 //=======Reading the root file DD4HEP===========
- TFile *f = TFile::Open(Form("sim%1.1f.edm4hep.root",mom));
+ TFile *f = TFile::Open(Form("%s",filename.Data()));
  TTree *sim = (TTree*)f->Get("events");
 
  // Timer Start

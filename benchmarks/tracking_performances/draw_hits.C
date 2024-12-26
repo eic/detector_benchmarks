@@ -153,8 +153,8 @@ void draw_hits(TString filename="")
         sim->Draw(tof_barrel_hitsrz_posR.Data(),"TOFBarrelHits.position.y>0","");
         sim->Draw(disks_si_hitsrz_posR.Data(),"TrackerEndcapHits.position.y>0","");
         sim->Draw(endcap_tof_hitsrz_posR.Data(),"TOFEndcapHits.position.y>0","");
-  sim->Draw(barrel_mpgd_out_hitsrz_posR.Data(),"OuterMPGDBarrelHits.position.y>0","");
-  sim->Draw(fwd_mpgd_hitsrz_posR.Data(),"ForwardMPGDEndcapHits.position.y>0","");
+        sim->Draw(barrel_mpgd_out_hitsrz_posR.Data(),"OuterMPGDBarrelHits.position.y>0","");
+        sim->Draw(fwd_mpgd_hitsrz_posR.Data(),"ForwardMPGDEndcapHits.position.y>0","");
         sim->Draw(bwd_mpgd_hitsrz_posR.Data(),"BackwardMPGDEndcapHits.position.y>0","");
 
     TString si_vtx_hitsrz_negR  ="-1.0*sqrt(VertexBarrelHits.position.x*VertexBarrelHits.position.x+VertexBarrelHits.position.y*VertexBarrelHits.position.y)*0.1:VertexBarrelHits.position.z*0.1>>hitsrz_vtx_si_1";

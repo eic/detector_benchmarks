@@ -82,8 +82,8 @@ rule tracking_performance_hit_maps:
         "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
     shell: """
 OUTPUT_PREFIX="$(dirname {output[0]})"
-root -l -b -q {input.script_hitsmap}'("{input.outsim}", "'$OUTPUT_PREFIX'")'
-root -l -b -q {input.script_nhits_eta}'("{input.outsim}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_hitsmap}'("{input.sim_hadd}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
 """
 
 rule tracking_performance_at_momentum:

@@ -68,12 +68,14 @@ rule tracking_performance_at_momentum:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
         script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
         script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
-         outsim=lambda wildcards:
+        outsim=lambda wildcards:
           expand(
              "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
              DETECTOR_CONFIG="epic_craterlake_tracking_only", PARTICLE=wildcards.PARTICLE,
-             ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV")
-         if wildcards.CAMPAIGN == "local" else None,
+             ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+          )
+          if wildcards.CAMPAIGN == "local" else
+          [],
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(

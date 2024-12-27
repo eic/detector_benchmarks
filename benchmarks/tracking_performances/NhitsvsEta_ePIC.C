@@ -1,6 +1,6 @@
 // Code to draw average number of hits vs eta at the generated level
 // Shyam Kumar; shyam055119@gmail.com; shyam.kumar@ba.infn.it
-void NhitsvsEta_ePIC(TString filePath="")
+void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefix=".")
   {
   
    gStyle->SetPalette(1);
@@ -17,9 +17,6 @@ void NhitsvsEta_ePIC(TString filePath="")
     TTreeReader myReader("events", file); // name of tree and file
     // Find the last occurrence of '/'
     Int_t lastSlashPos = filePath.Last('/');
-
-    // Extract the file name
-    TString filename = (lastSlashPos != kNPOS) ? filePath(lastSlashPos + 1, filePath.Length()) : filePath;
 
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 
@@ -109,10 +106,8 @@ void NhitsvsEta_ePIC(TString filePath="")
    c1->SetGridx();
    c1->SetGridy();
    
-  filename.Resize(filename.Sizeof()-14); // keep filename up to energy
- 
   TProfile* hits = new TProfile("hits","Nhits (#theta)",70,-3.5,3.5); 
-  hits->SetTitle(Form("%s;#eta_{mc};Nhits",filename.Data()));
+  hits->SetTitle(Form("%s;#eta_{mc};Nhits",label.Data()));
   hits->GetXaxis()->CenterTitle();
   hits->GetYaxis()->CenterTitle();
   hits->SetMinimum(0.);
@@ -241,7 +236,7 @@ void NhitsvsEta_ePIC(TString filePath="")
   gPad->SetTicks(1,1);
   hits->SetLineWidth(2);
   hits->Draw("hist");
-  c1->SaveAs(Form("%s.png",filename.Data()));
-  c1->SaveAs(Form("Nhitsvsmom%s.root",filename.Data()));
+  c1->SaveAs(Form("%s/Nhits_vs_eta.png", output_prefix.Data()));
+  c1->SaveAs(Form("%s/Nhits_vs_eta.root", output_prefix.Data()));
 }
 

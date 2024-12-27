@@ -8,7 +8,7 @@
 #include <TLegend.h>
 #include <TMath.h>
 
-void draw_hits(TString filename="")
+void draw_hits(TString filename="", TString output_prefix=".")
 {
 
 //==========Style of the plot============
@@ -97,9 +97,9 @@ void draw_hits(TString filename="")
  l->AddEntry(hitsxy_barrel_tof,"TOFBarrelHits");
  l->AddEntry(hitsxy_barrel_mm_out,"OuterMPGDBarrelHits");
  l->Draw();
- c1->SaveAs("hitsxy_dd4hep.png");
- c1->SaveAs("hitsxy_dd4hep.eps");
- c1->SaveAs("hitsxy_dd4hep.root");
+ c1->SaveAs(Form("%s/hitsxy_dd4hep.png", output_prefix.Data()));
+ c1->SaveAs(Form("%s/hitsxy_dd4hep.eps", output_prefix.Data()));
+ c1->SaveAs(Form("%s/hitsxy_dd4hep.root", output_prefix.Data()));
 
   TCanvas *c2 = new TCanvas("c2","c2",1200,1000);
   c2->SetMargin(0.09, 0.03 ,0.1,0.06);
@@ -301,9 +301,9 @@ void draw_hits(TString filename="")
   l1->AddEntry(hitsrz_bwd_mpgd,"BackwardMPGDEndcapHits");
   l1->Draw();
 
-  c2->SaveAs("hitsrz_dd4hep.png");
-  c2->SaveAs("hitsrz_dd4hep.eps");  
-  c2->SaveAs("hitsrz_dd4hep.root");
+  c2->SaveAs(Form("%s/hitsrz_dd4hep.png", output_prefix.Data()));
+  c2->SaveAs(Form("%s/hitsrz_dd4hep.eps", output_prefix.Data()));
+  c2->SaveAs(Form("%s/hitsrz_dd4hep.root", output_prefix.Data()));
  // Timer Stop
   timer.Stop();
   Double_t realtime = timer.RealTime();

@@ -63,17 +63,34 @@ rule tracking_performance_sim_hadd:
 hadd {output} {input.simoutput}
 """
 
+rule tracking_performance_hit_maps:
+    input:
+        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
+        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
+        sim_hadd=expand(
+           "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{{MOMENTUM}}/{{PARTICLE}}.{{MOMENTUM}}.edm4hep.root",
+           DETECTOR_CONFIG="epic_craterlake_tracking_only",
+        )
+    output:
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.eps",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.root",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.eps",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.root",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
+    shell: """
+OUTPUT_PREFIX="$(dirname {output[0]})"
+root -l -b -q {input.script_hitsmap}'("{input.outsim}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{input.outsim}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+"""
+
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
-        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
-        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
-        outsim=lambda wildcards:
-          expand(
-             "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
-             DETECTOR_CONFIG="epic_craterlake_tracking_only", PARTICLE=wildcards.PARTICLE,
-             ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-          )
+        hit_maps=lambda wildcards:
+          [ "{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png".format(**wildcards) ]
           if wildcards.CAMPAIGN == "local" else
           [],
         # TODO pass as a file list?
@@ -107,8 +124,6 @@ fi
 hadd {output.combined_root} {input.sim}
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING')'
-root -l -b -q ../{input.script_hitsmap}'("../{input.outsim}")' 
-root -l -b -q ../{input.script_nhits_eta}'("../{input.outsim}")' 
 """
 
 

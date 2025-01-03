@@ -1,8 +1,7 @@
-awkward >= 2.4.0
-dask >= 2023
-# https://github.com/dask-contrib/dask-histogram/issues/155
-dask_awkward != 2024.12.*
-dask_histogram != 2024.12.*
-distributed >= 2023
+awkward ~= 2.7.2
+dask ~= 2024.12.1
+dask_awkward ~= 2024.12.2
+dask_histogram ~= 2024.12.1
+distributed ~= 2024.12.1
 pyhepmc
-uproot ~= 5.2.0
+uproot ~= 5.5.1

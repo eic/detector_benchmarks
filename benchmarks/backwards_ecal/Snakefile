@@ -152,6 +152,10 @@ rule backwards_ecal:
         script="benchmarks/backwards_ecal/backwards_ecal.py",
     output:
         directory("results/backwards_ecal/{CAMPAIGN}/")
+    log:
+        scheduler=".logs/results/backwards_ecal/{CAMPAIGN}/scheduler.log",
+        worker=".logs/results/backwards_ecal/{CAMPAIGN}/worker.log",
+    threads: workflow.cores
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -159,6 +163,20 @@ export PLOT_TITLE="Benchmark simulation"
 else
 export PLOT_TITLE="\\textbf{{ePIC}} Simulation {wildcards.CAMPAIGN}"
 fi
+
+set -m # monitor mode to prevent lingering processes
+cleanup() {{
+  echo Cleaning up
+  kill $WORKER_PID $SCHEDULER_PID
+}}
+trap cleanup EXIT
+
+PORT=$RANDOM
+dask scheduler --port $PORT 2>{log.scheduler} &
+export DASK_SCHEDULER=localhost:$PORT
+SCHEDULER_PID=$!
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 2>{log.worker} &
+WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
 DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \

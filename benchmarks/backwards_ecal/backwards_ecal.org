@@ -18,12 +18,32 @@ import os
 from pathlib import Path
 
 import awkward as ak
+import boost_histogram as bh
+import dask_histogram as dh
 import numpy as np
-import vector
 import uproot
-from sklearn.metrics import roc_curve
+import vector
+#+end_src
 
+#+begin_src jupyter-python :results silent
+from dask.distributed import Client
+
+client = Client(os.environ.get("DASK_SCHEDULER", "localhost:8786"))
+#+end_src
+
+#+begin_src jupyter-python
 vector.register_awkward()
+
+from dask.distributed import WorkerPlugin
+class VectorImporter(WorkerPlugin):
+    idempotent=True
+
+    def setup(self, worker):
+        import vector
+
+        vector.register_awkward()
+
+client.register_plugin(VectorImporter())
 #+end_src
 
 * Plotting setup
@@ -57,7 +77,6 @@ setup_presentation_style()
 DETECTOR_CONFIG=os.environ.get("DETECTOR_CONFIG")
 PLOT_TITLE=os.environ.get("PLOT_TITLE")
 INPUT_PATH_FORMAT=os.environ.get("INPUT_PATH_FORMAT", "EPIC/RECO/24.04.0/epic_craterlake/SINGLE/{particle}/{energy}/130to177deg/{particle}_{energy}_130to177deg.{ix:04d}.eicrecon.tree.edm4eic.root")
-INPUT_PATH_INDEX_RANGE=list(range(20))
 
 output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -92,95 +111,113 @@ energies = [
     "10GeV",
     "20GeV",
 ]
-
 filter_name = [
     "MCParticles.*",
-    "*EcalEndcapNRecHits*",
-    "*EcalEndcapNClusters*",
+    "EcalEndcapNClusters.energy",
 ]
 
 pi_eval = {}
 e_eval = {}
 
+def readlist(path):
+    with open(path, "rt") as fp:
+        paths = [line.rstrip() for line in fp.readlines()]
+    return paths
+
 for energy in energies:
-    pi_eval[energy] = filter_pointing(uproot.concatenate(
-        {INPUT_PATH_FORMAT.format(particle="pi-", energy=energy, ix=ix): "events" for ix in INPUT_PATH_INDEX_RANGE},
+    pi_eval[energy] = uproot.dask(
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="pi-", energy=energy))},
         filter_name=filter_name,
-    ))
-    e_eval[energy] = filter_pointing(uproot.concatenate(
-        {INPUT_PATH_FORMAT.format(particle="e-", energy=energy, ix=ix): "events" for ix in INPUT_PATH_INDEX_RANGE},
+        steps_per_file=1,
+        open_files=False,
+    ).map_partitions(filter_pointing)
+    e_eval[energy] = uproot.dask(
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="e-", energy=energy))},
         filter_name=filter_name,
-    ))
+        steps_per_file=1,
+        open_files=False,
+    ).map_partitions(filter_pointing)
 #+end_src
 
 ** Energy resolution
 
+The first step in the analysis is plotting distributions of cluster energies.
+Only electron distribution is needed, but we also do pi- for the pion rejection
+study.
+
+#+begin_src jupyter-python
+e_over_p_hist = {}
+e_over_p_axis = bh.axis.Regular(101, 0., 1.01)
+
+for ix, energy in enumerate(energies):
+    for particle_name, dataset in [("e-", e_eval[energy]), ("pi-", pi_eval[energy])]:
+        energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
+        def clf(events):
+            return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
+        e_over_p_hist[(particle_name, energy)] = dh.factory(
+            clf(dataset),
+            axes=(e_over_p_axis,),
+        )
+
+e_over_p_hist = client.gather(client.compute(e_over_p_hist))
+#+end_src
+
+The next step is to plot the histograms together with fits and produce a plot
+for resolution vs energy that summarizes them.
+
 #+begin_src jupyter-python
 fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
-
-fig.suptitle(PLOT_TITLE)
 
 axs = np.ravel(np.array(axs))
 
 sigmas_rel_FWHM_cb = {}
 fractions_below = {}
 
+def norm_by_sum(arr):
+    return arr / np.sum(arr)
+
 for ix, energy in enumerate(energies):
-    for use_clusters in [False, True]:
-        energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
-        if use_clusters:
-            clf_label = "leading cluster"
-        else:
-            clf_label = "sum all hits"
-        def clf(events):
-            if use_clusters:
-                return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
-            else:
-                return ak.sum(events["EcalEndcapNRecHits.energy"], axis=-1) / energy_value
-        e_pred = clf(e_eval[energy])
+    plt.sca(axs[ix])
+    hist = e_over_p_hist[("e-", energy)]
+    patch = plt.stairs(norm_by_sum(hist.values()), hist.axes[0].edges, label=rf"$e^-$ {PLOT_TITLE}")
+    plt.title(f"{energy}")
 
-        plt.sca(axs[ix])
-        counts, bins, patches = plt.hist(e_pred, weights=np.full_like(e_pred, 1.0 / ak.num(e_pred, axis=0)), bins=np.linspace(0.01, 1.01, 101), label=rf"$e^-$ {clf_label}", hatch=None if use_clusters else r"xxx", alpha=0.8 if use_clusters else 1.)
-        plt.title(f"{energy}")
+    import scipy.stats
+    def f(x, n, beta, m, loc, scale):
+        return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
+    p0 = (np.sum(hist.values()[10:]), 2., 3., 0.95, 0.05)
 
-        e_over_p = (bins[1:] + bins[:-1]) / 2
-        import scipy.stats
-        def f(x, n, beta, m, loc, scale):
-            return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
-        p0 = (np.sum(counts[10:]), 2., 3., 0.95, 0.05)
+    try:
+        import scipy.optimize
+        par, pcov = scipy.optimize.curve_fit(f, hist.axes[0].centers[5:], hist.values()[5:], p0=p0, maxfev=10000)
+    except RuntimeError:
+        par = None
+    plt.plot(hist.axes[0].centers, f(hist.axes[0].centers, *par), label=rf"Crystal Ball fit", color="tab:green", lw=0.8)
 
-        try:
-            import scipy.optimize
-            par, pcov = scipy.optimize.curve_fit(f, e_over_p[5:], counts[5:], p0=p0, maxfev=10000)
-        except RuntimeError:
-            par = None
-        plt.plot(e_over_p, f(e_over_p, *par), label=rf"Crystal Ball fit", color="tab:green" if use_clusters else "green", lw=0.8)
+    def summarize_fit(par):
+        _, _, _, loc_cb, scale_cb = par
+        # Calculate FWHM
+        y_max = np.max(f(np.linspace(0., 1., 100), *par))
+        f_prime = lambda x: f(x, *par) - y_max / 2
+        x_plus, = scipy.optimize.root(f_prime, loc_cb + scale_cb).x
+        x_minus, = scipy.optimize.root(f_prime, loc_cb - scale_cb).x
+        plt.axvline(x_minus, ls="--", lw=0.75, color=patch.get_facecolor(), label=r"$\mu - $FWHM")
+        plt.axvline(x_plus, ls=":", lw=0.75, color=patch.get_facecolor(), label=r"$\mu + $FWHM")
+        fwhm = (x_plus - x_minus) / loc_cb
+        sigma_rel_FWHM_cb = fwhm / 2 / np.sqrt(2 * np.log(2))
 
-        def summarize_fit(par):
-            _, _, _, loc_cb, scale_cb = par
-            # Calculate FWHM
-            y_max = np.max(f(np.linspace(0., 1., 100), *par))
-            f_prime = lambda x: f(x, *par) - y_max / 2
-            x_plus, = scipy.optimize.root(f_prime, loc_cb + scale_cb).x
-            x_minus, = scipy.optimize.root(f_prime, loc_cb - scale_cb).x
-            color = "cyan" if use_clusters else "orange"
-            plt.axvline(x_minus, ls="--", lw=0.75, color=patches[0].get_facecolor(), label=r"$\mu - $FWHM")
-            plt.axvline(x_plus, ls=":", lw=0.75, color=patches[0].get_facecolor(), label=r"$\mu + $FWHM")
-            fwhm = (x_plus - x_minus) / loc_cb
-            sigma_rel_FWHM_cb = fwhm / 2 / np.sqrt(2 * np.log(2))
+        cutoff_x = loc_cb - fwhm
+        fraction_below = np.sum(hist.values()[hist.axes[0].centers < cutoff_x]) / np.sum(hist.values())
 
-            cutoff_x = loc_cb - fwhm
-            fraction_below = np.sum(counts[e_over_p < cutoff_x]) / ak.num(e_pred, axis=0)
+        return sigma_rel_FWHM_cb, fraction_below
 
-            return sigma_rel_FWHM_cb, fraction_below
+    sigma_rel_FWHM_cb, fraction_below = summarize_fit(par)
+    sigmas_rel_FWHM_cb.setdefault(PLOT_TITLE, {})[energy] = sigma_rel_FWHM_cb
+    fractions_below.setdefault(PLOT_TITLE, {})[energy] = fraction_below
 
-        sigma_rel_FWHM_cb, fraction_below = summarize_fit(par)
-        sigmas_rel_FWHM_cb.setdefault(clf_label, {})[energy] = sigma_rel_FWHM_cb
-        fractions_below.setdefault(clf_label, {})[energy] = fraction_below
-
-        plt.legend()
-        plt.xlabel("$E/p$", loc="right")
-        plt.ylabel("Event yield", loc="top")
+    plt.legend()
+    plt.xlabel("$E/p$", loc="right")
+    plt.ylabel("Event yield", loc="top")
 
 fig.savefig(output_dir / f"resolution_plots.pdf", bbox_inches="tight")
 fig.savefig(output_dir / f"resolution_plots.png", bbox_inches="tight")
@@ -207,22 +244,30 @@ for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
         energy_values,
         sigma_over_e,
         marker=".",
+        ls="none",
         label=f"{clf_label}"
     )
+    xmin = np.min(energy_values[cond])
+    xmax = np.max(energy_values[cond])
+    xs = np.arange(xmin, xmax, 0.1)
     plt.plot(
-        energy_values[cond],
-        f(energy_values[cond], *par),
-        color="black",
+        xs,
+        f(xs, *par),
         ls="--",
         lw=0.5,
-        label=f"{clf_label}, ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
+        label=f"Functional fit: ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
     )
-plt.plot(
-    energy_values,
-    np.sqrt((1 / energy_values) ** 2 + (1 / np.sqrt(energy_values)) ** 2 + 1 ** 2),
-    color="black", label=r"YR requirement $1\% / E \oplus 2.5\% / \sqrt{E} \oplus 1\%$",
+xmin = np.min(energy_values)
+xmax = np.max(energy_values) * 1.05
+xs = np.arange(xmin, xmax + 0.1, 0.1)
+plt.fill_between(
+    xs,
+    np.sqrt((2 / np.sqrt(xs)) ** 2 + 1 ** 2),
+    np.sqrt((2 / np.sqrt(xs)) ** 2 + 3 ** 2),
+    lw=0., alpha=0.2, color="black", label=r"YR requirement $2\% / \sqrt{E} \oplus (1-3)\%$",
 )
-plt.title(INPUT_PATH_FORMAT)
+plt.xlim(0., xmax)
+plt.ylim(top=6.)
 plt.legend()
 plt.xlabel("Energy, GeV", loc="right")
 plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, %", loc="top")
@@ -238,10 +283,6 @@ fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
 fig_log, axs_log = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
 fig_roc, axs_roc = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
 
-fig.suptitle(PLOT_TITLE)
-fig_log.suptitle(PLOT_TITLE)
-fig_roc.suptitle(PLOT_TITLE)
-
 axs = np.ravel(np.array(axs))
 axs_log = np.ravel(np.array(axs_log))
 axs_roc = np.ravel(np.array(axs_roc))
@@ -249,49 +290,41 @@ axs_roc = np.ravel(np.array(axs_roc))
 rocs = {}
 
 for ix, energy in enumerate(energies):
-    for use_clusters in [False, True]:
-        energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
-        if use_clusters:
-            clf_label = "leading cluster"
-        else:
-            clf_label = "sum all hits"
-        def clf(events):
-            if use_clusters:
-                return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
-            else:
-                return ak.sum(events["EcalEndcapNRecHits.energy"], axis=-1) / energy_value
-        e_pred = clf(e_eval[energy])
-        pi_pred = clf(pi_eval[energy])
+    energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
+    def clf(events):
+        return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
+    e_pred = clf(e_eval[energy])
+    pi_pred = clf(pi_eval[energy])
 
-        for do_log, ax in [(False, axs[ix]), (True, axs_log[ix])]:
-            plt.sca(ax)
-            plt.hist(e_pred, weights=np.full_like(e_pred, 1.0 / ak.num(e_pred, axis=0)), bins=np.linspace(0., 1.01, 101), label=rf"$e^-$ {clf_label}", hatch=None if use_clusters else r"xxx", alpha=0.8 if use_clusters else 1.)
-            plt.hist(pi_pred, weights=np.full_like(pi_pred, 1.0 / ak.num(pi_pred, axis=0)), bins=np.linspace(0., 1.01, 101), label=rf"$\pi^-$ {clf_label}", histtype="step")
-            plt.title(f"{energy}")
-            plt.legend()
-            plt.xlabel("Classifier output")
-            plt.ylabel("Event yield")
-            if do_log:
-                plt.yscale("log")
-
-        plt.sca(axs_roc[ix])
-        fpr, tpr, _ = roc_curve(
-            np.concatenate([np.ones_like(e_pred), np.zeros_like(pi_pred)]),
-            np.concatenate([e_pred, pi_pred]),
-        )
-        cond = fpr != 0 # avoid infinite rejection (region of large uncertainty)
-        cond &= tpr != 1 # avoid linear interpolation (region of large uncertainty)
-        def mk_interp(tpr, fpr):
-            def interp(eff):
-                return np.interp(eff, tpr, fpr)
-            return interp
-        rocs.setdefault(clf_label, {})[energy] = mk_interp(tpr, fpr)
-        plt.plot(tpr[cond] * 100, 1 / fpr[cond], label=f"{clf_label}")
-        plt.yscale("log")
+    for do_log, ax in [(False, axs[ix]), (True, axs_log[ix])]:
+        plt.sca(ax)
+        patch = plt.stairs(norm_by_sum(e_over_p_hist[("e-", energy)].values()), e_over_p_hist[("e-", energy)].axes[0].edges, label=rf"$e^-$ {PLOT_TITLE}")
+        patch = plt.stairs(norm_by_sum(e_over_p_hist[("pi-", energy)].values()), e_over_p_hist[("pi-", energy)].axes[0].edges, label=rf"$\pi^-$ {PLOT_TITLE}")
         plt.title(f"{energy}")
-        plt.legend(loc="lower left")
-        plt.xlabel("Electron efficiency, %")
-        plt.ylabel("Pion rejection factor")
+        plt.legend()
+        plt.xlabel("Classifier output")
+        plt.ylabel("Event yield")
+        if do_log:
+            plt.yscale("log")
+
+    plt.sca(axs_roc[ix])
+    fpr = np.cumsum(e_over_p_hist[("pi-", energy)].values()[::-1])
+    fpr /= fpr[-1]
+    tpr = np.cumsum(e_over_p_hist[("e-", energy)].values()[::-1])
+    tpr /= tpr[-1]
+    cond = fpr != 0 # avoid infinite rejection (region of large uncertainty)
+    cond &= tpr != 1 # avoid linear interpolation (region of large uncertainty)
+    def mk_interp(tpr, fpr):
+        def interp(eff):
+            return np.interp(eff, tpr, fpr)
+        return interp
+    rocs.setdefault(PLOT_TITLE, {})[energy] = mk_interp(tpr, fpr)
+    plt.plot(tpr[cond] * 100, 1 / fpr[cond], label=f"{PLOT_TITLE}")
+    plt.yscale("log")
+    plt.title(f"{energy}")
+    plt.legend(loc="lower left")
+    plt.xlabel("Electron efficiency, %")
+    plt.ylabel("Pion rejection factor")
 
 fig.savefig(output_dir / f"pred.pdf", bbox_inches="tight")
 fig.savefig(output_dir / f"pred.png", bbox_inches="tight")
@@ -311,8 +344,9 @@ for clf_label, roc in rocs.items():
         marker=".",
         label=f"{clf_label}",
     )
+xmax = np.max(energy_values) * 1.05
+plt.xlim(0., xmax)
 plt.yscale("log")
-plt.title(INPUT_PATH_FORMAT)
 plt.legend()
 plt.xlabel("Energy, GeV")
 plt.ylabel("Pion rejection at 95%")

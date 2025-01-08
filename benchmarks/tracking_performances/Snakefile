@@ -10,7 +10,7 @@ rule tracking_performance_sim:
         PARTICLE="pi-",
         ENERGY="[0-9]+[kMG]eV",
         PHASE_SPACE="(3to50|45to135|130to177)deg",
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
         N_EVENTS=10000
     shell:
@@ -37,7 +37,7 @@ rule tracking_performance_recon:
     log:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
@@ -139,7 +139,7 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
     shell:
-        """
+        r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
         set +e
         EPIC_VERSION="${{DETECTOR_VERSION:-}}"

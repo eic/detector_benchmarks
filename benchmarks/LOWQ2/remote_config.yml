@@ -1,0 +1,3 @@
+SIM_DIRECTORY:      "LowQ2_Sim/"
+RECO_IN_DIRECTORY:  "LowQ2_ReconIn/"
+MODEL_DIRECTORY:    "LowQ2_Model/"

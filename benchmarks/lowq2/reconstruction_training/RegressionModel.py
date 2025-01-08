@@ -11,15 +11,15 @@ class RegressionModel(nn.Module):
         self.fc4  = nn.Linear(64, 3)
         self.input_mean       = torch.tensor([0.0, 0.0, 0.0, 0.0])
         self.input_std        = torch.tensor([1.0, 1.0, 1.0, 1.0])
-        self.input_covariance = torch.tensor([[1.0, 0.0, 0.0, 0.0],
-                                              [0.0, 1.0, 0.0, 0.0],
-                                              [0.0, 0.0, 1.0, 0.0],
-                                              [0.0, 0.0, 0.0, 1.0]])
+        # self.input_covariance = torch.tensor([[1.0, 0.0, 0.0, 0.0],
+        #                                       [0.0, 1.0, 0.0, 0.0],
+        #                                       [0.0, 0.0, 1.0, 0.0],
+        #                                       [0.0, 0.0, 0.0, 1.0]])
         self.output_mean = torch.tensor([0.0, 0.0, 0.0])
         self.output_std  = torch.tensor([1.0, 1.0, 1.0])
-        self.output_correlation = torch.tensor([[1.0, 0.0, 0.0],
-                                                [0.0, 1.0, 0.0],
-                                                [0.0, 0.0, 1.0]])
+        # self.output_correlation = torch.tensor([[1.0, 0.0, 0.0],
+        #                                         [0.0, 1.0, 0.0],
+        #                                         [0.0, 0.0, 1.0]])
 
     def forward(self, x):
         x = (x-self.input_mean)/self.input_std
@@ -36,10 +36,10 @@ class RegressionModel(nn.Module):
         self.input_std   = torch.tensor(in_std)
 
         # Calculate the correlation matrix of the input data
-        input_normalized  = (input_data-in_mean)/in_std   
-        input_correlation = np.corrcoef(input_normalized, rowvar=False)         
+        # input_normalized  = (input_data-in_mean)/in_std   
+        # input_correlation = np.corrcoef(input_normalized, rowvar=False)         
         # Invert the correlation matrix and convert into float tensor
-        self.input_covariance = torch.tensor(np.linalg.inv(input_correlation).astype(np.float32))
+        # self.input_covariance = torch.tensor(np.linalg.inv(input_correlation).astype(np.float32))
 
         self.output_mean = torch.tensor(output_data.mean(axis=0))
         self.output_std  = torch.tensor(output_data.std (axis=0))
@@ -49,7 +49,6 @@ def makeModel():
     model = RegressionModel()
     # Define the optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
     # Define the loss function
     criterion = nn.MSELoss()
 

@@ -20,10 +20,11 @@ torch_target_data = torch.tensor(target_data)
 
 # Split data into training and validation sets
 validation_fraction = 0.25
-split_index = int(len(torch_input_data) * (1 - validation_fraction))
-val_input_data = torch_input_data[split_index:]
-val_target_data = torch_target_data[split_index:]
-train_input_data = torch_input_data[:split_index]
+split_index         = int(len(torch_input_data) * (1 - validation_fraction))
+
+val_input_data    = torch_input_data[split_index:]
+val_target_data   = torch_target_data[split_index:]
+train_input_data  = torch_input_data[:split_index]
 train_target_data = torch_target_data[:split_index] 
 
 # Create TensorDatasets
@@ -37,8 +38,8 @@ val_loader   = DataLoader(val_dataset,   batch_size=batch_size, shuffle=False)
 
 print(f"Training data: {len(train_input_data)} samples")
 
-epochs = 2000
-model = trainModel(epochs, train_loader, val_loader)
+epochs = 100
+model  = trainModel(epochs, train_loader, val_loader)
 
 # Save the trained model to ONNX format
 dummy_input = torch_input_data[0].unsqueeze(0)  # Create a dummy input for the model

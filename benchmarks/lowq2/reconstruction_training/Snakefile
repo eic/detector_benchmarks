@@ -1,48 +1,37 @@
-rule calo_pid_recon:
-    input:
-        "root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.08.1/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run6.ab.0001.eicrecon.tree.edm4eic.root",
+rule lowq2_tensor_recon:
     output:
-        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+        "tensors.eicrecon.tree.edm4eic.root",
     log:
-        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
-    wildcard_constraints:
-        INDEX="\d{4}",
-    shell: """
-set -m # monitor mode to prevent lingering processes
-exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget
-"""
+        "tensors.eicrecon.tree.edm4eic.root.log",
+    shell:  
+        """
+        eicrecon root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.08.1/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run6.ab.0001.eicrecon.tree.edm4eic.root -Ppodio:output_file={output} \
+        -Ppodio:output_collections=TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor \
+        -Pjana:nevents=1000
+        """
 
 
-rule calo_pid:
+rule lowq2_reconstruction_training:
     input:
-        electrons=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["e-"],
-            ENERGY=["100MeVto20GeV"],
-            PHASE_SPACE=["130to177deg"],
-            INDEX=range(100),
-        ),
-        pions=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["pi-"],
-            ENERGY=["100MeVto20GeV"],
-            PHASE_SPACE=["130to177deg"],
-            INDEX=range(100),
-        ),
-        matplotlibrc=".matplotlibrc",
-        script="benchmarks/lowq2/reconstruction_training/TaggerRegression.py",
+        data="tensors.eicrecon.tree.edm4eic.root",
+        script="TaggerRegression.py",
     output:
-        directory("results/{DETECTOR_CONFIG}/calo_pid")
+        "TaggerRegressionTest.onnx",
     shell:
         """
-env \
-MATPLOTLIBRC={input.matplotlibrc} \
-DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-PLOT_TITLE={wildcards.DETECTOR_CONFIG} \
-INPUT_ELECTRONS="{input.electrons}" \
-INPUT_PIONS="{input.pions}" \
-OUTPUT_DIR={output} \
-python {input.script}
-"""
+        python {input.script} --input {input.data} --outModelFile {output}
+        """
+
+rule lowq2_reconstruction_inference:
+    input:
+        data="tensors.eicrecon.tree.edm4eic.root",
+        model="TaggerRegressionTest.onnx",
+    output:
+        "TaggerInference.eicrecon.tree.edm4eic.root",
+    shell:
+        """
+        eicrecon {input.data} -Ppodio:output_file={output}
+        -Ptagger:inference_model={input.model} 
+        -Pjana:nevents=1000
+        -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.model}
+        """

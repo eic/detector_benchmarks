@@ -1,37 +1,63 @@
+# Creates or copies the feature and target tensors for the lowq2 reconstruction training into a new file.
 rule lowq2_tensor_recon:
     output:
         "tensors.eicrecon.tree.edm4eic.root",
     log:
         "tensors.eicrecon.tree.edm4eic.root.log",
+    params:        
+        input=expand("root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.12.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run{run}.ab.{number:04d}.eicrecon.tree.edm4eic.root", run=range(1,3), number=range(0, 20)),
+        compact_xml="epic_lowq2.xml",
     shell:  
         """
-        eicrecon root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.08.1/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run6.ab.0001.eicrecon.tree.edm4eic.root -Ppodio:output_file={output} \
+        eicrecon {params.input} -Ppodio:output_file={output} \
         -Ppodio:output_collections=TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor \
-        -Pjana:nevents=1000
+        -Pplugins_to_ignore=janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,acts,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile \
+        -Pdd4hep:xml_files={params.compact_xml} \
         """
 
-
+# Trains a regression model to predict the TaggerTrackerTargetTensor from the TaggerTrackerFeatureTensor.
 rule lowq2_reconstruction_training:
     input:
         data="tensors.eicrecon.tree.edm4eic.root",
         script="TaggerRegression.py",
     output:
-        "TaggerRegressionTest.onnx",
+        "TestTaggerRegression.onnx",
     shell:
         """
-        python {input.script} --input {input.data} --outModelFile {output}
+        python {input.script} --dataFiles {input.data} --outModelFile {output}
         """
 
+# Runs the inference with the default model.
 rule lowq2_reconstruction_inference:
     input:
         data="tensors.eicrecon.tree.edm4eic.root",
-        model="TaggerRegressionTest.onnx",
     output:
         "TaggerInference.eicrecon.tree.edm4eic.root",
+    params:
+        compact_xml="epic_lowq2.xml",
     shell:
         """
-        eicrecon {input.data} -Ppodio:output_file={output}
-        -Ptagger:inference_model={input.model} 
-        -Pjana:nevents=1000
-        -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.model}
+        eicrecon {input.data} -Ppodio:output_file={output} \
+        -Ppodio:output_collections=TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,TaggerTrackerPredictionTensor,TaggerTrackerReconstructedParticles \
+        -Pplugins_to_ignore=janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,acts,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile \
+        -Pdd4hep:xml_files={params.compact_xml} \
+        """
+
+# Runs the inference with the new model.
+rule lowq2_reconstruction_new_inference:
+    input:
+        data="tensors.eicrecon.tree.edm4eic.root",
+        model="TestTaggerRegression.onnx",
+    output:
+        "TaggerInferenceNew.eicrecon.tree.edm4eic.root",
+    params:
+        compact_xml="epic_lowq2.xml",
+    shell:
+        """
+        eicrecon {input.data} -Ppodio:output_file={output} \
+        -Ppodio:output_collections=TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,TaggerTrackerPredictionTensor,TaggerTrackerReconstructedParticles \
+        -Pplugins_to_ignore=janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,acts,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile \
+        -Pdd4hep:xml_files={params.compact_xml} \
+        -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.model} \
+        -Peicrecon:LogLevel=error \
         """

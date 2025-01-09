@@ -79,11 +79,12 @@ slc=abs(bc)<3
 fnc=gauss
 sigma=np.sqrt(y[slc])+(y[slc]==0)
 p0=(100, 0, 5)
-coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
-xx=np.linspace(-5,5,100)
-plt.plot(xx,fnc(xx,*coeff))
-# except:
-#     pass
+try:
+    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+    xx=np.linspace(-5,5,100)
+    plt.plot(xx,fnc(xx,*coeff))
+except RuntimeError:
+    print("fit failed")
 plt.xlabel("$\\theta_{rec}-\\theta_{truth}$ [mrad]")
 plt.ylabel("events")
 plt.title(f"$p={p}$ GeV, ${eta_min}<\\eta<{eta_max}$")

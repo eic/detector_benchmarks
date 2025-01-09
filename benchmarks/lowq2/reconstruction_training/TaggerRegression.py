@@ -38,7 +38,7 @@ val_loader   = DataLoader(val_dataset,   batch_size=batch_size, shuffle=False)
 
 print(f"Training data: {len(train_input_data)} samples")
 
-epochs = 100
+epochs = 1000
 model  = trainModel(epochs, train_loader, val_loader)
 
 # Save the trained model to ONNX format

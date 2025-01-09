@@ -1,11 +1,17 @@
+import os
+
+# Get the LOWQ2_DATADIR environment variable, or use a default value if it is not set
+outputdir  = os.getenv("LOWQ2_DATADIR", "")
+resultsdir = os.getenv("LOWQ2_RESULTSDIR", "")
+
 # Creates or copies the feature and target tensors for the lowq2 reconstruction training into a new file.
 rule lowq2_tensor_recon:
     output:
-        "tensors.eicrecon.tree.edm4eic.root",
+        f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
     log:
-        "tensors.eicrecon.tree.edm4eic.root.log",
-    params:        
-        input=expand("root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.12.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run{run}.ab.{number:04d}.eicrecon.tree.edm4eic.root", run=range(1,3), number=range(0, 20)),
+        f"{outputdir}tensors.eicrecon.tree.edm4eic.root.log",
+    params:
+        input=expand("root://dtn-eic.jlab.org//work/eic2/EPIC/RECO/24.12.0/epic_craterlake/SIDIS/pythia6-eic/1.0.0/10x100/q2_0to1/pythia_ep_noradcor_10x100_q2_0.000000001_1.0_run{run}.ab.{number:04d}.eicrecon.tree.edm4eic.root", run=range(1,2), number=range(0, 1)),
         compact_xml="epic_lowq2.xml",
     shell:  
         """
@@ -18,10 +24,10 @@ rule lowq2_tensor_recon:
 # Trains a regression model to predict the TaggerTrackerTargetTensor from the TaggerTrackerFeatureTensor.
 rule lowq2_reconstruction_training:
     input:
-        data="tensors.eicrecon.tree.edm4eic.root",
+        data=f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
         script="TaggerRegression.py",
     output:
-        "TestTaggerRegression.onnx",
+        f"{outputdir}TestTaggerTrackerTransportation.onnx",
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output}
@@ -30,9 +36,9 @@ rule lowq2_reconstruction_training:
 # Runs the inference with the default model.
 rule lowq2_reconstruction_inference:
     input:
-        data="tensors.eicrecon.tree.edm4eic.root",
+        data=f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
     output:
-        "TaggerInference.eicrecon.tree.edm4eic.root",
+        f"{outputdir}TaggerInference.eicrecon.tree.edm4eic.root",
     params:
         compact_xml="epic_lowq2.xml",
     shell:
@@ -43,13 +49,13 @@ rule lowq2_reconstruction_inference:
         -Pdd4hep:xml_files={params.compact_xml} \
         """
 
-# Runs the inference with the new model.
+# Check inference runs with the new model.
 rule lowq2_reconstruction_new_inference:
     input:
-        data="tensors.eicrecon.tree.edm4eic.root",
-        model="TestTaggerRegression.onnx",
+        data=f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
+        model=f"{outputdir}TestTaggerTrackerTransportation.onnx",
     output:
-        "TaggerInferenceNew.eicrecon.tree.edm4eic.root",
+        f"{outputdir}TaggerInferenceNew.eicrecon.tree.edm4eic.root",
     params:
         compact_xml="epic_lowq2.xml",
     shell:
@@ -60,4 +66,30 @@ rule lowq2_reconstruction_new_inference:
         -Pdd4hep:xml_files={params.compact_xml} \
         -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.model} \
         -Peicrecon:LogLevel=error \
+        """
+
+# Create plots showing the performance of a model.
+rule lowq2_reconstruction_new_plot:
+    input:
+        data=f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
+        model=lambda wildcards: f"{outputdir}{wildcards.model}.onnx",
+    output:
+        directory(expand(f"{resultsdir}{{model}}", model="{model}")),
+    shell:
+        """
+        mkdir -p {output}
+        python TestModel.py --dataFiles {input.data} --modelFile {input.model} --outDir {output}
+        """
+
+# Create plots showing the performance of a model.
+rule lowq2_reconstruction_old_plot:
+    input:
+        data=f"{outputdir}tensors.eicrecon.tree.edm4eic.root",
+        model=lambda wildcards: f"calibrations/onnx/{wildcards.model}.onnx",
+    output:
+        directory(expand(f"{resultsdir}{{model}}", model="{model}")),
+    shell:
+        """
+        mkdir -p {output}
+        python TestModel.py --dataFiles {input.data} --modelFile {input.model} --outDir {output}
         """

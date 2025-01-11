@@ -20,18 +20,24 @@ rule zdc_lyso_sim:
     input:
         hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
     log:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
     params:
         num_events=1000,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 npsim \
   --runType batch \
   -v WARNING \
-  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
   --outputFile {output}
@@ -45,10 +51,14 @@ rule zdc_lyso_reco:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root",
     log:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.tree.edm4eic.root.log",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell:
         """
-eicrecon -Ppodio:output_collections=HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,MCParticles {input}
-mv podio_output.root {output}
+env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon -Ppodio:output_file={output} -Ppodio:output_collections=HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,MCParticles {input}
 """
 
 

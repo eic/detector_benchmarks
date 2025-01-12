@@ -21,6 +21,7 @@ rule insert_neutron_simulate:
     output:
         SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root",
     params:
+        INDEX=lambda wildcards: wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -33,7 +34,7 @@ NEVENTS_SIM=200
 # Running simulation
 npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
+   --skipNEvents $(( $NEVENTS_SIM * {params.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \

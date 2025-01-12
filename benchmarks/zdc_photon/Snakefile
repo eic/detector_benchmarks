@@ -22,6 +22,7 @@ rule zdc_photon_simulate:
                 SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
         params:
                 N_EVENTS=200,
+                INDEX=lambda wildcards: wildcards.INDEX,
                 PHYSICS_LIST="FTFP_BERT",
                 DETECTOR_PATH=os.environ["DETECTOR_PATH"],
                 DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -34,7 +35,7 @@ rule zdc_photon_simulate:
 npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --physicsList {params.PHYSICS_LIST} \
-   --skipNEvents $(( {params.N_EVENTS} * {wildcards.INDEX} )) \
+   --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
    --numberOfEvents {params.N_EVENTS} \
    --inputFiles {input.GEN_FILE} \
    --outputFile {output.SIM_FILE}

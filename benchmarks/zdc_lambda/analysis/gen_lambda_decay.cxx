@@ -226,11 +226,12 @@ void gen_lambda_decay(int n_events = 100000, UInt_t seed = 0, char* out_fname = 
     TVector3 extrap_neutron=lambda_decay_position+neutron_lab.Vect()*((zdc_z-pbeam_dir.Dot(lambda_decay_position))/(pbeam_dir.Dot(neutron_lab.Vect())));
     TVector3 extrap_gamma1=lambda_decay_position+gamma1_lab.Vect()*((zdc_z-pbeam_dir.Dot(lambda_decay_position))/(pbeam_dir.Dot(gamma1_lab.Vect())));
     TVector3 extrap_gamma2=lambda_decay_position+gamma2_lab.Vect()*((zdc_z-pbeam_dir.Dot(lambda_decay_position))/(pbeam_dir.Dot(gamma2_lab.Vect())));
-    if (extrap_neutron.Angle(pbeam_dir)<0.004 && extrap_gamma1.Angle(pbeam_dir)<0.004 && extrap_gamma2.Angle(pbeam_dir)<0.004 && lambda_decay_position.Dot(pbeam_dir)<zdc_z)
-      accepted_events++;
+    if (extrap_neutron.Angle(pbeam_dir)<0.004 && extrap_gamma1.Angle(pbeam_dir)<0.004 && extrap_gamma2.Angle(pbeam_dir)<0.004 && lambda_decay_position.Dot(pbeam_dir)<zdc_z) {
       hepmc_output.write_event(evt);
-    if (accepted_events % 1000 == 0) {
-      std::cout << "Event: " << accepted_events << std::endl;
+      if (accepted_events % 1000 == 0) {
+        std::cout << "Event: " << accepted_events << std::endl;
+      }
+      accepted_events++;
     }
     evt.clear();
   }

@@ -1,0 +1,7 @@
+# Run Snakemake for the training
+train:LOWQ2:
+  extends: .det_benchmark
+  stage: calibrate
+  script:
+    - snakemake --cores 8 ${MODEL_DIRECTORY}"trainedData.root" --configfile remote_config.yml 
+  

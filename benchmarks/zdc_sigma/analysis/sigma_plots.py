@@ -235,10 +235,13 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<0.6
 fnc=gauss
 p0=[100, 0, 0.5]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-1, 1)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-1, 1)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+except RuntimeError:
+    print("fit failed")
 plt.xlabel("$\\theta^{*\\rm recon}_{\\Sigma}-\\theta^{*\\rm truth}_{\\Sigma}$ [mrad]")
 plt.ylabel("events")
 

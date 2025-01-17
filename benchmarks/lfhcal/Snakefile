@@ -143,10 +143,6 @@ rule lfhcal_campaigns:
         expand(
             "results/lfhcal/{CAMPAIGN}",
             CAMPAIGN=[
-                "23.10.0",
-                "23.11.0",
-                "23.12.0",
-                "24.03.1",
-                "24.04.0",
+                "24.10.1",
             ],
         )

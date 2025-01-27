@@ -167,7 +167,7 @@ deploy_results:
     - "collect_results:pid"
     - "collect_results:tracking_performance"
     - "collect_results:tracking_performance_campaigns"
-    - "collect_results:zdc_sigma"
+    #- "collect_results:zdc_sigma"
     - "collect_results:zdc_lambda"
     - "collect_results:insert_neutron"
     - "collect_results:tracking_performances_dis"

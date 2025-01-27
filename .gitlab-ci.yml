@@ -146,7 +146,7 @@ include:
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
-  - local: 'benchmarks/zdc_sigma/config.yml'
+#  - local: 'benchmarks/zdc_sigma/config.yml'
   - local: 'benchmarks/zdc_lambda/config.yml'
   - local: 'benchmarks/insert_neutron/config.yml'
   - local: 'benchmarks/femc_electron/config.yml'

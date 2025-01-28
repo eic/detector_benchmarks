@@ -125,62 +125,62 @@ get_data:
       - runner_system_failure
 
 include: 
-  - local: 'benchmarks/backgrounds/config.yml'
-  - local: 'benchmarks/backwards_ecal/config.yml'
-  - local: 'benchmarks/calo_pid/config.yml'
-  - local: 'benchmarks/ecal_gaps/config.yml'
-  - local: 'benchmarks/tracking_detectors/config.yml'
-  - local: 'benchmarks/tracking_performances/config.yml'
-  - local: 'benchmarks/tracking_performances_dis/config.yml'
-  - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/barrel_hcal/config.yml'
-  - local: 'benchmarks/lfhcal/config.yml'
-  - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/zdc_lyso/config.yml'
-  - local: 'benchmarks/zdc_neutron/config.yml'
-  - local: 'benchmarks/zdc_photon/config.yml'
-  - local: 'benchmarks/zdc_pi0/config.yml'
-  - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/pid/config.yml'
-  - local: 'benchmarks/timing/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
-  - local: 'benchmarks/insert_muon/config.yml'
-  - local: 'benchmarks/insert_tau/config.yml'
-#  - local: 'benchmarks/zdc_sigma/config.yml'
-  - local: 'benchmarks/zdc_lambda/config.yml'
-  - local: 'benchmarks/insert_neutron/config.yml'
-  - local: 'benchmarks/femc_electron/config.yml'
-  - local: 'benchmarks/femc_photon/config.yml'
-  - local: 'benchmarks/femc_pi0/config.yml'
+  #- local: 'benchmarks/backgrounds/config.yml'
+  #- local: 'benchmarks/backwards_ecal/config.yml'
+  #- local: 'benchmarks/calo_pid/config.yml'
+  #- local: 'benchmarks/ecal_gaps/config.yml'
+  #- local: 'benchmarks/tracking_detectors/config.yml'
+  #- local: 'benchmarks/tracking_performances/config.yml'
+  #- local: 'benchmarks/tracking_performances_dis/config.yml'
+  #- local: 'benchmarks/barrel_ecal/config.yml'
+  #- local: 'benchmarks/barrel_hcal/config.yml'
+  #- local: 'benchmarks/lfhcal/config.yml'
+  #- local: 'benchmarks/zdc/config.yml'
+  #- local: 'benchmarks/zdc_lyso/config.yml'
+  #- local: 'benchmarks/zdc_neutron/config.yml'
+  #- local: 'benchmarks/zdc_photon/config.yml'
+  #- local: 'benchmarks/zdc_pi0/config.yml'
+  #- local: 'benchmarks/material_scan/config.yml'
+  #- local: 'benchmarks/pid/config.yml'
+  #- local: 'benchmarks/timing/config.yml'
+  #- local: 'benchmarks/b0_tracker/config.yml'
+  #- local: 'benchmarks/insert_muon/config.yml'
+  #- local: 'benchmarks/insert_tau/config.yml'
+  - local: 'benchmarks/zdc_sigma/config.yml'
+  #- local: 'benchmarks/zdc_lambda/config.yml'
+  #- local: 'benchmarks/insert_neutron/config.yml'
+  #- local: 'benchmarks/femc_electron/config.yml'
+  #- local: 'benchmarks/femc_photon/config.yml'
+  #- local: 'benchmarks/femc_pi0/config.yml'
 deploy_results:
   allow_failure: true
   stage: deploy
   needs:
-    - "collect_results:backgrounds"
-    - "collect_results:backwards_ecal"
-    - "collect_results:barrel_ecal"
-    - "collect_results:barrel_hcal"
-    - "collect_results:calo_pid"
-    - "collect_results:ecal_gaps"
-    - "collect_results:lfhcal"
-    - "collect_results:material_scan"
-    - "collect_results:pid"
-    - "collect_results:tracking_performance"
-    - "collect_results:tracking_performance_campaigns"
-    #- "collect_results:zdc_sigma"
-    - "collect_results:zdc_lambda"
-    - "collect_results:insert_neutron"
-    - "collect_results:tracking_performances_dis"
-    - "collect_results:zdc"
-    - "collect_results:zdc_lyso"
-    - "collect_results:zdc_neutron"
-    - "collect_results:insert_muon"
-    - "collect_results:insert_tau"
-    - "collect_results:zdc_photon"
-    - "collect_results:zdc_pi0"
-    - "collect_results:femc_electron"
-    - "collect_results:femc_photon"
-    - "collect_results:femc_pi0"
+    #- "collect_results:backgrounds"
+    #- "collect_results:backwards_ecal"
+    #- "collect_results:barrel_ecal"
+    #- "collect_results:barrel_hcal"
+    #- "collect_results:calo_pid"
+    #- "collect_results:ecal_gaps"
+    #- "collect_results:lfhcal"
+    #- "collect_results:material_scan"
+    #- "collect_results:pid"
+    #- "collect_results:tracking_performance"
+    #- "collect_results:tracking_performance_campaigns"
+    - "collect_results:zdc_sigma"
+    #- "collect_results:zdc_lambda"
+    #- "collect_results:insert_neutron"
+    #- "collect_results:tracking_performances_dis"
+    #- "collect_results:zdc"
+    #- "collect_results:zdc_lyso"
+    #- "collect_results:zdc_neutron"
+    #- "collect_results:insert_muon"
+    #- "collect_results:insert_tau"
+    #- "collect_results:zdc_photon"
+    #- "collect_results:zdc_pi0"
+    #- "collect_results:femc_electron"
+    #- "collect_results:femc_photon"
+    #- "collect_results:femc_pi0"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

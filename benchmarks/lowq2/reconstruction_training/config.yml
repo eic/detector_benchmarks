@@ -1,0 +1,22 @@
+bench:lowq2_reconstruction_training:
+  allow_failure: true # until inference merged into EICrecon
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - export LOWQ2_DATADIR=data/lowq2/reconstruction_training/
+    - export LOWQ2_RESULTSDIR=results/lowq2/reconstruction_training/
+    - mkdir -p $LOWQ2_DATADIR
+    - mkdir -p $LOWQ2_RESULTSDIR
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 ${LOWQ2_RESULTSDIR}TestTaggerTrackerTransportation ${LOWQ2_RESULTSDIR}TaggerTrackerTransportation
+
+collect_results:lowq2_reconstruction_training:
+  allow_failure: true # until inference merged into EICrecon
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:lowq2_reconstruction_training"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output ${LOWQ2_RESULTSDIR}TestTaggerTrackerTransportation ${LOWQ2_RESULTSDIR}TaggerTrackerTransportation
+    - mv results{_save,}/

@@ -7,9 +7,10 @@ rule insert_muon_generate:
         NEVENTS_GEN=5000,
         th_max=7.0,
         th_min=1.7,
+        P=lambda wildcards: wildcards.P,
     shell:
         """
-root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule insert_muon_simulate:

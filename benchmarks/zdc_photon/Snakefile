@@ -7,10 +7,11 @@ rule zdc_photon_generate:
                 th_max=0.23,
                 th_min=0,
                 N_EVENTS=1000,
+                P=lambda wildcards: wildcards.P,
         shell:
                 """
 mkdir -p sim_output/zdc_photon
-root -l -b -q '{input.script}('{params.N_EVENTS}',"{output.GEN_FILE}", "gamma", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}('{params.N_EVENTS}',"{output.GEN_FILE}", "gamma", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule zdc_photon_simulate:

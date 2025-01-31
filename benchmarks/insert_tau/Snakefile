@@ -13,9 +13,10 @@ rule insert_tau_generate:
         N_EVENTS=get_n_events,
         th_max=7.0,
         th_min=1.7,
+        P=lambda wildcards: wildcards.P,
     shell:
         """
-root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule insert_tau_simulate:

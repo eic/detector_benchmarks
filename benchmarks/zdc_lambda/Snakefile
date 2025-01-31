@@ -5,9 +5,10 @@ rule zdc_lambda_generate:
                 GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
         params:
                 N_EVENTS=1000,
+                P=lambda wildcards: wildcards.P,
         shell:
                 """
-root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_lambda_simulate:

@@ -23,6 +23,8 @@ rule calo_pid_sim:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         ENERGY_MIN=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MIN),
         ENERGY_MAX=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MAX),
+        THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
+        THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True

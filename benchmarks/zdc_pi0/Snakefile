@@ -9,7 +9,7 @@ rule zdc_pi0_generate:
         shell:
                 """
 mkdir -p sim_output/zdc_pi0
-root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_pi0_simulate:

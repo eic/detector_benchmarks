@@ -17,7 +17,6 @@ sim:backwards_ecal:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 5 listing/backwards_ecal/local/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg.lst
-      find sim_output/backwards_ecal -type l -exec readlink -l {} \;
 
 bench:backwards_ecal:
   extends: .det_benchmark

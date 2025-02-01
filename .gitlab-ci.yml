@@ -120,7 +120,7 @@ get_data:
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
-  afer_script:
+  after_script:
     - find "${LOCAL_DATA_PATH}/sim_output" -type l -exec ls -la {} \;
   retry:
     max: 2

@@ -69,6 +69,6 @@ rule zdc_sigma_analysis:
                 """
 mkdir -p {output.results_dir}
 ls -la {input}
-find "${LOCAL_DATA_PATH}/sim_output" -type l -exec readlink {} \; | xargs ls -la
+find "$LOCAL_DATA_PATH/sim_output" -type l -exec readlink {{}} \; | xargs ls -la
 python {input.script} {output.results_dir}
 """

@@ -29,5 +29,5 @@ collect_results:zdc_pi0:
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_zdc_sipm_on_tile_only/zdc_sigma
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_zdc_sipm_on_tile_only/zdc_pi0
     - mv results{_save,}/

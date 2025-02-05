@@ -7,10 +7,11 @@ rule insert_neutron_generate:
         NEVENTS_GEN=1000,
         th_max=5.7,
         th_min=2.0,
+        P=lambda wildcards: wildcards.P,
     shell:
         """
 mkdir -p sim_output/insert_neutron
-root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "neutron", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "neutron", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule insert_neutron_simulate:

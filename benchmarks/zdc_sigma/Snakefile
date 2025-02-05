@@ -5,9 +5,10 @@ rule zdc_sigma_generate:
                 GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc",
         params:
                 N_EVENTS=100000,
+                P=lambda wildcards: wildcards.P,
         shell:
                 """
-root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_sigma_simulate:
@@ -67,5 +68,7 @@ rule zdc_sigma_analysis:
         shell:
                 """
 mkdir -p {output.results_dir}
+ls -la {input}
+find "$LOCAL_DATA_PATH/sim_output" -type l -exec readlink {{}} \; | xargs ls -la
 python {input.script} {output.results_dir}
 """

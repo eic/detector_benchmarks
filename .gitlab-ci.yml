@@ -116,9 +116,12 @@ get_data:
     # snakemake support
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - find "${LOCAL_DATA_PATH}/sim_output" -type l -exec ls -la {} \;
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
+  after_script:
+    - find "${LOCAL_DATA_PATH}/sim_output" -type l -exec ls -la {} \;
   retry:
     max: 2
     when:

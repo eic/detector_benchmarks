@@ -10,9 +10,13 @@ rule zdc_lyso_sim_hepmc:
         "data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc.log",
     params:
         num_events=1000,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        BEAM_ENERGY=lambda wildcards: wildcards.BEAM_ENERGY,
+        THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
+        THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
     shell:
         """
-root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{wildcards.PARTICLE}", {wildcards.THETA_MIN}, {wildcards.THETA_MAX}, 0, 360, {wildcards.BEAM_ENERGY})'
+root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{params.PARTICLE}", {params.THETA_MIN}, {params.THETA_MAX}, 0, 360, {params.BEAM_ENERGY})'
 """
 
 

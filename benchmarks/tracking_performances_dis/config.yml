@@ -34,10 +34,10 @@ collect_results:tracking_performances_dis:
     # convert to png
     - |
       gs -sDEVICE=pngalpha -dUseCropBox -r144 \
-        -o 'results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plot_%03d.png' \
+        -o 'results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/tracking_performances_dis_%03d.png' \
         results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf
     - |
       gs -sDEVICE=pngalpha -dUseCropBox -r144 \
-        -o 'results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plot_%03d.png' \
+        -o 'results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/vertexing_performances_dis_%03d.png' \
         results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf
         

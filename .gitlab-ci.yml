@@ -185,8 +185,10 @@ deploy_results:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
     - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz
+    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz')
     - tar zxf pelican_Linux_x86_64.tar.gz
-    - ./pelican-*/pelican object copy -r results/ osdf://jlab-osdf/eic/work/eic3/validation/images/pipelines/pipeline-$CI_PIPELINE_ID/
+    - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
+    - ./pelican-*/pelican object copy -r pipeline-$CI_PIPELINE_ID.tar osdf://jlab-osdf/eic/work/eic3/validation/inbox/
 
 benchmarks:detector:success:
   stage: status-report

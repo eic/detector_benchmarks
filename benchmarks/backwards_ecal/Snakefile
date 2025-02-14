@@ -84,7 +84,7 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /work/eic2/{params.search_path} \
+    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
       | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
       | sort \
       > {output}
@@ -100,8 +100,8 @@ else:
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /work/eic2/{params.search_path} \
-      | sed -e 's#^/work/eic2/##' \
+    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
+      | sed -e 's#^/volatile/eic/##' \
       | sort \
       > {output}
     if [ ! -s {output} ]; then

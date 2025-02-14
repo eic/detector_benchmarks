@@ -191,7 +191,8 @@ for ix, energy in enumerate(energies):
         import scipy.optimize
         par, pcov = scipy.optimize.curve_fit(f, hist.axes[0].centers[5:], hist.values()[5:], p0=p0, maxfev=10000)
     except RuntimeError:
-        par = None
+        print(hist)
+        raise
     plt.plot(hist.axes[0].centers, f(hist.axes[0].centers, *par), label=rf"Crystal Ball fit", color="tab:green", lw=0.8)
 
     def summarize_fit(par):
@@ -237,7 +238,9 @@ for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
         import scipy.optimize
         par, pcov = scipy.optimize.curve_fit(f, energy_values[cond], sigma_over_e[cond], maxfev=10000)
     except RuntimeError:
-        par = None
+        print("energy_values", energy_values[cond])
+        print("sigma_over_e", sigma_over_e[cond])
+        raise
     stochastic, constant = par
 
     plt.plot(

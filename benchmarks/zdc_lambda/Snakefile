@@ -14,7 +14,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P}
 rule zdc_lambda_simulate:
         input:
                 GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+#                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
                 geometry_lib=find_epic_libraries(),
         output:
                 SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root",
@@ -52,7 +52,7 @@ rule zdc_lambda_recon:
         shell:
                 """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits -Pjana:nevents={params.N_EVENTS}
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits,ReconstructedFarForwardZDCLambdas,ReconstructedFarForwardZDCLambdaDecayProducts -Pjana:nevents={params.N_EVENTS}
 """
 
 rule zdc_lambda_analysis:

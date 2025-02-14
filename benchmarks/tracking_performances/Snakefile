@@ -45,10 +45,54 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """
 
+rule tracking_performance_sim_hadd:
+    input:
+        simoutput=lambda wildcards:
+          expand(
+              "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
+              DETECTOR_CONFIG="epic_craterlake_tracking_only",
+              PARTICLE=wildcards.PARTICLE,
+              ENERGY=wildcards.ENERGY,
+              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+              INDEX=range(1),
+          )
+    output:
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
+    shell:
+        """
+hadd {output} {input.simoutput}
+"""
+
+rule tracking_performance_hit_maps:
+    input:
+        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
+        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
+        sim_hadd=expand(
+           "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{{MOMENTUM}}/{{PARTICLE}}.{{MOMENTUM}}.edm4hep.root",
+           DETECTOR_CONFIG="epic_craterlake_tracking_only",
+        )
+    output:
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.eps",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.root",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.eps",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.root",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png",
+        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
+    shell: """
+OUTPUT_PREFIX="$(dirname {output[0]})"
+root -l -b -q {input.script_hitsmap}'("{input.sim_hadd}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+"""
 
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
+        hit_maps=lambda wildcards:
+          [ "{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png".format(**wildcards) ]
+          if wildcards.CAMPAIGN == "local" else
+          [],
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(

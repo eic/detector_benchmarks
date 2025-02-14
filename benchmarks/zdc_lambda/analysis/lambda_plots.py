@@ -39,7 +39,7 @@ for p in momenta:
     plt.hist(nclusters[p],bins=20, range=(0,20))
     plt.xlabel("number of clusters")
     plt.yscale('log')
-    plt.title(f"$p_\Lambda={p}$ GeV")
+    plt.title(f"$p_\\Lambda={p}$ GeV")
     plt.ylim(1)
     plt.savefig(outdir+f"nclust_{p}GeV_recon.pdf")
     print("saved file ", outdir+f"nclust_{p}GeV_recon.pdf")
@@ -58,123 +58,26 @@ for p in momenta:
     pt_truth[p]=np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py)
     theta_truth[p]=np.arctan2(pt_truth[p],pz*np.cos(tilt)+px*np.sin(tilt))
 
-
-#create an array with the same shape as the cluster-level arrays
-is_neutron_cand={}
-for p in momenta:
-    is_neutron_cand[p]=(0*arrays_sim[p][f"HcalFarForwardZDCClusters.energy"]).to_list()
-    
-    #largest_eigenvalues
-    for i in range(len(arrays_sim[p])):
-        pars=arrays_sim[p]["_HcalFarForwardZDCClusters_shapeParameters"][i]
-        index_of_max=-1
-        max_val=0
-        eigs=[]
-        shape_params_per_cluster=7
-        for j in range(len(pars)//shape_params_per_cluster):
-            largest_eigenvalue=max(pars[shape_params_per_cluster*j+4:shape_params_per_cluster*j+7])
-            eigs.append(largest_eigenvalue)
-            if(largest_eigenvalue>max_val):
-                max_val=largest_eigenvalue
-                index_of_max=j
-        if index_of_max >=0:
-            is_neutron_cand[p][i][index_of_max]=1
-        eigs.sort()
-        
-    is_neutron_cand[p]=ak.Array(is_neutron_cand[p])
-
-
-#with the position of the vertex determined by assuming the mass of the pi0
-#corrected pt* and theta* recon
-pt_recon_corr={}
-theta_recon_corr={}
-mass_recon_corr={}
-mass_pi0_recon_corr={}
-pi0_converged={}
+theta_recon={}
+E_recon={}
 zvtx_recon={}
-
-maxZ=35800
+mass_recon={}
+print(arrays_sim[p].fields)
 for p in momenta:
-    xvtx=0
-    yvtx=0
-    zvtx=0
-    
-    for iteration in range(20):
-    
-        #compute the value of theta* using the clusters in the ZDC
-        xc=arrays_sim[p][f"HcalFarForwardZDCClusters.position.x"]
-        yc=arrays_sim[p][f"HcalFarForwardZDCClusters.position.y"]
-        zc=arrays_sim[p][f"HcalFarForwardZDCClusters.position.z"]
-        E=arrays_sim[p][f"HcalFarForwardZDCClusters.energy"]
-        #apply correction to the neutron candidates only
-        A,B,C=-0.0756, -1.91,  2.30
-        neutron_corr=(1-is_neutron_cand[p])+is_neutron_cand[p]/(1+A+B/np.sqrt(E)+C/E)
-        E=E*neutron_corr
-
-        E_recon=np.sum(E, axis=-1)
-        pabs=np.sqrt(E**2-is_neutron_cand[p]*.9406**2)
-        tilt=-0.025
-        xcp=xc*np.cos(tilt)-zc*np.sin(tilt)
-        ycp=yc
-        zcp=zc*np.cos(tilt)+xc*np.sin(tilt)
-        rcp=np.sqrt(xcp**2+ycp**2+zcp**2)
-        
-        ux=(xcp-xvtx)
-        uy=(ycp-yvtx)
-        uz=(zcp-zvtx)
-        
-        norm=np.sqrt(ux**2+uy**2+uz**2)
-        ux=ux/norm
-        uy=uy/norm
-        uz=uz/norm
-        
-        px_recon,py_recon,pz_recon=np.sum(pabs*ux, axis=-1),np.sum(pabs*uy, axis=-1),np.sum(pabs*uz, axis=-1)
-
-        pt_recon_corr[p]=np.hypot(px_recon,py_recon)
-        theta_recon_corr[p]=np.arctan2(pt_recon_corr[p], pz_recon)
-        
-        mass_recon_corr[p]=np.sqrt((E_recon)**2\
-                                -(px_recon)**2\
-                                -(py_recon)**2\
-                                -(pz_recon)**2)
-        mass_pi0_recon_corr[p]=np.sqrt(np.sum(pabs*(1-is_neutron_cand[p]), axis=-1)**2\
-                                    -np.sum(pabs*ux*(1-is_neutron_cand[p]), axis=-1)**2\
-                                    -np.sum(pabs*uy*(1-is_neutron_cand[p]), axis=-1)**2\
-                                    -np.sum(pabs*uz*(1-is_neutron_cand[p]), axis=-1)**2)
-        alpha=1
-        if iteration==0:
-            u=np.sqrt(px_recon**2+py_recon**2+pz_recon**2)
-            ux=px_recon/u
-            uy=py_recon/u
-            uz=pz_recon/u
-            zeta=1/2
-            zvtx=maxZ*np.power(zeta,alpha)
-            xvtx=ux/uz*zvtx
-            yvtx=uy/uz*zvtx
-        else :
-            u=np.sqrt(px_recon**2+py_recon**2+pz_recon**2)
-            ux=px_recon/u
-            uy=py_recon/u
-            uz=pz_recon/u
-            s=2*(mass_pi0_recon_corr[p]<0.135)-1
-            zeta=np.power(zvtx/maxZ, 1/alpha)
-            zeta=zeta+s*1/2**(1+iteration)
-            zvtx=maxZ*np.power(zeta,alpha)
-            xvtx=ux/uz*zvtx
-            yvtx=uy/uz*zvtx
-        #print(zvtx)
-    pi0_converged[p]=np.abs(mass_pi0_recon_corr[p]-0.135)<0.01
-    zvtx_recon[p]=zvtx
-        
+    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.{a}"] for a in "momentum.x momentum.y momentum.z mass".split())
+    theta_recon[p]=np.arctan2(np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py),pz*np.cos(tilt)+px*np.sin(tilt))
+    E_recon[p]=np.sqrt(px**2+py**2+pz**2+m**2)
+    zvtx_recon[p]=arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.x"]*np.sin(tilt)
+    mass_recon[p]=m
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 plt.sca(axs[0])
 plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
 x=[]
 y=[]
+import awkward as ak
 for p in momenta:
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    x+=list(theta_truth[p][accept]*1000)
-    y+=list(theta_recon_corr[p][accept]*1000)
+    x+=list(theta_truth[p][np.sum(theta_recon[p]**0,axis=-1)>0]*1000)
+    y+=list(ak.flatten(theta_recon[p]*1000))
 plt.scatter(x,y)
 plt.xlabel("$\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
 plt.ylabel("$\\theta^{*\\rm recon}_{\\Lambda}$ [mrad]")
@@ -202,9 +105,7 @@ sigmas=[]
 dsigmas=[]
 xvals=[]
 for p in momenta:
-    
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    y,x=np.histogram((theta_recon_corr[p]-theta_truth[p])[accept]*1000, bins=100, range=(-1,1))
+    y,x=np.histogram(ak.flatten(theta_recon[p]-theta_truth[p])*1000, bins=100, range=(-1,1))
     bc=(x[1:]+x[:-1])/2
 
     from scipy.optimize import curve_fit
@@ -239,9 +140,8 @@ plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
 x=[]
 y=[]
 for p in momenta:
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    x+=list(arrays_sim[p]['MCParticles.vertex.z'][:,3][accept]/1000)
-    y+=list(zvtx_recon[p][accept]/1000)
+    x+=list(arrays_sim[p]['MCParticles.vertex.z'][:,3][np.sum(zvtx_recon[p]**0, axis=-1)!=0]/1000)
+    y+=list(ak.flatten(zvtx_recon[p])/1000)
 plt.scatter(x,y)
 #print(x,y)
 plt.xlabel("$z^{\\rm truth}_{\\rm vtx}$ [m]")
@@ -272,8 +172,8 @@ dsigmas=[]
 xvals=[]
 for p in momenta:
     
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    a=list((zvtx_recon[p]-arrays_sim[p]['MCParticles.vertex.z'][:,3])[accept]/1000)
+
+    a=ak.flatten((zvtx_recon[p]-arrays_sim[p]['MCParticles.vertex.z'][:,3])/1000)
     y,x=np.histogram(a, bins=100, range=(-10,10))
     bc=(x[1:]+x[:-1])/2
 
@@ -311,8 +211,7 @@ plt.sca(axs[0])
 lambda_mass=1.115683
 vals=[]
 for p in momenta:
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    vals+=list(mass_recon_corr[p][accept])
+    vals+=list(ak.flatten(mass_recon[p]))
 
 y,x,_= plt.hist(vals, bins=100, range=(1.0, 1.25))
 bc=(x[1:]+x[:-1])/2
@@ -340,8 +239,7 @@ xvals=[]
 sigmas=[]
 dsigmas=[]
 for p in momenta:
-    accept=(nclusters[p]==3) &(pi0_converged[p])
-    y,x= np.histogram(mass_recon_corr[p][accept], bins=100, range=(0.6,1.4))
+    y,x= np.histogram(ak.flatten(mass_recon[p]), bins=100, range=(0.6,1.4))
     bc=(x[1:]+x[:-1])/2
 
     from scipy.optimize import curve_fit

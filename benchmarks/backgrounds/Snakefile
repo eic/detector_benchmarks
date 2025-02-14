@@ -59,10 +59,10 @@ dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 2>{log.worke
 WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
-ELECTRON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root \
+ELECTRON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root \
 ELECTRON_BEAM_GAS_SIM=$(realpath {input.electron_beam_gas_sim}) \
 PHYSICS_PROCESS_SIM=$(realpath {input.physics_signal_sim}) \
-PROTON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root \
+PROTON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root \
 PROTON_BEAM_GAS_SIM=$(realpath {input.proton_beam_gas_sim}) \
 OUTPUT_DIR={output} \
 python {input.script}

@@ -64,11 +64,14 @@ zvtx_recon={}
 mass_recon={}
 print(arrays_sim[p].fields)
 for p in momenta:
-    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.{a}"] for a in "momentum.x momentum.y momentum.z mass".split())
+    isLambda=arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.PDG"]==3122
+    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.{a}"][isLambda] for a in "momentum.x momentum.y momentum.z mass".split())
     theta_recon[p]=np.arctan2(np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py),pz*np.cos(tilt)+px*np.sin(tilt))
     E_recon[p]=np.sqrt(px**2+py**2+pz**2+m**2)
-    zvtx_recon[p]=arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.x"]*np.sin(tilt)
+    zvtx_recon[p]=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.referencePoint.x"]*np.sin(tilt))[isLambda]
     mass_recon[p]=m
+
+#theta plots
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 plt.sca(axs[0])
 plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
@@ -76,7 +79,7 @@ x=[]
 y=[]
 import awkward as ak
 for p in momenta:
-    x+=list(theta_truth[p][np.sum(theta_recon[p]**0,axis=-1)>0]*1000)
+    x+=list(ak.flatten(theta_truth[p]+0*theta_recon[p])*1000)
     y+=list(ak.flatten(theta_recon[p]*1000))
 plt.scatter(x,y)
 plt.xlabel("$\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
@@ -133,14 +136,14 @@ plt.tight_layout()
 plt.savefig(outdir+"thetastar_recon.pdf")
 #plt.show()
 
-
+#vtx z
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 plt.sca(axs[0])
 plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
 x=[]
 y=[]
 for p in momenta:
-    x+=list(arrays_sim[p]['MCParticles.vertex.z'][:,3][np.sum(zvtx_recon[p]**0, axis=-1)!=0]/1000)
+    x+=list(ak.flatten(arrays_sim[p]['MCParticles.vertex.z'][:,3]+0*zvtx_recon[p])/1000)
     y+=list(ak.flatten(zvtx_recon[p])/1000)
 plt.scatter(x,y)
 #print(x,y)

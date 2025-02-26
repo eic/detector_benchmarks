@@ -268,3 +268,44 @@ plt.ylabel("$\\sigma[m_{\\Lambda}]$ [GeV]")
 plt.ylim(0, 0.02)
 plt.tight_layout()
 plt.savefig(outdir+"lambda_mass_rec.pdf")
+
+
+#now for the CM stuff:
+phi_residuals=[]
+theta_residuals=[]
+for p in momenta:
+    isNeutron=arrays_sim[p]['ReconstructedFarForwardZDCLambdaDecayProductsCM.PDG']==2112
+    pxcm=arrays_sim[p]['ReconstructedFarForwardZDCLambdaDecayProductsCM.momentum.x']
+    pycm=arrays_sim[p]['ReconstructedFarForwardZDCLambdaDecayProductsCM.momentum.y']
+    pzcm=arrays_sim[p]['ReconstructedFarForwardZDCLambdaDecayProductsCM.momentum.z']
+
+
+    import ROOT
+    px,py,pz,E=arrays_sim[p]['MCParticles.momentum.x'], arrays_sim[p]['MCParticles.momentum.y'], arrays_sim[p]['MCParticles.momentum.z'],np.sqrt(arrays_sim[p]['MCParticles.momentum.x']**2+arrays_sim[p]['MCParticles.momentum.y']**2+arrays_sim[p]['MCParticles.momentum.z']**2\
+                +arrays_sim[p]['MCParticles.mass']**2)
+    phicmtruth=list(np.repeat(-9999, len(arrays_sim[p])))
+    thetacmtruth=list(np.repeat(-9999, len(arrays_sim[p])))
+    for i in range(len(arrays_sim[p])):
+        l=ROOT.TLorentzVector(px[i,2], py[i,2],  pz[i,2], E[i,2])
+        n=ROOT.TLorentzVector(px[i,3], py[i,3],  pz[i,3], E[i,3])
+        ncm=n.Clone();
+        ncm.Boost(-l.BoostVector())
+        phicmtruth[i]=ncm.Phi()
+        thetacmtruth[i]=ncm.Theta()
+        
+    arrays_sim[p]["phicmtruth"]=phicmtruth
+    arrays_sim[p]["thetacmtruth"]=thetacmtruth
+
+    phicmtruth=arrays_sim[p]["phicmtruth"]
+    thetacmtruth=arrays_sim[p]["thetacmtruth"]
+    phi_residuals=np.concatenate((phi_residuals, ak.flatten((np.arctan2(pycm,pxcm)[isNeutron]-phicmtruth)*np.sin(thetacmtruth))))
+    theta_residuals=np.concatenate((theta_residuals, ak.flatten(np.arctan2(np.hypot(pycm,pxcm),pzcm)[isNeutron]-thetacmtruth)))
+plt.figure()
+plt.hist(phi_residuals*1000, bins=100, range=(-300, 300))
+plt.xlabel("$(\\phi^n_{cm,rec}-\\phi^n_{cm,truth})\\times\\sin\\theta^n_{cm,truth} [mrad]$")
+plt.savefig(outdir+"neutron_phi_cm_res.pdf")
+
+plt.figure()
+plt.hist(1000*theta_residuals, bins=100, range=(-1000, 1000))
+plt.xlabel("$\\theta^n_{cm,rec}-\\theta^n_{cm,truth}$ [mrad]")
+plt.savefig(outdir+"neutron_theta_cm_res.pdf")

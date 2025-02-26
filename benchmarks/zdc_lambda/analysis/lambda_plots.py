@@ -64,11 +64,11 @@ zvtx_recon={}
 mass_recon={}
 print(arrays_sim[p].fields)
 for p in momenta:
-    isLambda=arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.PDG"]==3122
-    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.{a}"][isLambda] for a in "momentum.x momentum.y momentum.z mass".split())
+
+    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.{a}"] for a in "momentum.x momentum.y momentum.z mass".split())
     theta_recon[p]=np.arctan2(np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py),pz*np.cos(tilt)+px*np.sin(tilt))
     E_recon[p]=np.sqrt(px**2+py**2+pz**2+m**2)
-    zvtx_recon[p]=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdaAndDecayProducts.referencePoint.x"]*np.sin(tilt))[isLambda]
+    zvtx_recon[p]=arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.x"]*np.sin(tilt)
     mass_recon[p]=m
 
 #theta plots

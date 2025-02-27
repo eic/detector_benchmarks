@@ -51,7 +51,6 @@ for p in momenta:
     slc=abs(bc-p)<10
     fnc=gauss
     p0=[100, p, 10]
-    #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     if p==100:
@@ -106,8 +105,6 @@ for p in momenta:
     pz=arrays_sim[p]["MCParticles.momentum.z"][::,2]
 
     theta_truth=np.arctan2(np.hypot(px*np.cos(-.025)-pz*np.sin(-.025), py), pz*np.cos(-.025)+px*np.sin(-.025))
-    
-    #print(p, res, mrecon)
     if p==100:
         plt.sca(axs[0])
         y, x, _=plt.hist(1000*ak.flatten(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5), histtype='step')
@@ -122,7 +119,6 @@ for p in momenta:
     slc=abs(bc)<0.2#1.5*np.std(1000*(theta_recon-theta_truth))
     fnc=gauss
     p0=[100, 0, 0.1]
-    #print(list(y), list(x))
     try:
         coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
@@ -136,7 +132,6 @@ for p in momenta:
         pass
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
-#print(dresvals)
 
 fnc=lambda E,a, b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals

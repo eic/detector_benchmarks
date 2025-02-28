@@ -52,7 +52,7 @@ rule zdc_lambda_recon:
         shell:
                 """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits -Pjana:nevents={params.N_EVENTS}
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits,ReconstructedFarForwardZDCLambdas,ReconstructedFarForwardZDCLambdaDecayProductsCM -Pjana:nevents={params.N_EVENTS}
 """
 
 rule zdc_lambda_analysis:

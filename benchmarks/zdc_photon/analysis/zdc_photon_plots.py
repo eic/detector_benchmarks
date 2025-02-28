@@ -27,7 +27,7 @@ for p in momenta:
         f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV_{index}.edm4eic.root': 'events'
         for index in range(5)
     })
-
+import awkward as ak
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 pvals=[]
 resvals=[]
@@ -35,27 +35,22 @@ dresvals=[]
 scalevals=[]
 dscalevals=[]
 for p in momenta:
-    selection=[len(arrays_sim[p]["HcalFarForwardZDCClusters.energy"][i])==1 for i in range(len(arrays_sim[p]))]
-    E=arrays_sim[p][selection]["HcalFarForwardZDCClusters.energy"]
-    
-    Etot=np.sum(E, axis=-1)
-    #print(len(Etot))
-    #print(p, res, mrecon)
+    selection=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.PDG"]==22
+    Etot=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.energy"][selection]
     if p==100:
         plt.sca(axs[0])
-        y, x, _=plt.hist(Etot, bins=100, range=(p*.75, p*1.25), histtype='step')
+        y, x, _=plt.hist(ak.flatten(Etot), bins=100, range=(p*.75, p*1.25), histtype='step')
         plt.ylabel("events")
-        plt.title(f"$p_{{\gamma}}$={p} GeV")
+        plt.title(f"$p_{{\\gamma}}$={p} GeV")
         plt.xlabel("$E^{\\gamma}_{recon}$ [GeV]")
     else:
-        y, x = np.histogram(Etot, bins=100, range=(p*.75, p*1.25))
+        y, x = np.histogram(ak.flatten(Etot), bins=100, range=(p*.75, p*1.25))
         
     bc=(x[1:]+x[:-1])/2
     from scipy.optimize import curve_fit
     slc=abs(bc-p)<10
     fnc=gauss
     p0=[100, p, 10]
-    #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
     if p==100:
@@ -98,47 +93,45 @@ pvals=[]
 resvals=[]
 dresvals=[]
 for p in momenta:
-    selection=[len(arrays_sim[p]["HcalFarForwardZDCClusters.energy"][i])==1 for i in range(len(arrays_sim[p]))]
-    x=arrays_sim[p][selection]["HcalFarForwardZDCClusters.position.x"][::,0]
-    y=arrays_sim[p][selection]["HcalFarForwardZDCClusters.position.y"][::,0]
-    z=arrays_sim[p][selection]["HcalFarForwardZDCClusters.position.z"][::,0]
+    selection=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.PDG"]==22
+    px_recon=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.momentum.x"][selection]
+    py_recon=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.momentum.y"][selection]
+    pz_recon=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.momentum.z"][selection]
     
-    theta_recon=np.arctan2(np.hypot(x*np.cos(-.025)-z*np.sin(-.025), y), z*np.cos(-.025)+x*np.sin(-.025))
+    theta_recon=np.arctan2(np.hypot(px_recon*np.cos(-.025)-pz_recon*np.sin(-.025), py_recon), pz_recon*np.cos(-.025)+px_recon*np.sin(-.025))
     
-    px=arrays_sim[p][selection]["MCParticles.momentum.x"][::,2]
-    py=arrays_sim[p][selection]["MCParticles.momentum.y"][::,2]
-    pz=arrays_sim[p][selection]["MCParticles.momentum.z"][::,2]
+    px=arrays_sim[p]["MCParticles.momentum.x"][::,2]
+    py=arrays_sim[p]["MCParticles.momentum.y"][::,2]
+    pz=arrays_sim[p]["MCParticles.momentum.z"][::,2]
 
     theta_truth=np.arctan2(np.hypot(px*np.cos(-.025)-pz*np.sin(-.025), py), pz*np.cos(-.025)+px*np.sin(-.025))
-    
-    Etot=np.sum(E, axis=-1)
-    #print(p, res, mrecon)
     if p==100:
         plt.sca(axs[0])
-        y, x, _=plt.hist(1000*(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5), histtype='step')
+        y, x, _=plt.hist(1000*ak.flatten(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5), histtype='step')
         plt.ylabel("events")
-        plt.title(f"$p_{{\gamma}}$={p} GeV")
+        plt.title(f"$p_{{\\gamma}}$={p} GeV")
         plt.xlabel("$\\theta^{\\gamma}_{recon}$ [mrad]")
     else:
-        y, x = np.histogram(1000*(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5))
+        y, x = np.histogram(1000*ak.flatten(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5))
         
     bc=(x[1:]+x[:-1])/2
     from scipy.optimize import curve_fit
     slc=abs(bc)<0.2#1.5*np.std(1000*(theta_recon-theta_truth))
     fnc=gauss
     p0=[100, 0, 0.1]
-    #print(list(y), list(x))
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==100:
-        xx=np.linspace(-0.5,0.5, 100)
-        plt.plot(xx, fnc(xx,*coeff))
-    pvals.append(p)
-    resvals.append(np.abs(coeff[2]))
-    dresvals.append(np.sqrt(var_matrix[2][2]))
+        if p==100:
+            xx=np.linspace(-0.5,0.5, 100)
+            plt.plot(xx, fnc(xx,*coeff))
+        pvals.append(p)
+        resvals.append(np.abs(coeff[2]))
+        dresvals.append(np.sqrt(var_matrix[2][2]))
+    except:
+        pass
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
-#print(dresvals)
 
 fnc=lambda E,a, b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals

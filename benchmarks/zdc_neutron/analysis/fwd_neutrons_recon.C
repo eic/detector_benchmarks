@@ -112,11 +112,11 @@ void fwd_neutrons_recon(std::string inputfile, std::string outputfile){
     TTreeReaderArray<float> hcal_cluster_energy(tr, "HcalFarForwardZDCClusters.energy");
     
     //Reconstructed neutron quantity
-    TTreeReaderArray<float> rec_neutron_energy(tr,"ReconstructedFarForwardZDCNeutrons.energy");
-    TTreeReaderArray<float> rec_neutron_px(tr,"ReconstructedFarForwardZDCNeutrons.momentum.x");
-    TTreeReaderArray<float> rec_neutron_py(tr,"ReconstructedFarForwardZDCNeutrons.momentum.y");
-    TTreeReaderArray<float> rec_neutron_pz(tr,"ReconstructedFarForwardZDCNeutrons.momentum.z");
-
+    TTreeReaderArray<float> rec_neutron_energy(tr,"ReconstructedFarForwardZDCNeutrals.energy");
+    TTreeReaderArray<float> rec_neutron_px(tr,"ReconstructedFarForwardZDCNeutrals.momentum.x");
+    TTreeReaderArray<float> rec_neutron_py(tr,"ReconstructedFarForwardZDCNeutrals.momentum.y");
+    TTreeReaderArray<float> rec_neutron_pz(tr,"ReconstructedFarForwardZDCNeutrals.momentum.z");
+    TTreeReaderArray<int> rec_neutron_PDG(tr,"ReconstructedFarForwardZDCNeutrals.PDG");
     //Other variables
     int counter(0);
     
@@ -195,6 +195,8 @@ void fwd_neutrons_recon(std::string inputfile, std::string outputfile){
 
        //Reconstructed neutron(s)
        for(int irec=0;irec<rec_neutron_energy.GetSize();irec++){
+	 if (rec_neutron_PDG[irec] != 2112)
+	   continue;
                 if(neut_true_rot.Theta()*1000. < 3.5 && hcal_clus_size==1){
                         h1_neut_rec->Fill(rec_neutron_energy[irec]);
 

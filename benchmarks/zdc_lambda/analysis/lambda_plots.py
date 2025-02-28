@@ -115,7 +115,6 @@ for p in momenta:
     slc=abs(bc)<0.3
     fnc=gauss
     p0=(100, 0, 0.06)
-    #print(bc[slc],y[slc])
     sigma=np.sqrt(y[slc])+(y[slc]==0)
     try:
         coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)

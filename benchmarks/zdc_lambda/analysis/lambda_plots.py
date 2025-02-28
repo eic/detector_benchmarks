@@ -224,7 +224,7 @@ plt.ylim(0, np.max(y)*1.2)
 plt.xlim(1.0, 1.25)
 
 from scipy.optimize import curve_fit
-slc=abs(bc-lambda_mass)<0.07
+slc=abs(bc-lambda_mass)<0.05
 fnc=gauss
 p0=[100, lambda_mass, 0.04]
 coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
@@ -245,7 +245,7 @@ for p in momenta:
     bc=(x[1:]+x[:-1])/2
 
     from scipy.optimize import curve_fit
-    slc=abs(bc-lambda_mass)<0.07
+    slc=abs(bc-lambda_mass)<0.05
     fnc=gauss
     p0=[100, lambda_mass, 0.05]
     try:

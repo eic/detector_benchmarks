@@ -58,82 +58,85 @@ for p in momenta:
     pt_truth[p]=np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py)
     theta_truth[p]=np.arctan2(pt_truth[p],pz*np.cos(tilt)+px*np.sin(tilt))
 
-theta_recon={}
-E_recon={}
-zvtx_recon={}
-mass_recon={}
-print(arrays_sim[p].fields)
-for p in momenta:
+if "ReconstructedFarForwardZDCLambdas.momentum.x" not in arrays_sim[momenta[0]]:
+    print("ReconstructedFarForwardZDCLambdas collection is not available (needs EICrecon 1.23)")
+else:
+    theta_recon={}
+    E_recon={}
+    zvtx_recon={}
+    mass_recon={}
+    print(arrays_sim[p].fields)
+    for p in momenta:
 
-    px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.{a}"] for a in "momentum.x momentum.y momentum.z mass".split())
-    theta_recon[p]=np.arctan2(np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py),pz*np.cos(tilt)+px*np.sin(tilt))
-    E_recon[p]=np.sqrt(px**2+py**2+pz**2+m**2)
-    zvtx_recon[p]=arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.x"]*np.sin(tilt)
-    mass_recon[p]=m
+        px,py,pz,m=(arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.{a}"] for a in "momentum.x momentum.y momentum.z mass".split())
+        theta_recon[p]=np.arctan2(np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py),pz*np.cos(tilt)+px*np.sin(tilt))
+        E_recon[p]=np.sqrt(px**2+py**2+pz**2+m**2)
+        zvtx_recon[p]=arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.z"]*np.cos(tilt)+arrays_sim[p][f"ReconstructedFarForwardZDCLambdas.referencePoint.x"]*np.sin(tilt)
+        mass_recon[p]=m
 
-#theta plots
-fig,axs=plt.subplots(1,3, figsize=(24, 8))
-plt.sca(axs[0])
-plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
-x=[]
-y=[]
-import awkward as ak
-for p in momenta:
-    x+=list(ak.flatten(theta_truth[p]+0*theta_recon[p])*1000)
-    y+=list(ak.flatten(theta_recon[p]*1000))
-plt.scatter(x,y)
-plt.xlabel("$\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
-plt.ylabel("$\\theta^{*\\rm recon}_{\\Lambda}$ [mrad]")
-plt.xlim(0,3.2)
-plt.ylim(0,3.2)
+    #theta plots
+    fig,axs=plt.subplots(1,3, figsize=(24, 8))
+    plt.sca(axs[0])
+    plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
+    x=[]
+    y=[]
+    import awkward as ak
+    for p in momenta:
+        x+=list(ak.flatten(theta_truth[p]+0*theta_recon[p])*1000)
+        y+=list(ak.flatten(theta_recon[p]*1000))
+    plt.scatter(x,y)
+    plt.xlabel("$\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
+    plt.ylabel("$\\theta^{*\\rm recon}_{\\Lambda}$ [mrad]")
+    plt.xlim(0,3.2)
+    plt.ylim(0,3.2)
 
-plt.sca(axs[1])
-plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
-y,x,_=plt.hist(y-np.array(x), bins=50, range=(-1,1))
-bc=(x[1:]+x[:-1])/2
-
-from scipy.optimize import curve_fit
-slc=abs(bc)<0.3
-fnc=gauss
-p0=[100, 0, 0.05]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-1, 1)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
-plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
-plt.ylabel("events")
-
-plt.sca(axs[2])
-sigmas=[]
-dsigmas=[]
-xvals=[]
-for p in momenta:
-    y,x=np.histogram(ak.flatten(theta_recon[p]-theta_truth[p])*1000, bins=100, range=(-1,1))
+    plt.sca(axs[1])
+    plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
+    y,x,_=plt.hist(y-np.array(x), bins=50, range=(-1,1))
     bc=(x[1:]+x[:-1])/2
 
     from scipy.optimize import curve_fit
     slc=abs(bc)<0.3
     fnc=gauss
-    p0=(100, 0, 0.06)
-    sigma=np.sqrt(y[slc])+(y[slc]==0)
-    try:
-        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
-        sigmas.append(coeff[2])
-        dsigmas.append(np.sqrt(var_matrix[2][2]))
-        xvals.append(p)
-    except:
-        print("fit failed")
-plt.ylim(0, 0.3)
+    p0=[100, 0, 0.05]
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-1, 1)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+    plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
+    plt.ylabel("events")
 
-plt.errorbar(xvals, sigmas, dsigmas, ls='', marker='o', color='k')
-x=np.linspace(100, 275, 100)
-plt.plot(x, 3/np.sqrt(x), color='tab:orange')
-plt.text(170, .23, "YR requirement:\n   3 mrad/$\\sqrt{E}$")
-plt.xlabel("$E_{\\Lambda}$ [GeV]")
-plt.ylabel("$\\sigma[\\theta^*_{\\Lambda}]$ [mrad]")
-plt.tight_layout()
-plt.savefig(outdir+"thetastar_recon.pdf")
-#plt.show()
+    plt.sca(axs[2])
+    sigmas=[]
+    dsigmas=[]
+    xvals=[]
+    for p in momenta:
+        y,x=np.histogram(ak.flatten(theta_recon[p]-theta_truth[p])*1000, bins=100, range=(-1,1))
+        bc=(x[1:]+x[:-1])/2
+
+        from scipy.optimize import curve_fit
+        slc=abs(bc)<0.3
+        fnc=gauss
+        p0=(100, 0, 0.06)
+        sigma=np.sqrt(y[slc])+(y[slc]==0)
+        try:
+            coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+            sigmas.append(coeff[2])
+            dsigmas.append(np.sqrt(var_matrix[2][2]))
+            xvals.append(p)
+        except:
+            print("fit failed")
+    plt.ylim(0, 0.3)
+
+    plt.errorbar(xvals, sigmas, dsigmas, ls='', marker='o', color='k')
+    x=np.linspace(100, 275, 100)
+    plt.plot(x, 3/np.sqrt(x), color='tab:orange')
+    plt.text(170, .23, "YR requirement:\n   3 mrad/$\\sqrt{E}$")
+    plt.xlabel("$E_{\\Lambda}$ [GeV]")
+    plt.ylabel("$\\sigma[\\theta^*_{\\Lambda}]$ [mrad]")
+    plt.tight_layout()
+    plt.savefig(outdir+"thetastar_recon.pdf")
+    #plt.show()
 
 #vtx z
 fig,axs=plt.subplots(1,3, figsize=(24, 8))

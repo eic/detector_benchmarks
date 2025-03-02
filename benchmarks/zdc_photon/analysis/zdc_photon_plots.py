@@ -27,6 +27,12 @@ for p in momenta:
         f'sim_output/zdc_photon/{config}_rec_zdc_photon_{p}GeV_{index}.edm4eic.root': 'events'
         for index in range(5)
     })
+
+if "ReconstructedFarForwardZDCNeutrals.PDG" in arrays_sim[p][momenta[0]]:
+    print("ReconstructedFarForwardZDCNeutrals collection is not available (needs EICrecon 1.23)")
+    import sys
+    sys.exit(0)
+
 import awkward as ak
 fig,axs=plt.subplots(1,3, figsize=(24, 8))
 pvals=[]

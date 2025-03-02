@@ -58,7 +58,7 @@ for p in momenta:
     pt_truth[p]=np.hypot(px*np.cos(tilt)-pz*np.sin(tilt), py)
     theta_truth[p]=np.arctan2(pt_truth[p],pz*np.cos(tilt)+px*np.sin(tilt))
 
-if "ReconstructedFarForwardZDCLambdas.momentum.x" not in arrays_sim[momenta[0]]:
+if "ReconstructedFarForwardZDCLambdas.momentum.x" not in arrays_sim[momenta[0]].fields:
     print("ReconstructedFarForwardZDCLambdas collection is not available (needs EICrecon 1.23)")
 else:
     theta_recon={}

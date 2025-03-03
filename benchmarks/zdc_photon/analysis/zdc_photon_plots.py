@@ -28,7 +28,7 @@ for p in momenta:
         for index in range(5)
     })
 
-if "ReconstructedFarForwardZDCNeutrals.PDG" in arrays_sim[p][momenta[0]].fields:
+if "ReconstructedFarForwardZDCNeutrals.PDG" not in arrays_sim[p][momenta[0]].fields:
     print("ReconstructedFarForwardZDCNeutrals collection is not available (needs EICrecon 1.23)")
     import sys
     sys.exit(0)

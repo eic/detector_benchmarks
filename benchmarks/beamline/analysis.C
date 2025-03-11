@@ -110,7 +110,7 @@ void analysis(  TString inFile      = "/scratch/EIC/G4out/beamline/beamlineTest.
 
     }
 
-    TCanvas *cX = new TCanvas("c1","c1",3000,1600);
+    TCanvas *cX = new TCanvas("x_px_canvas","x_px_canvas",3000,1600);
     cX->Divide(4,2);
 
     int i=1;
@@ -121,7 +121,7 @@ void analysis(  TString inFile      = "/scratch/EIC/G4out/beamline/beamlineTest.
     }
 
 
-    TCanvas *cY = new TCanvas("c2","c2",3000,1600);
+    TCanvas *cY = new TCanvas("y_py_canvas","y_py_canvas",3000,1600);
     cY->Divide(4,2);
 
     i=1;

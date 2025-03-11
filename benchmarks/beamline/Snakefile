@@ -2,9 +2,9 @@ rule beamline_sim:
     input:
         macro="beamGPS.mac",
     output:
-        "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root",
     log:
-        "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root.log",
+        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root.log",
     shell:
         """
             exec npsim \
@@ -17,11 +17,11 @@ rule beamline_sim:
 
 rule beamline_analysis:
     input:
-        "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root",
     output:
-        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis.root"
+        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis{tag}.root"
     log:
-        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis.root.log"
+        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis{tag}.root.log"
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:

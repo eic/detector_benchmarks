@@ -36,7 +36,7 @@ ddsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-  --inputFiles root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/DIS/NC/{wildcards.EBEAM}x{wildcards.PBEAM}/minQ2={wildcards.MINQ2}/pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_vtxfix_{wildcards.INDEX}.hepmc3.tree.root \
+  --inputFiles root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/DIS/NC/{wildcards.EBEAM}x{wildcards.PBEAM}/minQ2={wildcards.MINQ2}/pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_vtxfix_{wildcards.INDEX}.hepmc3.tree.root \
   --outputFile {output}
 """
 

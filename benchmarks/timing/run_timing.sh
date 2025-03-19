@@ -92,11 +92,11 @@ mkdir -p ${timing_dir}
       --compactFile ${compact_path} \
       --outputFile ${output_dir}/${output_file} \
     2>&1 > ${timing_dir}/${ddsim_file}
-echo "For ${nevents} events:"
-cat ${timing_dir}/${timing_file}
 
 if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running npsim"
   exit 1
 fi
 
+echo "For ${nevents} events:"
+cat ${timing_dir}/${timing_file}

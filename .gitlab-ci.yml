@@ -61,8 +61,8 @@ stages:
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
           -d '{"state":"'"${STATE}"'",
                "target_url":"'"${CI_PIPELINE_URL}"'",
-               "description":"'"${DESCRIPTION} $(TZ=America/New_York date)"'",
-               "context":"eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')"
+               "description":"'"$(TZ=America/New_York date)"'",
+               "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
               }' ;
       fi
 
@@ -72,7 +72,6 @@ benchmarks:detector:pending:
   extends: .status
   variables:
     STATE: "pending"
-    DESCRIPTION: "Started..."
   when: always
 
 common:setup:
@@ -197,7 +196,6 @@ benchmarks:detector:success:
   extends: .status
   variables:
     STATE: "success"
-    DESCRIPTION: "Succeeded!"
   after_script:
     # Cleanup scratch space
     - rm -rfv $LOCAL_DATA_PATH
@@ -209,7 +207,6 @@ benchmarks:detector:failure:
   extends: .status
   variables:
     STATE: "failure"
-    DESCRIPTION: "Failed!"
   when: on_failure
 
 pages:

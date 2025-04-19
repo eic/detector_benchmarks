@@ -2,6 +2,7 @@ rule tracking_performance_sim:
     input:
         steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
@@ -13,6 +14,16 @@ rule tracking_performance_sim:
         INDEX=r"\d{4}",
     params:
         N_EVENTS=10000
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        ENERGY=lambda wildcards: wildcards.ENERGY,
+        PHASE_SPACE=lambda wildcards: wildcards.PHASE_SPACE,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -20,11 +31,11 @@ exec ddsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
-  --random.seed 1{wildcards.INDEX} \
+  --random.seed {params.SEED} \
   --filter.tracker edep0 \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
-  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --outputFile {output}
 """
 
@@ -38,9 +49,17 @@ rule tracking_performance_recon:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        ENERGY=lambda wildcards: wildcards.ENERGY,
+        PHASE_SPACE=lambda wildcards: wildcards.PHASE_SPACE,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell: """
 set -m # monitor mode to prevent lingering processes
-exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """

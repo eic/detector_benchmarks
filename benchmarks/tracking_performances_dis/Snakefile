@@ -29,6 +29,7 @@ rule trk_dis_sim:
     params:
         N_EVENTS=200,
         EBEAM=lambda wildcards: wildcards.EBEAM,
+        INDEX=lambda wildcards: wildcards.INDEX,
         PBEAM=lambda wildcards: wildcards.PBEAM,
         MINQ2=lambda wildcards: wildcards.MINQ2,
         SEED=lambda wildcards: "1" + wildcards.INDEX,

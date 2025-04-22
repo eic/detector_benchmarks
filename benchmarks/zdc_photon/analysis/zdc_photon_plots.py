@@ -57,16 +57,19 @@ for p in momenta:
     slc=abs(bc-p)<10
     fnc=gauss
     p0=[100, p, 10]
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==100:
-        xx=np.linspace(p*0.75,p*1.25, 100)
-        plt.plot(xx, fnc(xx,*coeff))
-    pvals.append(p)
-    resvals.append(np.abs(coeff[2])/coeff[1])
-    dresvals.append(np.sqrt(var_matrix[2][2])/coeff[1])
-    scalevals.append(np.abs(coeff[1])/p)
-    dscalevals.append(np.sqrt(var_matrix[2][2])/p)
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+                                      sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
+        if p==100:
+            xx=np.linspace(p*0.75,p*1.25, 100)
+            plt.plot(xx, fnc(xx,*coeff))
+        pvals.append(p)
+        resvals.append(np.abs(coeff[2])/coeff[1])
+        dresvals.append(np.sqrt(var_matrix[2][2])/coeff[1])
+        scalevals.append(np.abs(coeff[1])/p)
+        dscalevals.append(np.sqrt(var_matrix[2][2])/p)
+    except RuntimeError as e:
+        print(f"fit failed for p={p}", e, list(bc[slc]), list(y[slc]))
     
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
@@ -78,11 +81,14 @@ xx=np.linspace(15, 275, 100)
 
 fnc=lambda E,a: a/np.sqrt(E)
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
-                                 sigma=dresvals, maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
+                                     sigma=dresvals, maxfev=10000)
 
-xx=np.linspace(15, 275, 100)
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}$')
+    xx=np.linspace(15, 275, 100)
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}$')
+except RuntimeError as e:
+    print("fit failed", e)
 plt.legend()
 plt.sca(axs[2])
 plt.errorbar(pvals, scalevals, dscalevals, ls='', marker='o')

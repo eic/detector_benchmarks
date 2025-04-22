@@ -69,7 +69,7 @@ for p in momenta:
         scalevals.append(np.abs(coeff[1])/p)
         dscalevals.append(np.sqrt(var_matrix[2][2])/p)
     except RuntimeError as e:
-        print(f"fit failed for p={p}", e)
+        print(f"fit failed for p={p}", e, list(bc[slc]), list(y[slc]))
     
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')

@@ -101,3 +101,78 @@ struct globalToLocal{
   dd4hep::Detector& detector;
   dd4hep::VolumeManager volumeManager;
 };
+
+struct volParams{
+  double radius;
+  double xPos;
+  double yPos;
+  double zPos;
+  double rotation;
+};
+
+// Functor to get the volume element parameters from the CellID
+struct getVolumeParametersFromCellID {
+  getVolumeParametersFromCellID(dd4hep::Detector& det) : detector(det) {
+    volumeManager = dd4hep::VolumeManager::getVolumeManager(det);
+  }
+
+  ROOT::VecOps::RVec<volParams> operator()(const RVecHits& evt) {
+    ROOT::VecOps::RVec<volParams> result;
+    // Look up the detector element using the CellID
+    for(const auto& h : evt) {
+      auto  cellID = h.cellID;
+      auto  detelement = volumeManager.lookupDetElement(cellID);
+      const TGeoMatrix& transform      = detelement.nominal().worldTransformation();
+      const Double_t*   translation    = transform.GetTranslation();
+      const Double_t*   rotationMatrix = transform.GetRotationMatrix(); // Compute rotation angle around the Y-axis
+      double rotationAngleY = std::atan2(rotationMatrix[2], rotationMatrix[8]); // atan2(r13, r33)
+      auto volume = detelement.volume();
+      dd4hep::ConeSegment cone = volume.solid();
+      volParams params{
+        cone.rMax1(),
+        translation[0],
+        translation[1],
+        translation[2],
+        rotationAngleY
+      };
+      result.push_back(params);
+    }
+    return result;
+  }
+
+private:
+  dd4hep::Detector& detector;
+  dd4hep::VolumeManager volumeManager;
+};
+
+TH1F* CreateFittedHistogram(const std::string& histName, 
+  const std::string& histTitle, 
+  const std::map<TString, double>& valueMap, 
+  const std::map<TString, double>& errorMap, 
+  const std::string& xAxisLabel) {
+  // Number of bins corresponds to the number of entries in the value map
+  int nPoints = valueMap.size();
+  TH1F* hist = new TH1F(histName.c_str(), (";" + xAxisLabel + ";" + histTitle).c_str(), nPoints, 0.5, nPoints + 0.5);
+
+  // Fill the histogram with values and errors, and set custom bin labels
+  int binIndex = 1; // Start from bin 1
+  for (const auto& [name, value] : valueMap) {
+    hist->SetBinContent(binIndex, value); // Set the bin content
+    if(errorMap.size()==valueMap.size()){
+      hist->SetBinError(binIndex, errorMap.at(name)); // Set the bin error
+    }
+    else{
+      hist->SetBinError(binIndex, 0); // Set the bin error to 0 if not provided
+    }
+    hist->GetXaxis()->SetBinLabel(binIndex, name); // Set the bin label
+    binIndex++;
+  }
+
+  // Customize the histogram
+  hist->SetMarkerStyle(20);
+  hist->SetMarkerSize(1.0);
+  hist->SetLineColor(kBlue);
+  hist->SetMarkerColor(kRed);
+
+  return hist;
+}

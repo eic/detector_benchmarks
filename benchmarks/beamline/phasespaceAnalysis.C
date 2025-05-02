@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-void analysis(  TString inFile      = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
                 TString outFile     = "output.root",
                 std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml"){
 

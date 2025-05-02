@@ -1,10 +1,10 @@
 rule beamline_sim:
     input:
-        macro="beamGPS.mac",
+        macro="{test}GPS.mac",
     output:
-        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root",
+        "/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root",
     log:
-        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root.log",
+        "/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root.log",
     shell:
         """
             exec npsim \
@@ -15,16 +15,33 @@ rule beamline_sim:
             --outputFile {output} \
         """
 
-rule beamline_analysis:
-    input:
-        "/scratch/EIC/G4out/beamline/beamlineTest{tag}.edm4hep.root",
+rule beamline_geometry_image:
     output:
-        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis{tag}.root"
-    log:
-        "/scratch/EIC/ReconOut/beamline/beamlineTestAnalysis{tag}.root.log"
+        "geometry_image{tag}.png"
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
-            root -l -b -q 'analysis.C("{input}", "{output}", "{params.xml}")'
+            exec npsim \
+            --compactFile {params.xml} \
+            --runType vis  \
+            --enableG4GPS \
+            --macroFile visbeam.mac 
+            mv geometry_image.png {output}
         """
+
+rule beamline_analysis:
+    input:
+        data="/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root",
+        script="{test}Analysis.C",
+    output:
+        "/scratch/EIC/ReconOut/beamline/{test}TestAnalysis{tag}.root"
+    log:
+        "/scratch/EIC/ReconOut/beamline/{test}TestAnalysis{tag}.root.log"
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    shell:
+        """
+            root -l -b -q 'analysis.C("{input.data}", "{output}", "{params.xml}")'
+        """
+

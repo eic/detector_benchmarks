@@ -1,0 +1,11 @@
+/gps/ang/type beam2d
+/gps/ang/sigma_x 0.011 rad # 11 mrad
+/gps/ang/sigma_y 0.011 rad # 11 mrad
+/gps/pos/type Beam
+/gps/pos/sigma_x 0.119 mm
+/gps/pos/sigma_y 0.0107 mm
+/gps/energy 17.846 GeV
+#/gps/energy 18 GeV
+/gps/particle e-
+
+/run/beamOn 100000

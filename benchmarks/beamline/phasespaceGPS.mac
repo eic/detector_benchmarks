@@ -8,4 +8,4 @@
 #/gps/energy 18 GeV
 /gps/particle e-
 
-/run/beamOn 100000
+/run/beamOn 1000000

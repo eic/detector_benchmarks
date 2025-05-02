@@ -11,7 +11,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDF/RInterface.hxx"
 #include "ROOT/RVec.hxx"
-#include "functors.h"
+#include "shared_functions.h"
 #include "TCanvas.h"
 #include "TStyle.h"
 
@@ -305,9 +305,9 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     }
 
     // Save 2D canvases as pngs
-    cXY->SaveAs("beamspot.png");
-    cX->SaveAs("x_px.png");
-    cY->SaveAs("y_py.png");
+    // cXY->SaveAs("beamspot.png");
+    // cX->SaveAs("x_px.png");
+    // cY->SaveAs("y_py.png");
 
     // ---------------------------------------------------------------------------
     // Create histograms showing the fitted means and standard deviations of the positions and momenta
@@ -375,7 +375,7 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     cFittedMeans->SetGrid();
     cFittedMeans->Update();
     // Save the canvas as a PNG file
-    cFittedMeans->SaveAs("fitted_means_stddevs.png");
+    // cFittedMeans->SaveAs("fitted_means_stddevs.png");
 
     // Create a canvas for the fitted momentum means and standard deviations
     TCanvas *cFittedMomentumMeans = new TCanvas("cFittedMomentumMeans", "Fitted Momentum Means and Std Deviation", 1200, 800);
@@ -391,7 +391,7 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     cFittedMomentumMeans->SetGrid();
     cFittedMomentumMeans->Update();
     // Save the canvas as a PNG file
-    cFittedMomentumMeans->SaveAs("fitted_momentum_means_stddevs.png");
+    // cFittedMomentumMeans->SaveAs("fitted_momentum_means_stddevs.png");
 
 
     // -----------------------------------------------------------------------------
@@ -432,7 +432,7 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     cPipeParams->SetGrid();
     cPipeParams->Update();
     // Save the canvas as a PNG file
-    cPipeParams->SaveAs("pipe_parameters.png");
+    // cPipeParams->SaveAs("pipe_parameters.png");
 
 
     TFile *f = new TFile(outFile,"RECREATE");

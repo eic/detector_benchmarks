@@ -11,7 +11,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDF/RInterface.hxx"
 #include "ROOT/RVec.hxx"
-#include "functors.h"
+#include "shared_functions.h"
 #include "TCanvas.h"
 #include "TStyle.h"
 

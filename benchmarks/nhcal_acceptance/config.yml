@@ -1,0 +1,19 @@
+sim:nhcal_acceptance:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - MOMENTUM: ["1GeV", "5GeV", "10GeV"]
+  script:
+    - snakemake --cores 3 sim_output/nhcal_acceptance/sim_epic_backward_hcal_only_E${MOMENTUM}.emd4hep.root
+
+bench:nhcal_acceptance:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "sim:nhcal_acceptance"
+  parallel:
+    matrix:
+      - MOMENTUM: ["1GeV", "5GeV", "10GeV"]
+  script:
+    - snakemake --cores 3 results/nhcal_acceptance_analysis_E${MOMENTUM}.pdf

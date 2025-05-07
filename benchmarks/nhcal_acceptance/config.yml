@@ -17,3 +17,11 @@ bench:nhcal_acceptance:
       - MOMENTUM: ["1GeV", "5GeV", "10GeV"]
   script:
     - snakemake --cores 3 results/nhcal_acceptance_analysis_E${MOMENTUM}.pdf
+
+collect_results:nhcal_acceptance:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - "bench:nhcal_acceptance"
+  script:
+    - ls -lrht

@@ -41,7 +41,6 @@ stages:
   - status-pending
   - config
   - initialize
-  - data_init
   - simulate
   - calibrate
   - benchmarks
@@ -94,18 +93,9 @@ common:setup:
     - mkdir -p config
     - print_env.sh
 
-get_data:
-  stage: data_init
-  needs: ["common:setup"]
-  script:
-    - source .local/bin/env.sh
-    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
-    - ln -s "${LOCAL_DATA_PATH}/datasets/data" data
-    - cd ${LOCAL_DATA_PATH} && git clone --depth=1 https://eicweb.phy.anl.gov/EIC/datasets.git datasets
-
 .det_benchmark:
   needs:
-    - ["get_data","common:setup"]
+    - ["common:setup"]
   before_script:
     - mc config host add S3 https://eics3.sdcc.bnl.gov:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY} || echo "Failed to configure S3."
     - source .local/bin/env.sh

@@ -8,13 +8,14 @@ rule nhcal_acceptance_simulate:
         "sim_output/nhcal_acceptance/sim_epic_backward_hcal_only_E{energy}GeV.emd4hep.root",
     params:
         N_EVENTS=1000,
+        SEED=0,
     shell:
         """
 set -m
 exec npsim \
     --compactFile {DETECTOR_PATH}/epic_backward_hcal_only.xml \
     --numberOfEvents {params.N_EVENTS} \
-    --random.seed random \
+    --random.seed {params.SEED} \
     --enableGun \
     -v WARNING \
     --gun.particle "pi-" \

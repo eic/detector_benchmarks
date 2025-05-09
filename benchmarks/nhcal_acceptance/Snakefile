@@ -8,7 +8,7 @@ rule nhcal_acceptance_simulate:
         "sim_output/nhcal_acceptance/sim_epic_backward_hcal_only_E{energy}GeV.emd4hep.root",
     params:
         N_EVENTS=1000,
-        SEED=0,
+        SEED=1,
     shell:
         """
 set -m

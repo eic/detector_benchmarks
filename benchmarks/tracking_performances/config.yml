@@ -27,7 +27,9 @@ collect_results:tracking_performance:
     - "bench:tracking_performance"
   script:
     - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output tracking_performance_local
+    - mv results{_save,}/
 
 bench:tracking_performance_campaigns:
   extends: .det_benchmark

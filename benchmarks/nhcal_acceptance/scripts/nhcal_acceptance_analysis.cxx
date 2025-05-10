@@ -12,7 +12,7 @@
 
 using namespace std;
 
-int pi_analysis(TString filename, TString outname) 
+int nhcal_acceptance_analysis(TString filename, TString outname) 
 {
     TChain *chain = new TChain("events");
     chain->Add(filename);
@@ -32,18 +32,18 @@ int pi_analysis(TString filename, TString outname)
 
 
     // Histograms eta-phi
-    int nEtaBins = 100;
-    int nPhiBins = 64;
+    int nEtaBins = 200;
+    int nPhiBins = 128;
     double etaMin = -5, etaMax = 0;
 
-    TH2D* hEtaPhiAll = new TH2D("hEtaPhiAll", "All pi- (status==1); #eta[1]; #phi[rad]",
+    TH2D* hEtaPhiAll = new TH2D("hEtaPhiAll", "All #pi- (status==1); #eta[1]; #phi[rad]",
                                 nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
-    TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "pi- detected in nHCal; #eta[1]; #phi[rad]",
+    TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "#pi- detected in nHCal; #eta[1]; #phi[rad]",
                                      nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
-    TH2D* hAcceptance = new TH2D("hAcceptance", "Acceptance: pi- in nHCal / all; #eta[1]; #phi[rad]",
-                                 nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
+    // TH2D* hAcceptance = new TH2D("hAcceptance", "Acceptance: pi- in nHCal / all; #eta[1]; #phi[rad]",
+    //                              nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
     while (reader.Next()) 
     {
@@ -82,19 +82,23 @@ int pi_analysis(TString filename, TString outname)
     }
 
     // Calculating acceptance eta-phi
-    for (int etaBin = 1; etaBin <= hAcceptance->GetNbinsX(); ++etaBin) {
-        for (int phiBin = 1; phiBin <= hAcceptance->GetNbinsY(); ++phiBin) {
-            double all = hEtaPhiAll->GetBinContent(etaBin, phiBin);
-            double detected = hEtaPhiDetected->GetBinContent(etaBin, phiBin);
-            if (all > 0) {
-                hAcceptance->SetBinContent(etaBin, phiBin, detected / all);
-            } else {
-                hAcceptance->SetBinContent(etaBin, phiBin, 0);
-            }
-        }
-    }
+    // for (int etaBin = 1; etaBin <= hAcceptance->GetNbinsX(); ++etaBin) {
+    //     for (int phiBin = 1; phiBin <= hAcceptance->GetNbinsY(); ++phiBin) {
+    //         double all = hEtaPhiAll->GetBinContent(etaBin, phiBin);
+    //         double detected = hEtaPhiDetected->GetBinContent(etaBin, phiBin);
+    //         if (all > 0) {
+    //             hAcceptance->SetBinContent(etaBin, phiBin, detected / all);
+    //         } else {
+    //             hAcceptance->SetBinContent(etaBin, phiBin, 0);
+    //         }
+    //     }
+    // }
 
-    TCanvas *canvas = new TCanvas("c1", "pi- All", 1600, 600);
+    TH2D* hAcceptance = (TH2D*)hEtaPhiAll->Clone("hAcceptance");
+    hAcceptance->Divide(hEtaPhiDetected);
+    hAcceptance->SetTitle("#pi- detected/All");
+
+    TCanvas *canvas = new TCanvas("canvas", "pi- All", 1600, 600);
     canvas->Divide(3,1);
     canvas->cd(1);
     hEtaPhiAll->Draw("COLZ");

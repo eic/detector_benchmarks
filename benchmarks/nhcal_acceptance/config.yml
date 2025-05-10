@@ -3,25 +3,38 @@ sim:nhcal_acceptance:
   stage: simulate
   parallel:
     matrix:
-      - MOMENTUM: ["1GeV", "5GeV", "10GeV"]
+      - ENERGY: ["1GeV", "5GeV", "10GeV"]
+      - INDEX: ["00","01","02","03","04","05","06","07","08","09"]
   script:
-    - snakemake --cores 3 sim_output/nhcal_acceptance/sim_epic_backward_hcal_only_E${MOMENTUM}.emd4hep.root
+    - snakemake --cores 5 sim_output/nhcal_acceptance/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root
 
-bench:nhcal_acceptance:
+bench:nhcal_acceptance_combine:
   extends: .det_benchmark
   stage: benchmarks
-  needs:
+  needs: 
     - "sim:nhcal_acceptance"
   parallel:
     matrix:
-      - MOMENTUM: ["1GeV", "5GeV", "10GeV"]
+      - ENERGY: ["1GeV", "5GeV", "10GeV"]
   script:
-    - snakemake --cores 3 results/nhcal_acceptance_analysis_E${MOMENTUM}.pdf
+    - snakemake --cores 5 sim_output/nhcal_acceptance/sim_epic_backward_hcal_only_E${ENERGY}_combined_10files.edm4hep.root
+
+
+bench:nhcal_acceptance_analysis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "bench:nhcal_acceptance_combine"
+  parallel:
+    matrix:
+      - ENERGY: ["1GeV", "5GeV", "10GeV"]
+  script:
+    - snakemake --cores 3 results/nhcal_acceptance_analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
 collect_results:nhcal_acceptance:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - "bench:nhcal_acceptance"
+    - "bench:nhcal_acceptance_analysis"
   script:
     - ls -lrht

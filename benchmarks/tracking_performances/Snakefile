@@ -12,7 +12,7 @@ rule tracking_performance_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX=r"\d{4}",
     params:
-        N_EVENTS=1
+        N_EVENTS=10000
     shell:
         """
 set -m # monitor mode to prevent lingering processes

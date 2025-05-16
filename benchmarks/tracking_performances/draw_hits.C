@@ -13,7 +13,7 @@ void draw_hits(TString filename="", TString output_prefix=".")
 
 //==========Style of the plot============
    gStyle->SetPalette(1);
-   gStyle->SetOptTitle(1);
+   gStyle->SetOptTitle(0);
    gStyle->SetTitleOffset(.85,"X");gStyle->SetTitleOffset(.85,"Y");
    gStyle->SetTitleSize(.04,"X");gStyle->SetTitleSize(.04,"Y");
    gStyle->SetLabelSize(.04,"X");gStyle->SetLabelSize(.04,"Y");

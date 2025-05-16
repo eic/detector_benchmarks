@@ -1,6 +1,6 @@
 rule tracking_performance_sim:
     input:
-        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
+        steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -10,9 +10,9 @@ rule tracking_performance_sim:
         PARTICLE="pi-",
         ENERGY="[0-9]+[kMG]eV",
         PHASE_SPACE="(3to50|45to135|130to177)deg",
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
-        N_EVENTS=10000
+        N_EVENTS=1
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -37,7 +37,7 @@ rule tracking_performance_recon:
     log:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
@@ -47,41 +47,39 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 
 rule tracking_performance_sim_hadd:
     input:
-        simoutput=lambda wildcards:
-          expand(
+        simoutput=lambda wildcards: expand(
               "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
-              DETECTOR_CONFIG="epic_craterlake_tracking_only",
+              DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG},
               PARTICLE=wildcards.PARTICLE,
-              ENERGY=wildcards.ENERGY,
+              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
               INDEX=range(1),
           )
     output:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{MOMENTUM}/{PARTICLE}.{MOMENTUM}.edm4hep.root",
     shell:
         """
-hadd {output} {input.simoutput}
+echo "Merging simulation files into: {output}"
+hadd -f {output} {input.simoutput}
 """
 
 rule tracking_performance_hit_maps:
     input:
         script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
         script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
-        sim_hadd=expand(
-           "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{{MOMENTUM}}/{{PARTICLE}}.{{MOMENTUM}}.edm4hep.root",
-           DETECTOR_CONFIG="epic_craterlake_tracking_only",
-        )
+        sim_hadd=lambda wildcards:
+            f"sim_output/tracking_performance/epic_craterlake_tracking_only/{wildcards.PARTICLE}/{wildcards.MOMENTUM}/{wildcards.PARTICLE}.{wildcards.MOMENTUM}.edm4hep.root"
+  
     output:
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.png",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.eps",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.root",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.png",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.eps",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.root",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png",
-        "local/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
+        hitsxy_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.png",
+        hitsxy_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.root",
+        hitsrz_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.png",
+        hitsrz_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.root",
+        nhits_eta_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png",
+        nhits_eta_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
     shell: """
-OUTPUT_PREFIX="$(dirname {output[0]})"
+OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
+echo "Generating hit maps and Nhits vs eta for: {input.sim_hadd}"
 root -l -b -q {input.script_hitsmap}'("{input.sim_hadd}", "'$OUTPUT_PREFIX'")'
 root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
 """
@@ -89,10 +87,9 @@ root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{wildcards.MOMENTUM
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
-        hit_maps=lambda wildcards:
-          [ "{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png".format(**wildcards) ]
-          if wildcards.CAMPAIGN == "local" else
-          [],
+        hit_maps=lambda wildcards: [
+            f"results/hitmaps/{wildcards.CAMPAIGN}/{wildcards.SEEDING}/pi-/{wildcards.MOMENTUM}/{wildcards.SEEDING_IGNORE}/{wildcards.PARTICLE}/Nhits_vs_eta.png"
+        ] if wildcards.CAMPAIGN == "local" else [],
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(
@@ -183,7 +180,7 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
     shell:
-        """
+        r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
         set +e
         EPIC_VERSION="${{DETECTOR_VERSION:-}}"
@@ -254,10 +251,6 @@ rule tracking_performance_campaigns:
         expand(
             "results/tracking_performances/{CAMPAIGN}",
             CAMPAIGN=[
-                "23.10.0",
-                "23.11.0",
-                "23.12.0",
-                "24.03.1",
-                "24.04.0",
+                "24.10.1",
             ],
         )

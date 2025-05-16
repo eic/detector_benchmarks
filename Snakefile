@@ -60,7 +60,7 @@ def get_remote_path(path):
     if use_s3:
         return f"s3https://eics3.sdcc.bnl.gov:9000/eictest/{path}"
     elif use_xrootd:
-        return f"root://dtn-eic.jlab.org//work/eic2/{path}"
+        return f"root://dtn-eic.jlab.org//volatile/eic/{path}"
     else:
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
@@ -74,7 +74,7 @@ rule fetch_epic:
     cache: True
     retries: 3
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//work/eic2/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/{output.filepath} {output.filepath}
 """ if use_xrootd else """
 mc cp S3/eictest/{output.filepath} {output.filepath}
 """ if use_s3 else f"""
@@ -132,6 +132,9 @@ cat > {output} <<EOF
   "CI_PIPELINE_ID": "${{CI_PIPELINE_ID:-}}",
   "CI_PIPELINE_SOURCE": "${{CI_PIPELINE_SOURCE:-}}",
   "CI_PROJECT_ID": "${{CI_PROJECT_ID:-}}",
+  "GITHUB_REPOSITORY": "${{GITHUB_REPOSITORY:-}}",
+  "GITHUB_SHA": "${{GITHUB_SHA:-}}",
+  "GITHUB_PR": "${{GITHUB_PR:-}}",
   "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
 }}
 EOF

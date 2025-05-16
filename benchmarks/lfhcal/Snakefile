@@ -17,7 +17,7 @@ rule lfhcal_sim:
         ENERGY="[0-9]+[kMG]eV",
         PARTICLE="(neutron|pi-|gamma)",
         PHASE_SPACE="3to50deg",
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
         N_EVENTS=get_n_events,
     shell:
@@ -43,7 +43,7 @@ rule lfhcal_recon:
     log:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     shell: """
 env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
@@ -93,7 +93,7 @@ rule lfhcal_summary_at_eta:
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.root",
     shell:
-        """
+        r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
         set +e
         EPIC_VERSION="${{DETECTOR_VERSION:-}}"
@@ -143,10 +143,6 @@ rule lfhcal_campaigns:
         expand(
             "results/lfhcal/{CAMPAIGN}",
             CAMPAIGN=[
-                "23.10.0",
-                "23.11.0",
-                "23.12.0",
-                "24.03.1",
-                "24.04.0",
+                "24.10.1",
             ],
         )

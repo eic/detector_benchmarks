@@ -39,7 +39,7 @@ for p in momenta:
     plt.hist(nclusters[p],bins=20, range=(0,20))
     plt.xlabel("number of clusters")
     plt.yscale('log')
-    plt.title(f"$p_\Sigma={p}$ GeV")
+    plt.title(rf"$p_\Sigma={p}$ GeV")
     plt.ylim(1)
     plt.savefig(outdir+f"nclust_{p}GeV_recon.pdf")
     print("saved file ", outdir+f"nclust_{p}GeV_recon.pdf")
@@ -235,10 +235,13 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<0.6
 fnc=gauss
 p0=[100, 0, 0.5]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-1, 1)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-1, 1)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+except RuntimeError:
+    print("fit failed")
 plt.xlabel("$\\theta^{*\\rm recon}_{\\Sigma}-\\theta^{*\\rm truth}_{\\Sigma}$ [mrad]")
 plt.ylabel("events")
 
@@ -306,10 +309,13 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<5
 fnc=gauss
 p0=[100, 0, 1]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-5, 5)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-5, 5)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+except RuntimeError:
+    print("fit failed")
 plt.xlabel("$z^{*\\rm recon}_{\\rm vtx}-z^{*\\rm truth}_{\\rm vtx}$ [m]")
 plt.ylabel("events")
 

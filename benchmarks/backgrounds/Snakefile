@@ -38,6 +38,9 @@ rule backgrounds_ecal_backwards:
         proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root",
     output:
         directory("results/backgrounds/backwards_ecal")
+    log:
+        scheduler=".logs/results/backgrounds/backwards_ecal/scheduler.log",
+        worker=".logs/results/backgrounds/backwards_ecal/worker.log",
     threads: workflow.cores
     shell:
         """
@@ -49,17 +52,17 @@ cleanup() {{
 trap cleanup EXIT
 
 PORT=$RANDOM
-dask scheduler --port $PORT &
+dask scheduler --port $PORT 2>{log.scheduler} &
 export DASK_SCHEDULER=localhost:$PORT
 SCHEDULER_PID=$!
-dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 &
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 2>{log.worker} &
 WORKER_PID=$!
 env \
 MATPLOTLIBRC={input.matplotlibrc} \
-ELECTRON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root \
+ELECTRON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.hepmc3.tree.root \
 ELECTRON_BEAM_GAS_SIM=$(realpath {input.electron_beam_gas_sim}) \
 PHYSICS_PROCESS_SIM=$(realpath {input.physics_signal_sim}) \
-PROTON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//work/eic2/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root \
+PROTON_BEAM_GAS_GEN=root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.hepmc3.tree.root \
 PROTON_BEAM_GAS_SIM=$(realpath {input.proton_beam_gas_sim}) \
 OUTPUT_DIR={output} \
 python {input.script}

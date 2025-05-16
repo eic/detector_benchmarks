@@ -14,10 +14,11 @@ rule femc_pi0_generate:
         N_EVENTS=get_n_events,
         th_max=28,
         th_min=2.0,
+        P=lambda wildcards: wildcards.P,
     shell:
         """
 mkdir -p sim_output/femc_pi0
-root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule femc_pi0_simulate:

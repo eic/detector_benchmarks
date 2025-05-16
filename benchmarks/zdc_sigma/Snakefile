@@ -1,31 +1,39 @@
 rule zdc_sigma_generate:
         input:
                 script="benchmarks/zdc_sigma/analysis/gen_sigma_decay.cxx",
-        params:
-                NEVENTS_GEN=100000,
         output:
-                GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc"
+                GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc",
+        params:
+                N_EVENTS=100000,
+                P=lambda wildcards: wildcards.P,
         shell:
                 """
-root -l -b -q '{input.script}({params.NEVENTS_GEN},0,"{output.GEN_FILE}",{wildcards.P},{wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_sigma_simulate:
         input:
                 GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc",
                 warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-        params:
-                PHYSICS_LIST="FTFP_BERT"
+                geometry_lib=find_epic_libraries(),
         output:
-                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root"
+                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root",
+        params:
+                N_EVENTS=200,
+                INDEX=lambda wildcards: wildcards.INDEX,
+                PHYSICS_LIST="FTFP_BERT",
+                DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+                DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+                NPSIM_HASH=get_spack_package_hash("npsim"),
+        cache: True
         shell:
                 """
-NEVENTS_SIM=200
 # Running simulation
 npsim \
-   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
-   --skipNEvents $(( $NEVENTS_SIM * {wildcards.INDEX} )) \
-   --numberOfEvents $NEVENTS_SIM \
+   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
+   --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
    --outputFile {output.SIM_FILE}
@@ -33,13 +41,18 @@ npsim \
 
 rule zdc_sigma_recon:
         input:
-                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root"
+                SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root",
         output:
-                REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root"
+                REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root",
+        params:
+                N_EVENTS=200,
+                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+                EICRECON_HASH=get_spack_package_hash("eicrecon"),
+        cache: True
         shell:
                 """
-NEVENTS_REC=200
-eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Pdd4hep:xml_files=$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits  -Pjana:nevents=$NEVENTS_REC
+env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCClusters,HcalFarForwardZDCRecHits,HcalFarForwardZDCSubcellHits -Pjana:nevents={params.N_EVENTS}
 """
 
 rule zdc_sigma_analysis:

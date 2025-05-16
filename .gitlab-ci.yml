@@ -35,6 +35,7 @@ default:
       - summary.txt
     reports:
       dotenv: .env
+    when: always
 
 stages:
   - status-pending
@@ -60,8 +61,8 @@ stages:
           "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
           -d '{"state":"'"${STATE}"'",
                "target_url":"'"${CI_PIPELINE_URL}"'",
-               "description":"'"${DESCRIPTION} $(TZ=America/New_York date)"'",
-               "context":"eicweb/detector_benchmarks ('"$DETECTOR_CONFIG"')"
+               "description":"'"$(TZ=America/New_York date)"'",
+               "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
               }' ;
       fi
 
@@ -71,7 +72,6 @@ benchmarks:detector:pending:
   extends: .status
   variables:
     STATE: "pending"
-    DESCRIPTION: "Started..."
   when: always
 
 common:setup:
@@ -184,8 +184,11 @@ deploy_results:
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
-    - xrdfs $XROOTD_RW_ENDPOINT mkdir $XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
-    - xrdcp -r results $XROOTD_RW_ENDPOINT/$XROOTD_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID
+    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz
+    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz')
+    - tar zxf pelican_Linux_x86_64.tar.gz
+    - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
+    - ./pelican-*/pelican object copy pipeline-$CI_PIPELINE_ID.tar $OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID.tar
 
 benchmarks:detector:success:
   stage: status-report
@@ -193,7 +196,6 @@ benchmarks:detector:success:
   extends: .status
   variables:
     STATE: "success"
-    DESCRIPTION: "Succeeded!"
   after_script:
     # Cleanup scratch space
     - rm -rfv $LOCAL_DATA_PATH
@@ -205,7 +207,6 @@ benchmarks:detector:failure:
   extends: .status
   variables:
     STATE: "failure"
-    DESCRIPTION: "Failed!"
   when: on_failure
 
 pages:

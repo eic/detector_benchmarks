@@ -32,8 +32,8 @@ vector.register_awkward()
 #+begin_src jupyter-python :results silent
 DETECTOR_CONFIG=os.environ.get("DETECTOR_CONFIG")
 PLOT_TITLE=os.environ.get("PLOT_TITLE")
-INPUT_PIONS=os.environ.get("INPUT_PIONS", "").split(" ")
-INPUT_ELECTRONS=os.environ.get("INPUT_ELECTRONS", "").split(" ")
+INPUT_PIONS=os.environ.get("INPUT_PIONS")
+INPUT_ELECTRONS=os.environ.get("INPUT_ELECTRONS")
 
 output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -75,8 +75,13 @@ def filter_pointing(events):
     cond = (part_momentum.eta[:,0] > -3.5) & (part_momentum.eta[:,0] < -2.)
     return events[cond]
 
-e = filter_pointing(uproot.concatenate({filename: "events" for filename in INPUT_ELECTRONS}, filter_name=["MCParticles.*", "*EcalEndcapN*"]))
-pi = filter_pointing(uproot.concatenate({filename: "events" for filename in INPUT_PIONS}, filter_name=["MCParticles.*", "*EcalEndcapN*"]))
+def readlist(path):
+    with open(path, "rt") as fp:
+        paths = [line.rstrip() for line in fp.readlines()]
+    return paths
+
+e = filter_pointing(uproot.concatenate({filename: "events" for filename in readlist(INPUT_ELECTRONS)}, filter_name=["MCParticles.*", "*EcalEndcapN*"]))
+pi = filter_pointing(uproot.concatenate({filename: "events" for filename in readlist(INPUT_PIONS)}, filter_name=["MCParticles.*", "*EcalEndcapN*"]))
 
 e_train = e[:len(pi)//2]
 pi_train = pi[:len(pi)//2]
@@ -358,6 +363,7 @@ if "_EcalEndcapNParticleIDOutput_probability_tensor_floatData" in pi_train.field
     eval_proba = ak.concatenate([pi_eval_proba, e_eval_proba])
 
     plt.hist(clf.predict_proba(eval_x.to_numpy())[:,1] - eval_proba[:,1].to_numpy())
+    plt.savefig(output_dir / f"proba_diff.pdf", bbox_inches="tight")
     plt.show()
 else:
     print("EcalEndcapNParticleIDOutput not present")

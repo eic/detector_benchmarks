@@ -13,9 +13,10 @@ rule insert_tau_generate:
         N_EVENTS=get_n_events,
         th_max=7.0,
         th_min=1.7,
+        P=lambda wildcards: wildcards.P,
     shell:
         """
-root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {wildcards.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule insert_tau_simulate:
@@ -27,6 +28,7 @@ rule insert_tau_simulate:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
     params:
         N_EVENTS=get_n_events,
+        INDEX=lambda wildcards: wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -39,7 +41,7 @@ rule insert_tau_simulate:
 npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --numberOfEvents {params.N_EVENTS} \
-   --skipNEvents $(( {params.N_EVENTS} * {wildcards.INDEX} )) \
+   --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
    --outputFile {output.SIM_FILE}

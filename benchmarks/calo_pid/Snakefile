@@ -15,7 +15,7 @@ rule calo_pid_sim:
         ENERGY_MAX="[0-9]+[kMG]eV",
         THETA_MIN="[0-9]+",
         THETA_MAX="[0-9]+",
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     params:
         N_EVENTS=1000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
@@ -23,6 +23,8 @@ rule calo_pid_sim:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         ENERGY_MIN=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MIN),
         ENERGY_MAX=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MAX),
+        THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
+        THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
@@ -55,31 +57,34 @@ rule calo_pid_recon:
     log:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
     wildcard_constraints:
-        INDEX="\d{4}",
+        INDEX=r"\d{4}",
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget
+  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget,EcalEndcapNParticleIDOutput_probability_tensor
 """
+
+
+rule calo_pid_input_list:
+    input:
+        electrons=expand(
+            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            ENERGY=["100MeVto20GeV"],
+            PHASE_SPACE=["130to177deg"],
+            INDEX=range(100),
+        ),
+    output:
+        "listing/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input))
 
 
 rule calo_pid:
     input:
-        electrons=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["e-"],
-            ENERGY=["100MeVto20GeV"],
-            PHASE_SPACE=["130to177deg"],
-            INDEX=range(100),
-        ),
-        pions=expand(
-            "sim_output/calo_pid/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-            PARTICLE=["pi-"],
-            ENERGY=["100MeVto20GeV"],
-            PHASE_SPACE=["130to177deg"],
-            INDEX=range(100),
-        ),
+        electrons="listing/calo_pid/{DETECTOR_CONFIG}/e-.lst",
+        pions="listing/calo_pid/{DETECTOR_CONFIG}/pi-.lst",
         matplotlibrc=".matplotlibrc",
         script="benchmarks/calo_pid/calo_pid.py",
     output:

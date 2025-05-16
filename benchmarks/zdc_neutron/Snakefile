@@ -44,7 +44,7 @@ rule zdc_neutron_reco:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,ReconstructedFarForwardZDCNeutrons
+  -Ppodio:output_collections=MCParticles,EcalFarForwardZDCRawHits,EcalFarForwardZDCRecHits,EcalFarForwardZDCClusters,HcalFarForwardZDCRawHits,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,ReconstructedFarForwardZDCNeutrals
 """
 
 

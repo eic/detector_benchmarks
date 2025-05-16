@@ -9,6 +9,7 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
    gStyle->SetTitleSize(.05,"X");gStyle->SetTitleSize(.05,"Y");
    gStyle->SetLabelSize(.04,"X");gStyle->SetLabelSize(.04,"Y");
    gStyle->SetHistLineWidth(2);
+   gStyle->SetTitleAlign(23);     
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(0);
    
@@ -102,18 +103,18 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
    int iEvent=-1; 
    
    TCanvas * c1 = new TCanvas("c1","coutput",1400,1000);
-   c1->SetMargin(0.10, 0.05 ,0.1,0.07);
+   c1->SetMargin(0.10, 0.05 ,0.1,0.08);
    c1->SetGridx();
    c1->SetGridy();
    
-  TProfile* hits = new TProfile("hits","Nhits (#theta)",70,-3.5,3.5); 
-  hits->SetTitle(Form("%s;#eta_{mc};Nhits",label.Data()));
-  hits->GetXaxis()->CenterTitle();
-  hits->GetYaxis()->CenterTitle();
-  hits->SetMinimum(0.);
+    TProfile* hits = new TProfile("hits","Nhits (#theta)",70,-3.5,3.5);
+    hits->GetXaxis()->CenterTitle();
+    hits->GetYaxis()->CenterTitle();
+    hits->SetMinimum(0.); 
   
     std::vector<TVector3> hitPos; // The ePIC tracker
     double epsilon = 1.0e-5;
+    Double_t pmc = 0.;
     bool debug = true;
     int nhits_SVTIB, nhits_SVTOB, nhits_InMPGD, nhits_BTOF, nhits_OutMPGD, nhits_SVTDisks, nhits_FwdMPGDDisks, nhits_BwdMPGDDisks, nhits_ETOF;
     
@@ -125,7 +126,6 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
       // Generated primary track
       if (charge.GetSize()>1) continue; // skip event for larger than 1 tracks
       Double_t eta_Track = 100.; // set it ouside from -3.5 to 3.5      
-      Double_t pmc = 0.;
       for (int j = 0; j < charge.GetSize(); ++j){
       
       if (status[j] !=1) continue;
@@ -234,9 +234,16 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
  
   c1->cd();
   gPad->SetTicks(1,1);
+  hits->SetTitle(";#eta_{mc};Nhits");
   hits->SetLineWidth(2);
   hits->Draw("hist");
+  TPaveText *pt = new TPaveText(0.1, 0.95, 0.9, 1.0, "NDC");
+  pt->AddText(Form("p_{mc} = %1.1f (GeV/c)",pmc));
+  pt->SetBorderSize(0);     
+  pt->SetFillStyle(0);      
+  pt->SetTextAlign(23); 
+  pt->Draw();
+
   c1->SaveAs(Form("%s/Nhits_vs_eta.png", output_prefix.Data()));
   c1->SaveAs(Form("%s/Nhits_vs_eta.root", output_prefix.Data()));
 }
-

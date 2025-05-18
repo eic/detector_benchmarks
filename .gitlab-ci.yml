@@ -152,7 +152,8 @@ include:
   # - local: 'benchmarks/femc_electron/config.yml'
   # - local: 'benchmarks/femc_photon/config.yml'
   # - local: 'benchmarks/femc_pi0/config.yml'
-  - local: 'benchmarks/nhcal_acceptance/config.yml'
+  - local: 'benchmarks/nHcal/nhcal_acceptance/config.yml'
+  
 deploy_results:
   allow_failure: true
   stage: deploy

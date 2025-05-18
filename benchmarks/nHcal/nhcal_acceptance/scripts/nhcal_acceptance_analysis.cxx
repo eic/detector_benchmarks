@@ -67,7 +67,7 @@ int nhcal_acceptance_analysis(TString filename, TString outname)
         }
 
         // Check, if pi- have contributions nHCal
-        for (size_t i = 0; i < contrib_particle_idx.GetSize(); ++i) {
+        for (size_t i = 0; i < contrib_particle_idx.GetSize(); i++) {
             int idx = contrib_particle_idx[i];
             if (pi_minus_eta_phi.count(idx)) {
                 detected.insert(idx);

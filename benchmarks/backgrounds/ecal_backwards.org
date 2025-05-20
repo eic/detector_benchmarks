@@ -15,7 +15,7 @@ import dask_awkward as dak
 import dask_histogram as dh
 import numpy as np
 import uproot
-import pyhepmc
+from pyHepMC3 import HepMC3
 #+end_src
 
 #+begin_src jupyter-python :results silent
@@ -42,6 +42,8 @@ def setup_presentation_style():
         'legend.loc': 'upper right',
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
+        'xaxis.labellocation': 'right',
+        'yaxis.labellocation': 'top',
         'pgf.rcfonts': False,
     })
 
@@ -66,47 +68,47 @@ output_dir.mkdir(parents=True, exist_ok=True)
 #+begin_src jupyter-python :results silent
 builder = ak.ArrayBuilder()
 n = 0
-with pyhepmc.open(PROTON_BEAM_GAS_GEN) as f:
-    it = iter(f)
-    for event in f:
-        builder.begin_list()
-        for vertex in event.vertices:
-            assert event.length_unit.name == "MM"
-            with builder.record("Vector4D"):
-                builder.field("x")
-                builder.real(vertex.position.x)
-                builder.field("y")
-                builder.real(vertex.position.y)
-                builder.field("z")
-                builder.real(vertex.position.z)
-                builder.field("t")
-                builder.real(vertex.position.t)
-        builder.end_list()
-        n += 1
-        if n > 10000: break
+f = HepMC3.ReaderPlugin(PROTON_BEAM_GAS_GEN, "libHepMC3rootIO.so", "newReaderRootTreefile")
+event = HepMC3.GenEvent()
+while f.read_event(event):
+    builder.begin_list()
+    assert event.length_unit().name == "MM"
+    for vertex in event.vertices():
+        with builder.record("Vector4D"):
+            builder.field("x")
+            builder.real(vertex.position().x())
+            builder.field("y")
+            builder.real(vertex.position().y())
+            builder.field("z")
+            builder.real(vertex.position().z())
+            builder.field("t")
+            builder.real(vertex.position().t())
+    builder.end_list()
+    n += 1
+    if n > 10000: break
 
 vertices_proton_beam_gas = builder.snapshot()
 
 builder = ak.ArrayBuilder()
 n = 0
-with pyhepmc.open(ELECTRON_BEAM_GAS_GEN) as f:
-    it = iter(f)
-    for event in f:
-        builder.begin_list()
-        for vertex in event.vertices:
-            assert event.length_unit.name == "MM"
-            with builder.record("Vector3D"):
-                builder.field("x")
-                builder.real(vertex.position.x)
-                builder.field("y")
-                builder.real(vertex.position.y)
-                builder.field("z")
-                builder.real(vertex.position.z)
-                builder.field("t")
-                builder.real(vertex.position.t)
-        builder.end_list()
-        n += 1
-        if n > 10000: break
+f = HepMC3.ReaderPlugin(ELECTRON_BEAM_GAS_GEN, "libHepMC3rootIO.so", "newReaderRootTreefile")
+event = HepMC3.GenEvent()
+while f.read_event(event):
+    builder.begin_list()
+    assert event.length_unit().name == "MM"
+    for vertex in event.vertices():
+        with builder.record("Vector4D"):
+            builder.field("x")
+            builder.real(vertex.position().x())
+            builder.field("y")
+            builder.real(vertex.position().y())
+            builder.field("z")
+            builder.real(vertex.position().z())
+            builder.field("t")
+            builder.real(vertex.position().t())
+    builder.end_list()
+    n += 1
+    if n > 10000: break
 
 vertices_electron_beam_gas = builder.snapshot()
 #+end_src
@@ -153,6 +155,7 @@ plt.xlabel("vertex[0].t, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_time_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for label, ds in datasets.items():
     if "vertices" not in ds: continue
@@ -164,6 +167,7 @@ plt.xlabel("vertex[0].z, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_z_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for label, ds in datasets.items():
     if "vertices" not in ds: continue
@@ -178,6 +182,7 @@ plt.ylabel("vertex[0].x, mm")
 plt.legend()
 plt.savefig(output_dir / "vertex_xz_distribution.png", bbox_inches="tight")
 plt.show()
+plt.clf()
 
 for ix, (label, ds) in enumerate(datasets.items()):
     if "vertices" not in ds: continue
@@ -192,6 +197,7 @@ for ix, (label, ds) in enumerate(datasets.items()):
     plt.title(label)
     plt.savefig(output_dir / f"vertex_yz_distribution_{ix}.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src
 
 ** Simulation results
@@ -210,7 +216,8 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         for ix, vals in enumerate([xs, ys]):
             centers = np.unique(vals)
             diffs = centers[1:] - centers[:-1]
-            bin_widths[ix] = np.min(diffs[diffs > 0]) if np.sum(diffs > 0) > 0 else 1.
+            EPSILON = 1e-5
+            bin_widths[ix] = np.min(diffs[diffs > EPSILON]) if np.sum(diffs > EPSILON) > 0 else 1.
             print(f"bin_widths[{ix}]", bin_widths[ix])
 
         bins = {
@@ -227,10 +234,11 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         )
         plt.colorbar().set_label("energy, GeV", loc="top")
         plt.title(f"{label}, event_id={event_id}\n{collection_name}")
-        plt.xlabel("hit x, mm", loc="right")
-        plt.ylabel("hit y, mm", loc="top")
+        plt.xlabel("hit x, mm")
+        plt.ylabel("hit y, mm")
         plt.savefig(output_dir / f"{collection_name}_event_display_{dataset_ix}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 ** Discovering number of cells
@@ -280,11 +288,12 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
     plt.title(f"{collection_name}")
     plt.legend()
-    plt.xlabel("r, mm", loc="right")
+    plt.xlabel("r, mm")
     dr = (r_axis.edges[1] - r_axis.edges[0])
-    plt.ylabel(f"Number of towers per {dr} mm slice in $r$", loc="top")
+    plt.ylabel(f"Number of towers per {dr} mm slice in $r$")
     plt.savefig(output_dir / f"{collection_name}_num_towers.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src
 
 ** Plotting the rates
@@ -319,11 +328,12 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
         plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV\n{collection_name}")
         plt.legend()
-        plt.xlabel("r, mm", loc="right")
-        plt.ylabel("rate per tower, Hz", loc="top")
+        plt.xlabel("r, mm")
+        plt.ylabel("rate per tower, Hz")
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_r_edep_min_{edep_min:.3f}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 #+begin_src jupyter-python
@@ -349,11 +359,12 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
 
         plt.title(rf"for events with $E_{{\mathrm{{dep. tot.}}}}$ $>$ {totedep_min} GeV" + f"\n{collection_name}")
         plt.legend()
-        plt.xlabel("$z$ of the first interaction vertex, mm", loc="right")
-        plt.ylabel("rate, Hz", loc="top")
+        plt.xlabel("$z$ of the first interaction vertex, mm")
+        plt.ylabel("rate, Hz")
         plt.yscale("log")
         plt.savefig(output_dir / f"{collection_name}_hit_rate_vs_z_totedep_min_{totedep_min:.1f}.png", bbox_inches="tight")
         plt.show()
+        plt.clf()
 #+end_src
 
 #+begin_src jupyter-python
@@ -429,7 +440,7 @@ for edep_min in [0]: # GeV
         plt.sca(ax_cur)
         plt.legend()
         plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
-        plt.ylabel("rate, Hz", loc="top")
+        plt.ylabel("rate, Hz")
         plt.yscale("log")
         plt.xticks(rotation=90, ha='right')
         fig_cur.savefig(f"rates_edep_min_{edep_min}_{dataset_ix}.png", bbox_inches="tight")
@@ -439,9 +450,10 @@ for edep_min in [0]: # GeV
     plt.sca(ax_cmb)
     plt.legend()
     plt.title(f"for $E_{{dep.}} >$ {edep_min * 1000} MeV")
-    plt.ylabel("rate per tower, Hz", loc="top")
+    plt.ylabel("rate per tower, Hz")
     plt.yscale("log")
     plt.xticks(rotation=90, ha='right')
     fig_cmb.savefig(f"rates_edep_min_{edep_min}.png", bbox_inches="tight")
     plt.show()
+    plt.clf()
 #+end_src

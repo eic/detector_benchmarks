@@ -1,0 +1,50 @@
+sim:backwards_ecal:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        MOMENTUM: [
+          "100MeV",
+          "200MeV",
+          "500MeV",
+          "1GeV",
+          "2GeV",
+          "5GeV",
+          "10GeV",
+          "20GeV",
+        ]
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores 5 listing/backwards_ecal/local/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg.lst
+
+bench:backwards_ecal:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:backwards_ecal"]
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 results/backwards_ecal/local
+
+bench:backwards_ecal_campaigns:
+  extends: .det_benchmark
+  stage: benchmarks
+  when: manual
+  timeout: 4 hours
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 results/backwards_ecal/24.10.1
+
+collect_results:backwards_ecal:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:backwards_ecal"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/backwards_ecal/local
+    - mv results{_save,}/

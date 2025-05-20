@@ -1,0 +1,359 @@
+#+PROPERTY: header-args:jupyter-python :session /jpy:localhost#8888:backwards_ecal :async yes :results drawer :exports both
+
+#+TITLE: ePIC EEEMCal benchmark
+#+AUTHOR: Dmitry Kalinkin
+#+OPTIONS: d:t
+
+#+LATEX_CLASS_OPTIONS: [9pt,letter]
+#+BIND: org-latex-image-default-width ""
+#+BIND: org-latex-image-default-option "scale=0.3"
+#+BIND: org-latex-images-centered nil
+#+BIND: org-latex-minted-options (("breaklines") ("bgcolor" "black!5") ("frame" "single"))
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+#+LATEX: \sloppy
+
+#+begin_src jupyter-python :results silent
+import os
+from pathlib import Path
+
+import awkward as ak
+import boost_histogram as bh
+import dask_histogram as dh
+import numpy as np
+import uproot
+import vector
+#+end_src
+
+#+begin_src jupyter-python :results silent
+from dask.distributed import Client
+
+client = Client(os.environ.get("DASK_SCHEDULER", "localhost:8786"))
+#+end_src
+
+#+begin_src jupyter-python
+vector.register_awkward()
+
+from dask.distributed import WorkerPlugin
+class VectorImporter(WorkerPlugin):
+    idempotent=True
+
+    def setup(self, worker):
+        import vector
+
+        vector.register_awkward()
+
+client.register_plugin(VectorImporter())
+#+end_src
+
+* Plotting setup
+                
+#+begin_src jupyter-python :results silent
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+       
+def setup_presentation_style():
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use('ggplot')
+    plt.rcParams.update({
+        'axes.labelsize': 8,
+        'axes.titlesize': 9,
+        'figure.titlesize': 9,
+        'figure.figsize': (4, 3),
+        'legend.fontsize': 7,
+        'xtick.labelsize': 8,
+        'ytick.labelsize': 8,
+        'xaxis.labellocation': 'right',
+        'yaxis.labellocation': 'top',
+        'pgf.rcfonts': False,
+    })
+
+setup_presentation_style()
+#+end_src       
+
+* Parameters
+
+#+begin_src jupyter-python :results silent
+DETECTOR_CONFIG=os.environ.get("DETECTOR_CONFIG")
+PLOT_TITLE=os.environ.get("PLOT_TITLE")
+INPUT_PATH_FORMAT=os.environ.get("INPUT_PATH_FORMAT", "EPIC/RECO/24.04.0/epic_craterlake/SINGLE/{particle}/{energy}/130to177deg/{particle}_{energy}_130to177deg.{ix:04d}.eicrecon.tree.edm4eic.root")
+
+output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
+output_dir.mkdir(parents=True, exist_ok=True)
+#+end_src
+
+* Analysis
+
+First, we define a requirement on what phase we will consider for our
+analysis. The following function filters single-particle events that
+are thrown within $-3.5 < \eta < -2.0$:
+
+#+begin_src jupyter-python
+def filter_pointing(events):
+    part_momentum = ak.zip({
+        "m": events["MCParticles.mass"],
+        "px": events["MCParticles.momentum.x"],
+        "py": events["MCParticles.momentum.y"],
+        "pz": events["MCParticles.momentum.z"],
+    }, with_name="Momentum4D")
+    cond = (part_momentum.eta[:,0] > -3.5) & (part_momentum.eta[:,0] < -2.)
+    return events[cond]
+#+end_src
+
+#+begin_src jupyter-python
+energies = [
+    "100MeV",
+    "200MeV",
+    "500MeV",
+    "1GeV",
+    "2GeV",
+    "5GeV",
+    "10GeV",
+    "20GeV",
+]
+filter_name = [
+    "MCParticles.*",
+    "EcalEndcapNClusters.energy",
+]
+
+pi_eval = {}
+e_eval = {}
+
+def readlist(path):
+    with open(path, "rt") as fp:
+        paths = [line.rstrip() for line in fp.readlines()]
+    return paths
+
+for energy in energies:
+    pi_eval[energy] = uproot.dask(
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="pi-", energy=energy))},
+        filter_name=filter_name,
+        steps_per_file=1,
+        open_files=False,
+    ).map_partitions(filter_pointing)
+    e_eval[energy] = uproot.dask(
+        {path: "events" for path in readlist(INPUT_PATH_FORMAT.format(particle="e-", energy=energy))},
+        filter_name=filter_name,
+        steps_per_file=1,
+        open_files=False,
+    ).map_partitions(filter_pointing)
+#+end_src
+
+** Energy resolution
+
+The first step in the analysis is plotting distributions of cluster energies.
+Only electron distribution is needed, but we also do pi- for the pion rejection
+study.
+
+#+begin_src jupyter-python
+e_over_p_hist = {}
+e_over_p_axis = bh.axis.Regular(101, 0., 1.01)
+
+for ix, energy in enumerate(energies):
+    for particle_name, dataset in [("e-", e_eval[energy]), ("pi-", pi_eval[energy])]:
+        energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
+        def clf(events):
+            return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
+        e_over_p_hist[(particle_name, energy)] = dh.factory(
+            clf(dataset),
+            axes=(e_over_p_axis,),
+        )
+
+e_over_p_hist = client.gather(client.compute(e_over_p_hist))
+#+end_src
+
+The next step is to plot the histograms together with fits and produce a plot
+for resolution vs energy that summarizes them.
+
+#+begin_src jupyter-python
+fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+
+axs = np.ravel(np.array(axs))
+
+sigmas_rel_FWHM_cb = {}
+fractions_below = {}
+
+def norm_by_sum(arr):
+    return arr / np.sum(arr)
+
+for ix, energy in enumerate(energies):
+    plt.sca(axs[ix])
+    hist = e_over_p_hist[("e-", energy)]
+    patch = plt.stairs(norm_by_sum(hist.values()), hist.axes[0].edges, label=rf"$e^-$ {PLOT_TITLE}")
+    plt.title(f"{energy}")
+
+    import scipy.stats
+    def f(x, n, beta, m, loc, scale):
+        return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
+    p0 = (np.sum(hist.values()[10:]), 2., 3., 0.95, 0.05)
+
+    try:
+        import scipy.optimize
+        par, pcov = scipy.optimize.curve_fit(f, hist.axes[0].centers[5:], hist.values()[5:], p0=p0, maxfev=10000)
+    except RuntimeError:
+        print(hist)
+        raise
+    plt.plot(hist.axes[0].centers, f(hist.axes[0].centers, *par), label=rf"Crystal Ball fit", color="tab:green", lw=0.8)
+
+    def summarize_fit(par):
+        _, _, _, loc_cb, scale_cb = par
+        # Calculate FWHM
+        y_max = np.max(f(np.linspace(0., 1., 100), *par))
+        f_prime = lambda x: f(x, *par) - y_max / 2
+        x_plus, = scipy.optimize.root(f_prime, loc_cb + scale_cb).x
+        x_minus, = scipy.optimize.root(f_prime, loc_cb - scale_cb).x
+        plt.axvline(x_minus, ls="--", lw=0.75, color=patch.get_facecolor(), label=r"$\mu - $FWHM")
+        plt.axvline(x_plus, ls=":", lw=0.75, color=patch.get_facecolor(), label=r"$\mu + $FWHM")
+        fwhm = (x_plus - x_minus) / loc_cb
+        sigma_rel_FWHM_cb = fwhm / 2 / np.sqrt(2 * np.log(2))
+
+        cutoff_x = loc_cb - fwhm
+        fraction_below = np.sum(hist.values()[hist.axes[0].centers < cutoff_x]) / np.sum(hist.values())
+
+        return sigma_rel_FWHM_cb, fraction_below
+
+    sigma_rel_FWHM_cb, fraction_below = summarize_fit(par)
+    sigmas_rel_FWHM_cb.setdefault(PLOT_TITLE, {})[energy] = sigma_rel_FWHM_cb
+    fractions_below.setdefault(PLOT_TITLE, {})[energy] = fraction_below
+
+    plt.legend()
+    plt.xlabel("$E/p$", loc="right")
+    plt.ylabel("Event yield", loc="top")
+
+fig.savefig(output_dir / f"resolution_plots.pdf", bbox_inches="tight")
+fig.savefig(output_dir / f"resolution_plots.png", bbox_inches="tight")
+plt.show()
+plt.close(fig)
+
+plt.figure()
+energy_values = np.array([float(energy.replace("GeV", "").replace("MeV", "e-3")) for energy in energies])
+
+for clf_label, sigma_rel_FWHM_cb in sigmas_rel_FWHM_cb.items():
+    sigma_over_e = np.array([sigma_rel_FWHM_cb[energy] for energy in energies]) * 100 # convert to %
+
+    def f(energy, stochastic, constant):
+        return np.sqrt((stochastic / np.sqrt(energy)) ** 2 + constant ** 2)
+    cond = energy_values >= 0.5
+    try:
+        import scipy.optimize
+        par, pcov = scipy.optimize.curve_fit(f, energy_values[cond], sigma_over_e[cond], maxfev=10000)
+    except RuntimeError:
+        print("energy_values", energy_values[cond])
+        print("sigma_over_e", sigma_over_e[cond])
+        raise
+    stochastic, constant = par
+
+    plt.plot(
+        energy_values,
+        sigma_over_e,
+        marker=".",
+        ls="none",
+        label=f"{clf_label}"
+    )
+    xmin = np.min(energy_values[cond])
+    xmax = np.max(energy_values[cond])
+    xs = np.arange(xmin, xmax, 0.1)
+    plt.plot(
+        xs,
+        f(xs, *par),
+        ls="--",
+        lw=0.5,
+        label=fr"Functional fit: ${np.ceil(stochastic * 10) / 10:.1f}\% / \sqrt{{E}} \oplus {np.ceil(constant * 10) / 10:.1f}\%$",
+    )
+xmin = np.min(energy_values)
+xmax = np.max(energy_values) * 1.05
+xs = np.arange(xmin, xmax + 0.1, 0.1)
+plt.fill_between(
+    xs,
+    np.sqrt((2 / np.sqrt(xs)) ** 2 + 1 ** 2),
+    np.sqrt((2 / np.sqrt(xs)) ** 2 + 3 ** 2),
+    lw=0., alpha=0.2, color="black", label=r"YR requirement $2\% / \sqrt{E} \oplus (1-3)\%$",
+)
+plt.xlim(0., xmax)
+plt.ylim(top=6.)
+plt.legend()
+plt.xlabel("Energy, GeV", loc="right")
+plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, %", loc="top")
+plt.savefig(output_dir / f"resolution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / f"resolution.png", bbox_inches="tight")
+plt.show()
+#+end_src
+
+** Pion rejection
+
+#+begin_src jupyter-python
+fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+fig_log, axs_log = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+fig_roc, axs_roc = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+
+axs = np.ravel(np.array(axs))
+axs_log = np.ravel(np.array(axs_log))
+axs_roc = np.ravel(np.array(axs_roc))
+
+rocs = {}
+
+for ix, energy in enumerate(energies):
+    energy_value = float(energy.replace("GeV", "").replace("MeV", "e-3"))
+    def clf(events):
+        return ak.drop_none(ak.max(events["EcalEndcapNClusters.energy"], axis=-1)) / energy_value
+    e_pred = clf(e_eval[energy])
+    pi_pred = clf(pi_eval[energy])
+
+    for do_log, ax in [(False, axs[ix]), (True, axs_log[ix])]:
+        plt.sca(ax)
+        patch = plt.stairs(norm_by_sum(e_over_p_hist[("e-", energy)].values()), e_over_p_hist[("e-", energy)].axes[0].edges, label=rf"$e^-$ {PLOT_TITLE}")
+        patch = plt.stairs(norm_by_sum(e_over_p_hist[("pi-", energy)].values()), e_over_p_hist[("pi-", energy)].axes[0].edges, label=rf"$\pi^-$ {PLOT_TITLE}")
+        plt.title(f"{energy}")
+        plt.legend()
+        plt.xlabel("Classifier output")
+        plt.ylabel("Event yield")
+        if do_log:
+            plt.yscale("log")
+
+    plt.sca(axs_roc[ix])
+    fpr = np.cumsum(e_over_p_hist[("pi-", energy)].values()[::-1])
+    fpr /= fpr[-1]
+    tpr = np.cumsum(e_over_p_hist[("e-", energy)].values()[::-1])
+    tpr /= tpr[-1]
+    cond = fpr != 0 # avoid infinite rejection (region of large uncertainty)
+    cond &= tpr != 1 # avoid linear interpolation (region of large uncertainty)
+    def mk_interp(tpr, fpr):
+        def interp(eff):
+            return np.interp(eff, tpr, fpr)
+        return interp
+    rocs.setdefault(PLOT_TITLE, {})[energy] = mk_interp(tpr, fpr)
+    plt.plot(tpr[cond] * 100, 1 / fpr[cond], label=f"{PLOT_TITLE}")
+    plt.yscale("log")
+    plt.title(f"{energy}")
+    plt.legend(loc="lower left")
+    plt.xlabel("Electron efficiency, %")
+    plt.ylabel("Pion rejection factor")
+
+fig.savefig(output_dir / f"pred.pdf", bbox_inches="tight")
+fig.savefig(output_dir / f"pred.png", bbox_inches="tight")
+plt.close(fig)
+fig_log.savefig(output_dir / f"pred_log.pdf", bbox_inches="tight")
+fig_log.savefig(output_dir / f"pred_log.png", bbox_inches="tight")
+fig_log.show()
+fig_roc.savefig(output_dir / f"roc.pdf", bbox_inches="tight")
+fig_roc.savefig(output_dir / f"roc.png", bbox_inches="tight")
+fig_roc.show()
+
+plt.figure()
+for clf_label, roc in rocs.items():
+    plt.plot(
+        [float(energy.replace("GeV", "").replace("MeV", "e-3")) for energy in energies],
+        [1 / roc[energy](0.95) for energy in energies],
+        marker=".",
+        label=f"{clf_label}",
+    )
+xmax = np.max(energy_values) * 1.05
+plt.xlim(0., xmax)
+plt.yscale("log")
+plt.legend()
+plt.xlabel("Energy, GeV")
+plt.ylabel("Pion rejection at 95%")
+plt.savefig(output_dir / f"pion_rej.pdf", bbox_inches="tight")
+plt.savefig(output_dir / f"pion_rej.png", bbox_inches="tight")
+plt.show()
+#+end_src

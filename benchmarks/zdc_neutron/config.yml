@@ -1,0 +1,38 @@
+sim:zdc_neutron:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/zdc_neutron/epic_craterlake/fwd_neutrons.edm4eic.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:zdc_neutron:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:zdc_neutron"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/zdc_neutron/epic_craterlake/fwd_neutrons_geant.pdf
+
+collect_results:zdc_neutron:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:zdc_neutron"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/zdc_neutron/epic_craterlake/fwd_neutrons_geant.pdf
+    - mv results{_save,}/
+    # convert to png
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/zdc_neutron/epic_craterlake/geant_plots_%03d.png' \
+        results/zdc_neutron/epic_craterlake/fwd_neutrons_geant.pdf
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/zdc_neutron/epic_craterlake/recon_plots_%03d.png' \
+        results/zdc_neutron/epic_craterlake/fwd_neutrons_recon.pdf
+

@@ -1,0 +1,45 @@
+sim:calo_pid:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        INDEX_RANGE: [
+          "0 9",
+          "10 19",
+          "20 29",
+          "30 39",
+          "40 49",
+          "50 59",
+          "60 69",
+          "70 79",
+          "80 89",
+          "90 99",
+        ]
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores 5 \
+        $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/130to177deg/${PARTICLE}_100MeVto20GeV_130to177deg.%04.f.eicrecon.tree.edm4eic.root" ${INDEX_RANGE})
+
+bench:calo_pid:
+  allow_failure: true # until inference merged into EICrecon
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:calo_pid"]
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/calo_pid/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_inner_detector/calo_pid
+
+collect_results:calo_pid:
+  allow_failure: true # until inference merged into EICrecon
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:calo_pid"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_inner_detector/calo_pid
+    - mv results{_save,}/

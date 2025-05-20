@@ -1,0 +1,186 @@
+def get_n_events(wildcards):
+    energy = float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))
+    n_events = 1000 if wildcards.PARTICLE == "e-" else 2000
+    n_events = int(n_events // (energy ** 0.5))
+    return n_events
+
+
+rule backwards_ecal_sim:
+    input:
+        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="(e-|pi-)",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="(3to50|45to135|130to177)deg",
+        INDEX=r"\d{4}",
+    params:
+        N_EVENTS=get_n_events,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec ddsim \
+  --runType batch \
+  --enableGun \
+  --steeringFile "{input.steering_file}" \
+  --random.seed {params.SEED} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule backwards_ecal_recon:
+    input:
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    output:
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+    log:
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+    wildcard_constraints:
+        INDEX=r"\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    shell: """
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters
+"""
+
+
+rule backwards_ecal_local_sim_list:
+    input:
+        expand(
+            "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{{ENERGY}}/{{PHASE_SPACE}}/{{PARTICLE}}_{{ENERGY}}_{{PHASE_SPACE}}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            INDEX=range(20),
+        ),
+    output:
+        "listing/backwards_ecal/local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input))
+
+
+if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
+    rule backwards_ecal_campaign_sim_list:
+        output:
+            "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+        params:
+            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        shell: """
+    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
+      | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
+      | sort \
+      > {output}
+    if [ ! -s {output} ]; then
+      echo "Got an empty file listing for path \"\""
+      exit 1
+    fi
+    """
+else:
+    checkpoint backwards_ecal_campaign_sim_list_checkpoint:
+        output:
+            "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
+        params:
+            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        shell: """
+    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
+      | sed -e 's#^/volatile/eic/##' \
+      | sort \
+      > {output}
+    if [ ! -s {output} ]; then
+      echo "Got an empty file listing for path \"\""
+      exit 1
+    fi
+    """
+
+    def get_backwards_ecal_campaign_sim_list(wildcards):
+        with checkpoints.backwards_ecal_campaign_sim_list_checkpoint.get(**wildcards).output[0].open() as fp:
+            return [line.rstrip() for line in fp.readlines()]
+
+    rule backwards_ecal_campaign_sim_list:
+        input:
+            # depend on paths from the file list
+            get_backwards_ecal_campaign_sim_list,
+            orig_list="listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
+        output:
+            "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+        shell: """
+    cp {input.orig_list} {output}
+    """
+
+
+ruleorder: backwards_ecal_local_sim_list > backwards_ecal_campaign_sim_list
+
+
+DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+
+rule backwards_ecal:
+    input:
+        expand(
+            "listing/backwards_ecal/{{CAMPAIGN}}/" + DETECTOR_CONFIG + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+            PARTICLE=["pi-", "e-"],
+            ENERGY=[
+                "100MeV",
+                "200MeV",
+                "500MeV",
+                "1GeV",
+                "2GeV",
+                "5GeV",
+                "10GeV",
+                "20GeV",
+            ],
+            PHASE_SPACE=["130to177deg"],
+        ),
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/backwards_ecal/backwards_ecal.py",
+    output:
+        directory("results/backwards_ecal/{CAMPAIGN}/")
+    log:
+        scheduler=".logs/results/backwards_ecal/{CAMPAIGN}/scheduler.log",
+        worker=".logs/results/backwards_ecal/{CAMPAIGN}/worker.log",
+    threads: workflow.cores
+    shell:
+        """
+if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
+export PLOT_TITLE="Benchmark simulation"
+else
+export PLOT_TITLE="\\textbf{{ePIC}} Simulation {wildcards.CAMPAIGN}"
+fi
+
+set -m # monitor mode to prevent lingering processes
+cleanup() {{
+  echo Cleaning up
+  kill $WORKER_PID $SCHEDULER_PID
+}}
+trap cleanup EXIT
+
+PORT=$RANDOM
+dask scheduler --port $PORT 2>{log.scheduler} &
+export DASK_SCHEDULER=localhost:$PORT
+SCHEDULER_PID=$!
+dask worker tcp://$DASK_SCHEDULER --nworkers {threads} --nthreads 1 2>{log.worker} &
+WORKER_PID=$!
+env \
+MATPLOTLIBRC={input.matplotlibrc} \
+DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \
+INPUT_PATH_FORMAT=listing/backwards_ecal/{wildcards.CAMPAIGN}/""" + DETECTOR_CONFIG + """/{{particle}}/{{energy}}/130to177deg.lst \
+OUTPUT_DIR={output} \
+python {input.script}
+"""

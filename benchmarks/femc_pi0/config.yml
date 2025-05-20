@@ -1,0 +1,36 @@
+sim:femc_pi0:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - P: 10
+      - P: 20
+      - P: 30
+      - P: 40
+      - P: 50
+      - P: 60
+      - P: 70
+      - P: 80
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/femc_pi0/epic_craterlake_rec_pi0_${P}GeV.edm4eic.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:femc_pi0:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs: ["sim:femc_pi0"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/femc_pi0
+
+collect_results:femc_pi0:
+  extends: .det_benchmark
+  stage: collect
+  needs: ["bench:femc_pi0"]
+  script:
+    - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/femc_pi0
+    - mv results{_save,}/

@@ -1,0 +1,54 @@
+sim:nhcal_basic_distribution:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - ENERGY: ["0.5GeV", "0.7GeV", "1GeV", "2GeV", "5GeV"]
+        INDEX: ["00","01","02","03","04","05","06","07","08","09"]
+        DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
+  script:
+    - snakemake --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_${DETECTOR_CONFIG}.${INDEX}.edm4hep.root
+
+bench:nhcal_basic_distribution_combine:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs: 
+    - "sim:nhcal_basic_distribution"
+  parallel:
+    matrix:
+      - ENERGY: ["0.5GeV", "0.7GeV", "1GeV", "2GeV", "5GeV"]
+        DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
+  script:
+    - snakemake --cores 5 sim_output/nhcal_basic_distribution/sim_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.edm4hep.root
+
+
+bench:nhcal_basic_distribution_analysis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "bench:nhcal_basic_distribution_combine"
+  parallel:
+    matrix:
+      - ENERGY: ["0.5GeV", "0.7GeV", "1GeV", "2GeV", "5GeV"]
+        DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
+  script:
+    - snakemake --cores 3 results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf
+
+collect_results:nhcal_basic_distribution:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - "bench:nhcal_basic_distribution_analysis"
+  parallel:
+    matrix:
+      - ENERGY: ["0.5GeV", "0.7GeV", "1GeV", "2GeV", "5GeV"]
+        DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
+  script:
+    - ls -lrht
+    - mv results{,_save}/ 
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf
+    - mv results{_save,}/
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.png' \
+        results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf

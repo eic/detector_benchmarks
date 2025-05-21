@@ -29,12 +29,22 @@ bench:nhcal_acceptance_analysis:
     matrix:
       - ENERGY: ["1GeV", "5GeV", "10GeV"]
   script:
-    - snakemake --cores 3 results/nhcal_acceptance_analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - snakemake --cores 3 results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
 collect_results:nhcal_acceptance:
   extends: .det_benchmark
   stage: collect
   needs: 
     - "bench:nhcal_acceptance_analysis"
+  parallel:
+    matrix:
+      - ENERGY: ["1GeV", "5GeV", "10GeV"]
   script:
     - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - mv results{_save,}/
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o 'results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.png' \
+        results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf

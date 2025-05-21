@@ -12,7 +12,7 @@
 
 using namespace std;
 
-int nhcal_acceptance_analysis(TString filename, TString outname) 
+int acceptance_analysis(TString filename, TString outname) 
 {
     TChain *chain = new TChain("events");
     chain->Add(filename);
@@ -32,8 +32,8 @@ int nhcal_acceptance_analysis(TString filename, TString outname)
 
 
     // Histograms eta-phi
-    int nEtaBins = 200;
-    int nPhiBins = 128;
+    int nEtaBins = 100;
+    int nPhiBins = 100;
     double etaMin = -5, etaMax = 0;
 
     TH2D* hEtaPhiAll = new TH2D("hEtaPhiAll", "All #pi- (status==1); #eta[1]; #phi[rad]",

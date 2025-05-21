@@ -46,9 +46,9 @@ hadd {output} {input}
 rule nhcal_acceptance_analysis:
     input:
         combined="sim_output/nhcal_acceptance/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
-        script="benchmarks/nHcal/nhcal_acceptance/scripts/nhcal_acceptance_analysis.cxx",
+        script="benchmarks/nHcal/acceptance/scripts/acceptance_analysis.cxx",
     output:
-        f"results/nhcal_acceptance_analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
+        f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
     shell:
         """
     root -l -b -q '{input.script}("{input.combined}","{output}")'

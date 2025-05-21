@@ -238,7 +238,7 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
   hits->SetLineWidth(2);
   hits->Draw("hist");
   TPaveText *pt = new TPaveText(0.1, 0.95, 0.9, 1.0, "NDC");
-  pt->AddText(Form("p_{mc} = %1.1f (GeV/c)",pmc));
+  pt->AddText(Form("p_{mc} = %1.1f GeV/c",pmc));
   pt->SetBorderSize(0);     
   pt->SetFillStyle(0);      
   pt->SetTextAlign(23); 

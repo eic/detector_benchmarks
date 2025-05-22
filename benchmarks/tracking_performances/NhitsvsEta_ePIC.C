@@ -115,14 +115,15 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
     std::vector<TVector3> hitPos; // The ePIC tracker
     double epsilon = 1.0e-5;
     Double_t pmc = 0.;
-    bool debug = true;
+    bool debug = false;
     int nhits_SVTIB, nhits_SVTOB, nhits_InMPGD, nhits_BTOF, nhits_OutMPGD, nhits_SVTDisks, nhits_FwdMPGDDisks, nhits_BwdMPGDDisks, nhits_ETOF;
     
      while (myReader.Next()) 
      {
-      hitPos.clear(); 
+      hitPos.clear(); debug = false;
+      if (iEvent<10) debug = true;
       iEvent++;
-      printf("<--------------------Event No. %d---------------------> \n",iEvent);      
+      if (debug) printf("<--------------------Event No. %d---------------------> \n",iEvent);      
       // Generated primary track
       if (charge.GetSize()>1) continue; // skip event for larger than 1 tracks
       Double_t eta_Track = 100.; // set it ouside from -3.5 to 3.5      
@@ -139,7 +140,7 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
       // Associated hits with the primary track of momentum (mom)
     //  if (fabs(pmc-mom)> epsilon) continue; 
     //  if (eta_Track<3.4) continue; // Debug for the hits in a given eta range
-      printf("Eta of the generated track: %f, Momentum (GeV/c): %f \n",eta_Track,pmc);
+      if (debug) printf("Eta of the generated track: %f, Momentum (GeV/c): %f \n",eta_Track,pmc);
      // ePIC SVT IB Tracker
      for (int j = 0; j < vtx_si_x->GetSize(); ++j){
        Double_t xhit = vtx_si_x->At(j); Double_t yhit = vtx_si_y->At(j); Double_t zhit = vtx_si_z->At(j);

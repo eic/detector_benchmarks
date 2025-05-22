@@ -231,5 +231,6 @@ rule tracking_performance_campaigns:
             "results/tracking_performances/{CAMPAIGN}",
             CAMPAIGN=[
                 "24.10.1",
+                "25.04.1",
             ],
         )

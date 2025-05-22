@@ -82,11 +82,11 @@ void draw_hits(TString filename="", TString output_prefix=".")
         hitsxy_barrel_mm_out->SetLineColor(kBlue-7);
         
         c1->cd();
-        hitsxy_vtx_si->Draw("SCAT");
-        hitsxy_barrel_si->Draw("SCAT same");
-        hitsxy_barrel_mm_in->Draw("SCAT same");
-        hitsxy_barrel_tof->Draw("SCAT same");
-        hitsxy_barrel_mm_out->Draw("SCAT same");
+        hitsxy_vtx_si->Draw("BOX");
+        hitsxy_barrel_si->Draw("BOX same");
+        hitsxy_barrel_mm_in->Draw("BOX same");
+        hitsxy_barrel_tof->Draw("BOX same");
+        hitsxy_barrel_mm_out->Draw("BOX same");
 
  TLegend *l= new TLegend(0.65,0.85,0.90,1.0);
  l->SetTextSize(0.025);
@@ -267,24 +267,24 @@ void draw_hits(TString filename="", TString output_prefix=".")
           hitsrz_bwd_mpgd_1->SetMarkerColor(kOrange);
 
         c2->cd();
-        hitsrz_vtx_si->Draw("SCAT");
-        hitsrz_vtx_si_1->Draw("SCAT same");
-        hitsrz_barrel_si->Draw("SCAT same");
-        hitsrz_barrel_si_1->Draw("SCAT same");
-        hitsrz_barrel_mm_in->Draw("SCAT same");
-        hitsrz_barrel_mm_in_1->Draw("SCAT same");
-        hitsrz_barrel_tof->Draw("SCAT same");
-        hitsrz_barrel_tof_1->Draw("SCAT same");
-        hitsrz_barrel_mm_out->Draw("SCAT same");
-        hitsrz_barrel_mm_out_1->Draw("SCAT same");
-        hitsrz_endcap_tof->Draw("SCAT same");
-        hitsrz_endcap_tof_1->Draw("SCAT same");
-        hitsrz_disks_si->Draw("SCAT same");
-        hitsrz_disks_si_1->Draw("SCAT same");
-        hitsrz_fwd_mpgd->Draw("SCAT same");
-        hitsrz_fwd_mpgd_1->Draw("SCAT same");
-        hitsrz_bwd_mpgd->Draw("SCAT same");
-        hitsrz_bwd_mpgd_1->Draw("SCAT same");
+        hitsrz_vtx_si->Draw("BOX");
+        hitsrz_vtx_si_1->Draw("BOX same");
+        hitsrz_barrel_si->Draw("BOX same");
+        hitsrz_barrel_si_1->Draw("BOX same");
+        hitsrz_barrel_mm_in->Draw("BOX same");
+        hitsrz_barrel_mm_in_1->Draw("BOX same");
+        hitsrz_barrel_tof->Draw("BOX same");
+        hitsrz_barrel_tof_1->Draw("BOX same");
+        hitsrz_barrel_mm_out->Draw("BOX same");
+        hitsrz_barrel_mm_out_1->Draw("BOX same");
+        hitsrz_endcap_tof->Draw("BOX same");
+        hitsrz_endcap_tof_1->Draw("BOX same");
+        hitsrz_disks_si->Draw("BOX same");
+        hitsrz_disks_si_1->Draw("BOX same");
+        hitsrz_fwd_mpgd->Draw("BOX same");
+        hitsrz_fwd_mpgd_1->Draw("BOX same");
+        hitsrz_bwd_mpgd->Draw("BOX same");
+        hitsrz_bwd_mpgd_1->Draw("BOX same");
 
   TLegend *l1= new TLegend(0.11,0.88,0.95,0.99);
   l1->SetNColumns(3);

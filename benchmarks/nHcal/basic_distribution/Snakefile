@@ -28,14 +28,14 @@ exec npsim \
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            os.path.join("sim_output/nhcal_basic_distribution/E{ENERGY}GeV/", "sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root"), 
+            os.path.join("sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/", "sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root"), 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
-            ENERGY=wildcards.ENERGY,
+            ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),
         ),
     wildcard_constraints:
         N=r"\d+",
-        ENERGY=r"\d+"
+        ENERGY=r"\d+(\.\d+)?"
     output:
         f"sim_output/nhcal_basic_distribution/sim_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.edm4hep.root",
     shell:

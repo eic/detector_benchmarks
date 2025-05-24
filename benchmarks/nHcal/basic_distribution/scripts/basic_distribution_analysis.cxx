@@ -82,9 +82,6 @@ int basic_distribution_analysis(const string &filename, TString outname)
     unsigned nEvents = reader->getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
-    double totalEnergy = 0;
-    int totalHits = 0;
-    
     vector<double> xPosition;
     vector<double> yPosition;
     vector<double> zPosition;
@@ -92,8 +89,10 @@ int basic_distribution_analysis(const string &filename, TString outname)
     vector<double> energy;
     vector<double> totalEventEnergy;
     vector<double> totalEventHits;
+    vector<double> zLayerValues;
+    vector<int> nHitsPerLayer;
     
-    for (unsigned ev = 0; ev < nEvents; ++ev) 
+    for (unsigned ev = 0; ev < nEvents; ev++) 
     {
         auto frameData = reader->readNextEntry(podio::Category::Event);
         if (!frameData) 
@@ -110,6 +109,10 @@ int basic_distribution_analysis(const string &filename, TString outname)
             cerr << "HcalEndcapNHits collection is not valid!" << endl;
         }
 
+        map<double, int> hitsPerLayerZ;
+        double totalEnergy = 0;
+        int totalHits = 0;
+
         for (const auto& hit : hits) 
         {
             totalHits++;
@@ -121,10 +124,20 @@ int basic_distribution_analysis(const string &filename, TString outname)
             yPosition.push_back(pos.y);
             zPosition.push_back(pos.z);
             rPosition.push_back(sqrt(pos.x * pos.x + pos.y * pos.y));
+
+            double zBin = round(pos.z);
+            hitsPerLayerZ[zBin]++;
         }
 
         totalEventEnergy.push_back(totalEnergy);
         totalEventHits.push_back(totalHits);
+
+        for (const auto& [zValue, nHits] : hitsPerLayerZ)
+        {
+            zLayerValues.push_back(zValue);
+            nHitsPerLayer.push_back(nHits);
+        }
+
     }
 
     auto minmax_xPosition        = minmax_element(xPosition.begin(), xPosition.end());
@@ -134,32 +147,42 @@ int basic_distribution_analysis(const string &filename, TString outname)
     auto minmax_totalEventEnergy = minmax_element(totalEventEnergy.begin(), totalEventEnergy.end());
     auto minmax_totalEventHits   = minmax_element(totalEventHits.begin(), totalEventHits.end());
     auto minmax_energy           = minmax_element(energy.begin(), energy.end());
-
+    auto minmax_zLayerValues     = minmax_element(zLayerValues.begin(), zLayerValues.end());
+    auto minmax_nHitsPerLayer    = minmax_element(nHitsPerLayer.begin(), nHitsPerLayer.end());
 
     int nbins = nEvents/1000;
 
     TH1D *h_energyTotal = new TH1D("h_energyTotal", "Total Energy per Event; Energy per Event", 
                                     nbins/2, *minmax_totalEventEnergy.first, *minmax_totalEventEnergy.second);
     TH2D *h_layerEnergy = new TH2D("h_layerEnergy", "Energy in Layers (Z); Z; Energy", 
-                                    nbins/4, *minmax_zPosition.first, *minmax_zPosition.second, nbins/2, *minmax_energy.first, *minmax_energy.second);
+                                    nbins/4, *minmax_zPosition.first, *minmax_zPosition.second, 
+                                    nbins/5, *minmax_energy.first, *minmax_energy.second);
     TH1D *h_hitCount    = new TH1D("h_hitCount", "Number of Hits per Event; Hits per Event", 
                                     nbins/2, *minmax_totalEventHits.first, *minmax_totalEventHits.second);
-    TH1D *h_layerHits   = new TH1D("h_layerHits", "Number of Hits in Layers (Z); Layer(Z); Hits",
-                                    nbins/4, *minmax_zPosition.first, *minmax_zPosition.second);
-    TH2D *h_XYPos       = new TH2D("h_XYPos", "Hits position X,Y;X [mm];Y [mm]",                
-                                    nbins, *minmax_xPosition.first, *minmax_xPosition.second, nbins, *minmax_yPosition.first, *minmax_yPosition.second);
-    TH2D *h_ZRPos       = new TH2D("h_ZRPos", "Hits position Z, R;Z [mm];R [mm]", 
-                                    nbins/4, *minmax_zPosition.first, *minmax_zPosition.second, nbins, *minmax_rPosition.first, *minmax_rPosition.second);
+    TH2D *h_layerHits   = new TH2D("h_layerHits", "Number of Hits in Layers (Z); Layer(Z); Hits", 
+                                    nbins/4, *minmax_zLayerValues.first, *minmax_zLayerValues.second, 
+                                    *minmax_nHitsPerLayer.second, *minmax_nHitsPerLayer.first, *minmax_nHitsPerLayer.second);
+    TH2D *h_XYPos       = new TH2D("h_XYPos", "Hits position X,Y;X [mm];Y [mm]", 
+                                    nbins, *minmax_xPosition.first, *minmax_xPosition.second, 
+                                    nbins, *minmax_yPosition.first, *minmax_yPosition.second);
+    TH2D *h_ZRPos       = new TH2D("h_ZRPos", "Hits position Z,R;Z [mm];R [mm]", 
+                                    nbins/4, *minmax_zPosition.first, *minmax_zPosition.second, 
+                                    nbins, *minmax_rPosition.first, *minmax_rPosition.second);
     TH2D *h_XYEnergy    = new TH2D("h_XYEnergy", "Hits energy X,Y;X [mm];Y [mm]", 
-                                    nbins, *minmax_xPosition.first, *minmax_xPosition.second, nbins, *minmax_yPosition.first, *minmax_yPosition.second);
+                                    nbins, *minmax_xPosition.first, *minmax_xPosition.second, 
+                                    nbins, *minmax_yPosition.first, *minmax_yPosition.second);
 
     for(int i = 0; i < xPosition.size(); i++)
     {
         h_layerEnergy->Fill(zPosition[i], energy[i]);
-        h_layerHits->Fill(zPosition[i]);
         h_XYPos->Fill(xPosition[i], yPosition[i]);
         h_ZRPos->Fill(zPosition[i], rPosition[i]);
         h_XYEnergy->Fill(xPosition[i], yPosition[i], energy[i]);
+    }
+
+    for (int i = 0; i < zLayerValues.size(); i++)
+    {
+        h_layerHits->Fill(zLayerValues[i], nHitsPerLayer[i]);
     }
 
     for(int i = 0; i < nEvents; i++)
@@ -179,7 +202,7 @@ int basic_distribution_analysis(const string &filename, TString outname)
     canvas->cd(3);
     h_hitCount->Draw();
     canvas->cd(4);
-    h_layerHits->Draw();
+    h_layerHits->Draw("COLZ");
     canvas->cd(5);
     h_XYPos->Draw("COLZ");
     canvas->cd(6);

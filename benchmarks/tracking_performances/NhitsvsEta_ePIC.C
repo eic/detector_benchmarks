@@ -229,7 +229,6 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
    
     int nhits = nhits_SVTIB + nhits_SVTOB + nhits_InMPGD + nhits_BTOF + nhits_OutMPGD + nhits_SVTDisks + nhits_FwdMPGDDisks + nhits_BwdMPGDDisks + nhits_ETOF;
     if (nhits>0) hits->Fill(eta_Track,nhits); 
-    printf("Total Associated hits: %d \n",nhits);
 
  }
  

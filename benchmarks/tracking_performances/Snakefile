@@ -71,12 +71,12 @@ rule tracking_performance_hit_maps:
             f"sim_output/tracking_performance/epic_craterlake_tracking_only/{wildcards.PARTICLE}/{wildcards.MOMENTUM}/{wildcards.PARTICLE}.{wildcards.MOMENTUM}.edm4hep.root"
   
     output:
-        hitsxy_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.png",
-        hitsxy_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsxy_dd4hep.root",
-        hitsrz_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.png",
-        hitsrz_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/hitsrz_dd4hep.root",
-        nhits_eta_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.png",
-        nhits_eta_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/pi-/{MOMENTUM}/{SEEDING_IGNORE}/{PARTICLE}/Nhits_vs_eta.root",
+        hitsxy_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsxy_dd4hep.png",
+        hitsxy_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsxy_dd4hep.root",
+        hitsrz_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsrz_dd4hep.png",
+        hitsrz_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsrz_dd4hep.root",
+        nhits_eta_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/Nhits_vs_eta.png",
+        nhits_eta_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/Nhits_vs_eta.root",
     shell: """
 OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
 echo "Generating hit maps and Nhits vs eta for: {input.sim_hadd}"
@@ -88,7 +88,7 @@ rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
         hit_maps=lambda wildcards: [
-            f"results/hitmaps/{wildcards.CAMPAIGN}/{wildcards.SEEDING}/pi-/{wildcards.MOMENTUM}/{wildcards.SEEDING_IGNORE}/{wildcards.PARTICLE}/Nhits_vs_eta.png"
+            f"results/hitmaps/{wildcards.CAMPAIGN}/{wildcards.SEEDING}/{wildcards.PARTICLE}/{wildcards.MOMENTUM}/Nhits_vs_eta.png"
         ] if wildcards.CAMPAIGN == "local" else [],
         # TODO pass as a file list?
         sim=lambda wildcards:

@@ -23,7 +23,7 @@ bench:tracking_performance_hit_maps:
         MOMENTUM: ["0.5", "1", "2", "5", "10", "20"]
   script:
     - MOM_UNIT=$(awk -v m=$MOMENTUM 'BEGIN {printf "%.0f%s", (m<1?m*1000:m), (m<1?"MeV":"GeV")}')
-    - snakemake $SNAKEMAKE_FLAGS --cores 2 results/hitmaps/local/truthseed/${PARTICLE}/${MOMENTUM}/truth/${PARTICLE}/Nhits_vs_eta.png
+    - snakemake $SNAKEMAKE_FLAGS --cores 2 results/hitmaps/local/truthseed/${PARTICLE}/${MOMENTUM}/Nhits_vs_eta.png
 
 bench:tracking_performance:
   extends: .det_benchmark

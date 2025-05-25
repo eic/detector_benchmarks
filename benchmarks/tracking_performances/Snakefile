@@ -50,13 +50,13 @@ rule tracking_performance_sim_hadd:
         simoutput=lambda wildcards: expand(
               "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
               DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG},
+              ENERGY=wildcards.ENERGY,
               PARTICLE=wildcards.PARTICLE,
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
               PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
               INDEX=range(1),
           )
     output:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{MOMENTUM}/{PARTICLE}.{MOMENTUM}.edm4hep.root",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root",
     shell:
         """
 echo "Merging simulation files into: {output}"
@@ -68,28 +68,27 @@ rule tracking_performance_hit_maps:
         script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
         script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
         sim_hadd=lambda wildcards:
-            f"sim_output/tracking_performance/epic_craterlake_tracking_only/{wildcards.PARTICLE}/{wildcards.MOMENTUM}/{wildcards.PARTICLE}.{wildcards.MOMENTUM}.edm4hep.root"
+            f"sim_output/tracking_performance/epic_craterlake_tracking_only/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PARTICLE}.{wildcards.ENERGY}.edm4hep.root"
   
     output:
-        hitsxy_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsxy_dd4hep.png",
-        hitsxy_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsxy_dd4hep.root",
-        hitsrz_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsrz_dd4hep.png",
-        hitsrz_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/hitsrz_dd4hep.root",
-        nhits_eta_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/Nhits_vs_eta.png",
-        nhits_eta_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{MOMENTUM}/Nhits_vs_eta.root",
+        hitsxy_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/hitsxy_dd4hep.png",
+        hitsxy_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/hitsxy_dd4hep.root",
+        hitsrz_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.png",
+        hitsrz_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.root",
+        nhits_eta_png="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
+        nhits_eta_root="results/hitmaps/{CAMPAIGN}/{SEEDING}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
+    params:
+        MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
     shell: """
 OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
 echo "Generating hit maps and Nhits vs eta for: {input.sim_hadd}"
 root -l -b -q {input.script_hitsmap}'("{input.sim_hadd}", "'$OUTPUT_PREFIX'")'
-root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{wildcards.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{input.sim_hadd}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
 """
 
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
-        hit_maps=lambda wildcards: [
-            f"results/hitmaps/{wildcards.CAMPAIGN}/{wildcards.SEEDING}/{wildcards.PARTICLE}/{wildcards.MOMENTUM}/Nhits_vs_eta.png"
-        ] if wildcards.CAMPAIGN == "local" else [],
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(

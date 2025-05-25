@@ -20,9 +20,8 @@ bench:tracking_performance_hit_maps:
   parallel:
     matrix:
       - PARTICLE: ["pi-"]
-        MOMENTUM: ["0.5", "1", "2", "5", "10", "20"]
+        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
   script:
-    - MOM_UNIT=$(awk -v m=$MOMENTUM 'BEGIN {printf "%.0f%s", (m<1?m*1000:m), (m<1?"MeV":"GeV")}')
     - snakemake $SNAKEMAKE_FLAGS --cores 2 results/hitmaps/local/truthseed/${PARTICLE}/${MOMENTUM}/Nhits_vs_eta.png
 
 bench:tracking_performance:

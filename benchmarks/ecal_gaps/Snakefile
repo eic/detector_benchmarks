@@ -43,9 +43,9 @@ rule ecal_gaps_recon:
     input:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     output:
-        "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+        "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:
-        "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+        "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
     params:
@@ -66,7 +66,7 @@ rule ecal_gaps:
         script="benchmarks/ecal_gaps/ecal_gaps.py",
         # TODO pass as a file list?
         _=expand(
-            "sim_output/ecal_gaps/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            "sim_output/ecal_gaps/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
             PARTICLE=["e-"],
             ENERGY=["500MeV", "5GeV", "20GeV"],
             PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],

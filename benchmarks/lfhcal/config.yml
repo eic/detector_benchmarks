@@ -8,7 +8,7 @@ sim:lfhcal:
   script:
     - |
       snakemake --cache --cores 5 \
-        sim_output/lfhcal/epic_craterlake/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.tree.edm4eic.root
+        sim_output/lfhcal/epic_craterlake/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.edm4eic.root
 
 bench:lfhcal:
   extends: .det_benchmark

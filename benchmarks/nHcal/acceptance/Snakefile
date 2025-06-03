@@ -10,7 +10,7 @@ rule nhcal_acceptance_simulate:
     shell:
         """
 set -m
-exec npsim \
+exec ddsim \
     --compactFile {DETECTOR_PATH}/{wildcards.DETECTOR_CONFIG}.xml \
     --numberOfEvents {params.N_EVENTS} \
     --random.seed $RANDOM \

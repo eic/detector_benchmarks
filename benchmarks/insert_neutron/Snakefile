@@ -55,7 +55,7 @@ rule insert_neutron_recon:
         """
 NEVENTS_REC=200
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPInsertRecHits,EcalEndcapPInsertClusters  -Pjana:nevents=$NEVENTS_REC
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits  -Pjana:nevents=$NEVENTS_REC
 """
 
 rule insert_neutron_analysis:

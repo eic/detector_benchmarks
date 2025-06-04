@@ -1,10 +1,8 @@
 rule beamline_sim:
     input:
-        macro="{test}GPS.mac",
+        macro="benchmarks/beamline/beamlineGPS.mac",
     output:
-        "/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root",
-    log:
-        "/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root.log",
+        "sim_output/beamline/beamlineTest{CAMPAIGN}.edm4hep.root",
     shell:
         """
             exec npsim \
@@ -16,17 +14,46 @@ rule beamline_sim:
         """
 
 rule beamline_analysis:
-    input:
-        data="/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root",
-        script="{test}Analysis.C",
-    output:
-        "/scratch/EIC/ReconOut/beamline/{test}TestAnalysis{tag}.root"
-    log:
-        "/scratch/EIC/ReconOut/beamline/{test}TestAnalysis{tag}.root.log"
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    input:
+        script="benchmarks/beamline/beamlineAnalysis.C",
+        data="sim_output/beamline/beamlineTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile="sim_output/beamline/analysis/beamlineTestAnalysis{CAMPAIGN}.root",
+        beamspot_canvas="sim_output/beamline/analysis/beamspot_{CAMPAIGN}.png",
+        x_px_canvas="sim_output/beamline/analysis/x_px_{CAMPAIGN}.png",
+        y_py_canvas="sim_output/beamline/analysis/y_py_{CAMPAIGN}.png",
+        fitted_position_means_stdevs_canvas="sim_output/beamline/analysis/fitted_position_means_stdevs_{CAMPAIGN}.png",
+        fitted_momentum_means_stdevs_canvas="sim_output/beamline/analysis/fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+        pipe_parameter_canvas="sim_output/beamline/analysis/pipe_parameter_{CAMPAIGN}.png",
     shell:
         """
-            root -l -b -q 'analysis.C("{input.data}", "{output}", "{params.xml}")'
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
+            "{output.beamspot_canvas}", "{output.x_px_canvas}", "{output.y_py_canvas}",
+            "{output.fitted_position_means_stdevs_canvas}", "{output.fitted_momentum_means_stdevs_canvas}",
+            "{output.pipe_parameter_canvas}")'
         """
 
+rule beamline:
+    input:
+        [
+            "sim_output/beamline/analysis/beamlineTestAnalysis{CAMPAIGN}.root",
+            "sim_output/beamline/analysis/beamspot_{CAMPAIGN}.png",
+            "sim_output/beamline/analysis/x_px_{CAMPAIGN}.png",
+            "sim_output/beamline/analysis/y_py_{CAMPAIGN}.png",
+            "sim_output/beamline/analysis/fitted_position_means_stdevs_{CAMPAIGN}.png",
+            "sim_output/beamline/analysis/fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+            "sim_output/beamline/analysis/pipe_parameter_{CAMPAIGN}.png",
+        ],
+    output:
+        directory("results/beamline/{CAMPAIGN}/")
+    shell:
+        """
+            mkdir {output}        
+            cp {input} {output}
+        """
+
+rule beamline_local:
+    input:
+        "results/beamline/local/"

@@ -15,21 +15,6 @@ rule beamline_sim:
             --outputFile {output} \
         """
 
-rule beamline_geometry_image:
-    output:
-        "geometry_image{tag}.png"
-    params:
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
-    shell:
-        """
-            exec npsim \
-            --compactFile {params.xml} \
-            --runType vis  \
-            --enableG4GPS \
-            --macroFile visbeam.mac 
-            mv geometry_image.png {output}
-        """
-
 rule beamline_analysis:
     input:
         data="/scratch/EIC/G4out/beamline/{test}Test{tag}.edm4hep.root",

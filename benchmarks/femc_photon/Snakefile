@@ -60,7 +60,7 @@ rule femc_photon_recon:
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalEndcapPInsertRecHits,HcalEndcapPInsertClusters,HcalEndcapPInsertSubcellHits,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
+  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
 """
 
 rule femc_photon_analysis:

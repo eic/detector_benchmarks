@@ -30,27 +30,27 @@ def find_epic_libraries():
     return libs
 
 
-include: "benchmarks/backgrounds/Snakefile"
-include: "benchmarks/backwards_ecal/Snakefile"
-include: "benchmarks/barrel_ecal/Snakefile"
-include: "benchmarks/calo_pid/Snakefile"
-include: "benchmarks/ecal_gaps/Snakefile"
-include: "benchmarks/material_scan/Snakefile"
-include: "benchmarks/tracking_performances/Snakefile"
-include: "benchmarks/tracking_performances_dis/Snakefile"
-include: "benchmarks/lfhcal/Snakefile"
-include: "benchmarks/zdc_lyso/Snakefile"
-include: "benchmarks/zdc_neutron/Snakefile"
-include: "benchmarks/insert_muon/Snakefile"
-include: "benchmarks/zdc_lambda/Snakefile"
-include: "benchmarks/zdc_photon/Snakefile"
-include: "benchmarks/zdc_pi0/Snakefile"
-include: "benchmarks/zdc_sigma/Snakefile"
-include: "benchmarks/insert_neutron/Snakefile"
-include: "benchmarks/insert_tau/Snakefile"
-include: "benchmarks/femc_electron/Snakefile"
-include: "benchmarks/femc_photon/Snakefile"
-include: "benchmarks/femc_pi0/Snakefile"
+#include: "benchmarks/backgrounds/Snakefile"
+#include: "benchmarks/backwards_ecal/Snakefile"
+#include: "benchmarks/barrel_ecal/Snakefile"
+#include: "benchmarks/calo_pid/Snakefile"
+#include: "benchmarks/ecal_gaps/Snakefile"
+#include: "benchmarks/material_scan/Snakefile"
+#include: "benchmarks/tracking_performances/Snakefile"
+#include: "benchmarks/tracking_performances_dis/Snakefile"
+#include: "benchmarks/lfhcal/Snakefile"
+#include: "benchmarks/zdc_lyso/Snakefile"
+#include: "benchmarks/zdc_neutron/Snakefile"
+#include: "benchmarks/insert_muon/Snakefile"
+#include: "benchmarks/zdc_lambda/Snakefile"
+#include: "benchmarks/zdc_photon/Snakefile"
+#include: "benchmarks/zdc_pi0/Snakefile"
+#include: "benchmarks/zdc_sigma/Snakefile"
+#include: "benchmarks/insert_neutron/Snakefile"
+#include: "benchmarks/insert_tau/Snakefile"
+#include: "benchmarks/femc_electron/Snakefile"
+#include: "benchmarks/femc_photon/Snakefile"
+#include: "benchmarks/femc_pi0/Snakefile"
 include: "benchmarks/beamline/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
@@ -121,24 +121,24 @@ awk -f {input.converter} {input.notebook} > {output}
 """
 
 
-rule metadata:
-    output:
-        "results/metadata.json"
-    shell:
-        """
-cat > {output} <<EOF
-{{
-  "CI_COMMIT_REF_NAME": "${{CI_COMMIT_REF_NAME:-}}",
-  "CI_COMMIT_SHA": "${{CI_COMMIT_SHA:-}}",
-  "CI_PIPELINE_ID": "${{CI_PIPELINE_ID:-}}",
-  "CI_PIPELINE_SOURCE": "${{CI_PIPELINE_SOURCE:-}}",
-  "CI_PROJECT_ID": "${{CI_PROJECT_ID:-}}",
-  "GITHUB_REPOSITORY": "${{GITHUB_REPOSITORY:-}}",
-  "GITHUB_SHA": "${{GITHUB_SHA:-}}",
-  "GITHUB_PR": "${{GITHUB_PR:-}}",
-  "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
-}}
-EOF
-# validate JSON
-jq '.' {output}
-"""
+#rule metadata:
+#    output:
+#        "results/metadata.json"
+#    shell:
+#        """
+#cat > {output} <<EOF
+#{{
+#  "CI_COMMIT_REF_NAME": "${{CI_COMMIT_REF_NAME:-}}",
+#  "CI_COMMIT_SHA": "${{CI_COMMIT_SHA:-}}",
+#  "CI_PIPELINE_ID": "${{CI_PIPELINE_ID:-}}",
+#  "CI_PIPELINE_SOURCE": "${{CI_PIPELINE_SOURCE:-}}",
+#  "CI_PROJECT_ID": "${{CI_PROJECT_ID:-}}",
+#  "GITHUB_REPOSITORY": "${{GITHUB_REPOSITORY:-}}",
+#  "GITHUB_SHA": "${{GITHUB_SHA:-}}",
+#  "GITHUB_PR": "${{GITHUB_PR:-}}",
+#  "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
+#}}
+#EOF
+## validate JSON
+#jq '.' {output}
+#"""

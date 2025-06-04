@@ -181,7 +181,7 @@ deploy_results:
     # - "collect_results:femc_electron"
     # - "collect_results:femc_photon"
     # - "collect_results:femc_pi0"
-    - "collect_results/beamline"
+    - "collect_results:beamline"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

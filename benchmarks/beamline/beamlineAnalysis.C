@@ -21,7 +21,14 @@ using RNode       = ROOT::RDF::RNode;
 
 void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
                         TString outFile         = "output.root",
-                        std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml"){
+                        std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
+                        TString beamspotCanvasName = "beamspot_canvas.png",
+                        TString x_pxCanvasName = "x_px_canvas.png",
+                        TString y_pyCanvasName = "y_py_canvas.png",
+                        TString fittedPositionMeansCanvasName = "fitted_means_stddevs.png",
+                        TString fittedMomentumMeansCanvasName = "fitted_momentum_means_stddevs.png",
+                        TString pipeParamsCanvasName = "pipe_parameters.png"
+                    ){
 
     //Set ROOT style    
     gStyle->SetPadLeftMargin(0.1);  // Set left margin
@@ -305,9 +312,9 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     }
 
     // Save 2D canvases as pngs
-    cXY->SaveAs("beamspot.png");
-    cX->SaveAs("x_px.png");
-    cY->SaveAs("y_py.png");
+    cXY->SaveAs(beamspotCanvasName);
+    cX->SaveAs(x_pxCanvasName);
+    cY->SaveAs(y_pyCanvasName);
 
     // ---------------------------------------------------------------------------
     // Create histograms showing the fitted means and standard deviations of the positions and momenta
@@ -375,7 +382,7 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     cFittedMeans->SetGrid();
     cFittedMeans->Update();
     // Save the canvas as a PNG file
-    cFittedMeans->SaveAs("fitted_means_stddevs.png");
+    cFittedMeans->SaveAs(fittedPositionMeansCanvasName);
 
     // Create a canvas for the fitted momentum means and standard deviations
     TCanvas *cFittedMomentumMeans = new TCanvas("cFittedMomentumMeans", "Fitted Momentum Means and Std Deviation", 1200, 800);
@@ -391,7 +398,7 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     cFittedMomentumMeans->SetGrid();
     cFittedMomentumMeans->Update();
     // Save the canvas as a PNG file
-    cFittedMomentumMeans->SaveAs("fitted_momentum_means_stddevs.png");
+    cFittedMomentumMeans->SaveAs(fittedMomentumMeansCanvasName);
 
 
     // -----------------------------------------------------------------------------
@@ -432,7 +439,7 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     cPipeParams->SetGrid();
     cPipeParams->Update();
     // Save the canvas as a PNG file
-    cPipeParams->SaveAs("pipe_parameters.png");
+    cPipeParams->SaveAs(pipeParamsCanvasName);
 
 
     TFile *f = new TFile(outFile,"RECREATE");

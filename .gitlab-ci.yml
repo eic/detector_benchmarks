@@ -133,14 +133,14 @@ get_data:
 .det_benchmark:bench:
   extends: .det_benchmark
   stage: benchmarks
-  script:
+  after_script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 ${BENCHMARK_DIR}/$(echo ${CI_JOB_NAME} | rev | cut -d: -f1 | rev)
 
 .det_benchmark:collect:
   extends: .det_benchmark
   stage: collect
   when: always
-  script:
+  after_script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output ${BENCHMARK_DIR}/$(echo ${CI_JOB_NAME} | rev | cut -d: -f1 | rev)

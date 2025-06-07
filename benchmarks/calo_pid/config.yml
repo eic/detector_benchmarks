@@ -38,6 +38,7 @@ collect_results:calo_pid:
   stage: collect
   needs:
     - "bench:calo_pid"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

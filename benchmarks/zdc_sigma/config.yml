@@ -29,6 +29,7 @@ collect_results:zdc_sigma:
   extends: .det_benchmark
   stage: collect
   needs: ["bench:zdc_sigma"]
+  when: always
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it

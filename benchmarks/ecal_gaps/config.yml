@@ -22,6 +22,7 @@ collect_results:ecal_gaps:
   stage: collect
   needs:
     - "bench:ecal_gaps"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

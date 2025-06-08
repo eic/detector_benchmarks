@@ -12,18 +12,6 @@ sim:tracking_performance:
         sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/45to135deg/${PARTICLE}_${MOMENTUM}_45to135deg.0000.eicrecon.tree.edm4eic.root \
         sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/130to177deg/${PARTICLE}_${MOMENTUM}_130to177deg.0000.eicrecon.tree.edm4eic.root
 
-bench:tracking_performance_hit_maps:
-  extends: .det_benchmark
-  stage: benchmarks
-  needs:
-    - "sim:tracking_performance"
-  parallel:
-    matrix:
-      - PARTICLE: ["pi-"]
-        MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
-  script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 2 results/hitmaps/local/truthseed/${PARTICLE}/${MOMENTUM}/Nhits_vs_eta.png
-
 bench:tracking_performance:
   extends: .det_benchmark
   stage: benchmarks
@@ -40,8 +28,6 @@ collect_results:tracking_performance:
     - "bench:tracking_performance_hit_maps"
   script:
     - ls -lrht
-    - mkdir -p results_collected
-    - cp -r results/hitmaps results_collected/hitmaps/
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output tracking_performance_local
     - mv results{_save,}/
@@ -49,7 +35,6 @@ collect_results:tracking_performance:
 bench:tracking_performance_campaigns:
   extends: .det_benchmark
   stage: benchmarks
-  #when: manual
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 tracking_performance_campaigns
 

@@ -47,9 +47,9 @@ rule backwards_ecal_recon:
     input:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     output:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
     params:
@@ -67,7 +67,7 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 rule backwards_ecal_local_sim_list:
     input:
         expand(
-            "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{{ENERGY}}/{{PHASE_SPACE}}/{{PARTICLE}}_{{ENERGY}}_{{PHASE_SPACE}}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
+            "sim_output/backwards_ecal/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{{ENERGY}}/{{PHASE_SPACE}}/{{PARTICLE}}_{{ENERGY}}_{{PHASE_SPACE}}.{INDEX:04d}.eicrecon.edm4eic.root",
             INDEX=range(20),
         ),
     output:

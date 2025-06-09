@@ -19,7 +19,7 @@ sim:calo_pid:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 5 \
-        $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/130to177deg/${PARTICLE}_100MeVto20GeV_130to177deg.%04.f.eicrecon.tree.edm4eic.root" ${INDEX_RANGE})
+        $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/130to177deg/${PARTICLE}_100MeVto20GeV_130to177deg.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
 
 bench:calo_pid:
   allow_failure: true # until inference merged into EICrecon
@@ -38,6 +38,7 @@ collect_results:calo_pid:
   stage: collect
   needs:
     - "bench:calo_pid"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

@@ -32,7 +32,7 @@ for a in arrays_sim.values():
     px=0
     py=0
     pz=0
-    for det in "HcalEndcapPInsert", "EcalEndcapPInsert", "EcalEndcapP", "LFHCAL":
+    for det in "HcalEndcapPInsert", "EcalEndcapP", "LFHCAL":
     
         E=a[f'{det}Clusters.energy']
         

@@ -27,7 +27,7 @@ Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 
 df = pd.DataFrame({})
 for eng in Energy:
-    tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.tree.edm4eic.root')['events']
+    tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.edm4eic.root')['events']
     ecal_reco_energy = list(map(sum, tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array()))
     hcal_reco_energy = list(map(sum, tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array()))
     ecal_rec_energy = list(map(sum, tree['EcalFarForwardZDCRecHits/EcalFarForwardZDCRecHits.energy'].array()))

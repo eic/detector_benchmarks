@@ -8,9 +8,9 @@ sim:tracking_performance:
   script:
     - |
       snakemake --cache --cores 1 \
-        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.tree.edm4eic.root \
-        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/45to135deg/${PARTICLE}_${MOMENTUM}_45to135deg.0000.eicrecon.tree.edm4eic.root \
-        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/130to177deg/${PARTICLE}_${MOMENTUM}_130to177deg.0000.eicrecon.tree.edm4eic.root
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.edm4eic.root \
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/45to135deg/${PARTICLE}_${MOMENTUM}_45to135deg.0000.eicrecon.edm4eic.root \
+        sim_output/tracking_performance/epic_craterlake_tracking_only/${PARTICLE}/${MOMENTUM}/130to177deg/${PARTICLE}_${MOMENTUM}_130to177deg.0000.eicrecon.edm4eic.root
 
 bench:tracking_performance:
   extends: .det_benchmark

@@ -90,7 +90,7 @@ rule tracking_performance_hit_maps:
 echo "Merging simulation files into: {output}"
 hadd -f {output.sim_hadd} {input.sim}
 OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
-echo "Generating hit maps and Nhits vs eta for: {input.sim_hadd}"
+echo "Generating hit maps and Nhits vs eta for: {output.sim_hadd}"
 root -l -b -q {input.script_hitsmap}'("{output.sim_hadd}", "'$OUTPUT_PREFIX'")'
 root -l -b -q {input.script_nhits_eta}'("{output.sim_hadd}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
 """

@@ -114,7 +114,7 @@ rule tracking_performance_at_momentum:
                 ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
                 PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
                 INDEX=range(1),
-                TREE_SUFFIX=".tree" if int(wildcards.CAMPAIGN[:2]) < 25 else "", # backwards compatibility
+                TREE_SUFFIX=".tree" if wildcards.CAMPAIGN != "local" and int(wildcards.CAMPAIGN[:2]) < 25 else "", # backwards compatibility
             ),
         ),
     output:

@@ -20,6 +20,8 @@ workflow:
 default:
   tags:
     - phy-scratch
+  resource_group: $BENCHMARKS_CONTAINER:$BENCHMARKS_TAG:$GITHUB_REPOSITORY:$GITHUB_SHA
+  interruptible: true
   artifacts:
     expire_in: 72 hours 
     paths:

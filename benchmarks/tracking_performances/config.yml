@@ -25,7 +25,6 @@ collect_results:tracking_performance:
   stage: collect
   needs:
     - "bench:tracking_performance"
-    - "bench:tracking_performance_hit_maps"
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

@@ -51,20 +51,20 @@ stages:
 
 .status:
   image: curlimages/curl:latest
+  rules:
+    - if: $GITHUB_SHA !~ /^$/ # when GITHUB_SHA non-empty
   script:
     - |
-      if [ -n "${GITHUB_SHA}" ] ; then
-        curl \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
-          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-          -d '{"state":"'"${STATE}"'",
-               "target_url":"'"${CI_PIPELINE_URL}"'",
-               "description":"'"$(TZ=America/New_York date)"'",
-               "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
-              }' ;
-      fi
+      curl \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+        -d '{"state":"'"${STATE}"'",
+             "target_url":"'"${CI_PIPELINE_URL}"'",
+             "description":"'"$(TZ=America/New_York date)"'",
+             "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
+            }' ;
 
 
 benchmarks:detector:pending:

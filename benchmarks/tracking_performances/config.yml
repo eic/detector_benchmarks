@@ -34,7 +34,6 @@ collect_results:tracking_performance:
 bench:tracking_performance_campaigns:
   extends: .det_benchmark
   stage: benchmarks
-  #when: manual
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 tracking_performance_campaigns
 

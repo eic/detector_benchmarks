@@ -10,6 +10,7 @@ rule nhcal_basic_distribution_simulate:
     shell:
         """
 set -m
+mkdir -p sim_output/nhcal_basic_distribution/E{wildcards.ENERGY}GeV
 exec ddsim \
     --compactFile {DETECTOR_PATH}/{wildcards.DETECTOR_CONFIG}.xml \
     --numberOfEvents {params.N_EVENTS} \

@@ -81,22 +81,11 @@ int acceptance_analysis(TString filename, TString outname)
         }
     }
 
-    // Calculating acceptance eta-phi
-    // for (int etaBin = 1; etaBin <= hAcceptance->GetNbinsX(); ++etaBin) {
-    //     for (int phiBin = 1; phiBin <= hAcceptance->GetNbinsY(); ++phiBin) {
-    //         double all = hEtaPhiAll->GetBinContent(etaBin, phiBin);
-    //         double detected = hEtaPhiDetected->GetBinContent(etaBin, phiBin);
-    //         if (all > 0) {
-    //             hAcceptance->SetBinContent(etaBin, phiBin, detected / all);
-    //         } else {
-    //             hAcceptance->SetBinContent(etaBin, phiBin, 0);
-    //         }
-    //     }
-    // }
-
     TH2D* hAcceptance = (TH2D*)hEtaPhiAll->Clone("hAcceptance");
     hAcceptance->Divide(hEtaPhiDetected);
     hAcceptance->SetTitle("#pi- detected/All");
+    hAcceptance->SetMinimum(0);
+    hAcceptance->SetMaximum(1);
 
     TCanvas *canvas = new TCanvas("canvas", "pi- All", 1600, 600);
     canvas->Divide(3,1);

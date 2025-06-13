@@ -1,4 +1,4 @@
-sim_nhcal_only:nhcal_basic_distribution:
+sim:nhcal_basic_distribution:
   extends: .det_benchmark
   stage: simulate
   parallel:
@@ -8,7 +8,7 @@ sim_nhcal_only:nhcal_basic_distribution:
   script:
     - snakemake --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root
 
-sim_full:nhcal_basic_distribution:
+sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
   stage: simulate
   parallel:
@@ -18,44 +18,44 @@ sim_full:nhcal_basic_distribution:
   script:
     - snakemake --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root
 
-bench_nhcal_only:nhcal_basic_distribution_combine:
+bench:nhcal_basic_distribution_combine:
   extends: .det_benchmark
   stage: benchmarks
   needs: 
-    - "sim_nhcal_only:nhcal_basic_distribution"
+    - "sim:nhcal_basic_distribution"
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
     - snakemake --cores 5 sim_output/nhcal_basic_distribution/sim_epic_backward_hcal_only_E${ENERGY}_combined_10files.edm4hep.root
 
-bench_full:nhcal_basic_distribution_combine:
+bench:nhcal_basic_distribution_combine_full:
   extends: .det_benchmark
   stage: benchmarks
   needs: 
-    - "sim_full:nhcal_basic_distribution"
+    - "sim:nhcal_basic_distribution_full"
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
     - snakemake --cores 5 sim_output/nhcal_basic_distribution/sim_epic_full_E${ENERGY}_combined_10files.edm4hep.root
 
-bench_nhcal_only:nhcal_basic_distribution_analysis:
+bench:nhcal_basic_distribution_analysis:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "bench_nhcal_only:nhcal_basic_distribution_combine"
+    - "bench:nhcal_basic_distribution_combine"
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
     - snakemake --cores 3 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
-bench_full:nhcal_basic_distribution_analysis:
+bench:nhcal_basic_distribution_analysis_full:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "bench_full:nhcal_basic_distribution_combine"
+    - "bench:nhcal_basic_distribution_combine_full"
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
@@ -67,8 +67,8 @@ collect_results:nhcal_basic_distribution:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - "bench_nhcal_only:nhcal_basic_distribution_analysis"
-    - "bench_full:nhcal_basic_distribution_analysis"
+    - "bench:nhcal_basic_distribution_analysis"
+    - "bench:nhcal_basic_distribution_analysis_full"
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]

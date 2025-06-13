@@ -141,7 +141,7 @@ for p in 20, 30,40,50,60,70, 80:
     wbest=0
     a=arrays_sim[p]
     h=np.sum(a[f'HcalEndcapPInsertClusters.energy'], axis=-1)
-    e=np.sum(a[f'EcalEndcapPInsertClusters.energy'], axis=-1)
+    e=np.sum(a[f'EcalEndcapPClusters.energy'], axis=-1)
     for w in wrange:
         
         r=(e/w+h)[(h>0)&(a['eta_truth']>eta_min)&(a['eta_truth']<eta_max)]
@@ -222,7 +222,7 @@ for eta_min, eta_max in zip(partitions[:-1],partitions[1:]):
         w=w_avg
         a=arrays_sim[p]
         h=np.sum(a[f'HcalEndcapPInsertClusters.energy'], axis=-1)
-        e=np.sum(a[f'EcalEndcapPInsertClusters.energy'], axis=-1)
+        e=np.sum(a[f'EcalEndcapPClusters.energy'], axis=-1)
         #phi=a['phi_truth']
         uncorr=(e/w+h)
         s=-0.0064*uncorr+1.80

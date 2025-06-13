@@ -2,6 +2,7 @@ rule tracking_performance_sim:
     input:
         steering_file="EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer",
         warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
@@ -12,7 +13,17 @@ rule tracking_performance_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX=r"\d{4}",
     params:
-        N_EVENTS=10000
+        N_EVENTS=10000,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        ENERGY=lambda wildcards: wildcards.ENERGY,
+        PHASE_SPACE=lambda wildcards: wildcards.PHASE_SPACE,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -20,11 +31,11 @@ exec ddsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
-  --random.seed 1{wildcards.INDEX} \
+  --random.seed {params.SEED} \
   --filter.tracker edep0 \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
-  --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --outputFile {output}
 """
 
@@ -33,39 +44,79 @@ rule tracking_performance_recon:
     input:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     output:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.tree.edm4eic.root.log",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        ENERGY=lambda wildcards: wildcards.ENERGY,
+        PHASE_SPACE=lambda wildcards: wildcards.PHASE_SPACE,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell: """
 set -m # monitor mode to prevent lingering processes
-exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """
 
+rule tracking_performance_hit_maps:
+    input:
+        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
+        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
+        sim=lambda wildcards: expand(
+            "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
+            DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG},
+            ENERGY=wildcards.ENERGY,
+            PARTICLE=wildcards.PARTICLE,
+            PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+            INDEX=range(1),
+        ),
+    output:
+        hitsxy_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsxy_dd4hep.png",
+        hitsxy_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsxy_dd4hep.root",
+        hitsrz_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.png",
+        hitsrz_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.root",
+        nhits_eta_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
+        nhits_eta_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
+        sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root"),
+    params:
+        MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
+    shell: """
+echo "Merging simulation files into: {output}"
+hadd -f {output.sim_hadd} {input.sim}
+OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
+echo "Generating hit maps and Nhits vs eta for: {output.sim_hadd}"
+root -l -b -q {input.script_hitsmap}'("{output.sim_hadd}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{output.sim_hadd}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+"""
 
 rule tracking_performance_at_momentum:
     input:
         script="benchmarks/tracking_performances/Tracking_Performances.C",
         # TODO pass as a file list?
-        sim=lambda wildcards:
-          expand(
-              "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake_tracking_only",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
-              INDEX=range(1),
-          )
-          if wildcards.CAMPAIGN == "local" else
-          ancient(expand(
-              "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.tree.edm4eic.root",
-              DETECTOR_CONFIG="epic_craterlake",
-              ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
-              PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
-              INDEX=range(1),
-          )),
+        sim=lambda wildcards: branch(
+            wildcards.CAMPAIGN == "local",
+            then=expand(
+                "sim_output/tracking_performance/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
+                DETECTOR_CONFIG="epic_craterlake_tracking_only",
+                ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+                PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+                INDEX=range(1),
+            ),
+            otherwise=expand(
+                "EPIC/RECO/{{CAMPAIGN}}/epic_craterlake/SINGLE/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon{TREE_SUFFIX}.edm4eic.root",
+                DETECTOR_CONFIG="epic_craterlake",
+                ENERGY=f"{float(wildcards.MOMENTUM):.0f}GeV" if float(wildcards.MOMENTUM) >= 1 else f"{float(wildcards.MOMENTUM) * 1000:.0f}MeV",
+                PHASE_SPACE=["3to50deg", "45to135deg", "130to177deg"],
+                INDEX=range(1),
+                TREE_SUFFIX=".tree" if wildcards.CAMPAIGN != "local" and int(wildcards.CAMPAIGN[:2]) < 25 else "", # backwards compatibility
+            ),
+        ),
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
@@ -191,6 +242,18 @@ rule tracking_performance:
             ],
             ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
         ),
+        lambda wildcards: branch(
+            wildcards.CAMPAIGN == "local",
+            then=[
+                "local/epic_craterlake_tracking_only/pi-/1GeV/hitsxy_dd4hep.png",
+                "local/epic_craterlake_tracking_only/pi-/1GeV/hitsxy_dd4hep.root",
+                "local/epic_craterlake_tracking_only/pi-/1GeV/hitsrz_dd4hep.png",
+                "local/epic_craterlake_tracking_only/pi-/1GeV/hitsrz_dd4hep.root",
+                "local/epic_craterlake_tracking_only/pi-/1GeV/Nhits_vs_eta.png",
+                "local/epic_craterlake_tracking_only/pi-/1GeV/Nhits_vs_eta.root",
+            ],
+            otherwise=[],
+        )
     output:
         directory("results/tracking_performances/{CAMPAIGN}/")
     shell:
@@ -211,5 +274,6 @@ rule tracking_performance_campaigns:
             "results/tracking_performances/{CAMPAIGN}",
             CAMPAIGN=[
                 "24.10.1",
+                "25.04.1",
             ],
         )

@@ -11,7 +11,7 @@ sim:insert_neutron:
       - P: 70
       - P: 80
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
   retry:
     max: 2
     when:

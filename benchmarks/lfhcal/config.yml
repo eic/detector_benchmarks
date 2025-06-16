@@ -7,7 +7,7 @@ sim:lfhcal:
         MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
   script:
     - |
-      snakemake --cache --cores 5 \
+      snakemake --cache --cores 1 \
         sim_output/lfhcal/epic_craterlake/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.edm4eic.root
 
 bench:lfhcal:
@@ -16,7 +16,7 @@ bench:lfhcal:
   needs:
     - ["sim:lfhcal"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 3 lfhcal_local
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 lfhcal_local
 
 collect_results:lfhcal:
   extends: .det_benchmark

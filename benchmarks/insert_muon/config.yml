@@ -5,7 +5,7 @@ sim:insert_muon:
     matrix:
       - P: 50
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_muon/epic_craterlake_sim_mu-_${P}GeV_{0,1,2,3,4}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/insert_muon/epic_craterlake_sim_mu-_${P}GeV_{0,1,2,3,4}.edm4hep.root
   retry:
     max: 2
     when:

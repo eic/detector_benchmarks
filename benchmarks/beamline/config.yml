@@ -3,7 +3,7 @@ sim:beamline:
   stage: simulate
   script:
     - |
-      snakemake --cache --cores 5 \
+      snakemake --cache --cores 2 \
         sim_output/beamline/beamlineTestlocal.edm4hep.root
 
 bench:beamline:
@@ -12,7 +12,7 @@ bench:beamline:
   needs:
     - ["sim:beamline"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 3 beamline_local
+    - snakemake $SNAKEMAKE_FLAGS --cores 2 beamline_local
 
 collect_results:beamline:
   extends: .det_benchmark

@@ -108,7 +108,7 @@ get_data:
     - ["get_data","common:setup"]
   before_script:
     - source .local/bin/env.sh
-    - source /opt/detector/epic-main/setup.sh
+    - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/datasets/data" data

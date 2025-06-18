@@ -1,8 +1,11 @@
-rule beamline_sim:
+SIMOUTDIR="sim_output/beamline/"
+ANALYSISDIR=SIMOUTDIR+"analysis/"
+
+rule beamline_steering_sim:
     input:
         macro="benchmarks/beamline/beamlineGPS.mac",
     output:
-        "sim_output/beamline/beamlineTest{CAMPAIGN}.edm4hep.root",
+        SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
     shell:
         """
             exec npsim \
@@ -13,20 +16,20 @@ rule beamline_sim:
             --outputFile {output} \
         """
 
-rule beamline_analysis:
+rule beamline_steering_analysis:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
         script="benchmarks/beamline/beamlineAnalysis.C",
-        data="sim_output/beamline/beamlineTest{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
     output:
-        rootfile="sim_output/beamline/analysis/beamlineTestAnalysis{CAMPAIGN}.root",
-        beamspot_canvas="sim_output/beamline/analysis/beamspot_{CAMPAIGN}.png",
-        x_px_canvas="sim_output/beamline/analysis/x_px_{CAMPAIGN}.png",
-        y_py_canvas="sim_output/beamline/analysis/y_py_{CAMPAIGN}.png",
-        fitted_position_means_stdevs_canvas="sim_output/beamline/analysis/fitted_position_means_stdevs_{CAMPAIGN}.png",
-        fitted_momentum_means_stdevs_canvas="sim_output/beamline/analysis/fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-        pipe_parameter_canvas="sim_output/beamline/analysis/pipe_parameter_{CAMPAIGN}.png",
+        rootfile=ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
+        beamspot_canvas=ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
+        x_px_canvas=ANALYSISDIR+"x_px_{CAMPAIGN}.png",
+        y_py_canvas=ANALYSISDIR+"y_py_{CAMPAIGN}.png",
+        fitted_position_means_stdevs_canvas=ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
+        fitted_momentum_means_stdevs_canvas=ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+        pipe_parameter_canvas=ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
@@ -38,13 +41,13 @@ rule beamline_analysis:
 rule beamline:
     input:
         [
-            "sim_output/beamline/analysis/beamlineTestAnalysis{CAMPAIGN}.root",
-            "sim_output/beamline/analysis/beamspot_{CAMPAIGN}.png",
-            "sim_output/beamline/analysis/x_px_{CAMPAIGN}.png",
-            "sim_output/beamline/analysis/y_py_{CAMPAIGN}.png",
-            "sim_output/beamline/analysis/fitted_position_means_stdevs_{CAMPAIGN}.png",
-            "sim_output/beamline/analysis/fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-            "sim_output/beamline/analysis/pipe_parameter_{CAMPAIGN}.png",
+            ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
+            ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
+            ANALYSISDIR+"x_px_{CAMPAIGN}.png",
+            ANALYSISDIR+"y_py_{CAMPAIGN}.png",
+            ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
+            ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+            ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
         ],
     output:
         directory("results/beamline/{CAMPAIGN}/")

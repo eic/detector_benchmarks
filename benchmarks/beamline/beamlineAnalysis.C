@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
                         TString outFile         = "output.root",
                         std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beamspotCanvasName = "beamspot_canvas.png",
@@ -46,6 +46,8 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     //Set implicit multi-threading
     ROOT::EnableImplicitMT();
        
+    int pass = 0;
+
     //Load the detector config
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
     detector.fromCompact(compactName);
@@ -56,6 +58,9 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
 
     //Set number of entries to process
     // d1 = d1.Range(0,1000);
+    int   nEntries          = d1.Count().GetValue();
+    float acceptableLoss    = 0.99; // Set the acceptable loss percentage to 1%
+    float acceptableEntries = nEntries * acceptableLoss;
     
     //Get the collection 
     std::string readoutName = "BackwardsBeamlineHits";  
@@ -120,7 +125,7 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     }
     else{
         std::cout << "Collection " << readoutName << " not found in file" << std::endl;
-        return;
+        return 1;
     }    
 
     // Calculate the maximum pipe radius for plotting
@@ -199,6 +204,32 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
         auto pxmaxf = filterDF.Max("xmomf").GetValue();
         auto pyminf = filterDF.Min("ymomf").GetValue();
         auto pymaxf = filterDF.Max("ymomf").GetValue();
+        // If the min and max values are equal, set them to a small value
+        if(xminf == xmaxf) {            
+            xminf -= 0.01;
+            xmaxf += 0.01;
+            pass = 1; // Set pass to 1 if xminf == xmaxf
+            std::cout << "Warning: xminf == xmaxf for pipe ID " << i << ", likely no hits." << std::endl;
+        }
+        if(yminf == ymaxf) {
+            yminf -= 0.01;
+            ymaxf += 0.01;
+            pass = 1; // Set pass to 1 if yminf == ymaxf
+            std::cout << "Warning: yminf == ymaxf for pipe ID " << i << ", likely no hits." << std::endl;
+        }
+        if(pxminf == pxmaxf) {
+            pxminf -= 0.01;
+            pxmaxf += 0.01;
+            pass = 1; // Set pass to 1 if pxminf == pxmaxf
+            std::cout << "Warning: pxminf == pxmaxf for pipe ID " << i << ", likely no hits." << std::endl;
+        }
+        if(pyminf == pymaxf) {
+            pyminf -= 0.01;
+            pymaxf += 0.01;
+            pass = 1; // Set pass to 1 if pyminf == pymaxf
+            std::cout << "Warning: pyminf == pymaxf for pipe ID " << i << ", likely no hits." << std::endl;
+        }
+
         // Calculate means and standard deviations
         xMeans[name] = filterDF.Mean("xposf").GetValue();
         yMeans[name] = filterDF.Mean("yposf").GetValue();
@@ -227,6 +258,7 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
 
         //Parameters of the pipe
         pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();
+        std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << std::endl;
         pipeXPos[name]     = filterDF.Max("xdetf").GetValue();
         pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
         pipeRotation[name] = filterDF.Max("rotationf").GetValue();
@@ -265,6 +297,14 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
     cXY->Divide(4,2);
     int i=1;
     for(auto [name,h] : hHistsxy){
+
+        // Check histogram entries
+        if(h->GetEntries() < acceptableEntries){
+            std::cout << "Warning: Only " << h->GetEntries()/nEntries << " of particles contributing to histogram " <<  name
+                      << " , which is below the accepted threshold of " << acceptableEntries << std::endl;
+            pass = 1;
+        }
+
         // Get the pipe radius for this histogram
         auto pipeRadius = pipeRadii[name];
         cXY->cd(i++);
@@ -452,9 +492,12 @@ void beamlineAnalysis(  TString inFile          = "/scratch/EIC/G4out/beamline/b
 
     f->Close();
 
-    std::cout << "Saving events to file" << std::endl;
+    std::cout << "Analysis complete. Results saved to " << outFile << std::endl;
+    return pass;
 
-     ROOT::RDF::RSnapshotOptions opts;
+    // std::cout << "Saving events to file" << std::endl;
+
+    // ROOT::RDF::RSnapshotOptions opts;
     //  opts.fMode = "UPDATE";
     //  d1.Snapshot("events",outFile,{"pipeID","endID","pipeRadius","xpos","ypos","zpos","xmom","ymom","zmom","xpos_global","ypos_global","zpos_global","px_global","py_global","pz_global"},opts);
 }

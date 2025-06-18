@@ -4,8 +4,8 @@
 /gps/pos/type Beam
 /gps/pos/sigma_x 0.119 mm
 /gps/pos/sigma_y 0.0107 mm
-/gps/energy 17.846 GeV
-#/gps/energy 18 GeV
+#/gps/energy 17.846 GeV
+/gps/energy 18 GeV
 /gps/particle e-
 
-/run/beamOn 100000
+/run/beamOn 10000

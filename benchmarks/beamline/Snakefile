@@ -40,15 +40,13 @@ rule beamline_steering_analysis:
 
 rule beamline:
     input:
-        [
-            ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
-            ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
-            ANALYSISDIR+"x_px_{CAMPAIGN}.png",
-            ANALYSISDIR+"y_py_{CAMPAIGN}.png",
-            ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
-            ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-            ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
-        ],
+        ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
+        ANALYSISDIR+"x_px_{CAMPAIGN}.png",
+        ANALYSISDIR+"y_py_{CAMPAIGN}.png",
+        ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
+        ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",        
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

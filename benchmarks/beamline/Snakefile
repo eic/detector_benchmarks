@@ -16,6 +16,21 @@ rule beamline_steering_sim:
             --outputFile {output} \
         """
 
+rule beamline_acceptance_sim:
+    input:
+        macro="benchmarks/beamline/phasespaceGPS.mac",
+    output:
+        SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --outputFile {output} \
+        """
+
 rule beamline_steering_analysis:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",

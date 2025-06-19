@@ -29,7 +29,7 @@ exec ddsim \
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            os.path.join("sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/", "sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root"), 
+            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),

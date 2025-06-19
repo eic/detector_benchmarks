@@ -3,7 +3,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 
 rule beamline_steering_sim:
     input:
-        macro="benchmarks/beamline/beamlineGPS.mac",
+        macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
     shell:
@@ -20,7 +20,7 @@ rule beamline_steering_analysis:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
-        script="benchmarks/beamline/beamlineAnalysis.C",
+        script=workflow.source_path("beamlineAnalysis.C"),
         data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
     output:
         rootfile=ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",

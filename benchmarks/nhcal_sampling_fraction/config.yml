@@ -5,7 +5,7 @@ sim:nhcal_sampling_fraction:
     matrix:
       - ENERGY: ["1GeV", "2GeV", "5GeV", "10GeV"]
         PARTICLE: ["pi-", "neutron", "e-"]
-        INDEX: ["00","01","02","03","04"]
+        INDEX: ["00","01","02","03"]
   script:
     - snakemake --cores 5 sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}/sim.${INDEX}.edm4hep.root                 
 

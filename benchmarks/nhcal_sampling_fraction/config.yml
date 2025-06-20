@@ -1,0 +1,34 @@
+sim:nhcal_sampling_fraction:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - ENERGY: ["1GeV", "2GeV", "5GeV", "10GeV"]
+        PARTICLE: ["pi-", "neutron", "e-"]
+        INDEX: ["00","01","02","03","04"]
+  script:
+    - snakemake --cores 5 sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}/sim.${INDEX}.edm4hep.root                 
+
+bench:nhcal_sampling_fraction:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "sim:nhcal_sampling_fraction"
+  script:
+    - snakemake --cores 3 results/nhcal_sampling_fraction/analysis_5files_per.pdf
+
+collect_results:nhcal_sampling_fraction:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - "bench:nhcal_sampling_fraction"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ 
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_sampling_fraction/analysis_5files_per.pdf
+    - mv results{_save,}/
+    - |
+      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
+        -o "results/nhcal_sampling_fraction/analysis_5files_per.png" \
+        results/nhcal_sampling_fraction/analysis_5files_per.pdf
+        

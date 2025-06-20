@@ -19,9 +19,12 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
-                TString outFile     = "output.root",
-                std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml"){
+int phasespaceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+                        TString outFile            = "output.root",
+                        std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
+                        TString beampipeCanvasName = "phasespace_in_beampipe.png",
+                        TString EThetaCanvasName   = "phasespace_energy_theta.png",
+                        TString EThetaAccCanvasName= "phasespace_energy_theta_acceptance.png") {
 
     //Set ROOT style    
     gStyle->SetPadLeftMargin(0.1);  // Set left margin
@@ -36,8 +39,10 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     gStyle->SetTitleYOffset(1.0);    // Adjust y-axis title offset
     gStyle->SetOptStat(0);
 
+    int pass = 0;
+
     //Set implicit multi-threading
-    ROOT::EnableImplicitMT();
+    // ROOT::EnableImplicitMT();
        
     //Load the detector config
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
@@ -51,9 +56,43 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     // d1 = d1.Range(0,1000);
     
     //Get the collection 
+    std::string mcParticlesName = "MCParticles";
     std::string readoutName = "BackwardsBeamlineHits";  
 
     std::cout << "Running lazy RDataframe execution" << std::endl;
+
+    if(Any(colNames==mcParticlesName)){
+
+        // Get theta and energy of the particles
+        d1 = d1.Define("theta",[](const vector<edm4hep::MCParticleData>& mcParticles) {
+            // Calculate theta from momentum components as angle from negative z axis
+            double px = mcParticles[0].momentum.x;
+            double py = mcParticles[0].momentum.y;
+            double pz = mcParticles[0].momentum.z;
+            double p = std::sqrt(px*px + py*py + pz*pz);
+            double theta = M_PI-std::acos(pz / p); // Angle from the z-axis
+            
+            return theta;
+        }, {mcParticlesName})
+        .Define("energy",[](const vector<edm4hep::MCParticleData>& mcParticles) {
+           
+            //Calculate energy from mass and momentum
+            double mass = mcParticles[0].mass;
+            double px = mcParticles[0].momentum.x;
+            double py = mcParticles[0].momentum.y;
+            double pz = mcParticles[0].momentum.z;
+            double energy = std::sqrt(px*px + py*py + pz*pz + mass*mass);
+            
+            return energy;
+        }, {mcParticlesName});
+
+    }
+    else{
+        std::cout << "Collection " << mcParticlesName << " not found in file" << std::endl;
+        return 1;
+    }
+
+    auto totalETheta = d1.Histo2D({"Energy vs Theta","Energy vs Theta",100,4,18,100,0,0.011},"energy","theta");
 
     if(Any(colNames==readoutName)){
 
@@ -91,13 +130,14 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
                 
 
         //global x,y,z position and momentum
-        d1 = d1.Define("xpos_global","BackwardsBeamlineHits.position.x")
-                .Define("ypos_global","BackwardsBeamlineHits.position.y")
-                .Define("zpos_global","BackwardsBeamlineHits.position.z")
-                .Define("px_global","BackwardsBeamlineHits.momentum.x")
-                .Define("py_global","BackwardsBeamlineHits.momentum.y")
-                .Define("pz_global","BackwardsBeamlineHits.momentum.z");
-
+        d1 = d1 .Define("NHits","BackwardsBeamlineHits.size()")
+                .Alias("xpos_global","BackwardsBeamlineHits.position.x")
+                .Alias("ypos_global","BackwardsBeamlineHits.position.y")
+                .Alias("zpos_global","BackwardsBeamlineHits.position.z")
+                .Alias("px_global","BackwardsBeamlineHits.momentum.x")
+                .Alias("py_global","BackwardsBeamlineHits.momentum.y")
+                .Alias("pz_global","BackwardsBeamlineHits.momentum.z");
+        
         d1 = d1.Define("hitPosMom",globalToLocal(detector),{readoutName})
                 .Define("xpos","hitPosMom[0]")
                 .Define("ypos","hitPosMom[1]")
@@ -113,7 +153,7 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     }
     else{
         std::cout << "Collection " << readoutName << " not found in file" << std::endl;
-        return;
+        return 1;
     }    
 
     // Calculate the maximum pipe radius for plotting
@@ -123,9 +163,8 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
 
     //Create array of histogram results
     std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsxy;
-    std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsxyZoom;
-    std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsxpx;
-    std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsypy;
+    std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsETheta;
+    
 
     std::map<TString,double> xMeans;
     std::map<TString,double> yMeans;
@@ -172,17 +211,20 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
     for(int i=0; i<=7; i++){
 
         std::string name = "pipeID";
-        name += std::to_string(i);
-        auto filterDF = d1.Define("xposf","xpos["+std::to_string(i)+"]")
-                          .Define("yposf","ypos["+std::to_string(i)+"]")
-                          .Define("xmomf","xmom["+std::to_string(i)+"]")
-                          .Define("ymomf","ymom["+std::to_string(i)+"]")
-                          .Define("pipeRadiusf","pipeRadius["+std::to_string(i)+"]")
-                          .Define("xdetf","xdet["+std::to_string(i)+"]")
-                          .Define("zdetf","zdet["+std::to_string(i)+"]")
-                          .Define("rotationf","rotation["+std::to_string(i)+"]");
+        std::string str_i = std::to_string(i);
+        name += str_i;
+        auto filterDF = d1.Filter(std::to_string(i+1)+"<=NHits" )
+                          .Define("xposf","xpos["+str_i+"]")
+                          .Define("yposf","ypos["+str_i+"]")
+                          .Define("xmomf","xmom["+str_i+"]")
+                          .Define("ymomf","ymom["+str_i+"]")
+                          .Define("pipeRadiusf","pipeRadius["+str_i+"]")
+                          .Define("xdetf","xdet["+str_i+"]")
+                          .Define("zdetf","zdet["+str_i+"]")
+                          .Define("rotationf","rotation["+str_i+"]");
                           
-
+        // auto report = filterDF.Display({"NHits","theta","energy"});
+        // report->Print();
         //Calculate Min and Max values
         auto xminf = filterDF.Min("xposf").GetValue();
         auto xmaxf = filterDF.Max("xposf").GetValue();
@@ -203,14 +245,20 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
         pyStdDevs[name] = filterDF.StdDev("ymomf").GetValue();
 
 
-        TString beamspotName = "Beamspot ID"+std::to_string(i)+";x offset [cm]; y offset [cm]";
+        TString beamspotName = "Beamspot ID"+str_i+";x offset [cm]; y offset [cm]";
         TString xyname = name+";x Offset [cm]; y Offset [cm]";
         TString xname = name+";x Offset [cm]; x trajectory component";
         TString yname = name+";y Offset [cm]; y trajectory component";
         hHistsxy[name] = filterDF.Histo2D({beamspotName,beamspotName,400,-maxPipeRadius,maxPipeRadius,400,-maxPipeRadius,maxPipeRadius},"xposf","yposf");
 
+        auto extraFilterDF = filterDF.Filter(std::to_string(i+1)+"==NHits" );
+        TString EThetaName = "Energy vs Theta ID"+str_i+";Energy [GeV]; Theta [rad]";
+        TString nameETheta = name+";Energy [GeV]; Theta [rad]";
+        hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,100,4,18,100,0,0.011},"energy","theta");
+
         //Parameters of the pipe
-        pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();
+        pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();        
+        std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
         pipeXPos[name]     = filterDF.Max("xdetf").GetValue();
         pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
         pipeRotation[name] = filterDF.Max("rotationf").GetValue();
@@ -236,18 +284,43 @@ void phasespaceAnalysis(  TString inFile      = "/scratch/EIC/G4out/beamline/bea
 
     }
 
-    // Save 2D canvases as pngs
-    cXY->SaveAs("phasespace_in_beampipe.png");
+    // Cnavas for energy vs theta
+    TCanvas *cETheta = new TCanvas("energy_theta_canvas","energy_theta_canvas",3000,1600);
+    cETheta->Divide(4,2);
+    i=1;
+    for(auto [name,h] : hHistsETheta){
+        cETheta->cd(i++);
+        h->Draw("colz");
+    }
+  
+    // Canvas for energy vs theta acceptance
+    TCanvas *cEThetaAcc = new TCanvas("energy_theta_acceptance_canvas","energy_theta_acceptance_canvas",3000,1600);
+    cEThetaAcc->Divide(4,2);
+    i=1;
+    for(auto [name,h] : hHistsETheta){
+        cEThetaAcc->cd(i++);
+        h->Divide(totalETheta.GetPtr());
+        h->Draw("colz");
+    }
 
+    // Save 2D canvases as pngs
+    cXY->SaveAs(beampipeCanvasName);
+    cETheta->SaveAs(EThetaCanvasName);
+    cEThetaAcc->SaveAs(EThetaAccCanvasName);
 
     TFile *f = new TFile(outFile,"RECREATE");
     cXY->Write();
+    cETheta->Write();
+    cEThetaAcc->Write();
 
     f->Close();
 
-    std::cout << "Saving events to file" << std::endl;
+    std::cout << "Analysis complete. Results saved to " << outFile << std::endl;
+    return pass;
 
-     ROOT::RDF::RSnapshotOptions opts;
-    opts.fMode = "UPDATE";
-    d1.Snapshot("events",outFile,{"pipeID","endID","pipeRadius","xpos","ypos","zpos","xmom","ymom","zmom","xpos_global","ypos_global","zpos_global","px_global","py_global","pz_global"},opts);
+    // std::cout << "Saving events to file" << std::endl;
+
+    //  ROOT::RDF::RSnapshotOptions opts;
+    // opts.fMode = "UPDATE";
+    // d1.Snapshot("events",outFile,{"pipeID","endID","pipeRadius","xpos","ypos","zpos","xmom","ymom","zmom","xpos_global","ypos_global","zpos_global","px_global","py_global","pz_global"},opts);
 }

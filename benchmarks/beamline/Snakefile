@@ -14,6 +14,7 @@ rule beamline_steering_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --outputFile {output} \
+            --physics.rangecut 1000000 \
         """
 
 rule beamline_acceptance_sim:
@@ -29,6 +30,7 @@ rule beamline_acceptance_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --outputFile {output} \
+            --physics.rangecut 1000000 \
         """
 
 rule beamline_steering_analysis:
@@ -54,6 +56,22 @@ rule beamline_steering_analysis:
             "{output.pipe_parameter_canvas}")'
         """
 
+rule beamline_acceptance_analysis:
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    input:
+        script="benchmarks/beamline/phasespaceAnalysis.C",
+        data=SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"phasespaceTestAnalysis{CAMPAIGN}.root",
+        beampipe_canvas=ANALYSISDIR+"phasespace_in_beampipe_{CAMPAIGN}.png",
+        etheta_canvas=ANALYSISDIR+"phasespace_energy_theta_{CAMPAIGN}.png",
+        etheta_acceptance_canvas=ANALYSISDIR+"phasespace_energy_theta_acceptance_{CAMPAIGN}.png",
+    shell:
+        """
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}")'
+        """
+
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
@@ -62,7 +80,11 @@ rule beamline:
         ANALYSISDIR+"y_py_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",        
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",  
+        ANALYSISDIR+"phasespaceTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"phasespace_in_beampipe_{CAMPAIGN}.png",
+        ANALYSISDIR+"phasespace_energy_theta_{CAMPAIGN}.png",
+        ANALYSISDIR+"phasespace_energy_theta_acceptance_{CAMPAIGN}.png",      
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

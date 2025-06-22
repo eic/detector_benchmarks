@@ -7,7 +7,7 @@ sim:lfhcal:
         MOMENTUM: ["500MeV", "1GeV", "2GeV", "5GeV", "10GeV", "20GeV"]
   script:
     - |
-      snakemake --cache --cores $MAX_CORES_PER_JOB \
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
         sim_output/lfhcal/epic_craterlake/${PARTICLE}/${MOMENTUM}/3to50deg/${PARTICLE}_${MOMENTUM}_3to50deg.0000.eicrecon.edm4eic.root
 
 bench:lfhcal:

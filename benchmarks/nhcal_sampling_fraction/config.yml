@@ -27,8 +27,4 @@ collect_results:nhcal_sampling_fraction:
     - mv results{,_save}/ 
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_sampling_fraction/analysis_5files_per.pdf
     - mv results{_save,}/
-    - |
-      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
-        -o "results/nhcal_sampling_fraction/analysis_5files_per.png" \
-        results/nhcal_sampling_fraction/analysis_5files_per.pdf
         

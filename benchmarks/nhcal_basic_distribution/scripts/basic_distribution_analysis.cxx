@@ -75,7 +75,7 @@ using namespace ROOT;
 using namespace TMath;
 using namespace edm4hep;
 
-int basic_distribution_analysis(const string &filename, TString outname) 
+int basic_distribution_analysis(const string &filename, string outname_pdf, string outname_png) 
 {
     podio::ROOTReader *reader = new podio::ROOTReader();
     reader->openFile(filename);
@@ -224,7 +224,8 @@ int basic_distribution_analysis(const string &filename, TString outname)
     canvas->cd(7);
     h_XYEnergy->Draw("COLZ");
 
-    canvas->Print(outname);
+    canvas->SaveAs(outname_pdf.c_str());
+    canvas->SaveAs(outname_png.c_str());
 
     return 0;
 }

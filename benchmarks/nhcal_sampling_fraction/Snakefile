@@ -50,8 +50,9 @@ rule nhcal_sampling_fraction_analysis:
         combined="sim_output/nhcal_sampling_fraction/sim_{N}files_per.edm4hep.root",
         script="benchmarks/nhcal_sampling_fraction/scripts/sampling_fraction_analysis.cxx",
     output:
-        f"results/nhcal_sampling_fraction/analysis_{{N}}files_per.pdf",
+        pdf=f"results/nhcal_sampling_fraction/analysis_{{N}}files_per.pdf",
+        png=f"results/nhcal_sampling_fraction/analysis_{{N}}files_per.png",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'
+    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'
 """

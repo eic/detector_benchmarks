@@ -68,11 +68,11 @@ using namespace edm4hep;
 
 dd4hep::Detector* det = NULL;
 
-int sampling_fraction_analysis(const string &inputname, TString outputname, TString compact_file) 
+int sampling_fraction_analysis(const string &filename, string outname_pdf, string outname_png, TString compact_file) 
 {
 
     podio::ROOTReader *reader = new podio::ROOTReader();
-    reader->openFile(inputname);
+    reader->openFile(filename);
     unsigned nEvents = reader->getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
@@ -181,7 +181,9 @@ int sampling_fraction_analysis(const string &inputname, TString outputname, TStr
     p_sampF_n->Draw("SAME");
     canvas->cd(4);
     p_e_over_pi->Draw("HIST");
-    canvas->Print(outputname);
+
+    canvas->SaveAs(outname_pdf.c_str());
+    canvas->SaveAs(outname_png.c_str());
 
     return 0;
 }

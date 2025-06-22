@@ -32,7 +32,3 @@ collect_results:nhcal_acceptance:
     - mv results{,_save}/ 
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
     - mv results{_save,}/
-    - |
-      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
-        -o "results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.png" \
-        results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf

@@ -12,14 +12,12 @@
 
 using namespace std;
 
-int acceptance_analysis(TString filename, TString outname) 
+int acceptance_analysis(TString filename, string outname_pdf, string outname_png) 
 {
     TChain *chain = new TChain("events");
     chain->Add(filename);
     
-
     TTreeReader reader(chain);
-
     
     TTreeReaderArray<int> mc_pdg(reader, "MCParticles.PDG");
     TTreeReaderArray<int> mc_genStatus(reader, "MCParticles.generatorStatus");
@@ -30,8 +28,6 @@ int acceptance_analysis(TString filename, TString outname)
     TTreeReaderArray<int> contrib_particle_idx(reader, "_HcalEndcapNHitsContributions_particle.index");
     TTreeReaderArray<unsigned int> contrib_particle_cid(reader, "_HcalEndcapNHitsContributions_particle.collectionID");
 
-
-    // Histograms eta-phi
     int nEtaBins = 100;
     int nPhiBins = 100;
     double etaMin = -5, etaMax = 0;
@@ -41,9 +37,6 @@ int acceptance_analysis(TString filename, TString outname)
 
     TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "#pi- detected in nHCal; #eta[1]; #phi[rad]",
                                      nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
-
-    // TH2D* hAcceptance = new TH2D("hAcceptance", "Acceptance: pi- in nHCal / all; #eta[1]; #phi[rad]",
-    //                              nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
     while (reader.Next()) 
     {
@@ -66,7 +59,6 @@ int acceptance_analysis(TString filename, TString outname)
             }
         }
 
-        // Check, if pi- have contributions nHCal
         for (size_t i = 0; i < contrib_particle_idx.GetSize(); i++) {
             int idx = contrib_particle_idx[i];
             if (pi_minus_eta_phi.count(idx)) {
@@ -74,7 +66,6 @@ int acceptance_analysis(TString filename, TString outname)
             }
         }
 
-        // Filling histogram with detected pi-
         for (auto idx : detected) {
             auto [eta, phi] = pi_minus_eta_phi[idx];
             hEtaPhiDetected->Fill(eta, phi);
@@ -96,7 +87,9 @@ int acceptance_analysis(TString filename, TString outname)
     canvas->cd(3);
     hAcceptance->Draw("COLZ");
 
-    canvas->Print(outname);
+    canvas->SaveAs(outname_pdf.c_str());
+    canvas->SaveAs(outname_png.c_str());
+
     return 0;
 }
 

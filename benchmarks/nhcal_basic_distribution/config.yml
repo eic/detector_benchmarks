@@ -56,8 +56,4 @@ collect_results:nhcal_basic_distribution:
     - mv results{,_save}/ 
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf
     - mv results{_save,}/
-    - |
-      gs -sDEVICE=pngalpha -dUseCropBox -r144 \
-        -o "results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.png" \
-        results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf
         

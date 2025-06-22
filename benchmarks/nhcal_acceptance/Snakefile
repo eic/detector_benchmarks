@@ -49,8 +49,9 @@ rule nhcal_acceptance_analysis:
         combined="sim_output/nhcal_acceptance/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
         script="benchmarks/nhcal_acceptance/scripts/acceptance_analysis.cxx",
     output:
-        f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
+        png=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
+        pdf=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output}")'
+    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
 """

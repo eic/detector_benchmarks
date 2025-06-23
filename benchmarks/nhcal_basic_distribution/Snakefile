@@ -41,7 +41,7 @@ rule nhcal_basic_distribution_combine:
         f"sim_output/nhcal_basic_distribution/sim_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.edm4hep.root",
     shell:
         """
-hadd {output} {input} 
+hadd -f {output} {input} 
 """
 
 rule nhcal_basic_distribution_analysis:

@@ -5,7 +5,7 @@ DETECTOR_CONFIG = "epic_backward_hcal_only.xml"
 
 rule nhcal_sampling_fraction_simulate:
     output:
-        "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.{INDEX}.edm4hep.root",
+        "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root",
     params:
         N_EVENTS=1000,
     shell:
@@ -30,28 +30,26 @@ exec ddsim \
 rule nhcal_sampling_fraction_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.{INDEX:02d}.edm4hep.root", 
+            "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root", 
             ENERGY=["1", "2", "5", "10"],
             PARTICLE=["pi-", "neutron", "e-"],
-            INDEX=range(int(wildcards.N)),
         ),
     wildcard_constraints:
-        N=r"\d+",
         ENERGY=r"\d+"
     output:
-        f"sim_output/nhcal_sampling_fraction/sim_{{N}}files_per.edm4hep.root",
+        f"sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
     shell:
         """
-hadd {output} {input} 
+hadd -f {output} {input} 
 """
 
 rule nhcal_sampling_fraction_analysis:
     input:
-        combined="sim_output/nhcal_sampling_fraction/sim_{N}files_per.edm4hep.root",
+        combined="sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
         script="benchmarks/nhcal_sampling_fraction/scripts/sampling_fraction_analysis.cxx",
     output:
-        pdf=f"results/nhcal_sampling_fraction/analysis_{{N}}files_per.pdf",
-        png=f"results/nhcal_sampling_fraction/analysis_{{N}}files_per.png",
+        pdf=f"results/nhcal_sampling_fraction/analysis.pdf",
+        png=f"results/nhcal_sampling_fraction/analysis.png",
     shell:
         """
     root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'

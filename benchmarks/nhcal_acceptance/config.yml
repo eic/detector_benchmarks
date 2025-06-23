@@ -17,7 +17,7 @@ bench:nhcal_acceptance_analysis:
     matrix:
       - ENERGY: ["1GeV", "5GeV", "10GeV"]
   script:
-    - snakemake --cores 3 results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - snakemake --cores 1 results/nhcal_acceptance/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
 collect_results:nhcal_acceptance:
   extends: .det_benchmark

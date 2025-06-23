@@ -41,7 +41,7 @@ rule nhcal_acceptance_combine:
         f"sim_output/nhcal_acceptance/sim_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.edm4hep.root",
     shell:
         """
-hadd {output} {input} 
+hadd -f {output} {input} 
 """
 
 rule nhcal_acceptance_analysis:

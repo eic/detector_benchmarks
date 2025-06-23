@@ -27,7 +27,7 @@ bench:nhcal_basic_distribution_analysis:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
-    - snakemake --cores 3 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - snakemake --cores 1 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
 bench:nhcal_basic_distribution_analysis_full:
   extends: .det_benchmark
@@ -38,7 +38,7 @@ bench:nhcal_basic_distribution_analysis_full:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
-    - snakemake --cores 3 results/nhcal_basic_distribution/analysis_epic_full_E${ENERGY}_combined_10files.pdf
+    - snakemake --cores 1 results/nhcal_basic_distribution/analysis_epic_full_E${ENERGY}_combined_10files.pdf
 
 
 collect_results:nhcal_basic_distribution:

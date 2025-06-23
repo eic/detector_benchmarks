@@ -21,6 +21,7 @@ rule beamline_steering_analysis:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
         script=workflow.source_path("beamlineAnalysis.C"),
+        header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
     output:
         rootfile=ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",

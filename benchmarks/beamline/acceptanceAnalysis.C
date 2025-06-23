@@ -105,50 +105,16 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
                     radii.push_back(param.radius);
                 }
                 return radii;
-                }, {"pipeParameters"})
-                .Define("xdet",[](const ROOT::VecOps::RVec<volParams>& params) {
-                ROOT::VecOps::RVec<double> xPos;
-                for (const auto& param : params) {
-                    xPos.push_back(param.xPos);
-                }
-                return xPos;
-                }, {"pipeParameters"})
-                .Define("zdet",[](const ROOT::VecOps::RVec<volParams>& params) {
-                ROOT::VecOps::RVec<double> zPos;
-                for (const auto& param : params) {
-                    zPos.push_back(param.zPos);
-                }
-                return zPos;
-                }, {"pipeParameters"})
-                .Define("rotation",[](const ROOT::VecOps::RVec<volParams>& params) {
-                ROOT::VecOps::RVec<double> rotation;
-                for (const auto& param : params) {
-                    rotation.push_back(param.rotation);
-                }
-                return rotation;
                 }, {"pipeParameters"});
                 
 
         //global x,y,z position and momentum
-        d1 = d1 .Define("NHits","BackwardsBeamlineHits.size()")
-                .Alias("xpos_global","BackwardsBeamlineHits.position.x")
-                .Alias("ypos_global","BackwardsBeamlineHits.position.y")
-                .Alias("zpos_global","BackwardsBeamlineHits.position.z")
-                .Alias("px_global","BackwardsBeamlineHits.momentum.x")
-                .Alias("py_global","BackwardsBeamlineHits.momentum.y")
-                .Alias("pz_global","BackwardsBeamlineHits.momentum.z");
+        d1 = d1 .Define("NHits","BackwardsBeamlineHits.size()");
         
         d1 = d1.Define("hitPosMom",globalToLocal(detector),{readoutName})
                 .Define("xpos","hitPosMom[0]")
                 .Define("ypos","hitPosMom[1]")
-                .Define("zpos","hitPosMom[2]")
-                .Define("xmomMag","hitPosMom[3]")
-                .Define("ymomMag","hitPosMom[4]")
-                .Define("zmomMag","hitPosMom[5]")
-                .Define("momMag","sqrt(xmomMag*xmomMag+ymomMag*ymomMag+zmomMag*zmomMag)")
-                .Define("xmom","xmomMag/momMag")
-                .Define("ymom","ymomMag/momMag")
-                .Define("zmom","zmomMag/momMag");        
+                .Define("zpos","hitPosMom[2]");        
 
     }
     else{
@@ -166,46 +132,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsETheta;
     
 
-    std::map<TString,double> xMeans;
-    std::map<TString,double> yMeans;
-    std::map<TString,double> xStdDevs;
-    std::map<TString,double> yStdDevs;
-    std::map<TString,double> pxMeans;
-    std::map<TString,double> pyMeans;
-    std::map<TString,double> pxStdDevs;
-    std::map<TString,double> pyStdDevs;
-
-    //Fit paremeter and error maps
-    std::map<TString,double> xMeanFit;
-    std::map<TString,double> yMeanFit;
-    std::map<TString,double> xMeanFitErr;
-    std::map<TString,double> yMeanFitErr;
-    std::map<TString,double> xStdDevFit;
-    std::map<TString,double> yStdDevFit;
-    std::map<TString,double> xStdDevFitErr;
-    std::map<TString,double> yStdDevFitErr;
-    std::map<TString,double> pxMeanFit;
-    std::map<TString,double> pyMeanFit;
-    std::map<TString,double> pxMeanFitErr;
-    std::map<TString,double> pyMeanFitErr;
-    std::map<TString,double> pxStdDevFit;
-    std::map<TString,double> pyStdDevFit;
-    std::map<TString,double> pxStdDevFitErr;
-    std::map<TString,double> pyStdDevFitErr;
-
     std::map<TString,double> pipeRadii;
-    std::map<TString,double> pipeXPos;
-    std::map<TString,double> pipeZPos;
-    std::map<TString,double> pipeRotation;
-
-    auto xmin = d1.Min("xpos").GetValue();
-    auto xmax = d1.Max("xpos").GetValue();
-    auto ymin = d1.Min("ypos").GetValue();
-    auto ymax = d1.Max("ypos").GetValue();
-    auto pxmin = d1.Min("xmom").GetValue();
-    auto pxmax = d1.Max("xmom").GetValue();
-    auto pymin = d1.Min("ymom").GetValue();
-    auto pymax = d1.Max("ymom").GetValue();
     
     //Create histograms
     for(int i=0; i<=7; i++){
@@ -216,34 +143,8 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         auto filterDF = d1.Filter(std::to_string(i+1)+"<=NHits" )
                           .Define("xposf","xpos["+str_i+"]")
                           .Define("yposf","ypos["+str_i+"]")
-                          .Define("xmomf","xmom["+str_i+"]")
-                          .Define("ymomf","ymom["+str_i+"]")
-                          .Define("pipeRadiusf","pipeRadius["+str_i+"]")
-                          .Define("xdetf","xdet["+str_i+"]")
-                          .Define("zdetf","zdet["+str_i+"]")
-                          .Define("rotationf","rotation["+str_i+"]");
-                          
-        // auto report = filterDF.Display({"NHits","theta","energy"});
-        // report->Print();
-        //Calculate Min and Max values
-        auto xminf = filterDF.Min("xposf").GetValue();
-        auto xmaxf = filterDF.Max("xposf").GetValue();
-        auto yminf = filterDF.Min("yposf").GetValue();
-        auto ymaxf = filterDF.Max("yposf").GetValue();
-        auto pxminf = filterDF.Min("xmomf").GetValue();
-        auto pxmaxf = filterDF.Max("xmomf").GetValue();
-        auto pyminf = filterDF.Min("ymomf").GetValue();
-        auto pymaxf = filterDF.Max("ymomf").GetValue();
-        // Calculate means and standard deviations
-        xMeans[name] = filterDF.Mean("xposf").GetValue();
-        yMeans[name] = filterDF.Mean("yposf").GetValue();
-        xStdDevs[name] = filterDF.StdDev("xposf").GetValue();
-        yStdDevs[name] = filterDF.StdDev("yposf").GetValue();
-        pxMeans[name] = filterDF.Mean("xmomf").GetValue();
-        pyMeans[name] = filterDF.Mean("ymomf").GetValue();
-        pxStdDevs[name] = filterDF.StdDev("xmomf").GetValue();
-        pyStdDevs[name] = filterDF.StdDev("ymomf").GetValue();
-
+                          .Define("pipeRadiusf","pipeRadius["+str_i+"]");
+                   
 
         TString beamspotName = "Beamspot ID"+str_i+";x offset [cm]; y offset [cm]";
         TString xyname = name+";x Offset [cm]; y Offset [cm]";
@@ -259,9 +160,6 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         //Parameters of the pipe
         pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();        
         std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
-        pipeXPos[name]     = filterDF.Max("xdetf").GetValue();
-        pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
-        pipeRotation[name] = filterDF.Max("rotationf").GetValue();
      
     }
 

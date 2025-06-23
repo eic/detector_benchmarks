@@ -1,10 +1,18 @@
-sim:beamline:
+sim:beamline:beamspot:
   extends: .det_benchmark
   stage: simulate
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 2 \
         sim_output/beamline/beamlineTestlocal.edm4hep.root
+
+sim:beamline:acceptance:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores 2 \
+        sim_output/beamline/acceptanceTestlocal.edm4hep.root
 
 bench:beamline:
   extends: .det_benchmark

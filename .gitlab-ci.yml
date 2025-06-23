@@ -93,6 +93,10 @@ common:setup:
     - mkdir -p results
     - mkdir -p config
     - print_env.sh
+    - |
+      flock --nonblock /scratch/garbage-collect.lock \
+        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
+        || true
 
 get_data:
   stage: data_init

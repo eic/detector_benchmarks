@@ -19,9 +19,9 @@ rule beamline_steering_sim:
 
 rule beamline_acceptance_sim:
     input:
-        macro=workflow.source_path("phasespaceGPS.mac"),
+        macro=workflow.source_path("acceptanceGPS.mac"),
     output:
-        SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
     shell:
         """
             exec npsim \
@@ -60,14 +60,14 @@ rule beamline_acceptance_analysis:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
-        script=workflow.source_path("phasespaceAnalysis.C"),
+        script=workflow.source_path("acceptanceAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
-        data=SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
     output:
-        rootfile=ANALYSISDIR+"phasespaceTestAnalysis{CAMPAIGN}.root",
-        beampipe_canvas=ANALYSISDIR+"phasespace_in_beampipe_{CAMPAIGN}.png",
-        etheta_canvas=ANALYSISDIR+"phasespace_energy_theta_{CAMPAIGN}.png",
-        etheta_acceptance_canvas=ANALYSISDIR+"phasespace_energy_theta_acceptance_{CAMPAIGN}.png",
+        rootfile=ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}")'
@@ -82,10 +82,10 @@ rule beamline:
         ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",  
-        ANALYSISDIR+"phasespaceTestAnalysis{CAMPAIGN}.root",
-        ANALYSISDIR+"phasespace_in_beampipe_{CAMPAIGN}.png",
-        ANALYSISDIR+"phasespace_energy_theta_{CAMPAIGN}.png",
-        ANALYSISDIR+"phasespace_energy_theta_acceptance_{CAMPAIGN}.png",      
+        ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",      
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

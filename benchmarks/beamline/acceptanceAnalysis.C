@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int phasespaceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/acceptanceTest.edm4hep.root",
                         TString outFile            = "output.root",
                         std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beampipeCanvasName = "phasespace_in_beampipe.png",

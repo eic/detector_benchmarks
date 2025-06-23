@@ -18,7 +18,7 @@ bench:beamline:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["sim:beamline"]
+    - ["sim:beamline:beamspot", "sim:beamline:acceptance"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 2 beamline_local
 

@@ -19,7 +19,7 @@ rule beamline_steering_sim:
 
 rule beamline_acceptance_sim:
     input:
-        macro="benchmarks/beamline/phasespaceGPS.mac",
+        macro=workflow.source_path("phasespaceGPS.mac"),
     output:
         SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
     shell:
@@ -60,7 +60,8 @@ rule beamline_acceptance_analysis:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
-        script="benchmarks/beamline/phasespaceAnalysis.C",
+        script=workflow.source_path("phasespaceAnalysis.C"),
+        header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"phasespaceTest{CAMPAIGN}.edm4hep.root",
     output:
         rootfile=ANALYSISDIR+"phasespaceTestAnalysis{CAMPAIGN}.root",

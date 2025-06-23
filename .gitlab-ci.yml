@@ -123,7 +123,7 @@ get_data:
     - |
       for file in $(git ls-files); do
         time="$(git log --pretty=format:%cd -n 1 --date=format:%Y%m%d%H%M.%S --date-order -- "$file")"
-        touch -m -t "$time" "$file"
+        touch -t "$time" "$file"
       done
     - ls -lrtha
   retry:

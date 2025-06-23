@@ -1,0 +1,61 @@
+SIMOUTDIR="sim_output/beamline/"
+ANALYSISDIR=SIMOUTDIR+"analysis/"
+
+rule beamline_steering_sim:
+    input:
+        macro=workflow.source_path("beamlineGPS.mac"),
+    output:
+        SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --outputFile {output} \
+        """
+
+rule beamline_steering_analysis:
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    input:
+        script=workflow.source_path("beamlineAnalysis.C"),
+        header=workflow.source_path("shared_functions.h"),
+        data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
+        beamspot_canvas=ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
+        x_px_canvas=ANALYSISDIR+"x_px_{CAMPAIGN}.png",
+        y_py_canvas=ANALYSISDIR+"y_py_{CAMPAIGN}.png",
+        fitted_position_means_stdevs_canvas=ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
+        fitted_momentum_means_stdevs_canvas=ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+        pipe_parameter_canvas=ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
+    shell:
+        """
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
+            "{output.beamspot_canvas}", "{output.x_px_canvas}", "{output.y_py_canvas}",
+            "{output.fitted_position_means_stdevs_canvas}", "{output.fitted_momentum_means_stdevs_canvas}",
+            "{output.pipe_parameter_canvas}")'
+        """
+
+rule beamline:
+    input:
+        ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
+        ANALYSISDIR+"x_px_{CAMPAIGN}.png",
+        ANALYSISDIR+"y_py_{CAMPAIGN}.png",
+        ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
+        ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",        
+    output:
+        directory("results/beamline/{CAMPAIGN}/")
+    shell:
+        """
+            mkdir {output}        
+            cp {input} {output}
+        """
+
+rule beamline_local:
+    input:
+        "results/beamline/local/"

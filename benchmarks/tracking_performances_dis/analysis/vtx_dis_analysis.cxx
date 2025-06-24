@@ -75,9 +75,9 @@ void vtx_dis_analysis(const std::string& config_name)
     TTreeReaderArray<int> mcGenStat = {tree_reader, "MCParticles.generatorStatus"};
     TTreeReaderArray<int> mcPDG = {tree_reader, "MCParticles.PDG"};
     TTreeReaderArray<float> mcCharge = {tree_reader, "MCParticles.charge"};
-    TTreeReaderArray<float> mcMomX = {tree_reader, "MCParticles.momentum.x"};
-    TTreeReaderArray<float> mcMomY = {tree_reader, "MCParticles.momentum.y"};
-    TTreeReaderArray<float> mcMomZ = {tree_reader, "MCParticles.momentum.z"};
+    TTreeReaderArray<double> mcMomX = {tree_reader, "MCParticles.momentum.x"};
+    TTreeReaderArray<double> mcMomY = {tree_reader, "MCParticles.momentum.y"};
+    TTreeReaderArray<double> mcMomZ = {tree_reader, "MCParticles.momentum.z"};
 
     TTreeReaderArray<double> mcVtxX = {tree_reader, "MCParticles.vertex.x"};
     TTreeReaderArray<double> mcVtxY = {tree_reader, "MCParticles.vertex.y"};

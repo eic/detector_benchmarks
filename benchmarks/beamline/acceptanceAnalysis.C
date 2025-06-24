@@ -22,9 +22,10 @@ using RNode       = ROOT::RDF::RNode;
 int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/acceptanceTest.edm4hep.root",
                         TString outFile            = "output.root",
                         std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
-                        TString beampipeCanvasName = "phasespace_in_beampipe.png",
-                        TString EThetaCanvasName   = "phasespace_energy_theta.png",
-                        TString EThetaAccCanvasName= "phasespace_energy_theta_acceptance.png") {
+                        TString beampipeCanvasName = "acceptance_in_beampipe.png",
+                        TString EThetaCanvasName   = "acceptance_energy_theta.png",
+                        TString EThetaAccCanvasName= "acceptance_energy_theta_acceptance.png",
+                        TString entryFractionCanvasName = "acceptance_entries.png") {
 
     //Set ROOT style    
     gStyle->SetPadLeftMargin(0.1);  // Set left margin
@@ -52,6 +53,8 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     RNode d1 = d0;
     RVecS colNames = d1.GetColumnNames();
 
+    //Get total number of entries
+    int nEntries = d1.Count().GetValue();
     //Set number of entries to process
     // d1 = d1.Range(0,1000);
     
@@ -92,7 +95,10 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         return 1;
     }
 
-    auto totalETheta = d1.Histo2D({"Energy vs Theta","Energy vs Theta",100,4,18,100,0,0.011},"energy","theta");
+    int eBins = 100;
+    int thetaBins = 100;
+
+    auto totalETheta = d1.Histo2D({"Energy vs Theta","Energy vs Theta",eBins,4,18,thetaBins,0,0.011},"energy","theta");
 
     if(Any(colNames==readoutName)){
 
@@ -133,6 +139,8 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     
 
     std::map<TString,double> pipeRadii;
+    std::map<TString,double> filterEntries;
+    std::map<TString,double> filterAcceptanceIntegral;
     
     //Create histograms
     for(int i=0; i<=7; i++){
@@ -155,7 +163,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         auto extraFilterDF = filterDF.Filter(std::to_string(i+1)+"==NHits" );
         TString EThetaName = "Energy vs Theta ID"+str_i+";Energy [GeV]; Theta [rad]";
         TString nameETheta = name+";Energy [GeV]; Theta [rad]";
-        hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,100,4,18,100,0,0.011},"energy","theta");
+        hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,4,18,thetaBins,0,0.011},"energy","theta");
 
         //Parameters of the pipe
         pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();        
@@ -186,9 +194,10 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     TCanvas *cETheta = new TCanvas("energy_theta_canvas","energy_theta_canvas",3000,1600);
     cETheta->Divide(4,2);
     i=1;
-    for(auto [name,h] : hHistsETheta){
+    for(auto [name,h] : hHistsETheta){        
         cETheta->cd(i++);
         h->Draw("colz");
+        filterEntries[name] = h->GetEntries()/ nEntries;
     }
   
     // Canvas for energy vs theta acceptance
@@ -199,17 +208,40 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         cEThetaAcc->cd(i++);
         h->Divide(totalETheta.GetPtr());
         h->Draw("colz");
+        filterAcceptanceIntegral[name] = h->Integral()/ (eBins*thetaBins); // Normalize by the number of bins
     }
+
+    TH1F* hPipeEntries = CreateFittedHistogram("hNumberOfHits",
+        "Number of Hits per Pipe ID",
+        filterEntries,
+        {},
+        "Pipe ID");
+    TH1F* hPipeAcceptance = CreateFittedHistogram("hPipeAcceptance",
+        "Acceptance per Pipe ID",
+        filterAcceptanceIntegral,
+        {},
+        "Pipe ID");
+
+    TCanvas *cPipeAcceptance = new TCanvas("cPipeAcceptance", "Pipe Acceptance", 1200, 400);    
+    cPipeAcceptance->Divide(2, 1);
+    cPipeAcceptance->cd(1);
+    hPipeEntries->Draw("");
+    cPipeAcceptance->cd(2);
+    hPipeAcceptance->Draw("");
+    cPipeAcceptance->SetGrid();
+    cPipeAcceptance->Update();
 
     // Save 2D canvases as pngs
     cXY->SaveAs(beampipeCanvasName);
     cETheta->SaveAs(EThetaCanvasName);
     cEThetaAcc->SaveAs(EThetaAccCanvasName);
+    cPipeAcceptance->SaveAs(entryFractionCanvasName);
 
     TFile *f = new TFile(outFile,"RECREATE");
     cXY->Write();
     cETheta->Write();
     cEThetaAcc->Write();
+    cPipeAcceptance->Write();
 
     f->Close();
 

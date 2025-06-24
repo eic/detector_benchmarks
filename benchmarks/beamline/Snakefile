@@ -68,9 +68,11 @@ rule beamline_acceptance_analysis:
         beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
+        entrys_canvas=ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png",
     shell:
         """
-            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}")'
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
+            "{output.entrys_canvas}")'
         """
 
 rule beamline:
@@ -85,7 +87,8 @@ rule beamline:
         ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
         ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
-        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",      
+        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
+        ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png", 
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

@@ -314,7 +314,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         // Check histogram entries
         if(h->GetEntries() < acceptableEntries){
             std::cout << "Warning: Only " << h->GetEntries()/nEntries << " of particles contributing to histogram " <<  name
-                      << " , which is below the accepted threshold of " << acceptableEntries << std::endl;
+                      << " , which is below the accepted threshold of " << acceptableEntries/nEntries << std::endl;
             pass = 1;
         }
 

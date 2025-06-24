@@ -138,7 +138,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsETheta;
     
 
-    std::map<TString,double> pipeRadii;
+    std::map<TString,ROOT::RDF::RResultPtr<double>> pipeRadii;
     std::map<TString,double> filterEntries;
     std::map<TString,double> filterAcceptanceIntegral;
     
@@ -148,10 +148,9 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         std::string name = "pipeID";
         std::string str_i = std::to_string(i);
         name += str_i;
-        auto filterDF = d1.Filter(std::to_string(i+1)+"<=NHits" )
-                          .Define("xposf","xpos["+str_i+"]")
-                          .Define("yposf","ypos["+str_i+"]")
-                          .Define("pipeRadiusf","pipeRadius["+str_i+"]");
+        auto filterDF = d1.Define("xposf","xpos[pipeID=="+str_i+"]")
+                          .Define("yposf","ypos[pipeID=="+str_i+"]")
+                          .Define("pipeRadiusf","pipeRadius[pipeID=="+str_i+"]");
                    
 
         TString beamspotName = "Beamspot ID"+str_i+";x offset [cm]; y offset [cm]";
@@ -160,15 +159,15 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         TString yname = name+";y Offset [cm]; y trajectory component";
         hHistsxy[name] = filterDF.Histo2D({beamspotName,beamspotName,400,-maxPipeRadius,maxPipeRadius,400,-maxPipeRadius,maxPipeRadius},"xposf","yposf");
 
-        auto extraFilterDF = filterDF.Filter(std::to_string(i+1)+"==NHits" );
+        auto extraFilterDF = filterDF.Filter("All(pipeID<"+std::to_string(i+1)+")&&Any(pipeID=="+std::to_string(i)+")" );
         TString EThetaName = "Energy vs Theta ID"+str_i+";Energy [GeV]; Theta [rad]";
         TString nameETheta = name+";Energy [GeV]; Theta [rad]";
         hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,4,18,thetaBins,0,0.011},"energy","theta");
 
         //Parameters of the pipe
-        pipeRadii[name]    = filterDF.Max("pipeRadiusf").GetValue();        
-        std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
-     
+        pipeRadii[name]    = filterDF.Max("pipeRadiusf");        
+        // std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
+    
     }
 
     // Create histograms of the beamspot
@@ -177,7 +176,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     int i=1;
     for(auto [name,h] : hHistsxy){
         // Get the pipe radius for this histogram
-        auto pipeRadius = pipeRadii[name];
+        auto pipeRadius = pipeRadii[name].GetValue();
         cXY->cd(i++);
 
         h->Draw("col");

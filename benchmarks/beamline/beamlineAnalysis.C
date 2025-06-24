@@ -59,7 +59,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
     //Set number of entries to process
     // d1 = d1.Range(0,1000);
     int   nEntries          = d1.Count().GetValue();
-    float acceptableLoss    = 0.99; // Set the acceptable loss percentage to 1%
+    float acceptableLoss    = 0.999; // Set the acceptable loss percentage to 0.1%
     float acceptableEntries = nEntries * acceptableLoss;
     
     //Get the collection 
@@ -171,28 +171,39 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
     std::map<TString,double> pipeZPos;
     std::map<TString,double> pipeRotation;
 
-    auto xmin = d1.Min("xpos").GetValue();
-    auto xmax = d1.Max("xpos").GetValue();
-    auto ymin = d1.Min("ypos").GetValue();
-    auto ymax = d1.Max("ypos").GetValue();
-    auto pxmin = d1.Min("xmom").GetValue();
-    auto pxmax = d1.Max("xmom").GetValue();
-    auto pymin = d1.Min("ymom").GetValue();
-    auto pymax = d1.Max("ymom").GetValue();
+    // Queue up all actions
+    auto xmin_ptr  = d1.Min("xpos");
+    auto xmax_ptr  = d1.Max("xpos");
+    auto ymin_ptr  = d1.Min("ypos");
+    auto ymax_ptr  = d1.Max("ypos");
+    auto pxmin_ptr = d1.Min("xmom");
+    auto pxmax_ptr = d1.Max("xmom");
+    auto pymin_ptr = d1.Min("ymom");
+    auto pymax_ptr = d1.Max("ymom");
+
+    // Now trigger the event loop (only once)
+    auto xmin  = xmin_ptr.GetValue();
+    auto xmax  = xmax_ptr.GetValue();
+    auto ymin  = ymin_ptr.GetValue();
+    auto ymax  = ymax_ptr.GetValue();
+    auto pxmin = pxmin_ptr.GetValue();
+    auto pxmax = pxmax_ptr.GetValue();
+    auto pymin = pymin_ptr.GetValue();
+    auto pymax = pymax_ptr.GetValue();
     
     //Create histograms
     for(int i=0; i<=7; i++){
 
         std::string name = "pipeID";
         name += std::to_string(i);
-        auto filterDF = d1.Define("xposf","xpos["+std::to_string(i)+"]")
-                          .Define("yposf","ypos["+std::to_string(i)+"]")
-                          .Define("xmomf","xmom["+std::to_string(i)+"]")
-                          .Define("ymomf","ymom["+std::to_string(i)+"]")
-                          .Define("pipeRadiusf","pipeRadius["+std::to_string(i)+"]")
-                          .Define("xdetf","xdet["+std::to_string(i)+"]")
-                          .Define("zdetf","zdet["+std::to_string(i)+"]")
-                          .Define("rotationf","rotation["+std::to_string(i)+"]");
+        auto filterDF = d1.Define("xposf","xpos[pipeID=="+std::to_string(i)+"]")
+                          .Define("yposf","ypos[pipeID=="+std::to_string(i)+"]")
+                          .Define("xmomf","xmom[pipeID=="+std::to_string(i)+"]")
+                          .Define("ymomf","ymom[pipeID=="+std::to_string(i)+"]")
+                          .Define("pipeRadiusf","pipeRadius[pipeID=="+std::to_string(i)+"]")
+                          .Define("xdetf","xdet[pipeID=="+std::to_string(i)+"]")
+                          .Define("zdetf","zdet[pipeID=="+std::to_string(i)+"]")
+                          .Define("rotationf","rotation[pipeID=="+std::to_string(i)+"]");
                           
 
         //Calculate Min and Max values
@@ -291,6 +302,8 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         pyStdDevFitErr[name] = pyhist->GetFunction("gaus")->GetParError(2);
      
     }
+
+
 
     // Create histograms of the beamspot
     TCanvas *cXY = new TCanvas("beamspot_canvas","beamspot_canvas",3000,1600);

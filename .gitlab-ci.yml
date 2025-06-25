@@ -126,6 +126,7 @@ get_data:
 include: 
   - local: 'benchmarks/backgrounds/config.yml'
   - local: 'benchmarks/backwards_ecal/config.yml'
+  - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
@@ -163,6 +164,7 @@ deploy_results:
     - "collect_results:backwards_ecal"
     - "collect_results:barrel_ecal"
     - "collect_results:barrel_hcal"
+    - "collect_results:beamline"
     - "collect_results:calo_pid"
     - "collect_results:ecal_gaps"
     - "collect_results:lfhcal"

@@ -113,7 +113,8 @@ rule beamline_steering_reconstruction_test:
         directory("sim_output/beamline/analysis/NN_Test_{CAMPAIGN}/")
     shell:
         """
-        python {input.script} --dataFiles {input.data} --modelFile {output.onnxfile} --outDir {output}
+            mkdir {output}      
+            python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output}
         """
 
 rule beamline:

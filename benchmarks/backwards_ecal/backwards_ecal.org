@@ -147,7 +147,7 @@ study.
 
 #+begin_src jupyter-python
 e_over_p_hist = {}
-e_over_p_axis = bh.axis.Regular(101, 0., 1.01)
+e_over_p_axis = bh.axis.Regular(110, 0., 1.10)
 
 for ix, energy in enumerate(energies):
     for particle_name, dataset in [("e-", e_eval[energy]), ("pi-", pi_eval[energy])]:

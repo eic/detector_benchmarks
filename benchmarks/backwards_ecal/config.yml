@@ -43,6 +43,7 @@ collect_results:backwards_ecal:
   stage: collect
   needs:
     - "bench:backwards_ecal"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

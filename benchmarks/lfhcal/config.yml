@@ -23,6 +23,7 @@ collect_results:lfhcal:
   stage: collect
   needs:
     - "bench:lfhcal"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
@@ -41,6 +42,7 @@ collect_results:lfhcal_campaigns:
   stage: collect
   needs:
     - "bench:lfhcal_campaigns"
+  when: always
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

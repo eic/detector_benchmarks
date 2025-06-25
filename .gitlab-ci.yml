@@ -51,20 +51,20 @@ stages:
 
 .status:
   image: curlimages/curl:latest
+  rules:
+    - if: $GITHUB_SHA !~ /^$/ # when GITHUB_SHA non-empty
   script:
     - |
-      if [ -n "${GITHUB_SHA}" ] ; then
-        curl \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
-          "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-          -d '{"state":"'"${STATE}"'",
-               "target_url":"'"${CI_PIPELINE_URL}"'",
-               "description":"'"$(TZ=America/New_York date)"'",
-               "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
-              }' ;
-      fi
+      curl \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+        -d '{"state":"'"${STATE}"'",
+             "target_url":"'"${CI_PIPELINE_URL}"'",
+             "description":"'"$(TZ=America/New_York date)"'",
+             "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
+            }' ;
 
 
 benchmarks:detector:pending:
@@ -126,6 +126,7 @@ get_data:
 include: 
   - local: 'benchmarks/backgrounds/config.yml'
   - local: 'benchmarks/backwards_ecal/config.yml'
+  - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
@@ -157,6 +158,7 @@ deploy_results:
     - "collect_results:backgrounds"
     - "collect_results:backwards_ecal"
     - "collect_results:barrel_ecal"
+    - "collect_results:beamline"
     - "collect_results:calo_pid"
     - "collect_results:ecal_gaps"
     - "collect_results:lfhcal"

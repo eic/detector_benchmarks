@@ -77,9 +77,9 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 
    TTreeReaderArray<Double_t> vy_mc(myReader, "MCParticles.vertex.y"); 
    TTreeReaderArray<Double_t> vz_mc(myReader, "MCParticles.vertex.z"); 
-   TTreeReaderArray<Float_t> px_mc(myReader, "MCParticles.momentum.x"); 
-   TTreeReaderArray<Float_t> py_mc(myReader, "MCParticles.momentum.y"); 
-   TTreeReaderArray<Float_t> pz_mc(myReader, "MCParticles.momentum.z"); 
+   TTreeReaderArray<Double_t> px_mc(myReader, "MCParticles.momentum.x"); 
+   TTreeReaderArray<Double_t> py_mc(myReader, "MCParticles.momentum.y"); 
+   TTreeReaderArray<Double_t> pz_mc(myReader, "MCParticles.momentum.z"); 
    TTreeReaderArray<Int_t> status(myReader, "MCParticles.generatorStatus"); 
    TTreeReaderArray<Int_t> pdg(myReader, "MCParticles.PDG"); 
    TTreeReaderArray<Int_t> match_flag(myReader, Form("CentralCKF%sTrackParameters.type",tag.Data()));

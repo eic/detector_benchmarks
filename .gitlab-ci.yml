@@ -154,7 +154,6 @@ include:
   - local: 'benchmarks/femc_pi0/config.yml'
   - local: 'benchmarks/nhcal_acceptance/config.yml'
   - local: 'benchmarks/nhcal_basic_distribution/config.yml'
-  - local: 'benchmarks/nhcal_sampling_fraction/config.yml'
   
 deploy_results:
   allow_failure: true
@@ -188,7 +187,6 @@ deploy_results:
     - "collect_results:femc_pi0"
     - "collect_results:nhcal_acceptance"
     - "collect_results:nhcal_basic_distribution"
-    - "collect_results:nhcal_sampling_fraction"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

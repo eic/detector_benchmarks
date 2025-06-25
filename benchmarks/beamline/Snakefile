@@ -75,6 +75,18 @@ rule beamline_acceptance_analysis:
             "{output.entrys_canvas}")'
         """
 
+# Trains a regression model to predict the TaggerTrackerTargetTensor from the TaggerTrackerFeatureTensor.
+rule beamline_steering_reconstruction_training:
+    input:
+        script="SteeringRegression.py",
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    output:
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstruction.onnx",
+    shell:
+        """
+        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile}
+        """
+
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",

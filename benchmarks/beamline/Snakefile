@@ -75,16 +75,43 @@ rule beamline_acceptance_analysis:
             "{output.entrys_canvas}")'
         """
 
-# Trains a regression model to predict the TaggerTrackerTargetTensor from the TaggerTrackerFeatureTensor.
-rule beamline_steering_reconstruction_training:
+# Processes the simulation output data for training
+rule beamline_steering_reconstruction_preperation:
     input:
-        script="SteeringRegression.py",
+        script=workflow.source_path("processData.C"),
         data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
     output:
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstruction.onnx",
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}")'
+        """
+
+# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+rule beamline_steering_reconstruction_training:
+    input:
+        script=workflow.source_path("SteeringRegression.py"),
+        scriptdata=workflow.source_path("ProcessData.py"),
+        scriptmodel=workflow.source_path("RegressionModel.py"),
+        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+    output:
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile}
+        """
+
+# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+rule beamline_steering_reconstruction_training:
+    input:
+        script=workflow.source_path("TestModel.py"),
+        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        model=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
+    output:
+        directory(ANALYSISDIR+"/NN_Test_{CAMPAIGN}/")
+    shell:
+        """
+        python {input.script} --dataFiles {input.data} --modelFile {output.onnxfile} --outDir {output}
         """
 
 rule beamline:

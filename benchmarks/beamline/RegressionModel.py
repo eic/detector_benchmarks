@@ -27,44 +27,59 @@ class ProjectToX0Plane(nn.Module):
 class RegressionModel(nn.Module):
     def __init__(self):
         super(RegressionModel, self).__init__()
+        self.project_to_x0 = ProjectToX0Plane()
         self.fc1  = nn.Linear(4, 512)
         self.fc2  = nn.Linear(512, 64)
         self.fc4  = nn.Linear(64, 3)
-        self.input_mean       = torch.tensor([0.0, 0.0, 0.0, 0.0])
-        self.input_std        = torch.tensor([1.0, 1.0, 1.0, 1.0])
-        # self.input_covariance = torch.tensor([[1.0, 0.0, 0.0, 0.0],
-        #                                       [0.0, 1.0, 0.0, 0.0],
-        #                                       [0.0, 0.0, 1.0, 0.0],
-        #                                       [0.0, 0.0, 0.0, 1.0]])
-        self.output_mean = torch.tensor([0.0, 0.0, 0.0])
-        self.output_std  = torch.tensor([1.0, 1.0, 1.0])
-        # self.output_correlation = torch.tensor([[1.0, 0.0, 0.0],
-        #                                         [0.0, 1.0, 0.0],
-        #                                         [0.0, 0.0, 1.0]])
+
+        # Normalization parameters
+        self.input_mean = nn.Parameter(torch.zeros(4), requires_grad=False)
+        self.input_std = nn.Parameter(torch.ones(4), requires_grad=False)
+        self.output_mean = nn.Parameter(torch.zeros(3), requires_grad=False)
+        self.output_std = nn.Parameter(torch.ones(3), requires_grad=False)
 
     def forward(self, x):
-        x = ProjectToX0Plane()(x)
-        x = (x-self.input_mean)/self.input_std
+        # Apply projection and normalization
+        x = self.project_to_x0(x)
+        x = (x - self.input_mean) / self.input_std
+
+        # Pass through the fully connected layers
+        x = self._core_forward(x)
+
+        # Denormalize outputs
+        x = x * self.output_std + self.output_mean
+        return x
+    
+    def _core_forward(self, x):
+        # Core fully connected layers
         x = torch.tanh(self.fc1(x))
         x = torch.tanh(self.fc2(x))
         x = self.fc4(x)
-        x = x*self.output_std + self.output_mean
         return x
     
     def adapt(self, input_data, output_data):
-        in_mean = input_data.mean(axis=0)
-        in_std  = input_data.std (axis=0)
-        self.input_mean  = torch.tensor(in_mean)
-        self.input_std   = torch.tensor(in_std)
+        # Compute normalization parameters from training data
+        self.input_mean.data = torch.tensor(input_data.mean(axis=0), dtype=torch.float32)
+        self.input_std.data = torch.tensor(input_data.std(axis=0), dtype=torch.float32)
+        self.output_mean.data = torch.tensor(output_data.mean(axis=0), dtype=torch.float32)
+        self.output_std.data = torch.tensor(output_data.std(axis=0), dtype=torch.float32)
 
-        # Calculate the correlation matrix of the input data
-        # input_normalized  = (input_data-in_mean)/in_std   
-        # input_correlation = np.corrcoef(input_normalized, rowvar=False)         
-        # Invert the correlation matrix and convert into float tensor
-        # self.input_covariance = torch.tensor(np.linalg.inv(input_correlation).astype(np.float32))
+def preprocess_data(model, data_loader):
+    inputs = data_loader.dataset.tensors[0]
+    targets = data_loader.dataset.tensors[1]
 
-        self.output_mean = torch.tensor(output_data.mean(axis=0))
-        self.output_std  = torch.tensor(output_data.std (axis=0))
+    # Apply projection
+    projected_inputs = ProjectToX0Plane()(inputs)
+
+    # Compute normalization parameters
+    model.adapt(projected_inputs.detach().numpy(), targets.detach().numpy())
+
+    # Normalize inputs and targets
+    normalized_inputs = (projected_inputs - model.input_mean) / model.input_std
+    normalized_targets = (targets - model.output_mean) / model.output_std
+
+    # Replace the dataset with preprocessed data
+    data_loader.dataset.tensors = (normalized_inputs, normalized_targets)
 
 def makeModel():
     # Create the model
@@ -78,21 +93,19 @@ def makeModel():
 
 def trainModel(epochs, train_loader, val_loader):
     
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # print(f"Using device: {device}")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
     
     model, optimizer, criterion = makeModel()
-    # model.to(device)
+    model.to(device)
     
     # Verify that the model parameters are on the GPU
     # for name, param in model.named_parameters():
     #     print(f"{name} is on {param.device}")
-
-    # Adapt the model using the training data from the training loader
-    # Project inputs to X0 plane before adaptation
-    inputs = train_loader.dataset.tensors[0]
-    projected_inputs = ProjectToX0Plane()(inputs)
-    model.adapt(projected_inputs.detach().numpy(), train_loader.dataset.tensors[1].detach().numpy())
+    
+    # Preprocess training and validation data
+    preprocess_data(model, train_loader)
+    preprocess_data(model, val_loader)
 
     for epoch in range(epochs):
         model.train()
@@ -100,7 +113,7 @@ def trainModel(epochs, train_loader, val_loader):
         for inputs, targets in train_loader:
             # inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
-            outputs = model(inputs)
+            outputs = model._core_forward(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -116,7 +129,7 @@ def trainModel(epochs, train_loader, val_loader):
         with torch.no_grad():
             for val_inputs, val_targets in val_loader:
                 # val_inputs, val_targets = val_inputs.to(device), val_targets.to(device)
-                val_outputs = model(val_inputs)
+                val_outputs = model._core_forward(val_inputs)
                 val_loss += criterion(val_outputs, val_targets).item() * val_inputs.size(0)
             # val_outputs = model(val_input)
             # val_loss = criterion(val_outputs, val_target)

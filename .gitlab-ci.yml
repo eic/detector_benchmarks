@@ -133,7 +133,6 @@ include:
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/barrel_hcal/config.yml'
   - local: 'benchmarks/lfhcal/config.yml'
   - local: 'benchmarks/zdc/config.yml'
   - local: 'benchmarks/zdc_lyso/config.yml'
@@ -159,7 +158,6 @@ deploy_results:
     - "collect_results:backgrounds"
     - "collect_results:backwards_ecal"
     - "collect_results:barrel_ecal"
-    - "collect_results:barrel_hcal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"
     - "collect_results:ecal_gaps"

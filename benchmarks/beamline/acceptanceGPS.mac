@@ -11,4 +11,4 @@
 /gps/ene/min 6 GeV
 /gps/ene/max 18 GeV
 
-/run/beamOn 1000000
+/run/beamOn 4000000

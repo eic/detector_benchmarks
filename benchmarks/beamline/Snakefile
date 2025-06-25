@@ -13,6 +13,7 @@ rule beamline_steering_sim:
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 1000000 \
         """
@@ -29,6 +30,7 @@ rule beamline_acceptance_sim:
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 1000000 \
         """
@@ -81,7 +83,7 @@ rule beamline_steering_reconstruction_preperation:
         script=workflow.source_path("processData.C"),
         data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
     output:
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        rootfile=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
     shell:
         """
         root -l -b -q '{input.script}("{input.data}", "{output.rootfile}")'
@@ -102,13 +104,13 @@ rule beamline_steering_reconstruction_training:
         """
 
 # Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
-rule beamline_steering_reconstruction_training:
+rule beamline_steering_reconstruction_test:
     input:
         script=workflow.source_path("TestModel.py"),
         data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
         model=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
     output:
-        directory(ANALYSISDIR+"/NN_Test_{CAMPAIGN}/")
+        directory("sim_output/beamline/analysis/NN_Test_{CAMPAIGN}/")
     shell:
         """
         python {input.script} --dataFiles {input.data} --modelFile {output.onnxfile} --outDir {output}

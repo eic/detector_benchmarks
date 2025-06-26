@@ -13,6 +13,12 @@ class ProjectToX0Plane(nn.Module):
         py = x[:, 4]
         pz = x[:, 5]
 
+        #normalize the momentum components
+        momentum = torch.sqrt(px**2 + py**2 + pz**2)
+        px = px / momentum
+        py = py / momentum
+        pz = pz / momentum
+
         # Avoid division by zero for px
         eps = 1e-8
         px_safe = torch.where(px.abs() < eps, eps * torch.sign(px) + eps, px)
@@ -28,8 +34,9 @@ class RegressionModel(nn.Module):
     def __init__(self):
         super(RegressionModel, self).__init__()
         self.project_to_x0 = ProjectToX0Plane()
-        self.fc1  = nn.Linear(4, 512)
-        self.fc2  = nn.Linear(512, 64)
+        self.fc1  = nn.Linear(4, 64)
+        self.fc2  = nn.Linear(64, 64)
+        # self.fc3  = nn.Linear(64, 64)
         self.fc4  = nn.Linear(64, 3)
 
         # Normalization parameters
@@ -52,8 +59,9 @@ class RegressionModel(nn.Module):
     
     def _core_forward(self, x):
         # Core fully connected layers
-        x = torch.tanh(self.fc1(x))
-        x = torch.tanh(self.fc2(x))
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        # x = torch.tanh(self.fc3(x))
         x = self.fc4(x)
         return x
     
@@ -70,6 +78,10 @@ def preprocess_data(model, data_loader):
 
     # Apply projection
     projected_inputs = ProjectToX0Plane()(inputs)
+
+    # Print a few examples of inputs and projected inputs
+    print("Inputs (first 5):", inputs[:5])
+    print("Projected Inputs (first 5):", projected_inputs[:5])    
 
     # Compute normalization parameters
     model.adapt(projected_inputs.detach().numpy(), targets.detach().numpy())

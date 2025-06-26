@@ -13,7 +13,26 @@ rule beamline_steering_sim:
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
+            --physics.rangecut 1000000 \
+        """
+
+rule beamline_acceptance_sim:
+    input:
+        macro=workflow.source_path("acceptanceGPS.mac"),
+    output:
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
+            --outputFile {output} \
+            --physics.rangecut 1000000 \
         """
 
 rule beamline_steering_analysis:
@@ -39,6 +58,65 @@ rule beamline_steering_analysis:
             "{output.pipe_parameter_canvas}")'
         """
 
+rule beamline_acceptance_analysis:
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    input:
+        script=workflow.source_path("acceptanceAnalysis.C"),
+        header=workflow.source_path("shared_functions.h"),
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
+        entrys_canvas=ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png",
+    shell:
+        """
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
+            "{output.entrys_canvas}")'
+        """
+
+# Processes the simulation output data for training
+rule beamline_steering_reconstruction_preperation:
+    input:
+        script=workflow.source_path("processData.C"),
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}")'
+        """
+
+# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+rule beamline_steering_reconstruction_training:
+    input:
+        script=workflow.source_path("SteeringRegression.py"),
+        scriptdata=workflow.source_path("ProcessData.py"),
+        scriptmodel=workflow.source_path("RegressionModel.py"),
+        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+    output:
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
+    shell:
+        """
+        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile}
+        """
+
+# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+rule beamline_steering_reconstruction_test:
+    input:
+        script=workflow.source_path("TestModel.py"),
+        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        model=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
+    output:
+        directory("sim_output/beamline/analysis/NN_Test_{CAMPAIGN}/")
+    shell:
+        """
+            mkdir {output}      
+            python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output}
+        """
+
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
@@ -47,7 +125,12 @@ rule beamline:
         ANALYSISDIR+"y_py_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",        
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",  
+        ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
+        ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png", 
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

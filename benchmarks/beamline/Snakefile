@@ -14,7 +14,7 @@ rule beamline_steering_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --outputFile {output} \
-            --physics.rangecut 1000000 \
+            --physics.rangecut 100*m
         """
 
 rule beamline_acceptance_sim:
@@ -30,7 +30,7 @@ rule beamline_acceptance_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --outputFile {output} \
-            --physics.rangecut 1000000 \
+            --physics.rangecut 100*m
         """
 
 rule beamline_steering_analysis:
@@ -68,11 +68,11 @@ rule beamline_acceptance_analysis:
         beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
-        entrys_canvas=ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png",
+        entries_canvas=ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
-            "{output.entrys_canvas}")'
+            "{output.entries_canvas}")'
         """
 
 rule beamline:
@@ -88,7 +88,7 @@ rule beamline:
         ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
-        ANALYSISDIR+"acceptance_entrys_{CAMPAIGN}.png", 
+        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png", 
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

@@ -37,6 +37,7 @@ exec npsim \
 rule zdc_neutron_reco:
     input:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
     shell:

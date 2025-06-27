@@ -112,8 +112,8 @@ def trainModel(epochs, train_loader, val_loader):
     model.to(device)
     
     # Verify that the model parameters are on the GPU
-    # for name, param in model.named_parameters():
-    #     print(f"{name} is on {param.device}")
+    for name, param in model.named_parameters():
+        print(f"{name} is on {param.device}")
     
     # Preprocess training and validation data
     preprocess_data(model, train_loader)
@@ -123,6 +123,8 @@ def trainModel(epochs, train_loader, val_loader):
         model.train()
         running_loss = 0.0
         for inputs, targets in train_loader:
+            inputs = inputs.to(device)
+            targets = targets.to(device)
             # inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model._core_forward(inputs)
@@ -140,6 +142,8 @@ def trainModel(epochs, train_loader, val_loader):
         val_loss = 0.0
         with torch.no_grad():
             for val_inputs, val_targets in val_loader:
+                val_inputs = val_inputs.to(device)
+                val_targets = val_targets.to(device)
                 # val_inputs, val_targets = val_inputs.to(device), val_targets.to(device)
                 val_outputs = model._core_forward(val_inputs)
                 val_loss += criterion(val_outputs, val_targets).item() * val_inputs.size(0)

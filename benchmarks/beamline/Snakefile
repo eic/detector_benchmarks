@@ -13,7 +13,26 @@ rule beamline_steering_sim:
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
+            --physics.rangecut 100*m
+        """
+
+rule beamline_acceptance_sim:
+    input:
+        macro=workflow.source_path("acceptanceGPS.mac"),
+    output:
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
+            --outputFile {output} \
+            --physics.rangecut 100*m
         """
 
 rule beamline_steering_analysis:
@@ -39,6 +58,25 @@ rule beamline_steering_analysis:
             "{output.pipe_parameter_canvas}")'
         """
 
+rule beamline_acceptance_analysis:
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    input:
+        script=workflow.source_path("acceptanceAnalysis.C"),
+        header=workflow.source_path("shared_functions.h"),
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
+        entries_canvas=ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png",
+    shell:
+        """
+            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
+            "{output.entries_canvas}")'
+        """
+
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
@@ -47,7 +85,12 @@ rule beamline:
         ANALYSISDIR+"y_py_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",        
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",  
+        ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
+        ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
+        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
+        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png", 
     output:
         directory("results/beamline/{CAMPAIGN}/")
     shell:

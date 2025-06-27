@@ -64,6 +64,10 @@ stages:
              "description":"'"$(TZ=America/New_York date)"'",
              "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
             }' ;
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
 
 
 benchmarks:detector:pending:
@@ -144,6 +148,7 @@ include:
   - local: 'benchmarks/femc_electron/config.yml'
   - local: 'benchmarks/femc_photon/config.yml'
   - local: 'benchmarks/femc_pi0/config.yml'
+
 deploy_results:
   allow_failure: true
   stage: deploy
@@ -181,6 +186,10 @@ deploy_results:
     - tar zxf pelican_Linux_x86_64.tar.gz
     - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
     - ./pelican-*/pelican object copy pipeline-$CI_PIPELINE_ID.tar $OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID.tar
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
 
 benchmarks:detector:success:
   stage: status-report

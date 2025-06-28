@@ -255,6 +255,10 @@ for eta_min, eta_max in zip(partitions[:-1],partitions[1:]):
             #plt.ylim(0)
             xx=np.linspace(40, 70, 50)
             plt.plot(xx, fnc(xx, *coeff))
+            best_res = np.nan
+            res_err = np.nan
+            scale = np.nan
+            dscale = np.nan
         resvals.append(best_res)
         reserrs.append(res_err)
         scalevals.append(scale)

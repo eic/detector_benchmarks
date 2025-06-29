@@ -45,6 +45,7 @@ npsim \
 rule insert_neutron_recon:
     input:
         SIM_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_sim_neutron_{P}GeV_{INDEX}.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_neutron/{DETECTOR_CONFIG}_rec_neutron_{P}GeV_{INDEX}.edm4eic.root",
     params:

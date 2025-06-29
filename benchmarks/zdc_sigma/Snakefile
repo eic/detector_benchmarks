@@ -42,6 +42,7 @@ npsim \
 rule zdc_sigma_recon:
         input:
                 SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root",
+                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
         output:
                 REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root",
         params:

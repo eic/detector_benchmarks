@@ -44,10 +44,10 @@ npsim \
 
 rule zdc_photon_recon:
         input:
-                SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root"
+                SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
                 warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
         output:
-                REC_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root"
+                REC_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
         params:
                 N_EVENTS=200,
                 DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,

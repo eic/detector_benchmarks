@@ -49,9 +49,10 @@ npsim \
 
 rule femc_photon_recon:
     input:
-        SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root"
+        SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        REC_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root"
+        REC_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root",
     params:
         N_EVENTS=get_n_events,
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,

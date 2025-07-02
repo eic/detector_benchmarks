@@ -49,9 +49,10 @@ npsim \
 
 rule femc_pi0_recon:
     input:
-        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
+        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
-        REC_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4eic.root"
+        REC_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4eic.root",
     params:
         N_EVENTS=get_n_events,
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,

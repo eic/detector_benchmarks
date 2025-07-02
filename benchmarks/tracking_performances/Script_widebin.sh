@@ -16,7 +16,7 @@ for ((i=0; i<${#mom_array[@]}; i++)); do
 npsim --compactFile ../epic/install/share/epic/epic_craterlake_tracking_only.xml --outputFile sim${mom_array[i]}.edm4hep.root --numberOfEvents $nevents --enableGun --gun.thetaMin 3*deg --gun.thetaMax 177*deg --gun.distribution eta --gun.particle pi- --gun.momentumMin ${mom_array[i]}*GeV --gun.momentumMax ${mom_array[i]}*GeV --gun.multiplicity 1 --random.seed 100000
 done
 # run the reconstruction
-source ../epic/install/setup.sh 
+source ../epic/install/bin/thisepic.sh 
 source ../EICrecon/install/bin/eicrecon-this.sh
 
 for ((i=0; i<${#mom_array[@]}; i++)); do

@@ -50,6 +50,7 @@ npsim \
 rule insert_tau_recon:
     input:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",
     params:

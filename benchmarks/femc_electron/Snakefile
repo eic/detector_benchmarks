@@ -50,6 +50,7 @@ npsim \
 rule femc_electron_recon:
     input:
         SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root",
     params:

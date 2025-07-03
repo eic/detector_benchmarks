@@ -117,6 +117,7 @@ get_data:
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    - stat -c %x,%z,%n *
     # GitLab CI will have new timestamps in each job, which messes with
     # Snakemake outdated file detection.  This resets file timestamps according
     # to latest modification in git.
@@ -125,6 +126,7 @@ get_data:
         time="$(git log --pretty=format:%cd -n 1 --date=format:%Y%m%d%H%M.%S --date-order -- "$file")"
         touch -t "$time" "$file"
       done
+    - stat -c %x,%z,%n *
     - ls -lrtha
   retry:
     max: 2

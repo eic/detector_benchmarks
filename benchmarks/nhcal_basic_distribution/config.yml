@@ -6,7 +6,7 @@ sim:nhcal_basic_distribution:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
         INDEX: ["00","01","02","03","04","05","06","07","08","09"]
   script:
-    - snakemake --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root
 
 sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
@@ -16,7 +16,7 @@ sim:nhcal_basic_distribution_full:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
         INDEX: ["00","01","02","03","04","05","06","07","08","09"]
   script:
-    - snakemake --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root
 
 bench:nhcal_basic_distribution_analysis:
   extends: .det_benchmark
@@ -27,7 +27,7 @@ bench:nhcal_basic_distribution_analysis:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
-    - snakemake --cores 1 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
 
 bench:nhcal_basic_distribution_analysis_full:
   extends: .det_benchmark
@@ -38,7 +38,7 @@ bench:nhcal_basic_distribution_analysis_full:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
   script:
-    - snakemake --cores 1 results/nhcal_basic_distribution/analysis_epic_full_E${ENERGY}_combined_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_basic_distribution/analysis_epic_full_E${ENERGY}_combined_10files.pdf
 
 
 collect_results:nhcal_basic_distribution:

@@ -4,9 +4,9 @@ sim:nhcal_basic_distribution:
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
-        INDEX: ["00","01","02","03","04","05","06","07","08","09"]
+        INDEX_RANGE: ["0 4","5 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
 
 sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
@@ -14,9 +14,9 @@ sim:nhcal_basic_distribution_full:
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
-        INDEX: ["00","01","02","03","04","05","06","07","08","09"]
+        INDEX_RANGE: ["0 4","5 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 5 $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root; done)
 
 bench:nhcal_basic_distribution_analysis:
   extends: .det_benchmark

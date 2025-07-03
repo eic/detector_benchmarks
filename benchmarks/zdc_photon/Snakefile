@@ -1,38 +1,38 @@
 rule zdc_photon_generate:
-        input:
-                script="benchmarks/zdc_photon/analysis/gen_particles.cxx",
-        output:
-                GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
-        params:
-                th_max=0.23,
-                th_min=0,
-                N_EVENTS=1000,
-                P=lambda wildcards: wildcards.P,
-        shell:
-                """
+    input:
+        script="benchmarks/zdc_photon/analysis/gen_particles.cxx",
+    output:
+        GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
+    params:
+        th_max=0.23,
+        th_min=0,
+        N_EVENTS=1000,
+        P=lambda wildcards: wildcards.P,
+    shell:
+        """
 mkdir -p sim_output/zdc_photon
 root -l -b -q '{input.script}('{params.N_EVENTS}',"{output.GEN_FILE}", "gamma", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
 """
 
 rule zdc_photon_simulate:
-        input:
-                GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-                geometry_lib=find_epic_libraries(),
-        output:
-                SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
-        params:
-                N_EVENTS=200,
-                INDEX=lambda wildcards: wildcards.INDEX,
-                SEED=lambda wildcards: "1" + wildcards.INDEX,
-                PHYSICS_LIST="FTFP_BERT",
-                DETECTOR_PATH=os.environ["DETECTOR_PATH"],
-                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-                DD4HEP_HASH=get_spack_package_hash("dd4hep"),
-                NPSIM_HASH=get_spack_package_hash("npsim"),
-        cache: True
-        shell:
-                """
+    input:
+        GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=200,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
 exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --random.seed {params.SEED} \
@@ -44,34 +44,34 @@ exec npsim \
 """
 
 rule zdc_photon_recon:
-        input:
-                SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-        output:
-                REC_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
-        params:
-                N_EVENTS=200,
-                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-                EICRECON_HASH=get_spack_package_hash("eicrecon"),
-        cache: True
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_sim_zdc_photon_{P}GeV_{INDEX}.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        REC_FILE="sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
+    params:
+        N_EVENTS=200,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    shell:
+        """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits,ReconstructedFarForwardZDCNeutrals -Pjana:nevents={params.N_EVENTS}
 """
 
 rule zdc_photon_analysis:
-        input:
-                expand("sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
-                    P=[20, 30, 50, 70, 100, 150, 200, 275],
-                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-                    INDEX=range(5),
-                ),
-                script="benchmarks/zdc_photon/analysis/zdc_photon_plots.py",
-        output:
-                results_dir=directory("results/{DETECTOR_CONFIG}/zdc_photon"),
-        shell:
-                """
+    input:
+        expand("sim_output/zdc_photon/{DETECTOR_CONFIG}_rec_zdc_photon_{P}GeV_{INDEX}.edm4eic.root",
+            P=[20, 30, 50, 70, 100, 150, 200, 275],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/zdc_photon/analysis/zdc_photon_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/zdc_photon"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

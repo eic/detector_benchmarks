@@ -1,36 +1,36 @@
 rule zdc_pi0_generate:
-        input:
-                script="benchmarks/zdc_pi0/analysis/gen_pi0_decay.cxx",
-        output:
-                GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc",
-        params:
-                N_EVENTS=1000,
-                P=lambda wildcards: wildcards.P,
-        shell:
-                """
+    input:
+        script="benchmarks/zdc_pi0/analysis/gen_pi0_decay.cxx",
+    output:
+        GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc",
+    params:
+        N_EVENTS=1000,
+        P=lambda wildcards: wildcards.P,
+    shell:
+        """
 mkdir -p sim_output/zdc_pi0
 root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_pi0_simulate:
-        input:
-                GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-                geometry_lib=find_epic_libraries(),
-        output:
-                SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
-        params:
-                N_EVENTS=200,
-                INDEX=lambda wildcards: wildcards.INDEX,
-                SEED=lambda wildcards: "1" + wildcards.INDEX,
-                PHYSICS_LIST="FTFP_BERT",
-                DETECTOR_PATH=os.environ["DETECTOR_PATH"],
-                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-                DD4HEP_HASH=get_spack_package_hash("dd4hep"),
-                NPSIM_HASH=get_spack_package_hash("npsim"),
-        cache: True
-        shell:
-                """
+    input:
+        GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=200,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
 exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
    --random.seed {params.SEED} \
@@ -42,34 +42,34 @@ exec npsim \
 """
 
 rule zdc_pi0_recon:
-        input:
-                SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
-                warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
-        output:
-                REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
-        params:
-                N_EVENTS=200,
-                DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-                EICRECON_HASH=get_spack_package_hash("eicrecon"),
-        cache: True
-        shell:
-                """
+    input:
+        SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+    output:
+        REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
+    params:
+        N_EVENTS=200,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    shell:
+        """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,HcalFarForwardZDCRecHits,HcalFarForwardZDCClusters,HcalFarForwardZDCSubcellHits -Pjana:nevents={params.N_EVENTS}
 """
 
 rule zdc_pi0_analysis:
-        input:
-                expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
-                    P=[60, 80, 100, 130, 160],
-                    DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
-                    INDEX=range(5),
-                ),
-                script="benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py",
-        output:
-                results_dir=directory("results/{DETECTOR_CONFIG}/zdc_pi0"),
-        shell:
-                """
+    input:
+        expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
+            P=[60, 80, 100, 130, 160],
+            DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
+            INDEX=range(5),
+        ),
+        script="benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py",
+    output:
+        results_dir=directory("results/{DETECTOR_CONFIG}/zdc_pi0"),
+    shell:
+        """
 mkdir -p {output.results_dir}
 python {input.script} {output.results_dir}
 """

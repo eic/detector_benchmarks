@@ -22,6 +22,7 @@ rule zdc_pi0_simulate:
         params:
                 N_EVENTS=200,
                 INDEX=lambda wildcards: wildcards.INDEX,
+                SEED=lambda wildcards: "1" + wildcards.INDEX,
                 PHYSICS_LIST="FTFP_BERT",
                 DETECTOR_PATH=os.environ["DETECTOR_PATH"],
                 DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -30,9 +31,9 @@ rule zdc_pi0_simulate:
         cache: True
         shell:
                 """
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed {params.SEED} \
    --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \

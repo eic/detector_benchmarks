@@ -22,6 +22,7 @@ rule insert_muon_simulate:
         SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
     params:
         INDEX=lambda wildcards: wildcards.INDEX,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -31,9 +32,9 @@ rule insert_muon_simulate:
     shell:
         """
 NEVENTS_SIM=1000
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed {params.SEED} \
    --skipNEvents $(( $NEVENTS_SIM * {params.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \

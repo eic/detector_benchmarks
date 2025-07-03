@@ -38,9 +38,9 @@ rule femc_pi0_simulate:
         SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
     shell:
         """
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed 1 \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \

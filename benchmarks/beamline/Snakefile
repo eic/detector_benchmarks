@@ -10,6 +10,7 @@ rule beamline_steering_sim:
         """
             exec npsim \
             --runType run \
+            --random.seed 1 \
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
@@ -27,6 +28,7 @@ rule beamline_acceptance_sim:
         """
             exec npsim \
             --runType run \
+            --random.seed 1 \
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \

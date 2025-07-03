@@ -38,10 +38,11 @@ rule zdc_lyso_sim:
     cache: True
     shell:
         """
-npsim \
+exec npsim \
   --runType batch \
   -v WARNING \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --random.seed 1 \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
   --outputFile {output}

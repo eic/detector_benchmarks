@@ -1,4 +1,6 @@
 rule nhcal_acceptance_simulate:
+    input:
+        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
     output:
         "sim_output/nhcal_acceptance/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:

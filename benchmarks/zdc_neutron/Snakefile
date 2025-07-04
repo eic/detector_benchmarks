@@ -22,11 +22,11 @@ rule zdc_neutron_sim:
         num_events=100,
     shell:
         """
-set -m # monitor mode to prevent lingering processes
 exec npsim \
   --runType batch \
   -v WARNING \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
+  --random.seed 1 \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
   --outputFile {output}

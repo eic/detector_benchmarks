@@ -38,9 +38,9 @@ rule femc_photon_simulate:
     cache: True
     shell:
         """
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed 1 \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \

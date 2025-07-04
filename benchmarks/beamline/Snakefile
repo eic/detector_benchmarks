@@ -3,6 +3,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 
 rule beamline_steering_sim:
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
@@ -21,6 +22,7 @@ rule beamline_steering_sim:
 
 rule beamline_acceptance_sim:
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         macro=workflow.source_path("acceptanceGPS.mac"),
     output:
         SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",

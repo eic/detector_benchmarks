@@ -149,7 +149,9 @@ include:
   - local: 'benchmarks/femc_electron/config.yml'
   - local: 'benchmarks/femc_photon/config.yml'
   - local: 'benchmarks/femc_pi0/config.yml'
-
+  - local: 'benchmarks/nhcal_acceptance/config.yml'
+  - local: 'benchmarks/nhcal_basic_distribution/config.yml'
+  
 deploy_results:
   allow_failure: true
   stage: deploy
@@ -180,6 +182,8 @@ deploy_results:
     - "collect_results:femc_electron"
     - "collect_results:femc_photon"
     - "collect_results:femc_pi0"
+    - "collect_results:nhcal_acceptance"
+    - "collect_results:nhcal_basic_distribution"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

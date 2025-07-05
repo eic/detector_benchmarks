@@ -4,7 +4,7 @@ sim:nhcal_acceptance:
   parallel:
     matrix:
       - ENERGY: ["1GeV", "5GeV", "10GeV"]
-        INDEX: ["0 4","5 9"]
+        INDEX_RANGE: ["0 4","5 9"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 5 $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_acceptance/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
 

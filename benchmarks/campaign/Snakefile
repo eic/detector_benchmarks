@@ -32,7 +32,7 @@ env \
   DETECTOR_VERSION={wildcards.DETECTOR_VERSION} \
   DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   SLURM_TMPDIR=$PWD \
-  sh {input.run_script} EVGEN/{wildcards.BASENAME} hepmc3.tree.root {params.N_EVENTS}
+  {input.run_script} EVGEN/{wildcards.BASENAME} hepmc3.tree.root {params.N_EVENTS}
 """
 
 

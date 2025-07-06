@@ -23,7 +23,7 @@ root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{param
 rule zdc_lyso_sim:
     input:
         hepmcfile="data/{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
@@ -52,7 +52,7 @@ exec npsim \
 rule zdc_lyso_reco:
     input:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.edm4eic.root",
     log:

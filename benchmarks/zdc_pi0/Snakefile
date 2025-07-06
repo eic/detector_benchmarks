@@ -15,7 +15,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P}
 rule zdc_pi0_simulate:
     input:
         GEN_FILE="sim_output/zdc_pi0/zdc_pi0_{P}GeV.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
@@ -44,7 +44,7 @@ exec npsim \
 rule zdc_pi0_recon:
     input:
         SIM_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_sim_zdc_pi0_{P}GeV_{INDEX}.edm4hep.root",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         REC_FILE="sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
     params:

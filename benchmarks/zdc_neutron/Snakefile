@@ -15,7 +15,7 @@ root -l -b -q '{input.script}({params.num_events}, 0, "{output.hepmcfile}")'
 rule zdc_neutron_sim:
     input:
         hepmcfile="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
     params:
@@ -37,7 +37,7 @@ exec npsim \
 rule zdc_neutron_reco:
     input:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
     shell:

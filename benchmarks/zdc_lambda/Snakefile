@@ -14,7 +14,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P}
 rule zdc_lambda_simulate:
     input:
         GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root",
@@ -43,7 +43,7 @@ exec npsim \
 rule zdc_lambda_recon:
     input:
         SIM_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_sim_lambda_dec_{P}GeV_{INDEX}.edm4hep.root",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         REC_FILE="sim_output/zdc_lambda/{DETECTOR_CONFIG}_rec_lambda_dec_{P}GeV_{INDEX}.edm4eic.root",
     params:

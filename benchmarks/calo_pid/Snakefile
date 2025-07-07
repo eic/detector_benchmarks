@@ -3,7 +3,7 @@ def format_energy_for_dd4hep(s):
 
 rule calo_pid_sim:
     input:
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root",
@@ -52,7 +52,7 @@ exec ddsim \
 rule calo_pid_recon:
     input:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:

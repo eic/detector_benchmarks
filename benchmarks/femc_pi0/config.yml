@@ -29,6 +29,7 @@ bench:femc_pi0:
 collect_results:femc_pi0:
   extends: .det_benchmark
   stage: collect
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
   needs: ["bench:femc_pi0"]
   when: always
   script:

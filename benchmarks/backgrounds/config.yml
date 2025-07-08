@@ -5,7 +5,7 @@ sim:backgrounds:
     - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input
     - |
-      snakemake $SNAKEMAKE_FLAGS --cores 2 \
+      snakemake $SNAKEMAKE_FLAGS --cores 1 \
         sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root \
         sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root \
         sim_output/$DETECTOR_CONFIG/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root
@@ -19,7 +19,7 @@ bench:backgrounds_emcal_backwards:
     - ln -s $LOCAL_DATA_PATH/input input
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backgrounds/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores 8 backgrounds_ecal_backwards
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 backgrounds_ecal_backwards
 
 collect_results:backgrounds:
   extends: .det_benchmark

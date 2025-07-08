@@ -24,6 +24,7 @@ sim:calo_pid:
 bench:calo_pid:
   extends: .det_benchmark
   stage: benchmarks
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/184
   needs:
     - ["sim:calo_pid"]
   script:
@@ -34,6 +35,7 @@ bench:calo_pid:
 collect_results:calo_pid:
   extends: .det_benchmark
   stage: collect
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/184
   needs:
     - "bench:calo_pid"
   when: always

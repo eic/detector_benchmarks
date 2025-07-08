@@ -1,5 +1,6 @@
 sim:zdc_lyso:
   extends: .det_benchmark
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/178
   stage: simulate
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 zdc_lyso_local
@@ -10,6 +11,7 @@ sim:zdc_lyso:
 
 collect_results:zdc_lyso:
   extends: .det_benchmark
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/178
   stage: collect
   needs:
     - "sim:zdc_lyso"

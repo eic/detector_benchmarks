@@ -1,0 +1,60 @@
+rule nhcal_basic_distribution_simulate:
+    input:
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+    output:
+        "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=10000,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        ENERGY=lambda wildcards: wildcards.ENERGY,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
+exec ddsim \
+    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+    --numberOfEvents {params.N_EVENTS} \
+    --random.seed {params.SEED} \
+    --enableGun \
+    -v WARNING \
+    --gun.particle neutron \
+    --gun.thetaMin 120*degree \
+    --gun.thetaMax 180*degree \
+    --gun.distribution uniform \
+    --gun.energy "{params.ENERGY}*GeV" \
+    --outputFile {output}
+"""
+
+
+rule nhcal_basic_distribution_combine:
+    input:
+        lambda wildcards: expand(
+            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root", 
+            DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
+            ENERGY=float(wildcards.ENERGY),
+            INDEX=range(int(wildcards.N)),
+        ),
+    wildcard_constraints:
+        N=r"\d+",
+        ENERGY=r"\d+(\.\d+)?"
+    output:
+        temp("sim_output/nhcal_basic_distribution/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root"),
+    shell:
+        """
+hadd -f {output} {input} 
+"""
+
+rule nhcal_basic_distribution_analysis:
+    input:
+        combined="sim_output/nhcal_basic_distribution/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
+        script="benchmarks/nhcal_basic_distribution/scripts/basic_distribution_analysis.cxx",
+    output:
+        pdf=f"results/nhcal_basic_distribution/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
+        png=f"results/nhcal_basic_distribution/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
+    shell:
+        """
+    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
+"""

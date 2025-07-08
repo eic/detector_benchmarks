@@ -22,13 +22,14 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {pa
 rule insert_tau_simulate:
     input:
         GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
     params:
         N_EVENTS=get_n_events,
         INDEX=lambda wildcards: wildcards.INDEX,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -37,9 +38,9 @@ rule insert_tau_simulate:
     cache: True
     shell:
         """
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed {params.SEED} \
    --numberOfEvents {params.N_EVENTS} \
    --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
    --physicsList {params.PHYSICS_LIST} \
@@ -50,6 +51,7 @@ npsim \
 rule insert_tau_recon:
     input:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",
     params:

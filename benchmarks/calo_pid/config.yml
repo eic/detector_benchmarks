@@ -22,9 +22,9 @@ sim:calo_pid:
         $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/130to177deg/${PARTICLE}_100MeVto20GeV_130to177deg.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
 
 bench:calo_pid:
-  allow_failure: true # until inference merged into EICrecon
   extends: .det_benchmark
   stage: benchmarks
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/184
   needs:
     - ["sim:calo_pid"]
   script:
@@ -33,9 +33,9 @@ bench:calo_pid:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_inner_detector/calo_pid
 
 collect_results:calo_pid:
-  allow_failure: true # until inference merged into EICrecon
   extends: .det_benchmark
   stage: collect
+  allow_failure: true # https://github.com/eic/detector_benchmarks/issues/184
   needs:
     - "bench:calo_pid"
   when: always

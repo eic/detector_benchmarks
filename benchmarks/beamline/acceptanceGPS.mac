@@ -1,0 +1,14 @@
+
+/gps/ang/type beam2d
+/gps/ang/sigma_x 0.011 rad # 11 mrad
+/gps/ang/sigma_y 0.011 rad # 11 mrad
+/gps/pos/type Beam
+/gps/pos/sigma_x 0.119 mm
+/gps/pos/sigma_y 0.0107 mm
+/gps/particle e-
+/gps/ene/type Lin
+/gps/ene/gradient 0.00001
+/gps/ene/min 6 GeV
+/gps/ene/max 18 GeV
+
+/run/beamOn 1000000

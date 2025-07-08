@@ -92,9 +92,9 @@ void fwd_neutrons_recon(std::string inputfile, std::string outputfile){
 
     TTreeReaderArray<int>   gen_status(tr, "MCParticles.generatorStatus");
     TTreeReaderArray<int>   gen_pid(tr, "MCParticles.PDG");
-    TTreeReaderArray<float> gen_px(tr, "MCParticles.momentum.x");
-    TTreeReaderArray<float> gen_py(tr, "MCParticles.momentum.y");
-    TTreeReaderArray<float> gen_pz(tr, "MCParticles.momentum.z");
+    TTreeReaderArray<double> gen_px(tr, "MCParticles.momentum.x");
+    TTreeReaderArray<double> gen_py(tr, "MCParticles.momentum.y");
+    TTreeReaderArray<double> gen_pz(tr, "MCParticles.momentum.z");
     TTreeReaderArray<double> gen_mass(tr, "MCParticles.mass");
     TTreeReaderArray<float> gen_charge(tr, "MCParticles.charge");
     TTreeReaderArray<double> gen_vx(tr, "MCParticles.vertex.x");

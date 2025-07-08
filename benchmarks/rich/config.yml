@@ -1,0 +1,19 @@
+bench:drich_fixed_eta:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - cmake -S benchmarks/rich -B build -DCMAKE_INSTALL_PREFIX=.local
+    - cmake --build build -j2
+    - cmake --install build
+    - |
+      for mode in fixedEtaIdeal fixedEtaMin fixedEtaMax ; do
+        ruby benchmarks/rich/run_benchmark.rb --ci -s $mode --num-events 50
+      done
+
+collect_results:rich:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:drich_fixed_eta"
+  script:
+    - echo "Done collecting artifacts."

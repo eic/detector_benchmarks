@@ -12,7 +12,7 @@ sim:zdc_lambda:
       - P: 250
       - P: 275
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/zdc_lambda/epic_zdc_sipm_on_tile_only_rec_lambda_dec_${P}GeV_{0,1,2,3,4}.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/zdc_lambda/epic_zdc_sipm_on_tile_only_rec_lambda_dec_${P}GeV_{0,1,2,3,4}.edm4eic.root
   retry:
     max: 2
     when:

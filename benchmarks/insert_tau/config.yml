@@ -12,7 +12,7 @@ sim:insert_tau:
       - P: 100
   timeout: 1 hours
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/insert_tau/epic_craterlake_sim_tau-_${P}GeV_{0,1,2,3,4}.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/insert_tau/epic_craterlake_sim_tau-_${P}GeV_{0,1,2,3,4}.edm4hep.root
   retry:
     max: 2
     when:

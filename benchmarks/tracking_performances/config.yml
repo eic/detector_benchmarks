@@ -18,7 +18,7 @@ bench:tracking_performance:
   needs:
     - ["sim:tracking_performance"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 tracking_performance_local
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB tracking_performance_local
 
 collect_results:tracking_performance:
   extends: .det_benchmark

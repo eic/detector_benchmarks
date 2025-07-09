@@ -59,10 +59,13 @@ rule calo_pid_recon:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell: """
-set -m # monitor mode to prevent lingering processes
-exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+exec eicrecon {input} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget,EcalEndcapNParticleIDOutput_probability_tensor
 """
 

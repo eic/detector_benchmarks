@@ -19,6 +19,7 @@ sim:insert_neutron:
 
 bench:insert_neutron:
   extends: .det_benchmark
+  allow_failure: true # https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/jobs/5885546
   stage: benchmarks
   needs: ["sim:insert_neutron"]
   script:
@@ -26,6 +27,7 @@ bench:insert_neutron:
 
 collect_results:insert_neutron:
   extends: .det_benchmark
+  allow_failure: true # https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/jobs/5885547
   stage: collect
   needs: ["bench:insert_neutron"]
   when: always

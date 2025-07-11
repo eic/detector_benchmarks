@@ -55,7 +55,7 @@ case "{wildcards.MODE}" in
   flags=( --xvar wtime --yvar vmem,pss,rss,swap --yunit GB )
   ;;
 esac
-prmon_plot.py --input "{wildcards.PATH}.prmon.txt" "${flags[@]}" --otype {EXTENSION} --output "{wildcards.PATH}.memory"
+prmon_plot.py --input "{wildcards.PATH}.prmon.txt" "${{flags[@]}}" --otype {wildcards.EXTENSION} --output "{wildcards.PATH}.memory"
 """
 
 

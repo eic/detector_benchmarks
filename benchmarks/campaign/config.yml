@@ -1,0 +1,16 @@
+bench:campaign:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 campaign_benchmark
+
+collect_results:campaign:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:campaign"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output campaign_benchmark
+    - mv results{_save,}/

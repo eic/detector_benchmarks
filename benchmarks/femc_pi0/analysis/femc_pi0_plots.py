@@ -171,7 +171,7 @@ for p in arrays_sim:
         coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
     except RuntimeError as e:
         print(e)
-        print("x:", list(bcs[slc]), "y:" list(y[slc]))
+        print("x:", list(bcs[slc]), "y:", list(y[slc]))
     #res=np.abs(coeff[2]/coeff[1])
     if p==50:
         xx=np.linspace(15*p/20,22*p/20, 100)

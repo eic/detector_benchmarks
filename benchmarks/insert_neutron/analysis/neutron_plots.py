@@ -244,8 +244,9 @@ for eta_min, eta_max in zip(partitions[:-1],partitions[1:]):
                 wbest=w
                 scale=coeff[1]/np.sqrt(p**2+0.9406**2)
                 dscale=np.sqrt(var_matrix[1][1]/np.sqrt(p**2+0.9406**2))
-        except :
-            print("fit failed")
+        except RuntimeError as e:
+            print("fit failed", e)
+            print("list(bcs[slc])", list(bcs[slc]), "list(y[slc])", list(y[slc]))
         if p==50 and eta_min==3.4:
             plt.sca(axs[0])
             plt.errorbar(bcs, y, np.sqrt(y)+(y==0),marker='o', ls='', )

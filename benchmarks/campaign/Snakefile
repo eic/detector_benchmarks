@@ -73,3 +73,9 @@ rule campaign_benchmark:
                 "memory",
             ],
         ),
+    output:
+        directory("results/campaign"),
+    shell:
+        """
+cp {input} {output}
+"""

@@ -1,7 +1,7 @@
 def get_n_events(wildcards):
     energy = float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))
     n_events = 1000 if wildcards.PARTICLE == "e-" else 2000
-    n_events = int(n_events // (energy ** 0.5))
+    n_events = int(n_events // (energy ** 0.75))
     return n_events
 
 

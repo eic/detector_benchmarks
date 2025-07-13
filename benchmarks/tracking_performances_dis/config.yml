@@ -1,8 +1,12 @@
 sim:tracking_performances_dis:
   extends: .det_benchmark
   stage: simulate
+  parallel:
+    matrix:
+      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
+        INDEX_RANGE: ["1 4","5 8"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/hists.root
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_${INDEX}.edm4eic.root; done)
   retry:
     max: 2
     when:

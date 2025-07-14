@@ -77,5 +77,6 @@ rule campaign_benchmark:
         directory("results/campaign"),
     shell:
         """
+mkdir -p {output}
 cp {input} {output}
 """

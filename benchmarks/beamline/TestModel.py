@@ -2,6 +2,7 @@ import onnxruntime as ort
 import argparse
 import numpy as np
 from ProcessData import create_arrays
+from RegressionModel import ProjectToX0Plane
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from scipy.stats import norm
@@ -17,9 +18,11 @@ modelFile     = args.modelFile
 dataFiles     = args.dataFiles
 outDir        = args.outDir
 outGraphFile  = outDir + "/output_vs_target.png"
-outGraphFile2 = outDir + "/output_vs_target2.png"
-outGraphFile3 = outDir + "/output_vs_target3.png"
-outGraphFile4 = outDir + "/output_vs_target4.png"
+outGraphFile2 = outDir + "/transformed_output_vs_target.png"
+outGraphFile3 = outDir + "/transformed_cut_output_vs_target.png"
+outGraphFile4 = outDir + "/projected_output_vs_target.png"
+correlationFile = outDir + "/correlations.png"
+projectedCorrelationFile = outDir + "/projected_correlations.png"
 
 input_data, target_data = create_arrays(dataFiles)
 
@@ -91,7 +94,7 @@ axs2[0,0].hist2d(out_theta, in_theta, bins=100, range=[thetarange,thetarange], c
 axs2[0,0].set_xlabel("Theta Target")
 axs2[0,0].set_ylabel("Theta Output")
 
-axs2[0,1].hist2d(out_phi, in_phi, bins=100, range=[phirange,phirange], cmap="seismic", label="Output vs Target")
+axs2[0,1].hist2d(out_phi, in_phi, bins=100, range=[phirange,phirange], cmap="seismic", norm=LogNorm(), label="Output vs Target")
 axs2[0,1].set_xlabel("Phi Target")
 axs2[0,1].set_ylabel("Phi Output")
 
@@ -115,7 +118,7 @@ axs2[2,0].hist2d(in_theta, thetadiff, bins=100, range=[thetarange,thetadiffrange
 axs2[2,0].set_xlabel("Theta Target")
 axs2[2,0].set_ylabel("Theta Difference")
 
-axs2[2,1].hist2d(in_phi, phidiff, bins=100, range=[phirange,phidiffrange], cmap="seismic", label="Difference vs Target")
+axs2[2,1].hist2d(in_phi, phidiff, bins=100, range=[phirange,phidiffrange], cmap="seismic", norm=LogNorm(), label="Difference vs Target")
 axs2[2,1].set_xlabel("Phi Target")
 axs2[2,1].set_ylabel("Phi Difference")
 
@@ -145,7 +148,7 @@ axs3[0,0].hist2d(out_theta_cut, in_theta_cut, bins=100, range=[thetarange,thetar
 axs3[0,0].set_xlabel("Theta Target")
 axs3[0,0].set_ylabel("Theta Output")
 
-axs3[0,1].hist2d(out_phi_cut, in_phi_cut, bins=100, range=[phirange,phirange], cmap="seismic", label="Output vs Target")
+axs3[0,1].hist2d(out_phi_cut, in_phi_cut, bins=100, range=[phirange,phirange], cmap="seismic", norm=LogNorm(), label="Output vs Target")
 axs3[0,1].set_xlabel("Phi Target")
 axs3[0,1].set_ylabel("Phi Output")
 
@@ -169,7 +172,7 @@ axs3[2,0].hist2d(in_theta_cut, thetadiff_cut, bins=100, range=[thetarange,thetad
 axs3[2,0].set_xlabel("Theta Target")
 axs3[2,0].set_ylabel("Theta Difference")
 
-axs3[2,1].hist2d(in_phi_cut, phidiff_cut, bins=100, range=[phirange,phidiffrange], cmap="seismic", label="Difference vs Target")
+axs3[2,1].hist2d(in_phi_cut, phidiff_cut, bins=100, range=[phirange,phidiffrange], cmap="seismic", norm=LogNorm(), label="Difference vs Target")
 axs3[2,1].set_xlabel("Phi Target")
 axs3[2,1].set_ylabel("Phi Difference")
 
@@ -204,8 +207,78 @@ def plot_gaussian_fit(ax, data, range, xlabel, ylabel):
 fig4, axs4 = plt.subplots(3, 1, figsize=(8, 12))
 
 plot_gaussian_fit(axs4[0], thetadiff, thetadiffrange, "Theta Difference", "Density")
-plot_gaussian_fit(axs4[1], phidiff_cut, phidiffrange, "Phi Difference", "Density")
-plot_gaussian_fit(axs4[2], magdiff, magdiffrange, "Mag Difference", "Density")
+plot_gaussian_fit(axs4[1], phidiff_cut, phidiffrange, "Phi Difference",   "Density")
+plot_gaussian_fit(axs4[2], magdiff, magdiffrange,     "Mag Difference",   "Density")
 
 plt.show()
 plt.savefig(outGraphFile4)
+
+
+# Look at the correlations between all of the variables in target_data and projected_inputs
+# Create a comparison variable array
+comparisson_variables = np.concatenate((input_data, target_data), axis=1)
+
+# Project inputs onto the X0 plane
+projected_inputs = ProjectToX0Plane().project_numpy(input_data)
+
+# Concatenate the projected inputs and target data
+projected_comparisson_variables = np.concatenate((projected_inputs, target_data), axis=1)
+projected_comparisson_variables = projected_comparisson_variables[(abs(projected_comparisson_variables[:, 3]) < 0.02)]
+projected_comparisson_variables = projected_comparisson_variables[(abs(projected_comparisson_variables[:, 2]+0.025) < 0.028)]  # Filter for px < 0.1
+
+# Calculate limits for each variable based on the data
+limits = {
+    "ox": [np.min(comparisson_variables[:, 0]), np.max(comparisson_variables[:, 0])],
+    "oy": [np.min(comparisson_variables[:, 1]), np.max(comparisson_variables[:, 1])],
+    "y": [-200, 200],
+    "z": [-17000,-9000],
+    "px": [np.min(projected_comparisson_variables[:, 2]), np.max(projected_comparisson_variables[:, 2])],
+    "py": [np.min(projected_comparisson_variables[:, 3]), np.max(projected_comparisson_variables[:, 3])],
+    "opx": [np.min(comparisson_variables[:, 3]), np.max(comparisson_variables[:, 3])],
+    "opy": [np.min(comparisson_variables[:, 4]), np.max(comparisson_variables[:, 4])],
+    "opz": [np.min(comparisson_variables[:, 5]), np.max(comparisson_variables[:, 5])],
+    "Px": [np.min(projected_comparisson_variables[:, 4]), np.max(projected_comparisson_variables[:, 4])],
+    "Py": [np.min(projected_comparisson_variables[:, 5]), np.max(projected_comparisson_variables[:, 5])],
+    "Pz": [np.min(projected_comparisson_variables[:, 6]), np.max(projected_comparisson_variables[:, 6])],
+}
+
+
+labels = ["ox","oy", "z", "opx", "opy", "opz", "Px", "Py", "Pz"]
+fig5, axs5 = plt.subplots(9, 9, figsize=(30, 30))
+for i in range(9):
+    for j in range(9):
+        if i == j:
+            axs5[j, i].hist(comparisson_variables[:, i], range=limits[labels[i]], bins=100, alpha=0.5, label=labels[i])
+            axs5[j, i].set_xlabel(labels[i])
+            axs5[j, i].set_ylabel("Counts")
+            #set log scale for y-axis if the data is skewed
+            axs5[j, i].set_yscale('log')
+        else:
+            axs5[j, i].hist2d(comparisson_variables[:, i], comparisson_variables[:, j], range=[limits[labels[i]],limits[labels[j]]], bins=100, cmap="seismic", norm=LogNorm())
+            axs5[j, i].set_xlabel(labels[i])
+            axs5[j, i].set_ylabel(labels[j])
+plt.tight_layout()
+plt.savefig(correlationFile)
+plt.show()
+
+
+
+# Plot the correlations between all of the variables in target_data and projected_inputs
+projected_labels = ["y", "z", "px", "py", "Px", "Py", "Pz"]
+fig6, axs6 = plt.subplots(7, 7, figsize=(30, 30))
+for i in range(7):
+    for j in range(7):
+        if i == j:
+            axs6[j, i].hist(projected_comparisson_variables[:, i], range=limits[projected_labels[i]], bins=100, alpha=0.5, label=projected_labels[i])
+            axs6[j, i].set_xlabel(projected_labels[i])
+            axs6[j, i].set_ylabel("Counts")
+            #set log scale for y-axis if the data is skewed
+            axs6[j, i].set_yscale('log')
+        else:
+            axs6[j, i].hist2d(projected_comparisson_variables[:, i], projected_comparisson_variables[:, j], range=[limits[projected_labels[i]],limits[projected_labels[j]]], bins=100, cmap="seismic", norm=LogNorm())
+            axs6[j, i].set_xlabel(projected_labels[i])
+            axs6[j, i].set_ylabel(projected_labels[j])
+
+plt.tight_layout()
+plt.savefig(projectedCorrelationFile)
+plt.show()

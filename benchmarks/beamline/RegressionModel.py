@@ -6,37 +6,43 @@ import numpy as np
 class ProjectToX0Plane(nn.Module):
     def forward(self, x):
         # x shape: (batch, 6) -> [x, y, z, px, py, pz]
-        x0 = x[:, 0]
-        y0 = x[:, 1]
-        z0 = x[:, 2]
-        px = x[:, 3]
-        py = x[:, 4]
-        pz = x[:, 5]
+        x0, y0, z0, px, py, pz = x.unbind(dim=1)
 
-        #normalize the momentum components
+        # Normalize momentum components
         momentum = torch.sqrt(px**2 + py**2 + pz**2)
-        px = px / momentum
-        py = py / momentum
-        pz = pz / momentum
+        px_norm = px / momentum
+        py_norm = py / momentum
+        pz_norm = pz / momentum
 
         # Avoid division by zero for px
-        eps = 1e-8
-        px_safe = torch.where(px.abs() < eps, eps * torch.sign(px) + eps, px)
-        t = -x0 / px_safe
+        # eps = 1e-8
+        # px_safe = torch.where(px_norm.abs() < eps, eps * torch.sign(px_norm) + eps, px_norm)
+        t = -x0 / px_norm
 
-        y_proj = y0 + py * t
-        z_proj = z0 + pz * t
+        y_proj = y0 + py_norm * t
+        z_proj = z0 + pz_norm * t
 
-        # Output: [y_proj, z_proj, px, pz]
-        return torch.stack([y_proj, z_proj, px, pz], dim=1)
+        # Output: [y_proj, z_proj, px_norm, py_norm]
+        return torch.stack([y_proj, z_proj, px_norm, py_norm], dim=1)
+    
+    def project_numpy(self, arr):
+        """
+        Projects a numpy array of shape (N, 6) using the forward method,
+        returns a numpy array of shape (N, 4).
+        """
+        device = next(self.parameters()).device if any(p.device.type != 'cpu' for p in self.parameters()) else 'cpu'
+        x = torch.from_numpy(arr).float().to(device)
+        with torch.no_grad():
+            projected = self.forward(x)
+        return projected.cpu().numpy()
 
 class RegressionModel(nn.Module):
     def __init__(self):
         super(RegressionModel, self).__init__()
         self.project_to_x0 = ProjectToX0Plane()
-        self.fc1  = nn.Linear(4, 64)
-        self.fc2  = nn.Linear(64, 64)
-        # self.fc3  = nn.Linear(64, 64)
+        self.fc1  = nn.Linear(4, 512)
+        self.fc2  = nn.Linear(512, 64)
+        # self.fc3  = nn.Linear(16, 8)
         self.fc4  = nn.Linear(64, 3)
 
         # Normalization parameters
@@ -61,18 +67,18 @@ class RegressionModel(nn.Module):
         # Core fully connected layers
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        # x = torch.tanh(self.fc3(x))
+        # x = torch.relu(self.fc3(x))
         x = self.fc4(x)
         return x
     
     def adapt(self, input_data, output_data):
-        # Compute normalization parameters from training data
-        self.input_mean.data = torch.tensor(input_data.mean(axis=0), dtype=torch.float32)
-        self.input_std.data = torch.tensor(input_data.std(axis=0), dtype=torch.float32)
-        self.output_mean.data = torch.tensor(output_data.mean(axis=0), dtype=torch.float32)
-        self.output_std.data = torch.tensor(output_data.std(axis=0), dtype=torch.float32)
+        # Compute normalization parameters using PyTorch
+        self.input_mean.data = input_data.mean(dim=0)
+        self.input_std.data = input_data.std(dim=0)
+        self.output_mean.data = output_data.mean(dim=0)
+        self.output_std.data = output_data.std(dim=0)
 
-def preprocess_data(model, data_loader):
+def preprocess_data(model, data_loader, adapt=True):
     inputs = data_loader.dataset.tensors[0]
     targets = data_loader.dataset.tensors[1]
 
@@ -84,7 +90,8 @@ def preprocess_data(model, data_loader):
     print("Projected Inputs (first 5):", projected_inputs[:5])    
 
     # Compute normalization parameters
-    model.adapt(projected_inputs.detach().numpy(), targets.detach().numpy())
+    if adapt:
+        model.adapt(projected_inputs, targets)
 
     # Normalize inputs and targets
     normalized_inputs = (projected_inputs - model.input_mean) / model.input_std
@@ -97,37 +104,36 @@ def makeModel():
     # Create the model
     model = RegressionModel()
     # Define the optimizer
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     # Define the loss function
     criterion = nn.MSELoss()
 
     return model, optimizer, criterion
 
-def trainModel(epochs, train_loader, val_loader):
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+def trainModel(epochs, train_loader, val_loader, device):
     
     model, optimizer, criterion = makeModel()
-    model.to(device)
     
     # Verify that the model parameters are on the GPU
     for name, param in model.named_parameters():
         print(f"{name} is on {param.device}")
     
     # Preprocess training and validation data
-    preprocess_data(model, train_loader)
-    preprocess_data(model, val_loader)
+    # preprocess_data(model, train_loader)
+    # preprocess_data(model, val_loader, adapt=False)
+    projected_inputs = model.project_to_x0(train_loader.dataset.tensors[0])
+    model.adapt(projected_inputs, train_loader.dataset.tensors[1])
+
+    model.to(device)
 
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
         for inputs, targets in train_loader:
-            inputs = inputs.to(device)
-            targets = targets.to(device)
-            # inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
-            outputs = model._core_forward(inputs)
+            outputs = model(inputs)
+            # outputs = model._core_forward(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -142,16 +148,13 @@ def trainModel(epochs, train_loader, val_loader):
         val_loss = 0.0
         with torch.no_grad():
             for val_inputs, val_targets in val_loader:
-                val_inputs = val_inputs.to(device)
-                val_targets = val_targets.to(device)
-                # val_inputs, val_targets = val_inputs.to(device), val_targets.to(device)
-                val_outputs = model._core_forward(val_inputs)
+                val_inputs, val_targets = val_inputs.to(device), val_targets.to(device)
+                val_outputs = model(val_inputs)
+                # val_outputs = model._core_forward(val_inputs)
                 val_loss += criterion(val_outputs, val_targets).item() * val_inputs.size(0)
-            # val_outputs = model(val_input)
-            # val_loss = criterion(val_outputs, val_target)
 
         val_loss /= len(val_loader.dataset)
 
-        print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss}, Val Loss: {val_loss}")
+        print(f"Epoch [{epoch+1}/{epochs}], Loss: {epoch_loss}, Val Loss: {val_loss}")
 
     return model

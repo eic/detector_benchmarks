@@ -7,7 +7,7 @@ def create_arrays(dataFiles,beamEnergy=18):
     branches = ["features","targets"]
 
     # Load data from concatenated list of files
-    data = uproot.concatenate([f"{file}:events" for file in dataFiles], branches, library="ak")
+    data = uproot.concatenate([f"{file}:events" for file in dataFiles], branches, library="np")
     
     input_data = data["features"]
     target_data = data["targets"]/beamEnergy

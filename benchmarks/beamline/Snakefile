@@ -108,14 +108,29 @@ rule beamline_steering_reconstruction_test:
     input:
         script=workflow.source_path("TestModel.py"),
         data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
-        model=ANALYSISDIR+"BeamlineSteeringReconstruction{CAMPAIGN}.onnx",
+        model=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
     output:
-        directory("sim_output/beamline/analysis/NN_Test_{CAMPAIGN}/")
+        directory(ANALYSISDIR+"NN_Test_{CAMPAIGN}/")
+    shell:
+        """
+            mkdir {output}      
+            python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output} --epochs 20
+        """
+
+# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+rule beamline_steering_reconstruction_full:
+    input:
+        script=workflow.source_path("TestModel.py"),
+        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        model=ANALYSISDIR+"BeamlineSteeringReconstructionFull{CAMPAIGN}.onnx",
+    output:
+        directory(ANALYSISDIR+"NN_Full_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}      
             python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output}
         """
+
 
 rule beamline:
     input:

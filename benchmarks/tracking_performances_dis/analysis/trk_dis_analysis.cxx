@@ -64,9 +64,9 @@ void trk_dis_analysis(const std::string& config_name)
     // Generated Particle Information
     TTreeReaderArray<int>   gen_status(tr, "MCParticles.generatorStatus");
     TTreeReaderArray<int>   gen_pid(tr, "MCParticles.PDG");
-    TTreeReaderArray<float> gen_px(tr, "MCParticles.momentum.x");
-    TTreeReaderArray<float> gen_py(tr, "MCParticles.momentum.y");
-    TTreeReaderArray<float> gen_pz(tr, "MCParticles.momentum.z");
+    TTreeReaderArray<double> gen_px(tr, "MCParticles.momentum.x");
+    TTreeReaderArray<double> gen_py(tr, "MCParticles.momentum.y");
+    TTreeReaderArray<double> gen_pz(tr, "MCParticles.momentum.z");
     TTreeReaderArray<double> gen_mass(tr, "MCParticles.mass"); //Not important here
     TTreeReaderArray<float> gen_charge(tr, "MCParticles.charge");
     TTreeReaderArray<double> gen_vx(tr, "MCParticles.vertex.x");
@@ -78,17 +78,17 @@ void trk_dis_analysis(const std::string& config_name)
     TTreeReaderArray<float> rec_py(tr, "ReconstructedChargedParticles.momentum.y");
     TTreeReaderArray<float> rec_pz(tr, "ReconstructedChargedParticles.momentum.z");
     TTreeReaderArray<float> rec_mass(tr, "ReconstructedChargedParticles.mass");
-    TTreeReaderArray<int> rec_type(tr, "ReconstructedChargedParticles.type"); //Type 0: successful eta/phi match to generated particle
-    TTreeReaderArray<int> rec_pdg(tr, "ReconstructedChargedParticles.PDG"); //Uses PID lookup table information
+    TTreeReaderArray<int> rec_pdg(tr, "ReconstructedChargedParticles.PDG");
+    TTreeReaderArray<int> rec_type(tr, "ReconstructedChargedParticles.type");
 
     // Reconstructed truth-seeded tracks (charged particles)
     TTreeReaderArray<float> rec_ts_px(tr, "ReconstructedTruthSeededChargedParticles.momentum.x");
     TTreeReaderArray<float> rec_ts_py(tr, "ReconstructedTruthSeededChargedParticles.momentum.y");
     TTreeReaderArray<float> rec_ts_pz(tr, "ReconstructedTruthSeededChargedParticles.momentum.z");
     TTreeReaderArray<float> rec_ts_mass(tr, "ReconstructedTruthSeededChargedParticles.mass");
-    TTreeReaderArray<int> rec_ts_type(tr, "ReconstructedTruthSeededChargedParticles.type"); //Type 0: successful eta/phi match to generated particle
-    TTreeReaderArray<int> rec_ts_pdg(tr, "ReconstructedTruthSeededChargedParticles.PDG"); //Uses PID lookup table information
-
+    TTreeReaderArray<int> rec_ts_pdg(tr, "ReconstructedTruthSeededChargedParticles.PDG");
+    TTreeReaderArray<int> rec_ts_type(tr, "ReconstructedTruthSeededChargedParticles.type");
+	
     // Hit-based track to MC Particle association weight
     TTreeReaderArray<float> hit_assoc_weight(tr,"CentralCKFTrackAssociations.weight"); //Real-seeded tracking
     TTreeReaderArray<float> hit_assoc_weight_ts(tr,"CentralCKFTruthSeededTrackAssociations.weight"); //Truth-seeded tracking

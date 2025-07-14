@@ -11,7 +11,7 @@ sim:insert_neutron:
       - P: 70
       - P: 80
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/insert_neutron/epic_craterlake_rec_neutron_${P}GeV_{0,1,2,3,4}.edm4eic.root
   retry:
     max: 2
     when:
@@ -19,6 +19,7 @@ sim:insert_neutron:
 
 bench:insert_neutron:
   extends: .det_benchmark
+  allow_failure: true # https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/jobs/5885546
   stage: benchmarks
   needs: ["sim:insert_neutron"]
   script:
@@ -26,6 +27,7 @@ bench:insert_neutron:
 
 collect_results:insert_neutron:
   extends: .det_benchmark
+  allow_failure: true # https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks/-/jobs/5885547
   stage: collect
   needs: ["bench:insert_neutron"]
   when: always

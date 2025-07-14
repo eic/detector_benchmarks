@@ -11,9 +11,7 @@ rule emcal_barrel_particles_gen:
         "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
     shell:
         """
-env \
-  JUGGLER_GEN_FILE=../{output} \
-  root -l -b -q '{input.script}+({params.JUGGLER_N_EVENTS}, {wildcards.E_MIN}, {wildcards.E_MAX}, \"{wildcards.PARTICLE}\")'
+root -l -b -q '{input.script}+("{output}", {params.JUGGLER_N_EVENTS}, {wildcards.E_MIN}, {wildcards.E_MAX}, "{wildcards.PARTICLE}")'
 """
 
 

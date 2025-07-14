@@ -3,7 +3,8 @@ sim:beamline:
   stage: simulate
   script:
     - |
-      snakemake $SNAKEMAKE_FLAGS --cores 2 \
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
+        sim_output/beamline/acceptanceTestlocal.edm4hep.root \
         sim_output/beamline/beamlineTestlocal.edm4hep.root
 
 bench:beamline:
@@ -12,7 +13,7 @@ bench:beamline:
   needs:
     - ["sim:beamline"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 2 beamline_local
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB beamline_local
 
 collect_results:beamline:
   extends: .det_benchmark

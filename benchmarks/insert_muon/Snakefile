@@ -16,12 +16,13 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {
 rule insert_muon_simulate:
     input:
         GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
     params:
         INDEX=lambda wildcards: wildcards.INDEX,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -31,9 +32,9 @@ rule insert_muon_simulate:
     shell:
         """
 NEVENTS_SIM=1000
-# Running simulation
-npsim \
+exec npsim \
    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed {params.SEED} \
    --skipNEvents $(( $NEVENTS_SIM * {params.INDEX} )) \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
@@ -44,6 +45,7 @@ npsim \
 rule insert_muon_recon:
     input:
         SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root",
     params:

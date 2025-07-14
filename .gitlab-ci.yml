@@ -125,6 +125,7 @@ include:
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
+  - local: 'benchmarks/campaign/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
@@ -139,7 +140,6 @@ include:
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/rich/config.yml'
-  - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
@@ -161,6 +161,7 @@ deploy_results:
     - "collect_results:barrel_ecal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"
+    - "collect_results:campaign"
     - "collect_results:ecal_gaps"
     - "collect_results:lfhcal"
     - "collect_results:material_scan"

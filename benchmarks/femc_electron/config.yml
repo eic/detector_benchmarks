@@ -21,6 +21,7 @@ sim:femc_electron:
 
 bench:femc_electron:
   extends: .det_benchmark
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
   stage: benchmarks
   needs: ["sim:femc_electron"]
   script:
@@ -28,6 +29,7 @@ bench:femc_electron:
 
 collect_results:femc_electron:
   extends: .det_benchmark
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
   stage: collect
   needs: ["bench:femc_electron"]
   when: always

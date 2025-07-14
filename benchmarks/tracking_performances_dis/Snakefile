@@ -22,7 +22,7 @@ rule trk_dis_compile:
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
     input:
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
@@ -56,6 +56,7 @@ ddsim \
 rule trk_dis_reco:
     input:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     params:

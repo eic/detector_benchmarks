@@ -2,7 +2,7 @@ sim:zdc_neutron:
   extends: .det_benchmark
   stage: simulate
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 5 sim_output/zdc_neutron/epic_craterlake/fwd_neutrons.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/zdc_neutron/epic_craterlake/fwd_neutrons.edm4eic.root
   retry:
     max: 2
     when:

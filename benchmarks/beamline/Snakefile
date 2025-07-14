@@ -3,6 +3,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 
 rule beamline_steering_sim:
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
@@ -10,12 +11,13 @@ rule beamline_steering_sim:
         """
             exec npsim \
             --runType run \
+            --random.seed 1 \
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
             --outputFile {output} \
-            --physics.rangecut 1000000 \
+            --physics.rangecut 100*m
         """
 
 rule beamline_acceptance_sim:
@@ -28,12 +30,12 @@ rule beamline_acceptance_sim:
         """
             exec npsim \
             --runType run \
+            --random.seed 1 \
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
             --outputFile {output} \
-            --physics.rangecut 1000000 \
         """
 
 rule beamline_steering_analysis:

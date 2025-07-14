@@ -98,7 +98,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     int eBins = 100;
     int thetaBins = 100;
 
-    auto totalETheta = d1.Histo2D({"Energy vs Theta","Energy vs Theta",eBins,4,18,thetaBins,0,0.011},"energy","theta");
+    auto totalETheta = d1.Histo2D({"Energy vs Theta","Energy vs Theta",eBins,6,18,thetaBins,0,0.011},"energy","theta");
 
     if(Any(colNames==readoutName)){
 

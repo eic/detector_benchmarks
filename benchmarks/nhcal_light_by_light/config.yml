@@ -1,0 +1,27 @@
+sim:nhcal_light_by_light:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+        INDEX_RANGE: ["0 4","5 9"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 $(for INDEX in $(seq -f '%1.0f' $INDEX_RANGE); do echo sim_output/nhcal_light_by_light/sim_epic_full.${INDEX}.edm4hep.root; done)
+
+bench:nhcal_light_by_light_analysis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "sim:nhcal_light_by_light"
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_light_by_light/analysis_epic_full_10files.pdf
+
+collect_results:nhcal_light_by_light:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - "bench:nhcal_light_by_light_analysis"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ 
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_light_by_light/analysis_epic_full_10files.pdf
+    - mv results{_save,}/

@@ -3,7 +3,7 @@ sim:nhcal_light_by_light:
   stage: simulate
   parallel:
     matrix:
-        INDEX_RANGE: ["0 4","5 9"]
+      - INDEX_RANGE: ["0 4","5 9"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 $(for INDEX in $(seq -f '%1.0f' $INDEX_RANGE); do echo sim_output/nhcal_light_by_light/sim_epic_full.${INDEX}.edm4hep.root; done)
 

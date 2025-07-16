@@ -152,6 +152,7 @@ include:
   # - local: 'benchmarks/nhcal_acceptance/config.yml'
   # - local: 'benchmarks/nhcal_basic_distribution/config.yml'
   - local: 'benchmarks/nhcal_sampling_fraction/config.yml'
+  - local: 'benchmarks/nhcal_light_by_light/config.yml'
   
 deploy_results:
   allow_failure: true
@@ -186,6 +187,7 @@ deploy_results:
     # - "collect_results:nhcal_acceptance"
     # - "collect_results:nhcal_basic_distribution"
     - "collect_results:nhcal_sampling_fraction"
+    - "collect_results:nhcal_light_by_light"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

@@ -13,8 +13,10 @@ sim:nhcal_basic_distribution_full:
   stage: simulate
   parallel:
     matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
+      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV"]
         INDEX_RANGE: ["0 4","5 9"]
+      - ENERGY: ["5.0GeV"]
+        INDEX_RANGE: ["0 3", "4 6", "7 9"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root; done)
 

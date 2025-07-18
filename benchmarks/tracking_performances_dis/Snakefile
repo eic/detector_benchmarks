@@ -43,6 +43,7 @@ rule trk_dis_sim:
     cache: True
     shell:
         """
+command time -v \
 ddsim \
   --runType batch \
   --part.minimalKineticEnergy 1000*GeV  \

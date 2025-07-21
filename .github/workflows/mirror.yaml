@@ -29,6 +29,13 @@ jobs:
         token: ${{ secrets.GITLAB_TOKEN }}
         username: ${{ secrets.GITLAB_USERNAME }}
         ciskip: true
+    - name: Push to code.jlab.org
+      uses: eic/gitlab-sync@master
+      with:
+        url: https://code.jlab.org/EIC/detector_benchmarks.git/
+        token: ${{ secrets.CODEJLAB_TOKEN }}
+        username: ${{ secrets.CODEJLAB_USERNAME }}
+        ciskip: true
     - name: Trigger EICweb
       id: trigger_eicweb
       uses: eic/trigger-gitlab-ci@v3

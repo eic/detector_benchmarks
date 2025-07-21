@@ -23,7 +23,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Push to EICweb
-      uses: eic/gitlab-sync@target
+      uses: eic/gitlab-sync@master
       with:
         remote: eicweb
         url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
@@ -31,7 +31,7 @@ jobs:
         username: ${{ secrets.GITLAB_USERNAME }}
         ciskip: true
     - name: Push to code.jlab.org
-      uses: eic/gitlab-sync@target
+      uses: eic/gitlab-sync@master
       with:
         remote: jlab
         url: https://code.jlab.org/EIC/detector_benchmarks.git/

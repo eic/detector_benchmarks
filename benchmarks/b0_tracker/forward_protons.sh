@@ -23,7 +23,7 @@ if [[ "$?" -ne "0" ]] ; then
 fi
 
 # Run geant4 simulations
-ddsim --runType batch \
+npsim --runType batch \
       -v WARNING \
       --part.minimalKineticEnergy 0.5*GeV  \
       --filter.tracker edep0 \

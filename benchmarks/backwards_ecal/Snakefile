@@ -30,7 +30,7 @@ rule backwards_ecal_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \

@@ -22,7 +22,7 @@ rule lfhcal_sim:
         N_EVENTS=get_n_events,
     shell:
         """
-ddsim \
+npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \

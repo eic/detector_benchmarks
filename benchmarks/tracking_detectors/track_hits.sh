@@ -77,7 +77,7 @@ if [ -z "${ANALYSIS_ONLY}" ] ; then
 
   echo "Running geant4 simulation"
   ## run geant4 simulations
-  ddsim --runType batch \
+  npsim --runType batch \
     --part.minimalKineticEnergy 1000*GeV  \
     --filter.tracker edep0 \
     -v WARNING \

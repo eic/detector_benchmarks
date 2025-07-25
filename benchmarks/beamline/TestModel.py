@@ -23,6 +23,7 @@ outGraphFile3 = outDir + "/transformed_cut_output_vs_target.png"
 outGraphFile4 = outDir + "/projected_output_vs_target.png"
 correlationFile = outDir + "/correlations.png"
 projectedCorrelationFile = outDir + "/projected_correlations.png"
+differenceCorrelationFile = outDir + "/difference_correlations.png"
 
 input_data, target_data = create_arrays(dataFiles)
 
@@ -223,8 +224,10 @@ projected_inputs = ProjectToX0Plane().project_numpy(input_data)
 
 # Concatenate the projected inputs and target data
 projected_comparisson_variables = np.concatenate((projected_inputs, target_data), axis=1)
-projected_comparisson_variables = projected_comparisson_variables[(abs(projected_comparisson_variables[:, 3]) < 0.02)]
-projected_comparisson_variables = projected_comparisson_variables[(abs(projected_comparisson_variables[:, 2]+0.025) < 0.028)]  # Filter for px < 0.1
+diff_cut = diff[(abs(projected_comparisson_variables[:, 3]) < 0.02)]
+projected_comparisson_variables_cut = projected_comparisson_variables[(abs(projected_comparisson_variables[:, 3]) < 0.02)]
+diff_cut = diff_cut[(abs(projected_comparisson_variables_cut[:, 2]+0.025) < 0.028)]
+projected_comparisson_variables_cut = projected_comparisson_variables_cut[(abs(projected_comparisson_variables_cut[:, 2]+0.025) < 0.028)]  # Filter for px < 0.1
 
 # Calculate limits for each variable based on the data
 limits = {
@@ -232,14 +235,14 @@ limits = {
     "oy": [np.min(comparisson_variables[:, 1]), np.max(comparisson_variables[:, 1])],
     "y": [-200, 200],
     "z": [-17000,-9000],
-    "px": [np.min(projected_comparisson_variables[:, 2]), np.max(projected_comparisson_variables[:, 2])],
-    "py": [np.min(projected_comparisson_variables[:, 3]), np.max(projected_comparisson_variables[:, 3])],
+    "px": [np.min(projected_comparisson_variables_cut[:, 2]), np.max(projected_comparisson_variables_cut[:, 2])],
+    "py": [np.min(projected_comparisson_variables_cut[:, 3]), np.max(projected_comparisson_variables_cut[:, 3])],
     "opx": [np.min(comparisson_variables[:, 3]), np.max(comparisson_variables[:, 3])],
     "opy": [np.min(comparisson_variables[:, 4]), np.max(comparisson_variables[:, 4])],
     "opz": [np.min(comparisson_variables[:, 5]), np.max(comparisson_variables[:, 5])],
-    "Px": [np.min(projected_comparisson_variables[:, 4]), np.max(projected_comparisson_variables[:, 4])],
-    "Py": [np.min(projected_comparisson_variables[:, 5]), np.max(projected_comparisson_variables[:, 5])],
-    "Pz": [np.min(projected_comparisson_variables[:, 6]), np.max(projected_comparisson_variables[:, 6])],
+    "Px": [np.min(projected_comparisson_variables_cut[:, 4]), np.max(projected_comparisson_variables_cut[:, 4])],
+    "Py": [np.min(projected_comparisson_variables_cut[:, 5]), np.max(projected_comparisson_variables_cut[:, 5])],
+    "Pz": [np.min(projected_comparisson_variables_cut[:, 6]), np.max(projected_comparisson_variables_cut[:, 6])],
 }
 
 
@@ -269,16 +272,31 @@ fig6, axs6 = plt.subplots(7, 7, figsize=(30, 30))
 for i in range(7):
     for j in range(7):
         if i == j:
-            axs6[j, i].hist(projected_comparisson_variables[:, i], range=limits[projected_labels[i]], bins=100, alpha=0.5, label=projected_labels[i])
+            axs6[j, i].hist(projected_comparisson_variables_cut[:, i], range=limits[projected_labels[i]], bins=100, alpha=0.5, label=projected_labels[i])
             axs6[j, i].set_xlabel(projected_labels[i])
             axs6[j, i].set_ylabel("Counts")
             #set log scale for y-axis if the data is skewed
             axs6[j, i].set_yscale('log')
         else:
-            axs6[j, i].hist2d(projected_comparisson_variables[:, i], projected_comparisson_variables[:, j], range=[limits[projected_labels[i]],limits[projected_labels[j]]], bins=100, cmap="seismic", norm=LogNorm())
+            axs6[j, i].hist2d(projected_comparisson_variables_cut[:, i], projected_comparisson_variables_cut[:, j], range=[limits[projected_labels[i]],limits[projected_labels[j]]], bins=100, cmap="seismic", norm=LogNorm())
             axs6[j, i].set_xlabel(projected_labels[i])
             axs6[j, i].set_ylabel(projected_labels[j])
 
+
 plt.tight_layout()
 plt.savefig(projectedCorrelationFile)
+plt.show()
+
+# Plot the correlations between the output diferences and projected inputs
+output_labels = ["pred_PX", "pred_PY", "pred_PZ"]
+fig7, axs7 = plt.subplots(3, 7, figsize=(15, 8))
+for i in range(3):
+    for j in range(7):
+        axs7[i, j].hist2d(projected_comparisson_variables_cut[:, j], diff_cut[:, i], range=[limits[projected_labels[j]],diffrange[i]], bins=100, cmap="seismic", norm=LogNorm())
+        axs7[i, j].set_xlabel(projected_labels[j])
+        axs7[i, j].set_ylabel(output_labels[i])
+
+
+plt.tight_layout()
+plt.savefig(differenceCorrelationFile)
 plt.show()

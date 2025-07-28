@@ -37,9 +37,9 @@ class ProjectToX0Plane(nn.Module):
         return projected.cpu().numpy()
 
 class RegressionModel(nn.Module):
-    def __init__(self):
+    def __init__(self, project=True):
         super(RegressionModel, self).__init__()
-        self.project_to_x0 = ProjectToX0Plane()
+        self.project_to_x0 = ProjectToX0Plane() if project else None
         self.fc1  = nn.Linear(4, 512)
         self.fc2  = nn.Linear(512, 64)
         self.fc3  = nn.Linear(64, 3)  # Output layer for
@@ -52,8 +52,9 @@ class RegressionModel(nn.Module):
         
 
     def forward(self, x):
-        # Apply projection
-        x = self.project_to_x0(x)        
+        # Conditionally apply projection
+        if self.project and self.project_to_x0 is not None:
+            x = self.project_to_x0(x)
         # Normalize inputs
         x = (x - self.input_mean) / self.input_std
 
@@ -82,8 +83,12 @@ def preprocess_data(model, data_loader, adapt=True):
     inputs  = data_loader.dataset.tensors[0]
     targets = data_loader.dataset.tensors[1]
 
-    # Apply projection
-    projected_inputs = ProjectToX0Plane()(inputs)
+
+    # Apply projection if project_to_x0 is not None
+    if model.project_to_x0 is not None:
+        projected_inputs = model.project_to_x0(inputs)
+    else:
+        projected_inputs = inputs  # Skip projection if not needed
 
     # Compute normalization parameters
     if adapt:
@@ -96,9 +101,9 @@ def preprocess_data(model, data_loader, adapt=True):
     # Replace the dataset with preprocessed data
     data_loader.dataset.tensors = (normalized_inputs, normalized_targets)
 
-def makeModel():
+def makeModel(project=True):
     # Create the model
-    model = RegressionModel()
+    model = RegressionModel(project=project)
     # Define the optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     # Define the loss function
@@ -108,7 +113,16 @@ def makeModel():
 
 def trainModel(epochs, train_loader, val_loader, device):
     
-    model, optimizer, criterion = makeModel()
+    project = True
+    # Check shape of input data to see if projection needs to be done
+    if train_loader.dataset.tensors[0].shape[1] == 6:
+        project = True
+    if train_loader.dataset.tensors[0].shape[1] == 4:
+        project = False
+    else:
+        raise ValueError("Input data must have shape (N, 6) or (N, 4)")   
+        
+    model, optimizer, criterion = makeModel(project=project)
     
     model.to(device)
 

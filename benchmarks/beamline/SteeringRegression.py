@@ -11,10 +11,13 @@ parser.add_argument('--outModelFile', type=str, default="regression_model.onnx",
 parser.add_argument('--batchSize', type=int, default=1024, help='Batch size for training')
 parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs for training')
 parser.add_argument('--entries', type=int, default=None, help='Number of entries to process from the data files')
+parser.add_argument('--treeName', type=str, default="events", help='Name of the tree in the ROOT files')
+parser.add_argument('--featureName', type=str, default="_TaggerTrackerFeatureTensor_floatData", help='Name of the feature tensor')
+parser.add_argument('--targetName', type=str, default="_TaggerTrackerTargetTensor_floatData", help='Name of the target tensor')
 
 args   = parser.parse_args()
 
-input_data, target_data = create_arrays(args.dataFiles, entries=args.entries)
+input_data, target_data = create_arrays(args.dataFiles, entries=args.entries, treeName=args.treeName, featureName=args.featureName, targetName=args.targetName)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")

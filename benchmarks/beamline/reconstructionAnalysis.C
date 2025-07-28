@@ -47,8 +47,10 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
         // Calculate theta and phi for reco and MC
         .Define("theta_rec", "std::atan2(std::sqrt(px_rec*px_rec + py_rec*py_rec), pz_rec)")
         .Define("theta_mc", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
-        .Define("phi_rec", "std::atan2(py_rec, px_rec)")
-        .Define("phi_mc", "std::atan2(py_mc, px_mc)")
+        .Define("phi_rec_rad", "std::atan2(py_rec, px_rec)")
+        .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
+        .Define("phi_rec", "TMath::RadToDeg()*phi_rec_rad")
+        .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
         // Calculate resolutions
         .Define("px_diff", "(px_rec - px_mc)")
         .Define("py_diff", "(py_rec - py_mc)")
@@ -57,7 +59,7 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
         .Define("E_mc", "std::sqrt(px_mc*px_mc + py_mc*py_mc + pz_mc*pz_mc + SimParticles[0].mass*SimParticles[0].mass)")
         .Define("E_res", "(E_rec - E_mc)/E_mc")
         .Define("theta_diff", "(theta_rec - theta_mc)")
-        .Define("phi_diff", "ROOT::VecOps::DeltaPhi(phi_rec, phi_mc)");
+        .Define("phi_diff", "TMath::RadToDeg()*ROOT::VecOps::DeltaPhi(phi_rec_rad, phi_mc_rad)");
 
     //Print the size of the original DataFrame
     std::cout << "Original DataFrame size: " << d0.Count().GetValue() << std::endl;
@@ -79,12 +81,12 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     int   phiBins         = 100;
     float energyRange[2]  = {3.5, 10}; // GeV
     float thetaRange[2]   = {3.134, TMath::Pi()}; // radians from 3.1 to pi
-    float phiRange[2]     = {-TMath::Pi(), TMath::Pi()}; // radians from -pi to pi
+    float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
     int   resolutionBins           = 100;
     float energyResolutionRange[2] = {-0.2, 0.2};
     float thetaResolutionRange[2]  = {-0.005, 0.005};
-    float phiResolutionRange[2]    = {-TMath::Pi()/2, TMath::Pi()/2}; // radians from -pi/2 to pi/2
+    float phiResolutionRange[2]    = {-90, 90}; // degrees from -90 to 90
 
     // Plot reconstructed vs montecarlo momentum components
     auto px_Hist = momentumDF.Histo2D({"px_vs_px", "Reconstructed vs MC px; px reconstructed [GeV]; px MC [GeV]", momentumBins, momentumXRange[0], momentumXRange[1], momentumBins, momentumXRange[0], momentumXRange[1]}, "px_rec", "px_mc");
@@ -233,20 +235,23 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     hPhi_vs_theta_mean->SetTitle("Mean Phi Offset vs theta MC; theta MC [rad]; Mean Phi Offset [rad]");
     hPhi_vs_theta_mean->SetMarkerStyle(20);
     hPhi_vs_theta_mean->SetMarkerColor(kBlue);
-    hPhi_vs_theta_mean->SetMaximum(0.5); // Adjust maximum for better visibility
-    hPhi_vs_theta_mean->SetMinimum(0.5); // Adjust minimum for better visibility
+    hPhi_vs_theta_mean->SetMaximum(20); // Adjust maximum for better visibility
+    hPhi_vs_theta_mean->SetMinimum(-20); // Adjust minimum for better visibility
     hPhi_vs_theta_mean->Draw();
     cResolutionGraphs->cd(6);
     hPhi_vs_theta_stddev->SetTitle("Std Dev Phi Offset vs theta MC; theta MC [rad]; Std Dev Phi Offset [rad]");
     hPhi_vs_theta_stddev->SetMarkerStyle(20);
     hPhi_vs_theta_stddev->SetMarkerColor(kRed);
-    hPhi_vs_theta_stddev->SetMaximum(TMath::Pi()/2); // Adjust maximum for better visibility
+    hPhi_vs_theta_stddev->SetMaximum(60); // Adjust maximum for better visibility
     hPhi_vs_theta_stddev->SetMinimum(0); // Adjust minimum for better visibility
     hPhi_vs_theta_stddev->Draw();
     cResolutionGraphs->SetGrid();
     cResolutionGraphs->Update();
     // Save the canvas as a PNG file
     cResolutionGraphs->SaveAs(resolutionGraphsCanvasName);
+
+    // Check to see if resolutions pass tests.
+
 
 }
 

@@ -10,6 +10,7 @@
 #include "TStyle.h"
 
 void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scripts/tagger_inference_new5.root",
+                            float   beamEnergy         = 10.0,
                             TString momentumCanvasName = "momentum_resolution.png",
                             TString energyThetaPhiCanvasName = "energy_theta_phi_resolution.png",
                             TString relationCanvasName = "relation_resolution.png",
@@ -69,7 +70,7 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     int   momentumBins      = 100;
     float momentumXRange[2] = {-0.1, 0.1};
     float momentumYRange[2] = {-0.1, 0.1};
-    float momentumZRange[2] = {-10, 0};
+    float momentumZRange[2] = {-beamEnergy, 0};
 
     int   momentumResolutionBins      = 100;
     float momentumDifferenceXRange[2] = {-0.05, 0.05};
@@ -79,7 +80,7 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     int   energyBins      = 100;
     int   thetaBins       = 100;
     int   phiBins         = 100;
-    float energyRange[2]  = {3.5, 10}; // GeV
+    float energyRange[2]  = {3.5, beamEnergy}; // GeV
     float thetaRange[2]   = {3.134, TMath::Pi()}; // radians from 3.1 to pi
     float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
@@ -101,22 +102,22 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     // Plot reconstructed vs montecarlo energy, theta and phi
     auto E_Hist     = momentumDF.Histo2D({"E_vs_E",         "Reconstructed vs MC energy; E reconstructed [GeV]; E MC [GeV]",        energyBins, energyRange[0], energyRange[1], energyBins, energyRange[0], energyRange[1]}, "E_rec", "E_mc");
     auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC theta; theta reconstructed [rad]; theta MC [rad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec", "theta_mc");
-    auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi reconstructed [rad]; phi MC [rad]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
+    auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi reconstructed [deg]; phi MC [deg]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
 
     auto E_res_Hist      = momentumDF.Histo1D({"E_res", "E resolution; E resolution [GeV]; Entries", resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_res");
     auto theta_diff_Hist = momentumDF.Histo1D({"theta_diff", "theta difference; theta difference [rad]; Entries", resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_diff");
-    auto phi_diff_Hist   = momentumDF.Histo1D({"phi_diff", "phi difference; phi difference [rad]; Entries", resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_diff");
+    auto phi_diff_Hist   = momentumDF.Histo1D({"phi_diff", "phi difference; phi difference [deg]; Entries", resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_diff");
 
     // Plot Reconstructed energy, theta and phi resolutions as a function of each mc value of energy, thata and phi
     auto E_res_vs_E_Hist          = momentumDF.Histo2D({"E_res_vs_E", "E resolution vs E MC; E MC [GeV]; E resolution [GeV]", energyBins, energyRange[0], energyRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_mc", "E_res");
     auto E_res_vs_theta_Hist      = momentumDF.Histo2D({"E_res_vs_theta", "E resolution vs theta MC; theta MC [rad]; E resolution [GeV]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "theta_mc", "E_res");
-    auto E_res_vs_phi_Hist        = momentumDF.Histo2D({"E_res_vs_phi", "E resolution vs phi MC; phi MC [rad]; E resolution [GeV]", phiBins, phiRange[0], phiRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "phi_mc", "E_res");
+    auto E_res_vs_phi_Hist        = momentumDF.Histo2D({"E_res_vs_phi", "E resolution vs phi MC; phi MC [deg]; E resolution [GeV]", phiBins, phiRange[0], phiRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "phi_mc", "E_res");
     auto theta_diff_vs_E_Hist     = momentumDF.Histo2D({"theta_diff_vs_E", "theta difference vs E MC; E MC [GeV]; theta difference [rad]", energyBins, energyRange[0], energyRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "E_mc", "theta_diff");
     auto theta_diff_vs_theta_Hist = momentumDF.Histo2D({"theta_diff_vs_theta", "theta difference vs theta MC; theta MC [rad]; theta difference [rad]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_mc", "theta_diff");
-    auto theta_diff_vs_phi_Hist   = momentumDF.Histo2D({"theta_diff_vs_phi", "theta difference vs phi MC; phi MC [rad]; theta difference [rad]", phiBins, phiRange[0], phiRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "phi_mc", "theta_diff");
+    auto theta_diff_vs_phi_Hist   = momentumDF.Histo2D({"theta_diff_vs_phi", "theta difference vs phi MC; phi MC [deg]; theta difference [rad]", phiBins, phiRange[0], phiRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "phi_mc", "theta_diff");
     auto phi_diff_vs_E_Hist       = momentumDF.Histo2D({"phi_diff_vs_E", "phi difference vs E MC; E MC [GeV]; phi difference [rad]", energyBins, energyRange[0], energyRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "E_mc", "phi_diff");
-    auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta MC; theta MC [rad]; phi difference [rad]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_mc", "phi_diff");
-    auto phi_diff_vs_phi_Hist     = momentumDF.Histo2D({"phi_diff_vs_phi", "phi difference vs phi MC; phi MC [rad]; phi difference [rad]", phiBins, phiRange[0], phiRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_mc", "phi_diff");
+    auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta MC; theta MC [rad]; phi difference [deg]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_mc", "phi_diff");
+    auto phi_diff_vs_phi_Hist     = momentumDF.Histo2D({"phi_diff_vs_phi", "phi difference vs phi MC; phi MC [deg]; phi difference [deg]", phiBins, phiRange[0], phiRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_mc", "phi_diff");
 
     // Create canvas for momentum component plots
     TCanvas *cMomentum = new TCanvas("momentum_canvas", "Momentum Resolution", 3000, 1600);
@@ -235,8 +236,8 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     hPhi_vs_theta_mean->SetTitle("Mean Phi Offset vs theta MC; theta MC [rad]; Mean Phi Offset [rad]");
     hPhi_vs_theta_mean->SetMarkerStyle(20);
     hPhi_vs_theta_mean->SetMarkerColor(kBlue);
-    hPhi_vs_theta_mean->SetMaximum(20); // Adjust maximum for better visibility
-    hPhi_vs_theta_mean->SetMinimum(-20); // Adjust minimum for better visibility
+    hPhi_vs_theta_mean->SetMaximum(5); // Adjust maximum for better visibility
+    hPhi_vs_theta_mean->SetMinimum(-5); // Adjust minimum for better visibility
     hPhi_vs_theta_mean->Draw();
     cResolutionGraphs->cd(6);
     hPhi_vs_theta_stddev->SetTitle("Std Dev Phi Offset vs theta MC; theta MC [rad]; Std Dev Phi Offset [rad]");

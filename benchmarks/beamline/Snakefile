@@ -120,16 +120,17 @@ rule beamline_training_sim:
             --runType run \
             --random.seed 1 \
             --inputFiles {input.events} \
+            --numberOfEvents 1000000 \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --outputFile {output} \
-            --physics.rangecut 1000*m 
+            --physics.rangecut 100*m 
         """
 
 # Run EICrecon and create input tensors for reconstruction.
 rule beamline_reconstruction_tensors_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
-        output_collections="TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,MCParticles,EventHeader",
+        output_collections="BackwardsBeamlineHits,TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,MCParticles,EventHeader",
         ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
@@ -158,8 +159,19 @@ rule beamline_reconstruction_particles_eicrecon:
         """
 
 # Test the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
-#rule beamline_reconstruction_particles_test:
-
+rule beamline_reconstruction_particles_test:
+    input:
+        script=workflow.source_path("reconstructionAnalysis.C"),
+        data=ANALYSISDIR+"Low-Q2_Training_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    output:
+        momentumCanvas=ANALYSISDIR+"momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"resolution_graphs_{CAMPAIGN}.png",
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data}", 18, "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
+        """
 
 ##########################################################################################
 ### Rules for training new onnx reconstruction neural network
@@ -189,22 +201,54 @@ rule beamline_steering_reconstruction_training:
         onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
     shell:
         """
-        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 400
+        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 100
+        """
+
+# Run eicrecon with the newly trained neural network
+rule beamline_steering_reconstruction_particles_trained_eicrecon:
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+        output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
+        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+    input:
+        data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
+    output:
+        eicreconfile=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    shell:
+        """
+        eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
+        -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
+        """
+
+# Test the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
+rule beamline_reconstruction_particles_trained_test:
+    input:
+        script=workflow.source_path("reconstructionAnalysis.C"),
+        data=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    output:
+        momentumCanvas=ANALYSISDIR+"trained_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"trained_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"trained_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"trained_resolution_graphs_{CAMPAIGN}.png",
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data}", 18, "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
         """
 
 # Tests new regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
-rule beamline_steering_reconstruction_test:
-    input:
-        script=workflow.source_path("TestModel.py"),
-        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
-        model=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
-    output:
-        directory=directory(ANALYSISDIR+"NN_Test_{CAMPAIGN}/")
-    shell:
-        """
-            mkdir {output.directory}      
-            python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output.directory}
-        """
+#rule beamline_steering_reconstruction_test:
+#    input:
+#        script=workflow.source_path("TestModel.py"),
+#        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+#        model=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
+#    output:
+#        directory=directory(ANALYSISDIR+"NN_Test_{CAMPAIGN}/")
+#    shell:
+#        """
+#            mkdir {output.directory}      
+#            python {input.script} --dataFiles {input.data} --modelFile {input.model} --outDir {output.directory}
+#        """
 
 ##########################################################################################
 # Combine results

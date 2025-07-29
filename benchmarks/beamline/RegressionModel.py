@@ -39,6 +39,7 @@ class ProjectToX0Plane(nn.Module):
 class RegressionModel(nn.Module):
     def __init__(self, project=True):
         super(RegressionModel, self).__init__()
+        self.project = project
         self.project_to_x0 = ProjectToX0Plane() if project else None
         self.fc1  = nn.Linear(4, 512)
         self.fc2  = nn.Linear(512, 64)
@@ -67,8 +68,8 @@ class RegressionModel(nn.Module):
     
     def _core_forward(self, x):
         # Core fully connected layers
-        x = torch.tanh(self.fc1(x))
-        x = torch.tanh(self.fc2(x))
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
     
@@ -105,7 +106,7 @@ def makeModel(project=True):
     # Create the model
     model = RegressionModel(project=project)
     # Define the optimizer
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=0.002)
     # Define the loss function
     criterion = nn.MSELoss()
 
@@ -117,7 +118,7 @@ def trainModel(epochs, train_loader, val_loader, device):
     # Check shape of input data to see if projection needs to be done
     if train_loader.dataset.tensors[0].shape[1] == 6:
         project = True
-    if train_loader.dataset.tensors[0].shape[1] == 4:
+    elif train_loader.dataset.tensors[0].shape[1] == 4:
         project = False
     else:
         raise ValueError("Input data must have shape (N, 6) or (N, 4)")   

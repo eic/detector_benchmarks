@@ -35,6 +35,7 @@ def find_epic_libraries():
 # include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/beamline/Snakefile"
 # include: "benchmarks/calo_pid/Snakefile"
+# include: "benchmarks/campaign/Snakefile"
 # include: "benchmarks/ecal_gaps/Snakefile"
 # include: "benchmarks/material_scan/Snakefile"
 # include: "benchmarks/tracking_performances/Snakefile"

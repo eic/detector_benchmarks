@@ -1,0 +1,82 @@
+rule campaign_run:
+    input:
+        run_script="/opt/campaigns/hepmc3/scripts/run.sh",
+    output:
+        expand(
+            "LOG/{{DETECTOR_VERSION}}/{{DETECTOR_CONFIG}}/{{BASENAME}}.{EXTENSION}",
+            EXTENSION=[
+                "eicrecon.prmon.log",
+                "npsim.log",
+                "npsim.prmon.log",
+                "eicrecon.prmon.txt",
+                "npsim.prmon.json",
+                "hepmcmerger.prmon.txt",
+                "eicrecon.dot",
+                "hepmcmerger.prmon.json",
+                "eicrecon.prmon.json",
+                "npsim.prmon.txt",
+                "hepmcmerger.log",
+                "eicrecon.log",
+            ],
+        ),
+    #log:
+    #    "log",
+    wildcard_constraints:
+        DETECTOR_VERSION="[^/]+",
+        DETECTOR_CONFIG="[^/]+",
+    params:
+        N_EVENTS=100,
+    shell:
+        """
+env \
+  DETECTOR_VERSION={wildcards.DETECTOR_VERSION} \
+  DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  SLURM_TMPDIR=$PWD \
+  {input.run_script} EVGEN/{wildcards.BASENAME} hepmc3.tree.root {params.N_EVENTS}
+"""
+
+
+rule campaign_prmon_plot_memory:
+    input:
+        "{PATH}.prmon.txt",
+    output:
+        "{PATH}.{MODE}.{EXTENSION}",
+    wildcard_constraints:
+        EXTENSION="(png|pdf|svg)",
+        MODE="(load|memory)",
+    shell:
+        """
+case "{wildcards.MODE}" in
+  load)
+  flags=( --xvar wtime --yvar utime,stime --yunit SEC --diff --stacked )
+  ;;
+
+  memory)
+  flags=( --xvar wtime --yvar vmem,pss,rss,swap --yunit GB )
+  ;;
+esac
+prmon_plot.py --input "{wildcards.PATH}.prmon.txt" "${{flags[@]}}" --otype {wildcards.EXTENSION} --output "{wildcards.PATH}.{wildcards.MODE}"
+"""
+
+
+rule campaign_benchmark:
+    input:
+        expand(
+            "LOG/main/epic/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.{PROG}.{MODE}.png",
+            PROG=[
+                "hepmcmerger",
+                "npsim",
+                "eicrecon",
+            ],
+            MODE=[
+                "load",
+                "memory",
+            ],
+        ),
+    output:
+        directory("results/campaign"),
+    shell:
+        """
+mkdir -p {output}
+cp {input} {output}
+"""

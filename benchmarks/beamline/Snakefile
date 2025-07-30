@@ -26,6 +26,7 @@ rule beamline_steering_sim:
 
 rule beamline_steering_analysis:
     params:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
         script=workflow.source_path("beamlineAnalysis.C"),
@@ -71,6 +72,7 @@ rule beamline_acceptance_sim:
 
 rule beamline_acceptance_analysis:
     params:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
         script=workflow.source_path("acceptanceAnalysis.C"),

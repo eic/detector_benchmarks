@@ -106,9 +106,9 @@ def makeModel(project=True):
     # Create the model
     model = RegressionModel(project=project)
     # Define the optimizer
-    optimizer = optim.Adam(model.parameters(), lr=0.002)
+    optimizer = optim.Adam(model.parameters(), lr=0.0004)
     # Define the loss function
-    criterion = nn.MSELoss()
+    criterion = nn.HuberLoss(delta=0.2)  # Huber loss for regression tasks
 
     return model, optimizer, criterion
 

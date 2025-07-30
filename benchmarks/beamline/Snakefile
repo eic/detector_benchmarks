@@ -198,10 +198,10 @@ rule beamline_steering_reconstruction_training:
         scriptmodel=workflow.source_path("RegressionModel.py"),
         data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
     output:
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}_{N}.onnx",
     shell:
         """
-        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 100
+        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
         """
 
 # Run eicrecon with the newly trained neural network
@@ -212,12 +212,12 @@ rule beamline_steering_reconstruction_particles_trained_eicrecon:
         ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
     input:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}.onnx",
+        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}_{N}.onnx",
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}_{N}.eicrecon.edm4hep.root",
     shell:
         """
-        eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
+        eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=1000000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
         -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 

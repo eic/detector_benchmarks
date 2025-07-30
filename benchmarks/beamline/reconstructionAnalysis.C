@@ -85,8 +85,8 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
     int   resolutionBins           = 100;
-    float energyResolutionRange[2] = {-0.2, 0.2};
-    float thetaResolutionRange[2]  = {-0.005, 0.005};
+    float energyResolutionRange[2] = {-0.1, 0.1};
+    float thetaResolutionRange[2]  = {-0.003, 0.003};
     float phiResolutionRange[2]    = {-90, 90}; // degrees from -90 to 90
 
     // Plot reconstructed vs montecarlo momentum components
@@ -208,8 +208,8 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     hE_vs_E_mean->SetTitle("Mean Energy Offset vs E MC; Energy MC [GeV]; Mean Energy Offset [GeV]");
     hE_vs_E_mean->SetMarkerStyle(20);
     hE_vs_E_mean->SetMarkerColor(kBlue);
-    hE_vs_E_mean->SetMaximum(0.02); // Adjust maximum for better visibility
-    hE_vs_E_mean->SetMinimum(-0.02); // Adjust minimum for better visibility
+    hE_vs_E_mean->SetMaximum(0.01); // Adjust maximum for better visibility
+    hE_vs_E_mean->SetMinimum(-0.01); // Adjust minimum for better visibility
     hE_vs_E_mean->Draw();
     cResolutionGraphs->cd(4);
     hE_vs_E_stddev->SetTitle("Energy Resolution vs E MC; Energy MC [GeV]; Energy Resolution [GeV]");

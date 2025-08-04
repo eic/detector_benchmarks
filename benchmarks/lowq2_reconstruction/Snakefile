@@ -64,7 +64,7 @@ rule lowq2_reconstruction_particles_eicrecon:
     input:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_Training_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -75,12 +75,12 @@ rule lowq2_reconstruction_particles_eicrecon:
 rule lowq2_reconstruction_particles_test:
     input:
         script=workflow.source_path("reconstructionAnalysis.C"),
-        data=ANALYSISDIR+"Low-Q2_Training_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     output:
-        momentumCanvas=ANALYSISDIR+"momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"resolution_graphs_{CAMPAIGN}.png",
+        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
     shell:
         """
         root -l -b -q '{input.script}("{input.data}", 18, "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
@@ -127,39 +127,25 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
         onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test{CAMPAIGN}_{N}.onnx",
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}_{N}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_retrain_Particles_{CAMPAIGN}_{N}.eicrecon.edm4hep.root",
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=1000000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
         -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
-# Test the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
-rule beamline_reconstruction_particles_trained_test:
-    input:
-        script=workflow.source_path("reconstructionAnalysis.C"),
-        data=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
-    output:
-        momentumCanvas=ANALYSISDIR+"trained_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"trained_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"trained_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"trained_resolution_graphs_{CAMPAIGN}.png",
-    shell:
-        """
-        root -l -b -q '{input.script}("{input.data}", 18, "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
-        """
 
 ##########################################################################################
 # Combine results
 ##########################################################################################
-
-
-
-rule reconstruction:
+rule lowq2_reconstruction:
     input: 
-        directory(ANALYSISDIR+"NN_Test_{CAMPAIGN}/")
+        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
     output:
-        directory("results/lowq2_reconstruction/reconstruction_{CAMPAIGN}/")
+        directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}        

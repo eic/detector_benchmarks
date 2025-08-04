@@ -250,10 +250,60 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scrip
     cResolutionGraphs->Update();
     // Save the canvas as a PNG file
     cResolutionGraphs->SaveAs(resolutionGraphsCanvasName);
-
-    // Check to see if resolutions pass tests.
     
+    // Get mean and error on the mean of E, theta and phi resolutions
+    double mean_E_res = E_res_Hist->GetMean();
+    double mean_theta_res = theta_diff_Hist->GetMean();
+    double mean_phi_res = phi_diff_Hist->GetMean();
+    double mean_E_res_error = E_res_Hist->GetMeanError();
+    double mean_theta_res_error = theta_diff_Hist->GetMeanError();
+    double mean_phi_res_error = phi_diff_Hist->GetMeanError();
 
+    // Get standard deviation of E, theta and phi resolutions
+    double stddev_E_res = E_res_Hist->GetStdDev();
+    double stddev_theta_res = theta_diff_Hist->GetStdDev();
+    double stddev_phi_res = phi_diff_Hist->GetStdDev();
 
+    // Print the resolutions
+    std::cout << "Mean E resolution: " << mean_E_res << " +/- " << stddev_E_res << std::endl;
+    std::cout << "Mean theta resolution: " << mean_theta_res << " +/- " << stddev_theta_res << std::endl;
+    std::cout << "Mean phi resolution: " << mean_phi_res << " +/- " << stddev_phi_res << std::endl;
+
+    int pass = 0;
+
+    // Fail if mean is more than two error on the mean away from zero
+    if(std::abs(mean_E_res) > 2 * mean_E_res_error) {
+        std::cout << "Mean E resolution is more than two errors on the mean away from zero!" << std::endl;
+        pass = 1;
+    }
+    if(std::abs(mean_theta_res) > 2 * mean_theta_res_error) {
+        std::cout << "Mean theta resolution is more than two errors on the mean away from zero!" << std::endl;
+        pass = 1;
+    }
+    if(std::abs(mean_phi_res) > 2 * mean_phi_res_error) {
+        std::cout << "Mean phi resolution is more than two errors on the mean away from zero!" << std::endl;
+        pass = 1;
+    } 
+
+    // Resolution limits
+    double E_res_limit = 0.05; // 5% resolution
+    double theta_res_limit = 0.01; // 1% resolution
+    double phi_res_limit = 0.3; // 30% resolution
+
+    // Fail if standard deviation is more than the limit
+    if(std::abs(stddev_E_res) > E_res_limit) {
+        std::cout << "Standard deviation of E resolution is more than the limit of " << E_res_limit << "!" << std::endl;
+        pass = 1;
+    }
+    if(std::abs(stddev_theta_res) > theta_res_limit) {
+        std::cout << "Standard deviation of theta resolution is more than the limit of " << theta_res_limit << "!" << std::endl;
+        pass = 1;
+    }
+    if(std::abs(stddev_phi_res) > phi_res_limit) {
+        std::cout << "Standard deviation of phi resolution is more than the limit of " << phi_res_limit << "!" << std::endl;
+        pass = 1;
+    }
+
+    return pass; // Return 0 if all tests passed, 1 if any test failed
 }
 

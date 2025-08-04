@@ -1,0 +1,36 @@
+sim:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
+        sim_output/lowq2_reconstruction/Low-Q2_Training_SimEvents_local.edm4hep.root \
+
+bench:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "sim:lowq2_reconstruction"
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
+
+retrain:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: retrain
+  needs:
+    - "bench:lowq2_reconstruction"
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrain
+  when: on_failure
+
+collect_results:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:lowq2_reconstruction"
+    - "retrain:lowq2_reconstruction"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_local
+    - mv results{_save,}/

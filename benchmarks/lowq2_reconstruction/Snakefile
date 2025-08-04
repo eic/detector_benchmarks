@@ -21,7 +21,7 @@ rule filter_hepmc_for_training:
         """
 
 # Run pythia6 Low-Q2 events through the simulation
-rule beamline_training_sim:
+rule lowq2_training_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",  
         events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",      
@@ -40,7 +40,7 @@ rule beamline_training_sim:
         """
 
 # Run EICrecon and create input tensors for reconstruction.
-rule beamline_reconstruction_tensors_eicrecon:
+rule lowq2_reconstruction_tensors_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="BackwardsBeamlineHits,TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,MCParticles,EventHeader",
@@ -56,7 +56,7 @@ rule beamline_reconstruction_tensors_eicrecon:
         """
 
 # Run EICrecon to create TaggerTrackerReconstructedParticles
-rule beamline_reconstruction_particles_eicrecon:
+rule lowq2_reconstruction_particles_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
@@ -72,7 +72,7 @@ rule beamline_reconstruction_particles_eicrecon:
         """
 
 # Test the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
-rule beamline_reconstruction_particles_test:
+rule lowq2_reconstruction_particles_test:
     input:
         script=workflow.source_path("reconstructionAnalysis.C"),
         data=ANALYSISDIR+"Low-Q2_Training_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
@@ -91,12 +91,12 @@ rule beamline_reconstruction_particles_test:
 ##########################################################################################
 
 # Processes the simulation output data for training
-rule beamline_steering_reconstruction_preparation:
+rule lowq2_steering_reconstruction_preparation:
     input:
         script=workflow.source_path("cleanData.C"),
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
     output:
-        rootfile=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
     shell:
         """
         root -l -b -q '{input.script}("{input.data}", "{output.rootfile}",18.0)'
@@ -104,28 +104,28 @@ rule beamline_steering_reconstruction_preparation:
 
 
 # Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
-rule beamline_steering_reconstruction_training:
+rule lowq2_steering_reconstruction_training:
     input:
         script=workflow.source_path("SteeringRegression.py"),
         scriptdata=workflow.source_path("LoadData.py"),
         scriptmodel=workflow.source_path("RegressionModel.py"),
-        data=ANALYSISDIR+"BeamlineSteeringReconstructionData{CAMPAIGN}.root",
+        data=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
     output:
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}_{N}.onnx",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test{CAMPAIGN}_{N}.onnx",
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
         """
 
 # Run eicrecon with the newly trained neural network
-rule beamline_steering_reconstruction_particles_trained_eicrecon:
+rule lowq2_steering_reconstruction_particles_trained_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
         ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
     input:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
-        onnxfile=ANALYSISDIR+"BeamlineSteeringReconstructionTest{CAMPAIGN}_{N}.onnx",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test{CAMPAIGN}_{N}.onnx",
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_Trained_Particles_{CAMPAIGN}_{N}.eicrecon.edm4hep.root",
     shell:
@@ -152,13 +152,27 @@ rule beamline_reconstruction_particles_trained_test:
 ##########################################################################################
 # Combine results
 ##########################################################################################
+
+
+
 rule reconstruction:
     input: 
         directory(ANALYSISDIR+"NN_Test_{CAMPAIGN}/")
     output:
-        directory("results/beamline/reconstruction_{CAMPAIGN}/")
+        directory("results/lowq2_reconstruction/reconstruction_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}        
             cp -r {input} {output}
         """
+
+##########################################################################################
+# Defualt running
+##########################################################################################
+rule lowq2_reconstruction_local:
+    input:
+        "results/lowq2_reconstruction/test_local/"
+
+rule lowq2_reconstruction_retrain:
+    input:
+        "results/lowq2_reconstruction/retrain_local/"

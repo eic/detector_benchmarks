@@ -16,7 +16,7 @@ bench:lowq2_reconstruction:
 
 retrain:lowq2_reconstruction:
   extends: .det_benchmark
-  stage: retrain
+  stage: benchmarks
   needs:
     - "bench:lowq2_reconstruction"
   script:

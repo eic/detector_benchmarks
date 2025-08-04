@@ -35,6 +35,7 @@ rule lowq2_training_sim:
             --inputFiles {input.events} \
             --numberOfEvents 1000000 \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 100*m 
         """
@@ -111,7 +112,7 @@ rule lowq2_steering_reconstruction_training:
         scriptmodel=workflow.source_path("RegressionModel.py"),
         data=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
     output:
-        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test{CAMPAIGN}_{N}.onnx",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
@@ -125,9 +126,9 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
         ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
     input:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
-        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test{CAMPAIGN}_{N}.onnx",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_retrain_Particles_{CAMPAIGN}_{N}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=1000000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -159,6 +160,6 @@ rule lowq2_reconstruction_local:
     input:
         "results/lowq2_reconstruction/test_local/"
 
-rule lowq2_reconstruction_retrain:
+rule lowq2_reconstruction_retrained:
     input:
-        "results/lowq2_reconstruction/retrain_local/"
+        "results/lowq2_reconstruction/retrained_local/"

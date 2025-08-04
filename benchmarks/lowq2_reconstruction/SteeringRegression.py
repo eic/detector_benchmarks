@@ -1,6 +1,6 @@
 import torch
 import argparse
-from ProcessData import create_arrays
+from LoadData import create_arrays
 from torch.utils.data import DataLoader, TensorDataset
 from RegressionModel  import trainModel
 

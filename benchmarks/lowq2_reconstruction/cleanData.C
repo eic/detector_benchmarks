@@ -5,7 +5,7 @@
 #include "edm4hep/SimTrackerHit.h"
 #include <iostream>
 
-void processData(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.root", const TString outputFile="test.root", const double BeamEnergy=18.0, const int desired_cellID = 66757, const bool appendTruth = true) {
+void cleanData(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.root", const TString outputFile="test.root", const double BeamEnergy=18.0, const int desired_cellID = 66757, const bool appendTruth = true) {
     
     float momentum_tolerance = 0.01; // Define the momentum tolerance for filtering
 

@@ -6,7 +6,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 ##########################################################################################
 
 # Filter LowQ2 events from xrootd server - Using the acceptance events didn't work
-# ToDo: Do a proper investigation into why the feature to target mapping isn't unique
+# ToDo: Do a proper investigation into how the feature to target mapping isn't unique
 rule filter_hepmc_for_training:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
@@ -72,20 +72,6 @@ rule lowq2_reconstruction_particles_eicrecon:
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
-# Test the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
-rule lowq2_reconstruction_particles_test:
-    input:
-        script=workflow.source_path("reconstructionAnalysis.C"),
-        data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
-    output:
-        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
-    shell:
-        """
-        root -l -b -q '{input.script}("{input.data}", 18, "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
-        """
 
 ##########################################################################################
 ### Rules for training new onnx reconstruction neural network
@@ -104,7 +90,7 @@ rule lowq2_steering_reconstruction_preparation:
         """
 
 
-# Trains a regression model to predict the MCParticle momentum from the B2eR beamline virtual tracker hits.
+# Trains a regression model to predict the MCParticle momentum from the lowq2 tagger tracker hits.
 rule lowq2_steering_reconstruction_training:
     input:
         script=workflow.source_path("SteeringRegression.py"),
@@ -135,16 +121,50 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
         -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
+##########################################################################################
+# Test and check resolutions
+##########################################################################################
+
+# Produce hitsograms of th resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
+rule lowq2_reconstruction_particles_test:
+    input:
+        script=workflow.source_path("reconstructionAnalysis.C"),
+        data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    output:
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
+        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
+        """
+
+# Check the resloutions and offsets are within tollerance
+rule lowq2_reconstruction_particles_check:
+    input:
+        script=workflow.source_path("checkResolutions.C"),
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root"
+    output:
+        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.rootfile}", "{output.jsonfile}")'
+        """
+
 
 ##########################################################################################
 # Combine results
 ##########################################################################################
 rule lowq2_reconstruction:
     input: 
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
         momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
         energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
     output:
         directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
     shell:

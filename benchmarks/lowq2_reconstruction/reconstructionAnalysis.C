@@ -9,8 +9,9 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 
-int reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scripts/tagger_inference_new5.root",
+void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scripts/tagger_inference_new5.root",
                             float   beamEnergy         = 10.0,
+                            TString outFile            = "reconstruction_results.root",
                             TString momentumCanvasName = "momentum_resolution.png",
                             TString energyThetaPhiCanvasName = "energy_theta_phi_resolution.png",
                             TString relationCanvasName = "relation_resolution.png",
@@ -250,60 +251,103 @@ int reconstructionAnalysis(TString inFile             = "/home/simong/EIC/script
     cResolutionGraphs->Update();
     // Save the canvas as a PNG file
     cResolutionGraphs->SaveAs(resolutionGraphsCanvasName);
+
+    TFile *f = new TFile(outFile,"RECREATE");
+    cMomentum->Write();
+    cEnergyThetaPhi->Write();
+    cResolutionVsMC->Write();
+    cResolutionGraphs->Write();
+    px_Hist->Write();
+    py_Hist->Write();
+    pz_Hist->Write();
+    px_diff_Hist->Write();
+    py_diff_Hist->Write();
+    pz_res_Hist->Write();
+    E_Hist->Write();
+    theta_Hist->Write();
+    phi_Hist->Write();
+    E_res_Hist->Write();
+    theta_diff_Hist->Write();
+    phi_diff_Hist->Write();
+    E_res_vs_E_Hist->Write();
+    E_res_vs_theta_Hist->Write();
+    E_res_vs_phi_Hist->Write();
+    theta_diff_vs_E_Hist->Write();
+    theta_diff_vs_theta_Hist->Write();
+    theta_diff_vs_phi_Hist->Write();
+    phi_diff_vs_E_Hist->Write();
+    phi_diff_vs_theta_Hist->Write();
+    phi_diff_vs_phi_Hist->Write();
+
+    hE_vs_E_mean->Write();
+    hE_vs_E_stddev->Write();
+    hTheta_vs_E_mean->Write();
+    hTheta_vs_E_stddev->Write();
+    hPhi_vs_theta_mean->Write();
+    hPhi_vs_theta_stddev->Write();
+
+    f->Close();
+
+
     
-    // Get mean and error on the mean of E, theta and phi resolutions
-    double mean_E_res = E_res_Hist->GetMean();
-    double mean_theta_res = theta_diff_Hist->GetMean();
-    double mean_phi_res = phi_diff_Hist->GetMean();
-    double mean_E_res_error = E_res_Hist->GetMeanError();
-    double mean_theta_res_error = theta_diff_Hist->GetMeanError();
-    double mean_phi_res_error = phi_diff_Hist->GetMeanError();
+    // // Get mean and error on the mean of E, theta and phi resolutions
+    // double mean_E_res = E_res_Hist->GetMean();
+    // double mean_theta_res = theta_diff_Hist->GetMean();
+    // double mean_phi_res = phi_diff_Hist->GetMean();
+    // double mean_E_res_error = E_res_Hist->GetMeanError();
+    // double mean_theta_res_error = theta_diff_Hist->GetMeanError();
+    // double mean_phi_res_error = phi_diff_Hist->GetMeanError();
 
-    // Get standard deviation of E, theta and phi resolutions
-    double stddev_E_res = E_res_Hist->GetStdDev();
-    double stddev_theta_res = theta_diff_Hist->GetStdDev();
-    double stddev_phi_res = phi_diff_Hist->GetStdDev();
+    // // Get standard deviation of E, theta and phi resolutions
+    // double stddev_E_res = E_res_Hist->GetStdDev();
+    // double stddev_theta_res = theta_diff_Hist->GetStdDev();
+    // double stddev_phi_res = phi_diff_Hist->GetStdDev();
+    // double stddev_E_res_error = E_res_Hist->GetStdDevError();
+    // double stddev_theta_res_error = theta_diff_Hist->GetStdDevError();
+    // double stddev_phi_res_error = phi_diff_Hist->GetStdDevError();
 
-    // Print the resolutions
-    std::cout << "Mean E resolution: " << mean_E_res << " +/- " << stddev_E_res << std::endl;
-    std::cout << "Mean theta resolution: " << mean_theta_res << " +/- " << stddev_theta_res << std::endl;
-    std::cout << "Mean phi resolution: " << mean_phi_res << " +/- " << stddev_phi_res << std::endl;
+    // // Print the resolutions
+    // std::cout << "Mean E offset: " << mean_E_res << " +/- " << mean_E_res_error << std::endl;
+    // std::cout << "Mean theta offset: " << mean_theta_res << " +/- " << mean_theta_res_error << std::endl;
+    // std::cout << "Mean phi offset: " << mean_phi_res << " +/- " << mean_phi_res_error << std::endl;
+    // std::cout << "Standard deviation of E resolution: " << stddev_E_res << " +/- " << stddev_E_res_error << std::endl;
+    // std::cout << "Standard deviation of theta resolution: " << stddev_theta_res << " +/- " << stddev_theta_res_error << std::endl;
+    // std::cout << "Standard deviation of phi resolution: " << stddev_phi_res << " +/- " << stddev_phi_res_error << std::endl;
 
-    int pass = 0;
+    // int pass = 0;
 
-    // Fail if mean is more than two error on the mean away from zero
-    if(std::abs(mean_E_res) > 2 * mean_E_res_error) {
-        std::cout << "Mean E resolution is more than two errors on the mean away from zero!" << std::endl;
-        pass = 1;
-    }
-    if(std::abs(mean_theta_res) > 2 * mean_theta_res_error) {
-        std::cout << "Mean theta resolution is more than two errors on the mean away from zero!" << std::endl;
-        pass = 1;
-    }
-    if(std::abs(mean_phi_res) > 2 * mean_phi_res_error) {
-        std::cout << "Mean phi resolution is more than two errors on the mean away from zero!" << std::endl;
-        pass = 1;
-    } 
+    // // Fail if mean is more than 20% of the standard deviation away from zero
+    // if(std::abs(mean_E_res) > 0.2 * stddev_E_res) {
+    //     std::cout << "Mean E offset is more than 20\% (" << 0.2 * stddev_E_res << ") of the standard deviation away from zero!" << std::endl;
+    //     pass = 1;
+    // }
+    // if(std::abs(mean_theta_res) > 0.2 * stddev_theta_res) {
+    //     std::cout << "Mean theta offset is more than 20\% (" << 0.2 * stddev_theta_res << ") of the standard deviation away from zero!" << std::endl;
+    //     pass = 1;
+    // }
+    // if(std::abs(mean_phi_res) > 0.2 * stddev_phi_res) {
+    //     std::cout << "Mean phi offset is more than 20\% (" << 0.2 * stddev_phi_res << ") of the standard deviation away from zero!" << std::endl;
+    //     pass = 1;
+    // }
 
-    // Resolution limits
-    double E_res_limit = 0.05; // 5% resolution
-    double theta_res_limit = 0.01; // 1% resolution
-    double phi_res_limit = 0.3; // 30% resolution
+    // // Resolution limits
+    // double E_res_limit = 0.05; // 5% resolution
+    // double theta_res_limit = 0.0001; // 1 mrad resolution
+    // double phi_res_limit = 30; // 30 degrees resolution
 
-    // Fail if standard deviation is more than the limit
-    if(std::abs(stddev_E_res) > E_res_limit) {
-        std::cout << "Standard deviation of E resolution is more than the limit of " << E_res_limit << "!" << std::endl;
-        pass = 1;
-    }
-    if(std::abs(stddev_theta_res) > theta_res_limit) {
-        std::cout << "Standard deviation of theta resolution is more than the limit of " << theta_res_limit << "!" << std::endl;
-        pass = 1;
-    }
-    if(std::abs(stddev_phi_res) > phi_res_limit) {
-        std::cout << "Standard deviation of phi resolution is more than the limit of " << phi_res_limit << "!" << std::endl;
-        pass = 1;
-    }
+    // // Fail if standard deviation is more than the limit
+    // if(std::abs(stddev_E_res) > E_res_limit) {
+    //     std::cout << "Standard deviation of E resolution is more than the limit of " << E_res_limit << "!" << std::endl;
+    //     pass = 1;
+    // }
+    // if(std::abs(stddev_theta_res) > theta_res_limit) {
+    //     std::cout << "Standard deviation of theta resolution is more than the limit of " << theta_res_limit << " radians!" << std::endl;
+    //     pass = 1;
+    // }
+    // if(std::abs(stddev_phi_res) > phi_res_limit) {
+    //     std::cout << "Standard deviation of phi resolution is more than the limit of " << phi_res_limit << " degrees!" << std::endl;
+    //     pass = 1;
+    // }
 
-    return pass; // Return 0 if all tests passed, 1 if any test failed
 }
 

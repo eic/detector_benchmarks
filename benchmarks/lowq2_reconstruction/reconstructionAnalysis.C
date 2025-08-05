@@ -9,7 +9,7 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 
-void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scripts/tagger_inference_new5.root",
+int reconstructionAnalysis(TString inFile             = "/home/simong/EIC/scripts/tagger_inference_new5.root",
                             float   beamEnergy         = 10.0,
                             TString momentumCanvasName = "momentum_resolution.png",
                             TString energyThetaPhiCanvasName = "energy_theta_phi_resolution.png",

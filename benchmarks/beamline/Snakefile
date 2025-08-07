@@ -40,10 +40,8 @@ rule beamline_acceptance_sim:
         """
 
 rule beamline_steering_analysis:
-    params:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         script=workflow.source_path("beamlineAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
@@ -55,6 +53,8 @@ rule beamline_steering_analysis:
         fitted_position_means_stdevs_canvas=ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         fitted_momentum_means_stdevs_canvas=ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
         pipe_parameter_canvas=ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
@@ -64,10 +64,8 @@ rule beamline_steering_analysis:
         """
 
 rule beamline_acceptance_analysis:
-    params:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         script=workflow.source_path("acceptanceAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
@@ -77,6 +75,8 @@ rule beamline_acceptance_analysis:
         etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
         entries_canvas=ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",

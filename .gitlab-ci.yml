@@ -3,8 +3,9 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  GITHUB_SHA: ''
+  GITHUB_PR: ''
   GITHUB_REPOSITORY: ''
+  GITHUB_SHA: ''
   SNAKEMAKE_FLAGS: '--cache'
 
 workflow:

@@ -20,7 +20,7 @@ retrain:lowq2_reconstruction:
   needs:
     - "bench:lowq2_reconstruction"
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrain
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
   when: on_failure
 
 collect_results:lowq2_reconstruction:

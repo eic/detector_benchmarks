@@ -157,6 +157,12 @@ rule lowq2_reconstruction_particles_check:
 ##########################################################################################
 # Combine results
 ##########################################################################################
+def get_onnx_input(wildcards):
+    if wildcards.STAGE == "retrained":
+        return ANALYSISDIR + f"Low-Q2_Steering_Reconstruction_Test_{wildcards.CAMPAIGN}.onnx"
+    else:
+        return []
+
 rule lowq2_reconstruction:
     input: 
         rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
@@ -165,6 +171,7 @@ rule lowq2_reconstruction:
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
+        onnxfile=get_onnx_input
     output:
         directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
     shell:

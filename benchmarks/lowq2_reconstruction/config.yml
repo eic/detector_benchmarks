@@ -62,3 +62,31 @@ collect_results:lowq2_reconstruction_retrained:
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_retrained
     - mv results{_save,}/
+upload_onnx:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: deploy
+  needs:
+    - "retrain:lowq2_reconstruction"
+  rules:
+    - if: $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"
+      when: on_success
+    - if: '$GITHUB_REPOSITORY != "eic/epic"'
+      when: never
+  script:
+    - echo "Deploying lowq2_onnx file to xrootd server"
+    - PR_HASH=$(echo -n "$GITHUB_PR" | sha256sum | cut -d' ' -f1)
+    - LOWQ2_ONNX_FILE=results/lowq2_reconstruction/retrained_local/Low-Q2_Steering_Reconstruction_Test_local.onnx
+    - ONNX_URL="$OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/$PR_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - if [ -f $LOWQ2_ONNX_FILE ]; then
+        echo "File $LOWQ2_ONNX_FILE exists, deploying to xrootd server";
+        xrdcp $LOWQ2_ONNX_FILE $OSDF_CALIB_OUTPUT_PREFIX/$PR_HASH/$ONNX_URL;
+      else
+        echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
+        exit 1;
+      fi
+    - echo "Updating PR with lowq2 reconstruction results"
+    - python updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
+        --githubToken $GITHUB_TOKEN --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
+        --xml compact/calibrations.xml --repository $GITHUB_REPOSITORY
+    - echo "Updating GitHub status for lowq2 reconstruction"
+

@@ -170,8 +170,8 @@ rule lowq2_reconstruction:
         energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
-        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
-        onnxfile=get_onnx_input
+        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json",
+        onnxfile=get_onnx_input,
     output:
         directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
     shell:

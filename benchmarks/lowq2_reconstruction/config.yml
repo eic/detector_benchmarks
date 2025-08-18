@@ -74,19 +74,24 @@ upload_onnx:lowq2_reconstruction:
       when: never
   script:
     - echo "Deploying lowq2_onnx file to xrootd server"
-    - PR_HASH=$(echo -n "$GITHUB_PR" | sha256sum | cut -d' ' -f1)
     - LOWQ2_ONNX_FILE=results/lowq2_reconstruction/retrained_local/Low-Q2_Steering_Reconstruction_Test_local.onnx
-    - ONNX_URL="$OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/$PR_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - if [ -f $LOWQ2_ONNX_FILE ]; then
-        echo "File $LOWQ2_ONNX_FILE exists, deploying to xrootd server";
-        xrdcp $LOWQ2_ONNX_FILE $OSDF_CALIB_OUTPUT_PREFIX/$PR_HASH/$ONNX_URL;
+        echo "File $LOWQ2_ONNX_FILE exists, calculating hash";
+        ONNX_HASH=$(sha256sum $LOWQ2_ONNX_FILE | cut -d' ' -f1);
+        echo "ONNX file hash: $ONNX_HASH";
       else
         echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
         exit 1;
       fi
+    - ONNX_URL="$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - echo "Deploying to xrootd server using pelican"
+    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz 
+    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz') 
+    - tar zxf pelican_Linux_x86_64.tar.gz 
+    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_URL
     - echo "Updating PR with lowq2 reconstruction results"
     - python updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
-        --githubToken $GITHUB_TOKEN --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
+        --githubToken $GITHUB_REPO_POST_COMMENT --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
         --xml compact/calibrations.xml --repository $GITHUB_REPOSITORY
     - echo "Updating GitHub status for lowq2 reconstruction"
 

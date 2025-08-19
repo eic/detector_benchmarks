@@ -10,7 +10,7 @@ bench:lowq2_reconstruction:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "sim:lowq2_reconstruction"
+    - ["sim:lowq2_reconstruction","bench:beamline"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
 

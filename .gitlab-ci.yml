@@ -124,7 +124,7 @@ common:setup:
 include: 
   # - local: 'benchmarks/backgrounds/config.yml'
   # - local: 'benchmarks/backwards_ecal/config.yml'
-  # - local: 'benchmarks/beamline/config.yml'
+  - local: 'benchmarks/beamline/config.yml'
   # - local: 'benchmarks/calo_pid/config.yml'
   # - local: 'benchmarks/campaign/config.yml'
   # - local: 'benchmarks/ecal_gaps/config.yml'

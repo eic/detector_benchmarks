@@ -1,4 +1,4 @@
-sim:beamline:beamspot:
+sim:beamline:
   extends: .det_benchmark
   stage: simulate
   script:
@@ -11,7 +11,7 @@ bench:beamline:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["sim:beamline:beamspot", "sim:beamline:acceptance"]
+    - ["sim:beamline"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB beamline_local
 

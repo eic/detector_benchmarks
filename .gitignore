@@ -36,6 +36,13 @@ __pycache__/
 *$py.class
 .ipynb_checkpoints
 
+# results and simulation output
+results/
+sim_output/
+.snakemake/
+calibrations/
+fieldmaps/
+
 # test for calorimeter
 calorimeters/test/
 *.d

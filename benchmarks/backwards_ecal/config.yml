@@ -14,6 +14,7 @@ sim:backwards_ecal:
           "10GeV",
           "20GeV",
         ]
+  timeout: 4 hours
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB listing/backwards_ecal/local/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg.lst

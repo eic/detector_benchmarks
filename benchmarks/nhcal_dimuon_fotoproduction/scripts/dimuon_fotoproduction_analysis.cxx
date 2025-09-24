@@ -76,6 +76,11 @@
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "edm4eic/ReconstructedParticle.h"
 
+#include "edm4eic/MCRecoCalorimeterHitAssociationCollection.h"
+#include "edm4eic/MCRecoCalorimeterHitAssociation.h"
+#include "edm4eic/MCRecoParticleAssociationCollection.h"
+#include "edm4eic/MCRecoParticleAssociation.h"
+
 using namespace std;
 using namespace ROOT;
 using namespace TMath;
@@ -85,9 +90,122 @@ constexpr double ETA_MIN = -4.14, ETA_MAX = -1.16;
 
 inline bool inNHCal(double eta) {return (eta >= ETA_MIN && eta <= ETA_MAX);}
 
-int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, string outname_png) {
+auto addPrefixAfterSlash = [](const string& path,
+                              const string& prefix) {
+    const auto slash = path.find_last_of('/');
+    if (slash == string::npos) return prefix + path;
+    return path.substr(0, slash+1) + prefix + path.substr(slash+1);
+};
 
-    int debug = 0;
+TLine* makeLine(double x1, double y1, double x2, double y2) {
+        TLine* l = new TLine(x1, y1, x2, y2);
+        l->SetLineColor(kRed);
+        l->SetLineStyle(2);
+        l->SetLineWidth(2);
+        l->Draw("same");
+        return l;
+    }
+
+inline double dist3(const edm4hep::Vector3f& a, const edm4hep::Vector3f& b) {
+    const double dx = double(a.x) - double(b.x);
+    const double dy = double(a.y) - double(b.y);
+    const double dz = double(a.z) - double(b.z);
+    return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+inline tuple<TMultiGraph*, TLegend*, bool>
+makeEffMultiGraph(TH1D* h_all,
+                  TH1D* const h_in[3],
+                  const char* title,
+                  const char* xlabel,
+                  bool logx)
+{
+    TMultiGraph* mg = new TMultiGraph();
+    TLegend* leg   = new TLegend(0.63, 0.7, 0.88, 0.88);
+    leg->SetBorderSize(0);
+    leg->SetFillStyle(0);
+    leg->SetTextSize(0.04);
+
+    Color_t colors[3]  = {kBlue, kRed, kBlack};
+    Style_t markers[3] = {20, 21, 22};
+
+    int added = 0;
+
+    for (int i = 0; i < 3; ++i) {
+        if (!h_all || !h_in[i]) continue;
+
+        vector<double> x_vals, y_vals;
+        x_vals.reserve(h_all->GetNbinsX());
+        y_vals.reserve(h_all->GetNbinsX());
+
+        for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
+            double all = h_all->GetBinContent(b);
+            if (all < 2) continue;
+            double sel = h_in[i]->GetBinContent(b);
+
+            x_vals.push_back(h_all->GetBinCenter(b));
+            y_vals.push_back(100. * sel / all);
+        }
+
+        if (!x_vals.empty()) {
+            TGraph* g = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
+            g->SetMarkerColor(colors[i]);
+            g->SetMarkerStyle(markers[i]);
+            g->SetMarkerSize(1.0);
+            g->SetLineColor(0);
+            mg->Add(g, "P");
+            leg->AddEntry(g, Form("%d mu-in nHCAL", i), "p");
+            ++added;
+        }
+    }
+
+    if (h_all && h_in[0] && h_in[1] && h_in[2]) {
+        vector<double> x_vals, y_vals;
+        x_vals.reserve(h_all->GetNbinsX());
+        y_vals.reserve(h_all->GetNbinsX());
+
+        for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
+            double all = h_all->GetBinContent(b);
+            if (all < 2) continue;
+
+            double sel = h_in[0]->GetBinContent(b)
+                       + h_in[1]->GetBinContent(b)
+                       + h_in[2]->GetBinContent(b);
+
+            x_vals.push_back(h_all->GetBinCenter(b));
+            y_vals.push_back(100. * sel / all);
+        }
+
+        if (!x_vals.empty()) {
+            TGraph* gsum = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
+            gsum->SetMarkerStyle(25);
+            gsum->SetMarkerColor(kMagenta + 1);
+            gsum->SetFillColor(kMagenta + 1);
+            gsum->SetLineColor(0);
+            gsum->SetMarkerSize(1.0);
+            mg->Add(gsum, "P");
+            leg->AddEntry(gsum, "All eligible", "p");
+            ++added;
+        }
+    }
+
+    mg->SetTitle(Form("%s;%s;geom. acc. [%%]", title ? title : "", xlabel ? xlabel : ""));
+
+    if (added == 0 && h_all) {
+        TH1D* hframe = new TH1D("hframe_tmp", "", 10,
+                                h_all->GetXaxis()->GetXmin(),
+                                h_all->GetXaxis()->GetXmax());
+        hframe->SetMinimum(0.0);
+        hframe->SetMaximum(110.0);
+        hframe->GetXaxis()->SetTitle(xlabel);
+        hframe->GetYaxis()->SetTitle("geom. acc. [%]");
+        hframe->Draw();
+    }
+
+    return make_tuple(mg, leg, logx);
+}
+
+int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, string outname_png) {
 
     gStyle->SetOptStat(0);
     podio::ROOTReader reader;
@@ -95,50 +213,125 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     unsigned nEvents = reader.getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
-    TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 120, -6., 6., 100, 0., 5.);
+    TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
 
-    const int nb = 60;
-    TH1D* hQ2_all = new TH1D("hQ2_all", "Q^{2}", nb, 1e-2, 1.0);
-    TH1D* hX_all  = new TH1D("hX_all", "x",     nb, 1e-6, 1e-3);
-    TH1D* hY_all  = new TH1D("hY_all", "y",     nb, 0., 1.);
-    TH1D* hW_all  = new TH1D("hW_all", "W",     nb, 0., 160.);
+    TH2D* hx_Q2 = new TH2D("hx_Q2", "Muon x vs Q^{2}; x; Q^{2}[GeV^{2}]", 100, 1e-6, 1e-3, 100, 1e-2, 1.0);
+    TH2D* hEta1_Eta2 = new TH2D("hEta1_Eta2", "Muon #eta_{+} vs #eta_{-}; #eta_{+} (PDG=-13); #eta_{-} (PDG=13)", 100, -6., 6., 100, -6., 6.);
 
-    TH1D *hQ2_in[3], *hX_in[3], *hY_in[3], *hW_in[3];
+    constexpr int NBINS = 60; 
+
+    TH1D* hQ2_all = new TH1D("hQ2_all", "Q^{2}", NBINS, 1e-2, 1.0);
+    TH1D* hX_all  = new TH1D("hX_all", "x",     NBINS, 1e-6, 1e-3);
+    TH1D* hY_all  = new TH1D("hY_all", "y",     NBINS, 0., 1.);
+    TH1D* hW_all  = new TH1D("hW_all", "W",     NBINS, 0., 160.);
+
+    TH1D* hQ2_in[3], *hX_in[3], *hY_in[3], *hW_in[3];
     for (int i = 0; i < 3; ++i) {
-        hQ2_in[i] = new TH1D(Form("hQ2_in_%d", i), "", nb, 1e-2, 1.0);
-        hX_in[i]  = new TH1D(Form("hX_in_%d",  i), "", nb, 1e-6, 1e-3);
-        hY_in[i]  = new TH1D(Form("hY_in_%d",  i), "", nb, 0., 1.);
-        hW_in[i]  = new TH1D(Form("hW_in_%d",  i), "", nb, 0., 160.);
+        hQ2_in[i] = new TH1D(Form("hQ2_in_%d", i), "", NBINS, 1e-2, 1.0);
+        hX_in[i]  = new TH1D(Form("hX_in_%d",  i), "", NBINS, 1e-6, 1e-3);
+        hY_in[i]  = new TH1D(Form("hY_in_%d",  i), "", NBINS, 0., 1.);
+        hW_in[i]  = new TH1D(Form("hW_in_%d",  i), "", NBINS, 0., 160.);
     }
 
-    TH1D* hQ2_rec_all = new TH1D("hQ2_rec_all", "Q^{2} (rec)", nb, 1e-2, 1.0);
-    TH1D* hX_rec_all  = new TH1D("hX_rec_all", "x (rec)",      nb, 1e-6, 1e-3);
-    TH1D* hY_rec_all  = new TH1D("hY_rec_all", "y (rec)",      nb, 0., 1.);
-    TH1D* hW_rec_all  = new TH1D("hW_rec_all", "W (rec)",      nb, 0., 160.);
+    TH1D* hQ2_rec_all = new TH1D("hQ2_rec_all", "Q^{2} (rec)", NBINS, 1e-2, 1.0);
+    TH1D* hX_rec_all  = new TH1D("hX_rec_all", "x (rec)",      NBINS, 1e-6, 1e-3);
+    TH1D* hY_rec_all  = new TH1D("hY_rec_all", "y (rec)",      NBINS, 0., 1.);
+    TH1D* hW_rec_all  = new TH1D("hW_rec_all", "W (rec)",      NBINS, 0., 160.);
 
-    TH1D *hQ2_rec_in[3], *hX_rec_in[3], *hY_rec_in[3], *hW_rec_in[3];
+    TH1D* hQ2_rec_in[3], *hX_rec_in[3], *hY_rec_in[3], *hW_rec_in[3];
     for (int i = 0; i < 3; ++i) {
-        hQ2_rec_in[i] = new TH1D(Form("hQ2_rec_in_%d", i), "", nb, 1e-2, 1.0);
-        hX_rec_in[i]  = new TH1D(Form("hX_rec_in_%d",  i), "", nb, 1e-6, 1e-3);
-        hY_rec_in[i]  = new TH1D(Form("hY_rec_in_%d",  i), "", nb, 0., 1.);
-        hW_rec_in[i]  = new TH1D(Form("hW_rec_in_%d",  i), "", nb, 0., 160.);
+        hQ2_rec_in[i] = new TH1D(Form("hQ2_rec_in_%d", i), "", NBINS, 1e-2, 1.0);
+        hX_rec_in[i]  = new TH1D(Form("hX_rec_in_%d",  i), "", NBINS, 1e-6, 1e-3);
+        hY_rec_in[i]  = new TH1D(Form("hY_rec_in_%d",  i), "", NBINS, 0., 1.);
+        hW_rec_in[i]  = new TH1D(Form("hW_rec_in_%d",  i), "", NBINS, 0., 160.);
     }
+
+    constexpr int    Z_NBINS = 100;
+    constexpr double Z_MIN_MM = -4500.0;
+    constexpr double Z_MAX_MM = -3600.0;
+
+    constexpr int    DXY_NBINS  = 120;
+    constexpr double DXY_MIN_MM = -1200.0; 
+    constexpr double DXY_MAX_MM =  1200.0;
+
+    constexpr int    DR_NBINS  = 120;
+    constexpr double DR_MIN_MM = 0.0;   
+    constexpr double DR_MAX_MM = 1200.0;
+
+    constexpr double P_MIN = 0.0;     // GeV
+    constexpr double P_MAX = 25.0;    // GeV
+    constexpr int    P_NB  = 50;
+
+    constexpr double E_MIN = 0.0;
+    constexpr double E_MAX = 10.0;
+
+    TH1D* hZ_proj = new TH1D("hZ_proj", "z proj. ; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
+
+    TH1D* hZ_hits = new TH1D("hZ_hits", "z rec. hits nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
+    // To do
+    TH3D* hDxDyZ_layer = new TH3D("hDxDyZ_layer","diff rec. and proj.; dx [mm]; dy [mm]; z [mm]", NBINS, DXY_MIN_MM, DXY_MAX_MM, NBINS, DXY_MIN_MM, DXY_MAX_MM, NBINS, Z_MIN_MM, Z_MAX_MM); 
+    // To to
+    TH2D* hDxDy_all = new TH2D("hDxDy_all",
+                           "dx, dy ; dx [mm]; dy [mm]",
+                           DXY_NBINS, DXY_MIN_MM, DXY_MAX_MM, DXY_NBINS, DXY_MIN_MM, DXY_MAX_MM);
+    // To do
+    TH2D* hDrZ_layer = new TH2D("hDrZ_layer","diff rec. vs proj.; dr [mm]; z [mm]", NBINS, DR_MIN_MM, DR_MAX_MM, NBINS, Z_MIN_MM, Z_MAX_MM); 
+    // To do
+    TH1D* hDr_all = new TH1D("hDr_all",
+                         "dr = #sqrt{dx^{2}+dy^{2}} sum by layers; dr [mm]; N",
+                         DR_NBINS, DR_MIN_MM, DR_MAX_MM);
+
+    TH2D* hE_z = new TH2D("hE_z", "Energy of hits vs z; z [mm]; E [GeV]", NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, E_MIN, E_MAX);
+
+    TH2D* hEsum_z = new TH2D("hEsum_z", "Sum of energy in layer vs z_{layer}; z_{layer} [mm]; E_{sum} [GeV]",
+                            NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, E_MIN, E_MAX);
+
+    TH1D* hP_all_mu = new TH1D("hP_all_mu", "All muons MC; p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX);
+
+    constexpr double DR_CUTS_CM[3] = {5.0, 7.0, 10.0};
+    TH1D* hP_pass_dr[3] = {
+        new TH1D("hP_pass_dr5cm",  "Accepted (dr<5cm);  p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX),
+        new TH1D("hP_pass_dr7cm",  "Accepted (dr<7cm);  p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX),
+        new TH1D("hP_pass_dr10cm", "Accepted (dr<10cm); p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX)
+    };
+
+    // To do
+    const double MIP_ENERGY_GEV = 0.002; 
+    const double E_CUT_FACTORS[3] = {1.0, 1.3, 1.7}; 
+    TH1D* hP_pass_Ecut[3] = {
+        new TH1D("hP_pass_E<1.0MIP", "Accepted (E<1.0 MIP); p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX),
+        new TH1D("hP_pass_E<1.3MIP", "Accepted (E<1.3 MIP); p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX),
+        new TH1D("hP_pass_E<1.7MIP", "Accepted (E<1.7 MIP); p_{MC} [GeV]; N", P_NB, P_MIN, P_MAX)
+    };
+
+    // To do
+    TH1D* hP_pass_combo[3][3]; // [idr][ie]
+    for (int idr=0; idr<3; ++idr) {
+        for (int ie=0; ie<3; ++ie) {
+            hP_pass_combo[idr][ie] = new TH1D(
+                Form("hP_pass_dr%.0fcm_E<%.1fMIP", DR_CUTS_CM[idr], E_CUT_FACTORS[ie]),
+                Form("Accepted (dr<%.0f cm & E<%.1f MIP); p_{MC} [GeV]; N", DR_CUTS_CM[idr], E_CUT_FACTORS[ie]),
+                P_NB, P_MIN, P_MAX
+            );
+        }
+    }
+
+    const double DR_CUTS_MM[3] = {50.0, 70.0, 100.0};  
+
+    auto tf = [](bool v){ return v ? "true" : "false"; };
 
     for (unsigned ev = 0; ev < nEvents; ev++) {
         auto frameData = reader.readNextEntry(podio::Category::Event);
         if (!frameData) continue;
         podio::Frame frame(std::move(frameData));
-        
-        if (debug && ev == 0) {
-            std::cout << "==== Available collections in event 0 ====\n";
-            for (const auto& name : frame.getAvailableCollections()) {
-                std::cout << "  - " << name << "\n";
-            }
-            std::cout << "==========================================\n";
-        }
 
         auto& kinCol = frame.get<edm4eic::InclusiveKinematicsCollection>("InclusiveKinematicsTruth");
         auto& mcCol  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
+        auto& recParts = frame.get<edm4eic::ReconstructedParticleCollection>("ReconstructedParticles");
+        auto& projSegs = frame.get<edm4eic::TrackSegmentCollection>("CalorimeterTrackProjections");
+        auto& hcalRec  = frame.get<edm4eic::CalorimeterHitCollection>("HcalEndcapNRecHits");
+        auto& assocCol = frame.get<edm4eic::MCRecoParticleAssociationCollection>("ReconstructedParticleAssociations");
+
         if (!kinCol.isValid() || !mcCol.isValid()) continue;
         if (kinCol.empty()) continue;
 
@@ -158,6 +351,9 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         hEtaPt->Fill(v1.Eta(), v1.Pt());
         hEtaPt->Fill(v2.Eta(), v2.Pt());
 
+        hx_Q2->Fill(x,Q2); 
+        hEta1_Eta2->Fill(v2.Eta(), v1.Eta());
+
         hQ2_all->Fill(Q2);
         hX_all->Fill(x);
         hY_all->Fill(y);
@@ -171,341 +367,183 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
             hW_in[nInNH]->Fill(W);
         }
 
-        //================================ New module ================================//
-
-        auto pickKinematicsName = [&](const podio::Frame& f)->std::string {
-            const char* cands[] = {
-                "InclusiveKinematicsElectron",
-                "InclusiveKinematicsDA",
-                "InclusiveKinematicsJB",
-                "InclusiveKinematicsML",
-                "InclusiveKinematicsSigma",
-                "InclusiveKinematicsESigma",
-                "InclusiveKinematicseSigma"
-            };
-            for (auto nm : cands) {
-                auto& c = f.get<edm4eic::InclusiveKinematicsCollection>(nm);
-                if (c.isValid() && !c.empty()) return nm;
-            }
-            return "";
-        };
-
-        std::string kinName = pickKinematicsName(frame);
-        bool haveKinRec = !kinName.empty();
-        double Q2r=0, xr=0, yr=0, Wr=0;
-
-        if (debug) std::cout << "  [DEBUG] REC kinematics collection: " << (haveKinRec ? kinName : "<none>") << "\n";
-        if (haveKinRec) {
-            auto& kinRecCol = frame.get<edm4eic::InclusiveKinematicsCollection>(kinName);
-            const auto& kinRec = kinRecCol.at(0);
-            Q2r = kinRec.getQ2(); xr = kinRec.getX(); yr = kinRec.getY(); Wr = kinRec.getW();
-            if (debug) std::cout << "  RECO Q2=" << Q2r << " x=" << xr << " y=" << yr << " W=" << Wr << "\n";
+        if(nInNH >= 1) {
+            hP_all_mu->Fill(v1.P());
+            hP_all_mu->Fill(v2.P());
         }
 
-        auto& segCol = frame.get<edm4eic::TrackSegmentCollection>("CentralTrackSegments");
-        auto& rpCol  = frame.get<edm4eic::ReconstructedParticleCollection>("ReconstructedParticles");
-        auto& rcCol  = frame.get<edm4eic::ReconstructedParticleCollection>("ReconstructedChargedParticles");
-        auto& rcPID  = frame.get<edm4eic::ReconstructedParticleCollection>("ReconstructedChargedRealPIDParticles");
+        constexpr double THRESH_MM = 100.0; // 10 cm w mm
 
-        constexpr const char* HCAL_NAME = "HcalEndcapNRecHits";
-        auto& hcalN = frame.get<edm4eic::CalorimeterHitCollection>(HCAL_NAME);
+        bool m1_has_rec = false;
+        bool m2_has_rec = false;
 
-        if (debug) {
-        std::cout << " RECO collections:\n";
-        std::cout << " ReconstructedParticles valid=" << rpCol.isValid()  << " size=" << rpCol.size()  << "\n";
-        std::cout << " ReconstructedChargedParticles valid=" << rcCol.isValid() << " size=" << rcCol.size() << "\n";
-        std::cout << " ReconstructedChargedRealPIDParticles valid=" << rcPID.isValid() << " size=" << rcPID.size() << "\n";
-        std::cout << " [DEBUG] HCAL used: " << HCAL_NAME
-                    << " valid=" << hcalN.isValid() << " size=" << hcalN.size() << "\n";
-        }
 
-        bool haveSeg   = segCol.isValid() && !segCol.empty();
-        bool haveHits  = hcalN.isValid() && !hcalN.empty();     
-        bool haveAnyRP = (rpCol.isValid()  && !rpCol.empty())
-                    || (rcCol.isValid()  && !rcCol.empty())
-                    || (rcPID.isValid()  && !rcPID.empty());
+        struct TaggedReco { edm4eic::ReconstructedParticle reco; int muTag; /*1=m1, 2=m2*/ };
+        vector<TaggedReco> matchedRecos;
 
-        if (!haveSeg || !haveHits || !haveAnyRP) {
-        if (debug) {
-            if (!haveSeg)   std::cout << " [WARN] brak CentralTrackSegments\n";
-            if (!haveHits)  std::cout << " [WARN] brak HCAL hitów w " << HCAL_NAME << "\n";
-            if (!haveAnyRP) std::cout << " [WARN] brak RP kolekcji do znaku ładunku\n";
-        }
-        } else {
-
-        const float zBin = 10.f; // mm
-        std::unordered_map<int,int> zcount;
-        zcount.reserve(hcalN.size());
-        for (const auto& h : hcalN) {
-            int bz = int(std::floor(h.getPosition().z / zBin));
-            ++zcount[bz];
-        }
-        int bestBz = 0, bestCnt = -1;
-        for (auto& kv : zcount) if (kv.second > bestCnt) { bestCnt = kv.second; bestBz = kv.first; }
-        const float zTarget = bestBz * zBin;
-
-        const float zWin   = 80.f; // mm
-        const float voxel  = 50.f; // mm
-
-        struct K2D { int ix, iy; };
-        struct H2DHash { size_t operator()(const K2D& k) const noexcept {
-            return (k.ix*73856093) ^ (k.iy*19349663);
-        }};
-        struct H2DEq { bool operator()(const K2D& a, const K2D& b) const noexcept {
-            return a.ix==b.ix && a.iy==b.iy;
-        }};
-        auto k2 = [&](float x, float y)->K2D {
-            return { int(std::floor(x/voxel)), int(std::floor(y/voxel)) };
-        };
-
-        std::unordered_map<K2D, std::vector<edm4eic::CalorimeterHit>, H2DHash, H2DEq> grid;
-        grid.reserve(hcalN.size());
-        for (const auto& h : hcalN) {
-            const auto& p = h.getPosition();
-            if (std::fabs(p.z - zTarget) > zWin) continue;
-            grid[k2(p.x, p.y)].push_back(h);
-        }
-
-        if (debug) {
-            size_t kept = 0;
-            for (auto& kv : grid) kept += kv.second.size();
-            std::cout << " [DEBUG] zTarget=" << zTarget << " mm, kept NHCal hits ~layer: "
-                    << kept << " cells=" << grid.size() << "\n";
-        }
-        auto oid = [](const auto& obj){ return obj.getObjectID(); };
-        struct OIDHash {
-            size_t operator()(const podio::ObjectID& id) const noexcept {
-                return (static_cast<size_t>(static_cast<uint32_t>(id.collectionID)) << 32)
-                    ^ static_cast<uint32_t>(id.index);
-            }
-        };
-        struct OIDEq {
-            bool operator()(const podio::ObjectID& a, const podio::ObjectID& b) const noexcept {
-                return a.collectionID == b.collectionID && a.index == b.index;
+        auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->bool {
+            if (!mc.isAvailable()) return false;
+            try {
+                if (!assocCol.isValid() || assocCol.empty()) {
+                    return false;
+                }
+                auto simIDs = assocCol.simID();
+                auto recIDs = assocCol.recID();
+                const uint32_t mc_idx = mc.getObjectID().index;
+                bool found = false;
+                for (size_t i=0; i<assocCol.size() && i<simIDs.size() && i<recIDs.size(); ++i) {
+                    if (simIDs[i] == mc_idx) {
+                        uint32_t ridx = recIDs[i];
+                        if (!recParts.isValid() || ridx >= recParts.size()) {continue;}
+                        auto reco = recParts.at(ridx);
+                        if (reco.isAvailable()) {
+                            matchedRecos.push_back({reco, muTag});
+                            found = true;
+                        }
+                    }
+                }
+                return found;
+            } catch (...) {
+                return false;
             }
         };
 
-        std::unordered_set<podio::ObjectID, OIDHash, OIDEq> muonTracks;
-        std::unordered_map<podio::ObjectID, int, OIDHash, OIDEq> muonTrackSign; 
+        int assocCount = 0;
+        if (m1.isAvailable() && abs(m1.getPDG())==13) assocCount += find_associated_reco(m1, 1) ? 1 : 0;
+        if (m2.isAvailable() && abs(m2.getPDG())==13) assocCount += find_associated_reco(m2, 2) ? 1 : 0;
 
-        auto isMuonRP = [&](const edm4eic::ReconstructedParticle& rp)->bool {
-            if constexpr (requires { rp.getPDG(); }) {
-                int pdg = rp.getPDG();
-                return std::abs(pdg) == 13; 
+        if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+        
+        map<double, double> layerData;
+        for (const auto& hit : hcalRec) {    
+            double z = hit.getPosition().z;
+            double zBin = round(z);        
+            layerData[zBin] += hit.getEnergy(); 
+            hZ_hits->Fill(z);                
+            hE_z->Fill(z, hit.getEnergy());   
+        }
+
+        for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy);}
+
+        struct TaggedTrack { edm4eic::Track tr; int muTag; };
+        vector<TaggedTrack> allTracks;
+        for (const auto& R : matchedRecos) {
+            for (const auto& tr : R.reco.getTracks()) {
+                if (tr.isAvailable()) allTracks.push_back({tr, R.muTag});
+            }
+        }
+        struct SegTag { edm4eic::TrackSegment seg; int muTag; };
+        vector<SegTag> segsTagged;
+        for (const auto& seg : projSegs) {
+            auto linkedTr = seg.getTrack();
+            if (!linkedTr.isAvailable()) continue;
+            for (const auto& TT : allTracks) {
+                if (linkedTr.getObjectID() == TT.tr.getObjectID()) {
+                    segsTagged.push_back({seg, TT.muTag});
+                    break;
+                }
+            }
+        }
+
+        for (const auto& ST : segsTagged) {
+            auto points = ST.seg.getPoints();
+            double segBestMin = 1e12;
+            double segHitEnergy = 1e12;
+
+            for (const auto& pt : points) {
+                const auto& ptPosition = pt.position;  
+
+                if(pt.system != 113) continue; 
+                //if(pt.surface != 1) continue;
+
+                double localHitEnergy = 1e12;
+                double localMin = 1e12;
+                for (const auto& hit : hcalRec) {
+                    const auto& hpos = hit.getPosition();                
+                    const double d = dist3(ptPosition, hpos);
+                    if (d < localMin) { localMin = d;  }
+                }
+                if (localMin < segBestMin) {
+                    segBestMin = localMin;
+                }
+
+                hZ_proj->Fill(ptPosition.z);
+            } 
+
+            if (segBestMin <= THRESH_MM) {
+                cout << "[MATCH] muTag=" << ST.muTag
+                    << " d=" << segBestMin << " mm (<= " << THRESH_MM << ")\n";
+                if (ST.muTag == 1) {
+                    m1_has_rec = true; 
+                    for (int idr=0; idr<3; ++idr) if (segBestMin < DR_CUTS_MM[idr]) hP_pass_dr[idr]->Fill(v1.P());
+                }
+                if (ST.muTag == 2) {
+                    m2_has_rec = true; 
+                    for (int idr=0; idr<3; ++idr) if (segBestMin < DR_CUTS_MM[idr]) hP_pass_dr[idr]->Fill(v2.P());
+                }
             } else {
-                return false;
-            }
-        };
-
-        auto add_muons_from = [&](const edm4eic::ReconstructedParticleCollection& col){
-            if (!col.isValid() || col.empty()) return;
-            for (const auto& rp : col) {
-                if (!isMuonRP(rp)) continue;
-                double q = rp.getCharge();
-                int sgn = (q > 0) ? +1 : (q < 0 ? -1 : 0);
-                if (sgn == 0) continue; 
-                for (const auto& trh : rp.getTracks()) {
-                    if (!trh.isAvailable()) continue;
-                    auto id = oid(trh);
-                    muonTracks.insert(id);
-                    muonTrackSign[id] = sgn;
-                }
-            }
-        };
-
-        add_muons_from(rcPID);
-        if (muonTracks.empty()) add_muons_from(rcCol);
-        if (muonTracks.empty()) add_muons_from(rpCol);
-
-        if (debug) {
-            std::cout << "  [DEBUG] muonTracks=" << muonTracks.size()
-                    << " muonTrackSign=" << muonTrackSign.size() << "\n";
-        }
-            auto projectToZ = [&](const edm4eic::TrackSegment& ts, float zt, edm4hep::Vector3f& out)->bool {
-                auto pts = ts.getPoints();
-                if (pts.size() < 2) return false;
-                const edm4eic::TrackPoint *pA=nullptr, *pB=nullptr;
-                for (const auto& tp : pts) {
-                    if (!pA || tp.pathlength > pA->pathlength) { pB = pA; pA = &tp; }
-                    else if (!pB || tp.pathlength > pB->pathlength) { pB = &tp; }
-                }
-                if (!pA || !pB) return false;
-                auto A = pA->position; auto B = pB->position;
-                float dz = (A.z - B.z);
-                if (std::fabs(dz) < 1e-3f) return false;
-                float t = (zt - A.z) / ((A.z - B.z));
-                out.x = A.x + t * (A.x - B.x);
-                out.y = A.y + t * (A.y - B.y);
-                out.z = zt;
-                return true;
-            };
-
-            auto anyHitNear = [&](const edm4hep::Vector3f& p, float R)->bool {
-                const float R2 = R*R;
-                auto key = k2(p.x, p.y);
-                for (int dx=-1; dx<=1; ++dx)
-                for (int dy=-1; dy<=1; ++dy) {
-                    auto it = grid.find( K2D{key.ix+dx, key.iy+dy} );
-                    if (it == grid.end()) continue;
-                    for (const auto& h : it->second) {
-                        const auto& hp = h.getPosition();
-                        float dxp = p.x - hp.x, dyp = p.y - hp.y;
-                        if (dxp*dxp + dyp*dyp <= R2) return true;
-                    }
-                }
-                return false;
-            };
-
-            const float Rmatch = 50.f; // 5 cm
-
-            bool matchedPlus=false, matchedMinus=false;
-            int segTried=0, segProj=0, segHit=0;
-
-            for (size_t i=0; i<segCol.size(); ++i) {
-                const auto& ts = segCol.at(i);
-                auto trh = ts.getTrack();
-                if (!trh.isAvailable()) continue;
-                ++segTried;
-
-                edm4hep::Vector3f pproj{};
-                if (!projectToZ(ts, zTarget, pproj)) continue;
-                ++segProj;
-
-                if (anyHitNear(pproj, Rmatch)) {
-                    ++segHit;
-
-                    auto id = oid(trh);
-                    if (muonTracks.find(id) == muonTracks.end()) {
-                        continue;
-                    }
-
-                    int sgn = muonTrackSign.count(id) ? muonTrackSign[id] : 0;
-                    if (sgn == +1)      matchedPlus  = true;
-                    else if (sgn == -1) matchedMinus = true;
-
-                    if (matchedPlus && matchedMinus) break;
-                }
-            }
-
-            if (debug) {
-                std::cout << "  [DEBUG] projZ=" << zTarget << " mm | segments tried=" << segTried
-                        << " projected=" << segProj << " hit-near=" << segHit
-                        << " → plus=" << matchedPlus << " minus=" << matchedMinus << "\n";
-            }
-
-            int matchedMuons = (matchedMinus ? 1 : 0) + (matchedPlus ? 1 : 0);
-            if (debug) std::cout << "  [DEBUG] matchedMuons=" << matchedMuons << "\n";
-
-            if (haveKinRec) {
-                hQ2_rec_all->Fill(Q2r);
-                hX_rec_all->Fill(xr);
-                hY_rec_all->Fill(yr);
-                hW_rec_all->Fill(Wr);
-
-                if (matchedMuons >= 0 && matchedMuons <= 2) {
-                    hQ2_rec_in[matchedMuons]->Fill(Q2r);
-                    hX_rec_in[matchedMuons]->Fill(xr);
-                    hY_rec_in[matchedMuons]->Fill(yr);
-                    hW_rec_in[matchedMuons]->Fill(Wr);
-                }
-            } else if (debug) {
-                std::cout << "  [DEBUG] brak REC kinematyki — nie wypełniam h*_rec_* w tym evencie\n";
+                cout << "[INFO] no match <= " << THRESH_MM
+                    << " mm; best distance (this seg) = " << segBestMin
+                    << " mm, for muTag=" << ST.muTag << "\n";
             }
         } 
+        
 
+        int nInNH_rec_local = 0;
+        if (m1_has_rec) ++nInNH_rec_local;
+        if (m2_has_rec) ++nInNH_rec_local;
+
+        cout << "[RES] m1_has_rec=" << (m1_has_rec ? "true" : "false")
+                << ", m2_has_rec=" << (m2_has_rec ? "true" : "false")
+                << " | nInNH_rec_local=" << nInNH_rec_local << "\n";
+
+        hQ2_rec_all->Fill(Q2);
+        hX_rec_all->Fill(x);
+        hY_rec_all->Fill(y);
+        hW_rec_all->Fill(W);
+
+        if (nInNH_rec_local >= 0 && nInNH_rec_local <= 2) {
+            hQ2_rec_in[nInNH_rec_local]->Fill(Q2);
+            hX_rec_in[nInNH_rec_local]->Fill(x);
+            hY_rec_in[nInNH_rec_local]->Fill(y);
+            hW_rec_in[nInNH_rec_local]->Fill(W);
+        }
     }
 
-    auto makeEffMultiGraph = [](TH1D* h_all, TH1D** h_in, const char* title, const char* xlabel, bool logx) {
-        TMultiGraph* mg = new TMultiGraph();
-        TLegend* leg = new TLegend(0.63, 0.7, 0.88, 0.88);
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->SetTextSize(0.04);
-
-        Color_t colors[3] = {kBlue, kRed, kBlack};
-        Style_t markers[3] = {20, 21, 22};
-
-        int added = 0;
-
-        for (int i = 0; i < 3; ++i) {
-            std::vector<double> x_vals, y_vals;
-            for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
-                double all = h_all->GetBinContent(b);
-                double sel = h_in[i]->GetBinContent(b);
-                if (all < 5) continue;
-                x_vals.push_back(h_all->GetBinCenter(b));
-                y_vals.push_back(100. * sel / all);
-            }
-            if (!x_vals.empty()) {
-                TGraph* g = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
-                g->SetMarkerColor(colors[i]);
-                g->SetMarkerStyle(markers[i]);
-                g->SetMarkerSize(1.0);
-                g->SetLineColor(0);
-                mg->Add(g, "P");
-                leg->AddEntry(g, Form("%d mu-in nHCAL", i), "p");
-                ++added;
-            }
-        }
-
-        {
-            std::vector<double> x_vals, y_vals;
-            for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
-                double all = h_all->GetBinContent(b);
-                double sel = h_in[1]->GetBinContent(b) + h_in[2]->GetBinContent(b);
-                if (all < 5) continue;
-                x_vals.push_back(h_all->GetBinCenter(b));
-                y_vals.push_back(100. * sel / all);
-            }
-            if (!x_vals.empty()) {
-                TGraph* gsum = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
-                gsum->SetMarkerStyle(25);
-                gsum->SetMarkerColor(kMagenta + 1);
-                gsum->SetFillColor(kMagenta+1);
-                gsum->SetLineColor(0);
-                gsum->SetMarkerSize(1.0);
-                mg->Add(gsum, "P");
-                leg->AddEntry(gsum, "All eligible", "p");
-                ++added;
-            }
-        }
-
-        mg->SetTitle(Form("%s;%s;geom. acc. [%%]", title, xlabel));
-
-        if (added == 0) {
-            TH1D* hframe = new TH1D("hframe_tmp", "", 10, h_all->GetXaxis()->GetXmin(), h_all->GetXaxis()->GetXmax());
-            hframe->SetMinimum(0.0);
-            hframe->SetMaximum(110.0);
-            hframe->GetXaxis()->SetTitle(xlabel);
-            hframe->GetYaxis()->SetTitle("geom. acc. [%]");
-            hframe->Draw();
-        }
-
-        return std::make_tuple(mg, leg, logx);
-    };
-
-    TCanvas* canvas = new TCanvas("canvas", "muon analysis", 1600, 800);
-    canvas->Divide(3, 2);
-    canvas->cd(1); hEtaPt->Draw("COLZ");
+    TCanvas* canvas_sim = new TCanvas("canvas_sim", "muon analysis", 1600, 800);
+    canvas_sim->Divide(4, 2);
+    canvas_sim->cd(1); hEtaPt->Draw("COLZ");
 
     auto [mg_q2, leg_q2, log_q2] = makeEffMultiGraph(hQ2_all, hQ2_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
-    canvas->cd(2); if (log_q2) gPad->SetLogx(); gPad->SetGrid(); mg_q2->Draw("A"); leg_q2->Draw();
+    canvas_sim->cd(2); if (log_q2) gPad->SetLogx(); gPad->SetGrid(); mg_q2->Draw("A"); leg_q2->Draw();
 
     auto [mg_x, leg_x, log_x] = makeEffMultiGraph(hX_all, hX_in, "Geom. acc. vs x", "x", true);
-    canvas->cd(3); if (log_x) gPad->SetLogx(); gPad->SetGrid(); mg_x->Draw("A"); leg_x->Draw();
+    canvas_sim->cd(3); if (log_x) gPad->SetLogx(); gPad->SetGrid(); mg_x->Draw("A"); leg_x->Draw();
 
     auto [mg_y, leg_y, log_y] = makeEffMultiGraph(hY_all, hY_in, "Geom. acc. vs y", "y", false);
-    canvas->cd(4); gPad->SetGrid(); mg_y->Draw("A"); leg_y->Draw();
+    canvas_sim->cd(4); gPad->SetGrid(); mg_y->Draw("A"); leg_y->Draw();
 
     auto [mg_w, leg_w, log_w] = makeEffMultiGraph(hW_all, hW_in, "Geom. acc. vs W", "W [GeV]", false);
-    canvas->cd(5); gPad->SetGrid(); mg_w->Draw("A"); leg_w->Draw();
+    canvas_sim->cd(5); gPad->SetGrid(); mg_w->Draw("A"); leg_w->Draw();
 
-    canvas->SaveAs(outname_pdf.c_str());
-    canvas->SaveAs(outname_png.c_str());
+    canvas_sim->cd(6); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
+    canvas_sim->cd(7); hEta1_Eta2->Draw("COLZ"); 
+    
+    
+
+    auto* lv1 = makeLine(ETA_MIN, -6, ETA_MIN, 6);
+    auto* lv2 = makeLine(ETA_MAX, -6, ETA_MAX, 6);
+    auto* lh1 = makeLine(hEta1_Eta2->GetXaxis()->GetXmin(), ETA_MIN,
+                        hEta1_Eta2->GetXaxis()->GetXmax(), ETA_MIN);
+    auto* lh2 = makeLine(hEta1_Eta2->GetXaxis()->GetXmin(), ETA_MAX,
+                        hEta1_Eta2->GetXaxis()->GetXmax(), ETA_MAX);
+
+    canvas_sim->SaveAs(outname_pdf.c_str());
+    canvas_sim->SaveAs(outname_png.c_str());
 
     TCanvas* canvas_rec = new TCanvas("canvas_rec", "muon analysis rec", 1600, 800);
-    canvas_rec->Divide(3, 2);
-    //canvas_rec->cd(1); hEtaPt->Draw("COLZ");
+    canvas_rec->Divide(4, 2);
+    canvas_rec->cd(1); hEtaPt->Draw("COLZ");
 
     auto [mg_rec_q2, leg_rec_q2, log_rec_q2] = makeEffMultiGraph(hQ2_rec_all, hQ2_rec_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
     canvas_rec->cd(2); if (log_rec_q2) gPad->SetLogx(); gPad->SetGrid(); mg_rec_q2->Draw("A"); leg_rec_q2->Draw();
@@ -519,8 +557,57 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     auto [mg_rec_w, leg_rec_w, log_rec_w] = makeEffMultiGraph(hW_rec_all, hW_rec_in, "Geom. acc. vs W", "W [GeV]", false);
     canvas_rec->cd(5); gPad->SetGrid(); mg_rec_w->Draw("A"); leg_rec_w->Draw();
 
-    canvas_rec->SaveAs("results/nhcal_dimuon_fotoproduction/rec_analysis_epic_full.png");
-    canvas_rec->SaveAs("results/nhcal_dimuon_fotoproduction/rec_analysis_epic_full.pdf");
+    canvas_rec->cd(6); gPad->SetLogx(); gPad->SetGrid(); hx_Q2->Draw("COLZ");
+    canvas_rec->cd(7); hEta1_Eta2->Draw("COLZ");
+
+    string rec_outname_pdf = addPrefixAfterSlash(outname_pdf, "rec_");
+    string rec_outname_png = addPrefixAfterSlash(outname_png, "rec_");
+    canvas_rec->SaveAs(rec_outname_png.c_str());
+    canvas_rec->SaveAs(rec_outname_pdf.c_str());
+
+    TCanvas* canvas = new TCanvas("canvas", "Extra histograms (ALL-IN-ONE)", 1800, 1200); 
+    canvas->Divide(3,3);                                                                 
+    canvas->cd(1); gPad->SetGrid(); hZ_proj->Draw();                                     
+    canvas->cd(2); gPad->SetGrid(); hZ_hits->Draw();                                     
+    canvas->cd(3); gPad->SetGrid(); hDxDy_all->Draw("COLZ");                              
+    canvas->cd(4); gPad->SetGrid(); hDr_all->Draw();                                      
+    canvas->cd(5); gPad->SetGrid(); hE_z->Draw("COLZ");                                  
+    canvas->cd(6); gPad->SetGrid(); hEsum_z->Draw("COLZ");                                
+    canvas->cd(7); gPad->SetGrid(); hP_all_mu->SetLineColor(kBlack); hP_all_mu->Draw();  
+    canvas->cd(8); gPad->SetGrid();                                                       
+    TH1D* hEff_dr[3]; 
+    for (int idr=0; idr<3; ++idr) { 
+        hEff_dr[idr] = (TH1D*)hP_pass_dr[idr]->Clone( 
+            Form("hEff_dr%.0fcm", DR_CUTS_CM[idr]) 
+        ); 
+        hEff_dr[idr]->SetTitle("Matching efficiency (progi dr); p_{MC} [GeV]; eff"); 
+        hEff_dr[idr]->Divide(hP_all_mu); 
+    } 
+
+    hEff_dr[0]->SetLineColor(kBlue);     hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.1); 
+    hEff_dr[1]->SetLineColor(kRed);   
+    hEff_dr[2]->SetLineColor(kGreen+2); 
+
+    hEff_dr[0]->Draw("HIST");            
+    hEff_dr[1]->Draw("HIST SAME");       
+    hEff_dr[2]->Draw("HIST SAME");       
+    { auto leg8 = new TLegend(0.55,0.65,0.88,0.88);
+    leg8->AddEntry(hEff_dr[0],"dr < 5 cm","l");   
+    leg8->AddEntry(hEff_dr[1],"dr < 7 cm","l");   
+    leg8->AddEntry(hEff_dr[2],"dr < 10 cm","l");  
+    leg8->Draw(); }  
+                                                                   
+    canvas->cd(9); gPad->SetGrid();                                                      
+    hP_pass_Ecut[0]->SetLineColor(kBlue);   hP_pass_Ecut[0]->Draw();                   
+    hP_pass_Ecut[1]->SetLineColor(kRed);    hP_pass_Ecut[1]->Draw("SAME");             
+    hP_pass_Ecut[2]->SetLineColor(kGreen+2);hP_pass_Ecut[2]->Draw("SAME");              
+    { auto leg9 = new TLegend(0.55,0.65,0.88,0.88);                                     
+      leg9->AddEntry(hP_pass_Ecut[0],"E < 1.0 MIP","l");                               
+      leg9->AddEntry(hP_pass_Ecut[1],"E < 1.3 MIP","l");                              
+      leg9->AddEntry(hP_pass_Ecut[2],"E < 1.7 MIP","l");                               
+      leg9->Draw(); }                                                                    
+    canvas->SaveAs(addPrefixAfterSlash(outname_png, "extra_ALL_").c_str());              
+    canvas->SaveAs(addPrefixAfterSlash(outname_pdf, "extra_ALL_").c_str());               
 
     return 0;
 }

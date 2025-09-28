@@ -66,5 +66,5 @@ rule nhcal_dimuon_fotoproduction_analysis:
         pdf=f"results/nhcal_dimuon_fotoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.pdf",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
+    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'
 """

@@ -389,7 +389,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
     constexpr double DR_CUTS_CM[3] = {1.0, 3.0, 5.0};
     constexpr double MIP_ENERGY_GEV = 0.002; 
-    constexpr double E_CUTS_GEV[3] = {1.5, 1.7, 2.0}; 
+    constexpr double E_CUTS_GEV[3] = {0.5, 0.7, 1.0}; 
     constexpr double THRESH_MM = DR_CUTS_CM[2]*10;
     constexpr double E_THRESH_GEV = E_CUTS_GEV[2];   
 
@@ -650,26 +650,17 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                 if (ST.muTag == 1) {
                     m1_has_rec = true; 
                     for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v1.P());
-                    //for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
+                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
                 }
                 if (ST.muTag == 2) {
                     m2_has_rec = true; 
                     for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v2.P());
-                    //for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
+                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
                 }
             } else {
                 cout << "[INFO] no match <= " << THRESH_MM
                     << " mm; best distance (this seg) = " << segMinDistance
                     << " mm, for muTag=" << ST.muTag << "\n";
-            }
-
-            if (segHitEnergy <= E_THRESH_GEV) {
-                if (ST.muTag == 1) {
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
-                }
-                if (ST.muTag == 2) {
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
-                }
             }
         } 
         

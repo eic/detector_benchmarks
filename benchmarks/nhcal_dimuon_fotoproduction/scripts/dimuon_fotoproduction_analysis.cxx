@@ -236,8 +236,8 @@ inline double getPlasticThicknessMM(dd4hep::Detector& det,
         if (!box) throw runtime_error("Solid is not TGeoBBox");
 
         const double dz_cm = box->GetDZ();                     
-        const double thickness_mm = 2.0 * dz_cm;
-        return thickness_mm;
+        const double thickness_cm = 2.0 * dz_cm;
+        return thickness_cm;
     } catch (const exception& e) {
         cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
         return NaN;
@@ -250,9 +250,9 @@ struct GeomState {
 };
 
 // --- tiny helpers ---
-inline double hypot2(double a, double b){ return std::sqrt(a*a + b*b); }
+inline double hypot2(double a, double b){ return sqrt(a*a + b*b); }
 inline void unitXY(double px, double py, double& tx, double& ty){
-    double pt = std::max(hypot2(px,py), 1e-16);
+    double pt = max(hypot2(px,py), 1e-16);
     tx = px/pt; ty = py/pt;
 }
 inline void rot90(double vx, double vy, double& rx, double& ry){
@@ -260,7 +260,7 @@ inline void rot90(double vx, double vy, double& rx, double& ry){
 }
 
 // geometry-only helix (or line) projection from exactly two states
-inline std::pair<double,double>
+inline pair<double,double>
 trackXYatZ_fromTwoStates(double x1,double y1,double z1,
                          double px1,double py1,double pz1,
                          double x2,double y2,double z2,
@@ -274,19 +274,19 @@ trackXYatZ_fromTwoStates(double x1,double y1,double z1,
     double t1x,t1y,t2x,t2y; unitXY(px1,py1,t1x,t1y); unitXY(px2,py2,t2x,t2y);
 
     // average dip angle tan(lambda)
-    const double pt1 = std::max(hypot2(px1,py1), 1e-16);
-    const double pt2 = std::max(hypot2(px2,py2), 1e-16);
+    const double pt1 = max(hypot2(px1,py1), 1e-16);
+    const double pt2 = max(hypot2(px2,py2), 1e-16);
     const double tanL1 = pz1/pt1, tanL2 = pz2/pt2, tanL = 0.5*(tanL1+tanL2);
 
-    if (std::abs(tanL) < EPS) {
+    if (abs(tanL) < EPS) {
         // nearly horizontal track -> z-param is unstable; return nearest state's XY
-        return (std::abs(zTarget - z1) <= std::abs(zTarget - z2)) ? std::pair{x1,y1} : std::pair{x2,y2};
+        return (abs(zTarget - z1) <= abs(zTarget - z2)) ? pair{x1,y1} : pair{x2,y2};
     }
 
     // signed angle between tangents (curvature sign & fallback)
     const double cross = t1x*t2y - t1y*t2x;
-    const double dot   = std::clamp(t1x*t2x + t1y*t2y, -1.0, 1.0);
-    const double dPhi  = std::atan2(cross, dot);      // (-pi, pi]
+    const double dot   = clamp(t1x*t2x + t1y*t2y, -1.0, 1.0);
+    const double dPhi  = atan2(cross, dot);      // (-pi, pi]
     const int    sgn   = (dPhi >= 0) ? +1 : -1;       // CCW/CW by geometry
 
     // normals (left normals wrt tangent)
@@ -298,9 +298,9 @@ trackXYatZ_fromTwoStates(double x1,double y1,double z1,
     const double denom = dn_x*dn_x + dn_y*dn_y;
 
     const bool near_parallel_normals = (denom < 1e-10);
-    if (near_parallel_normals || std::abs(dPhi) < EPSANG) {
+    if (near_parallel_normals || abs(dPhi) < EPSANG) {
         // almost straight -> linear extrapolation in XY by z
-        const bool anchorAt1 = (std::abs(zTarget - z1) <= std::abs(zTarget - z2));
+        const bool anchorAt1 = (abs(zTarget - z1) <= abs(zTarget - z2));
         double xa = anchorAt1 ? x1 : x2;
         double ya = anchorAt1 ? y1 : y2;
         double za = anchorAt1 ? z1 : z2;
@@ -322,15 +322,15 @@ trackXYatZ_fromTwoStates(double x1,double y1,double z1,
     const double Cy  = 0.5*(C1y + C2y);
 
     // anchor phase at state closer in z to zTarget
-    const bool anchorAt1 = (std::abs(zTarget - z1) <= std::abs(zTarget - z2));
+    const bool anchorAt1 = (abs(zTarget - z1) <= abs(zTarget - z2));
     const double xa = anchorAt1 ? x1 : x2;
     const double ya = anchorAt1 ? y1 : y2;
     const double za = anchorAt1 ? z1 : z2;
 
-    const double phiA = std::atan2(ya - Cy, xa - Cx);
+    const double phiA = atan2(ya - Cy, xa - Cx);
     const double phi  = phiA + sgn * (zTarget - za) / (R * tanL);
 
-    return { Cx + R*std::cos(phi), Cy + R*std::sin(phi) };
+    return { Cx + R*cos(phi), Cy + R*sin(phi) };
 }
 
 // convenient wrapper for two GeomState objects
@@ -389,8 +389,9 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
     constexpr double DR_CUTS_CM[3] = {1.0, 3.0, 5.0};
     constexpr double MIP_ENERGY_GEV = 0.002; 
-    constexpr double E_CUTS_GEV[3] = {0.3, 0.5, 1.0}; 
-    constexpr double THRESH_MM = DR_CUTS_CM[2]*10;   
+    constexpr double E_CUTS_GEV[3] = {1.5, 1.7, 2.0}; 
+    constexpr double THRESH_MM = DR_CUTS_CM[2]*10;
+    constexpr double E_THRESH_GEV = E_CUTS_GEV[2];   
 
     TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
 
@@ -649,17 +650,26 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                 if (ST.muTag == 1) {
                     m1_has_rec = true; 
                     for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v1.P());
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
+                    //for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
                 }
                 if (ST.muTag == 2) {
                     m2_has_rec = true; 
                     for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v2.P());
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
+                    //for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
                 }
             } else {
                 cout << "[INFO] no match <= " << THRESH_MM
                     << " mm; best distance (this seg) = " << segMinDistance
                     << " mm, for muTag=" << ST.muTag << "\n";
+            }
+
+            if (segHitEnergy <= E_THRESH_GEV) {
+                if (ST.muTag == 1) {
+                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
+                }
+                if (ST.muTag == 2) {
+                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
+                }
             }
         } 
         

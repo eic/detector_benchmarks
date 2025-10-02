@@ -25,7 +25,7 @@ rule emcal_barrel_particles:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
    --runType batch \
    -v WARNING \
    --part.minimalKineticEnergy 0.5*GeV  \

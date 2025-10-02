@@ -1,6 +1,7 @@
 sim:ecal_gaps:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   script:
     - mkdir -p $LOCAL_DATA_PATH/input
     - ln -s $LOCAL_DATA_PATH/input input

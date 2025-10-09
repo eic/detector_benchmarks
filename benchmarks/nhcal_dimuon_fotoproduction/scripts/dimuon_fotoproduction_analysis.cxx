@@ -27,11 +27,15 @@
 
 #include "DD4hep/Detector.h"
 #include "DDRec/CellIDPositionConverter.h"
-#include "DD4hep/Detector.h"
-#include "DDRec/CellIDPositionConverter.h"
 #include "DD4hep/Volumes.h"
 #include "DD4hep/Objects.h"
 #include "DD4hep/Shapes.h"
+#include <DD4hep/Detector.h>
+#include <DD4hep/VolumeManager.h>
+#include <DD4hep/Printout.h>
+#include <TGeoBBox.h>
+#include <TGeoMatrix.h>
+
 
 
 #include "podio/Frame.h"
@@ -102,12 +106,35 @@ constexpr double ETA_MIN = -4.14, ETA_MAX = -1.16;
 
 inline bool inNHCal(double eta) {return (eta >= ETA_MIN && eta <= ETA_MAX);}
 
+inline void setPadMargins(double left = 0.15,
+                          double right = 0.05,
+                          double bottom = 0.15,
+                          double top = 0.10)
+{
+    if (!gPad) return;
+    gPad->SetLeftMargin(left);
+    gPad->SetRightMargin(right);
+    gPad->SetBottomMargin(bottom);
+    gPad->SetTopMargin(top);
+}
+
 inline string addPrefixAfterSlash(const string& path,
                                        const string& prefix) {
     const auto slash = path.find_last_of('/');
     if (slash == string::npos)
         return prefix + path;
     return path.substr(0, slash + 1) + prefix + path.substr(slash + 1);
+}
+
+void MakeLogBins(double *array, int nbins, double binLo, double binHi)
+{
+    double logMin = log10(binLo);
+    double logMax = log10(binHi);
+    double binWidth = (logMax - logMin) / nbins;
+
+    for (int i = 0; i <= nbins; ++i) {
+    	array[i] = pow(10, logMin + i * binWidth);
+    }
 }
 
 TLine* makeLine(double x1, double y1, double x2, double y2) {
@@ -117,6 +144,39 @@ TLine* makeLine(double x1, double y1, double x2, double y2) {
     l->SetLineWidth(2);
     l->Draw("same");
     return l;
+}
+
+static TGraphErrors* makeEffGraph_B(TH1D* h_sel, TH1D* h_all,
+                                    const char* name,
+                                    int minAll = 2)
+{
+    if (!h_sel || !h_all) return nullptr;
+
+    std::unique_ptr<TH1D> h_eff((TH1D*)h_sel->Clone(Form("tmp_%s", name ? name : "eff")));
+    h_eff->SetDirectory(nullptr);
+    h_eff->Sumw2();                         
+    h_eff->Divide(h_sel, h_all, 1.0, 1.0, "B");
+
+    const int nb = h_all->GetNbinsX();
+    vector<double> xs, ys, exs, eys;
+    xs.reserve(nb); ys.reserve(nb); exs.reserve(nb); eys.reserve(nb);
+
+    for (int b = 1; b <= nb; ++b) {
+        const double all = h_all->GetBinContent(b);
+        if (all < minAll) continue;
+
+        const double x   = h_all->GetBinCenter(b);
+        const double ex  = 0.5 * h_all->GetBinWidth(b);      
+        const double y   = 100.0 * h_eff->GetBinContent(b);  
+        const double ey  = 100.0 * h_eff->GetBinError(b);   
+
+        xs.push_back(x);   ys.push_back(y);
+        exs.push_back(ex); eys.push_back(ey);
+    }
+
+    auto* g = new TGraphErrors((int)xs.size(), xs.data(), ys.data(), exs.data(), eys.data());
+    g->SetName(Form("g_%s", name ? name : "eff"));
+    return g;
 }
 
 inline tuple<TMultiGraph*, TLegend*, bool>
@@ -140,56 +200,34 @@ makeEffMultiGraph(TH1D* h_all,
     for (int i = 0; i < 3; ++i) {
         if (!h_all || !h_in[i]) continue;
 
-        vector<double> x_vals, y_vals;
-        x_vals.reserve(h_all->GetNbinsX());
-        y_vals.reserve(h_all->GetNbinsX());
+        auto* g = makeEffGraph_B(h_in[i], h_all, Form("eff_%d", i), 2);
+        if (!g || g->GetN() == 0) continue;
 
-        for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
-            double all = h_all->GetBinContent(b);
-            if (all < 2) continue;
-            double sel = h_in[i]->GetBinContent(b);
+        g->SetMarkerColor(colors[i]);
+        g->SetMarkerStyle(markers[i]);
+        g->SetMarkerSize(1.0);
+        g->SetLineColor(kBlack);
 
-            x_vals.push_back(h_all->GetBinCenter(b));
-            y_vals.push_back(100. * sel / all);
-        }
-
-        if (!x_vals.empty()) {
-            TGraph* g = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
-            g->SetMarkerColor(colors[i]);
-            g->SetMarkerStyle(markers[i]);
-            g->SetMarkerSize(1.0);
-            g->SetLineColor(0);
-            mg->Add(g, "P");
-            leg->AddEntry(g, Form("%d mu-in nHCAL", i), "p");
-            ++added;
-        }
+        mg->Add(g, "PE"); 
+        leg->AddEntry(g, Form("%d mu-in nHCAL", i), "p");
+        ++added;
     }
 
     if (h_all && h_in[0] && h_in[1] && h_in[2]) {
-        vector<double> x_vals, y_vals;
-        x_vals.reserve(h_all->GetNbinsX());
-        y_vals.reserve(h_all->GetNbinsX());
+        std::unique_ptr<TH1D> h_sum((TH1D*)h_in[0]->Clone("h_sum"));
+        h_sum->SetDirectory(nullptr);
+        h_sum->Add(h_in[1]);
+        h_sum->Add(h_in[2]);
 
-        for (int b = 1; b <= h_all->GetNbinsX(); ++b) {
-            double all = h_all->GetBinContent(b);
-            if (all < 2) continue;
-
-            double sel = h_in[0]->GetBinContent(b)
-                       + h_in[1]->GetBinContent(b)
-                       + h_in[2]->GetBinContent(b);
-
-            x_vals.push_back(h_all->GetBinCenter(b));
-            y_vals.push_back(100. * sel / all);
-        }
-
-        if (!x_vals.empty()) {
-            TGraph* gsum = new TGraph((int)x_vals.size(), x_vals.data(), y_vals.data());
+        auto* gsum = makeEffGraph_B(h_sum.get(), h_all, "eff_sum", 2);
+        if (gsum && gsum->GetN() > 0) {
             gsum->SetMarkerStyle(25);
             gsum->SetMarkerColor(kMagenta + 1);
             gsum->SetFillColor(kMagenta + 1);
-            gsum->SetLineColor(0);
+            gsum->SetLineColor(kBlack);
             gsum->SetMarkerSize(1.0);
-            mg->Add(gsum, "P");
+
+            mg->Add(gsum, "PE");
             leg->AddEntry(gsum, "All eligible", "p");
             ++added;
         }
@@ -203,7 +241,7 @@ makeEffMultiGraph(TH1D* h_all,
                                 h_all->GetXaxis()->GetXmax());
         hframe->SetMinimum(0.0);
         hframe->SetMaximum(110.0);
-        hframe->GetXaxis()->SetTitle(xlabel);
+        hframe->GetXaxis()->SetTitle(xlabel ? xlabel : "");
         hframe->GetYaxis()->SetTitle("geom. acc. [%]");
         hframe->Draw();
     }
@@ -211,7 +249,7 @@ makeEffMultiGraph(TH1D* h_all,
     return make_tuple(mg, leg, logx);
 }
 
-inline double getPlasticThicknessMM(dd4hep::Detector& det,
+inline double getPlasticThicknessCM(dd4hep::Detector& det,
                                     const dd4hep::DDSegmentation::BitFieldCoder* dec,
                                     dd4hep::DDSegmentation::CellID cid,
                                     int slice_idx,
@@ -244,104 +282,62 @@ inline double getPlasticThicknessMM(dd4hep::Detector& det,
     }
 }
 
+inline double getPlasticCenterZ_cm(
+    const dd4hep::DDSegmentation::BitFieldCoder* decoder,
+    const dd4hep::rec::CellIDPositionConverter& cellid_converter,
+    dd4hep::DDSegmentation::CellID cid,
+    int slice_index,
+    int plastic_slice_value = 3)
+{
+    try {
+        if (!decoder) throw std::runtime_error("decoder==nullptr");
+        if (decoder->get(cid, slice_index) != plastic_slice_value)
+            throw std::runtime_error("cell is not plastic (slice mismatch)");
+        return cellid_converter.position(cid).z();
+    } catch (const std::exception& e) {
+        cerr << "[WARN] getPlasticThicknessCM: " << e.what()
+                << " (cellID=" << cid << ")\n";
+        return std::numeric_limits<double>::quiet_NaN();;
+    }
+}
+
 struct GeomState {
-    double x, y, z;    
-    double px, py, pz;  
+    double x, y, z;     
 };
 
-// --- tiny helpers ---
 inline double hypot2(double a, double b){ return sqrt(a*a + b*b); }
-inline void unitXY(double px, double py, double& tx, double& ty){
-    double pt = max(hypot2(px,py), 1e-16);
-    tx = px/pt; ty = py/pt;
-}
-inline void rot90(double vx, double vy, double& rx, double& ry){
-    rx = -vy; ry =  vx; // +90 degree
-}
+inline int sgnD(double v){ return (v>0) - (v<0); }
 
-// geometry-only helix (or line) projection from exactly two states
 inline pair<double,double>
 trackXYatZ_fromTwoStates(double x1,double y1,double z1,
-                         double px1,double py1,double pz1,
                          double x2,double y2,double z2,
-                         double px2,double py2,double pz2,
                          double zTarget)
 {
-    constexpr double EPS    = 1e-12;
-    constexpr double EPSANG = 1e-6;   // radians
+    constexpr double EPSZ = 1e-12;
 
-    // unit tangents in XY
-    double t1x,t1y,t2x,t2y; unitXY(px1,py1,t1x,t1y); unitXY(px2,py2,t2x,t2y);
-
-    // average dip angle tan(lambda)
-    const double pt1 = max(hypot2(px1,py1), 1e-16);
-    const double pt2 = max(hypot2(px2,py2), 1e-16);
-    const double tanL1 = pz1/pt1, tanL2 = pz2/pt2, tanL = 0.5*(tanL1+tanL2);
-
-    if (abs(tanL) < EPS) {
-        // nearly horizontal track -> z-param is unstable; return nearest state's XY
-        return (abs(zTarget - z1) <= abs(zTarget - z2)) ? pair{x1,y1} : pair{x2,y2};
+    const double dz = z2 - z1;
+    if (abs(dz) < EPSZ) {
+        const double d1 = abs(zTarget - z1);
+        const double d2 = abs(zTarget - z2);
+        if (d1 < d2) return {x1, y1};
+        if (d2 < d1) return {x2, y2};
+        return {0.5*(x1+x2), 0.5*(y1+y2)};
     }
 
-    // signed angle between tangents (curvature sign & fallback)
-    const double cross = t1x*t2y - t1y*t2x;
-    const double dot   = clamp(t1x*t2x + t1y*t2y, -1.0, 1.0);
-    const double dPhi  = atan2(cross, dot);      // (-pi, pi]
-    const int    sgn   = (dPhi >= 0) ? +1 : -1;       // CCW/CW by geometry
-
-    // normals (left normals wrt tangent)
-    double n1x,n1y,n2x,n2y; rot90(t1x,t1y,n1x,n1y); rot90(t2x,t2y,n2x,n2y);
-
-    // radius from shifted-normals intersection (least-squares)
-    const double dx = x2 - x1, dy = y2 - y1;
-    const double dn_x = n1x - n2x, dn_y = n1y - n2y;
-    const double denom = dn_x*dn_x + dn_y*dn_y;
-
-    const bool near_parallel_normals = (denom < 1e-10);
-    if (near_parallel_normals || abs(dPhi) < EPSANG) {
-        // almost straight -> linear extrapolation in XY by z
-        const bool anchorAt1 = (abs(zTarget - z1) <= abs(zTarget - z2));
-        double xa = anchorAt1 ? x1 : x2;
-        double ya = anchorAt1 ? y1 : y2;
-        double za = anchorAt1 ? z1 : z2;
-        double tax= anchorAt1 ? t1x: t2x;
-        double tay= anchorAt1 ? t1y: t2y;
-        double s = (zTarget - za) / tanL;
-        return { xa + s*tax, ya + s*tay };
-    }
-
-    double R = (dx*dn_x + dy*dn_y) / denom;
-    if (R < 0) R = -R;  // keep radius positive; orientation via 'sgn'
-
-    // circle center (average of two per-state centers)
-    const double C1x = x1 + sgn * R * n1x;
-    const double C1y = y1 + sgn * R * n1y;
-    const double C2x = x2 + sgn * R * n2x;
-    const double C2y = y2 + sgn * R * n2y;
-    const double Cx  = 0.5*(C1x + C2x);
-    const double Cy  = 0.5*(C1y + C2y);
-
-    // anchor phase at state closer in z to zTarget
-    const bool anchorAt1 = (abs(zTarget - z1) <= abs(zTarget - z2));
-    const double xa = anchorAt1 ? x1 : x2;
-    const double ya = anchorAt1 ? y1 : y2;
-    const double za = anchorAt1 ? z1 : z2;
-
-    const double phiA = atan2(ya - Cy, xa - Cx);
-    const double phi  = phiA + sgn * (zTarget - za) / (R * tanL);
-
-    return { Cx + R*cos(phi), Cy + R*sin(phi) };
+    const double t = (zTarget - z1) / dz;
+    const double x = x1 + t * (x2 - x1);
+    const double y = y1 + t * (y2 - y1);
+    return {x, y};
 }
 
-// convenient wrapper for two GeomState objects
-inline std::pair<double,double>
+inline pair<double,double>
 trackXYatZ(const GeomState& A, const GeomState& B, double zTarget){
     return trackXYatZ_fromTwoStates(
-        A.x,A.y,A.z, A.px,A.py,A.pz,
-        B.x,B.y,B.z, B.px,B.py,B.pz,
+        A.x, A.y, A.z, B.x, B.y, B.z,
         zTarget
     );
 }
+
 
 int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
 
@@ -365,7 +361,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         return 1;
     }
 
-    //double t_cm = det->constantAsDouble("HcalEndcapNPolystyreneThickness")* 0.1;
+    //double thickness_cm = det->constantAsDouble("HcalEndcapNPolystyreneThickness")* 0.1;
 
     constexpr int NBINS = 60; 
     constexpr int    Z_NBINS = 100;
@@ -385,13 +381,16 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     constexpr int    P_NB  = 50;
 
     constexpr double E_MIN_GEV = 0.0;
-    constexpr double E_MAX_GEV = 8.0;
+    constexpr double E_MAX_GEV = 6.0;
 
-    constexpr double DR_CUTS_CM[3] = {1.0, 3.0, 5.0};
+    constexpr int    SIZE = 3;
+    constexpr double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
+    constexpr double DR_THRESH_MM = DR_CUTS_CM[2]*10;
     constexpr double MIP_ENERGY_GEV = 0.002; 
-    constexpr double E_CUTS_GEV[3] = {0.5, 0.7, 1.0}; 
-    constexpr double THRESH_MM = DR_CUTS_CM[2]*10;
-    constexpr double E_THRESH_GEV = E_CUTS_GEV[2];   
+    constexpr double E_CUTS_GEV[SIZE] = {1.5, 1.7, 2.0}; 
+    constexpr double E_THRESH_GEV = E_CUTS_GEV[2]; 
+    constexpr int    LAYER_CUTS[SIZE] = {5, 6, 7};
+    constexpr int    LAYER_THRESH = LAYER_CUTS[2];
 
     TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
 
@@ -445,6 +444,10 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     TH2D* hEsum_z = new TH2D("hEsum_z", "Layer energy sum vs z (reconstructed); z_{layer} [mm]; E_{sum} [GeV]",
                             NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, E_MIN_GEV, E_MAX_GEV);
 
+    TH1D* hE = new TH1D("hE", "Reconstructed hit energy; E [GeV]; N", 10000, 0.0, 1.0);
+
+    TH1D* hEsum = new TH1D("hEsum", "Layer energy sum (reconstructed); E_{sum} [GeV]; N", 10000, 0.0, 1.0);
+
     TH1D* hP_all_mu = new TH1D("hP_all_mu", "MC muon momentum (muons in nHCal acceptance); p_{MC} [GeV]; N", P_NB, P_MIN_GEV, P_MAX_GEV);
 
     TH1D* hP_pass_dr[3] = {
@@ -453,25 +456,17 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[2]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
     };
 
-    TH1D* hP_pass_Ecut[3] = {
+    TH1D* hP_pass_ECut[3] = {
         new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[0]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[0]), P_NB, P_MIN_GEV, P_MAX_GEV),
         new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[1]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[1]), P_NB, P_MIN_GEV, P_MAX_GEV),
         new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[2]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
     };
 
-    // To do
-    TH1D* hP_pass_combo[3][3]; // [idr][ie]
-    for (int idr=0; idr<3; ++idr) {
-        for (int ie=0; ie<3; ++ie) {
-            hP_pass_combo[idr][ie] = new TH1D(
-                Form("hP_pass_dr%.0fcm_E<%.1fMIP", DR_CUTS_CM[idr], E_CUTS_GEV[ie]),
-                Form("Accepted (dr<%.0f cm & E<%.1f MIP); p_{MC} [GeV]; N", DR_CUTS_CM[idr], E_CUTS_GEV[ie]),
-                P_NB, P_MIN_GEV, P_MAX_GEV
-            );
-        }
-    }
-
-    auto tf = [](bool v){ return v ? "true" : "false"; };
+    TH1D* hP_pass_LayerCut[3] = {
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[0]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[0]), P_NB, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[1]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[1]), P_NB, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[2]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
+    };
 
     for (unsigned ev = 0; ev < nEvents; ev++) {
         auto frameData = reader.readNextEntry(podio::Category::Event);
@@ -491,11 +486,14 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         const auto& kin = kinCol.at(0);
         double Q2 = kin.getQ2(), x = kin.getX(), y = kin.getY(), W = kin.getW();
 
+        bool m1_has_rec = false;
+        bool m2_has_rec = false;
+
         edm4hep::MCParticle m1, m2;
         for (const auto& p : mcCol) {
             if (abs(p.getPDG()) != 13 || p.getGeneratorStatus() == 0) continue;
             if (p.getPDG() == 13)  m1 = p;
-            else if (p.getPDG() == -13) m2 = p;
+            else if (p.getPDG() == -13) m2 = p;  
         }
 
         TLorentzVector v1(m1.getMomentum().x, m1.getMomentum().y, m1.getMomentum().z, m1.getEnergy());
@@ -520,28 +518,18 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
             hW_in[nInNH]->Fill(W);
         }
 
-        if(nInNH >= 1) {
-            hP_all_mu->Fill(v1.P());
-            hP_all_mu->Fill(v2.P());
-        }
+        if(inNHCal(v1.Eta())) {hP_all_mu->Fill(v1.P());}
+        if(inNHCal(v2.Eta())){hP_all_mu->Fill(v2.P());}
 
-        bool m1_has_rec = false;
-        bool m2_has_rec = false;
-
-
-        struct TaggedReco { edm4eic::ReconstructedParticle reco; int muTag; /*1=m1, 2=m2*/ };
+        struct TaggedReco { edm4eic::ReconstructedParticle reco; int muTag; /*0=m1, 1=m2*/ };
         vector<TaggedReco> matchedRecos;
 
-        auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->bool {
-            if (!mc.isAvailable()) return false;
+        auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->void {
             try {
-                if (!assocCol.isValid() || assocCol.empty()) {
-                    return false;
-                }
+                if (!assocCol.isValid() || assocCol.empty()) {return;}
                 auto simIDs = assocCol.simID();
                 auto recIDs = assocCol.recID();
                 const uint32_t mc_idx = mc.getObjectID().index;
-                bool found = false;
                 for (size_t i=0; i<assocCol.size() && i<simIDs.size() && i<recIDs.size(); ++i) {
                     if (simIDs[i] == mc_idx) {
                         uint32_t ridx = recIDs[i];
@@ -549,32 +537,36 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                         auto reco = recParts.at(ridx);
                         if (reco.isAvailable()) {
                             matchedRecos.push_back({reco, muTag});
-                            found = true;
                         }
                     }
                 }
-                return found;
-            } catch (...) {
-                return false;
-            }
+            } catch (...) {}
         };
 
-        int assocCount = 0;
-        if (m1.isAvailable() && abs(m1.getPDG())==13) assocCount += find_associated_reco(m1, 1) ? 1 : 0;
-        if (m2.isAvailable() && abs(m2.getPDG())==13) assocCount += find_associated_reco(m2, 2) ? 1 : 0;
+        if (!assocCol.isValid() || assocCol.empty()) continue;
+        if (m1.isAvailable() && abs(m1.getPDG())==13) find_associated_reco(m1, 0);
+        if (m2.isAvailable() && abs(m2.getPDG())==13) find_associated_reco(m2, 1);
 
         if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
+        set<double> uniqueCentersZ;
         map<double, double> layerData;
         for (const auto& hit : hcalRec) {    
             double z = hit.getPosition().z;
-            double zBin = round(z);        
+            double zBin = round(z);
+            uint64_t cid = hit.getCellID();
+            double zCenter_mm = 10 * getPlasticCenterZ_cm(decoder, cellid_converter, cid, slice_index, /*plastic_slice_value=*/3);
+            if (!std::isnan(zCenter_mm)) {uniqueCentersZ.insert(zCenter_mm);}
+
             layerData[zBin] += hit.getEnergy(); 
             hZ_hits->Fill(z);                
-            hE_z->Fill(z, hit.getEnergy());   
+            hE_z->Fill(z, hit.getEnergy()); 
+            hE->Fill(hit.getEnergy());
         }
 
-        for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy);}
+        vector<double> layerCentersZ(uniqueCentersZ.begin(), uniqueCentersZ.end());
+
+        for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
 
         struct TaggedTrack { edm4eic::Track tr; int muTag; };
         vector<TaggedTrack> allTracks;
@@ -597,81 +589,90 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         }
 
         for (const auto& ST : segsTagged) {
-            auto points = ST.seg.getPoints();
 
-            double segMinDistance = 1e12;
-            double segHitEnergy = 1e12;
-            double t_cm;
-            dd4hep::DDSegmentation::CellID segHitCellID = 0;
+            size_t layerCentersZSize = layerCentersZ.size();
+            vector<double> segMinDistance(layerCentersZSize, std::numeric_limits<double>::infinity());
+            vector<double> segHitEnergy(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
+            vector<double> thickness_cm(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
+            vector<int> count_DrCuts(SIZE, 0);
+            vector<int> count_ECuts(SIZE, 0);
 
             GeomState A{}, B{};
             bool haveA = false, haveB = false;
+
+            auto points = ST.seg.getPoints();
 
             for (const auto& pt : points) {
                 if (pt.system != 113) continue;
                 hZ_proj->Fill(pt.position.z);                
                 if (!haveA) {
                     A.x = pt.position.x; A.y = pt.position.y; A.z = pt.position.z;
-                    A.px = pt.momentum.x; A.py = pt.momentum.y; A.pz = pt.momentum.z;
                     haveA = true;
                 } else if (!haveB) {
                     B.x = pt.position.x; B.y = pt.position.y; B.z = pt.position.z;
-                    B.px = pt.momentum.x; B.py = pt.momentum.y; B.pz = pt.momentum.z;
-                    haveB = true;
+                    haveB = true; 
                     break;
                 }
             }
 
             if (!haveA || !haveB) {continue;}
 
-            for (const auto& hit : hcalRec) {
-                const auto& hpos = hit.getPosition();
-                auto [X, Y] = trackXYatZ(A, B, hpos.z);          
-                double dx = X - hpos.x;
-                double dy = Y - hpos.y;
-                const double dr = sqrt(dx*dx + dy*dy);
-                hDxDyZ_layer->Fill(dx, dy, hpos.z);
-                hDxDy_all->Fill(dx,dy);
-                hDrZ_layer->Fill(dr,hpos.z);
-                hDr_all->Fill(dr);
+            for (int i = 0; i < layerCentersZSize; ++i) {
+                double best_dr_in_layer = 1e10;
+                double best_E_in_layer;
+                dd4hep::DDSegmentation::CellID best_cid_in_layer;
 
-                if (dr < segMinDistance) {
-                    segMinDistance = dr;
-                    segHitEnergy = hit.getEnergy();
-                    segHitCellID = hit.getCellID();
+                double zc = layerCentersZ[i];
+                auto [X, Y] = trackXYatZ(A, B, zc);
+
+                for (const auto& hit : hcalRec) {
+                    const auto& hp = hit.getPosition();
+
+                    if (fabs(hp.z - zc) > 5.0 /*mm*/) continue;
+
+                    const double dx = X - hp.x;
+                    const double dy = Y - hp.y;
+                    const double dr = sqrt(dx*dx + dy*dy);
+
+                    hDxDyZ_layer->Fill(dx, dy, hp.z);
+                    hDxDy_all->Fill(dx, dy);
+                    hDrZ_layer->Fill(dr, hp.z);
+                    hDr_all->Fill(dr);
+
+                    if (dr < best_dr_in_layer) {
+                        best_dr_in_layer = dr;
+                        best_E_in_layer  = hit.getEnergy();
+                        best_cid_in_layer = hit.getCellID();
+                    }
                 }
+
+                if (best_dr_in_layer < DR_THRESH_MM) {
+                    segMinDistance[i] = best_dr_in_layer;
+                    segHitEnergy[i]   = best_E_in_layer;
+                    thickness_cm[i]   = getPlasticThicknessCM(*det, decoder, best_cid_in_layer, slice_index, 3);
+                }
+                for(int j = 0; j < SIZE; ++j){
+                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10){++count_DrCuts[j];}
+                    if (segHitEnergy[i] < (E_CUTS_GEV[j] * thickness_cm[i] * 100)){++count_ECuts[j];}
+                }
+                
             }
 
-            t_cm = getPlasticThicknessMM(*det, decoder, segHitCellID, slice_index, 3);
+            if (ST.muTag == 0 && count_DrCuts[SIZE-1] > LAYER_THRESH) m1_has_rec = true;
+            if (ST.muTag == 1 && count_DrCuts[SIZE-1] > LAYER_THRESH) m2_has_rec = true;
 
-            if (segMinDistance <= THRESH_MM) {
-                cout << "[MATCH] muTag=" << ST.muTag
-                    << " dr=" << segMinDistance << " mm (<= " << THRESH_MM << ")\n";
-                if (ST.muTag == 1) {
-                    m1_has_rec = true; 
-                    for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v1.P());
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v1.P());
-                }
-                if (ST.muTag == 2) {
-                    m2_has_rec = true; 
-                    for (int idr=0; idr<3; ++idr) if (segMinDistance < DR_CUTS_CM[idr] * 10) hP_pass_dr[idr]->Fill(v2.P());
-                    for (int ie=0; ie<3; ++ie) if ( segHitEnergy < (E_CUTS_GEV[ie] * t_cm) ) hP_pass_Ecut[ie]->Fill(v2.P());
-                }
-            } else {
-                cout << "[INFO] no match <= " << THRESH_MM
-                    << " mm; best distance (this seg) = " << segMinDistance
-                    << " mm, for muTag=" << ST.muTag << "\n";
+            for (int j = 0; j < SIZE; ++j){
+                const double p = ST.muTag ? v2.P() : v1.P();
+                if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(p);
+                if (count_ECuts[j] > LAYER_THRESH) hP_pass_ECut[j]->Fill(p);
+                if (count_DrCuts[SIZE-1] > LAYER_CUTS[j]) hP_pass_LayerCut[j]->Fill(p);
             }
-        } 
+        }   
         
 
         int nInNH_rec_local = 0;
         if (m1_has_rec) ++nInNH_rec_local;
         if (m2_has_rec) ++nInNH_rec_local;
-
-        cout << "[RES] m1_has_rec=" << (m1_has_rec ? "true" : "false")
-                << ", m2_has_rec=" << (m2_has_rec ? "true" : "false")
-                << " | nInNH_rec_local=" << nInNH_rec_local << "\n";
 
         hQ2_rec_all->Fill(Q2);
         hX_rec_all->Fill(x);
@@ -686,27 +687,26 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         }
     }
 
+
     TCanvas* canvas_sim = new TCanvas("canvas_sim", "Muon analysis", 1600, 800);
     canvas_sim->Divide(4, 2);
-    canvas_sim->cd(1); hEtaPt->Draw("COLZ");
+    canvas_sim->cd(1); setPadMargins(); hEtaPt->Draw("COLZ");
 
     auto [mg_q2, leg_q2, log_q2] = makeEffMultiGraph(hQ2_all, hQ2_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
-    canvas_sim->cd(2); if (log_q2) gPad->SetLogx(); gPad->SetGrid(); mg_q2->Draw("A"); leg_q2->Draw();
+    canvas_sim->cd(2); setPadMargins(); if (log_q2) gPad->SetLogx(); gPad->SetGrid(); mg_q2->Draw("A"); leg_q2->Draw();
 
     auto [mg_x, leg_x, log_x] = makeEffMultiGraph(hX_all, hX_in, "Geom. acc. vs x", "x", true);
-    canvas_sim->cd(3); if (log_x) gPad->SetLogx(); gPad->SetGrid(); mg_x->Draw("A"); leg_x->Draw();
+    canvas_sim->cd(3); setPadMargins(); if (log_x) gPad->SetLogx(); gPad->SetGrid(); mg_x->Draw("A"); leg_x->Draw();
 
     auto [mg_y, leg_y, log_y] = makeEffMultiGraph(hY_all, hY_in, "Geom. acc. vs y", "y", false);
-    canvas_sim->cd(4); gPad->SetGrid(); mg_y->Draw("A"); leg_y->Draw();
+    canvas_sim->cd(4); setPadMargins(); gPad->SetGrid(); mg_y->Draw("A"); leg_y->Draw();
 
     auto [mg_w, leg_w, log_w] = makeEffMultiGraph(hW_all, hW_in, "Geom. acc. vs W", "W [GeV]", false);
-    canvas_sim->cd(5); gPad->SetGrid(); mg_w->Draw("A"); leg_w->Draw();
+    canvas_sim->cd(5); setPadMargins(); gPad->SetGrid(); mg_w->Draw("A"); leg_w->Draw();
 
-    canvas_sim->cd(6); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
-    canvas_sim->cd(7); hEta1_Eta2->Draw("COLZ"); 
+    canvas_sim->cd(6); setPadMargins(); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
+    canvas_sim->cd(7); setPadMargins(); hEta1_Eta2->Draw("COLZ"); 
     
-    
-
     auto* lv1 = makeLine(ETA_MIN, -6, ETA_MIN, 6);
     auto* lv2 = makeLine(ETA_MAX, -6, ETA_MAX, 6);
     auto* lh1 = makeLine(hEta1_Eta2->GetXaxis()->GetXmin(), ETA_MIN,
@@ -719,84 +719,150 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
     TCanvas* canvas_rec = new TCanvas("canvas_rec", "Muon analysis rec", 1600, 800);
     canvas_rec->Divide(4, 2);
-    canvas_rec->cd(1); hEtaPt->Draw("COLZ");
+    canvas_rec->cd(1); setPadMargins(); hEtaPt->Draw("COLZ");
 
     auto [mg_rec_q2, leg_rec_q2, log_rec_q2] = makeEffMultiGraph(hQ2_rec_all, hQ2_rec_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
-    canvas_rec->cd(2); if (log_rec_q2) gPad->SetLogx(); gPad->SetGrid(); mg_rec_q2->Draw("A"); leg_rec_q2->Draw();
+    canvas_rec->cd(2); setPadMargins(); if (log_rec_q2) gPad->SetLogx(); gPad->SetGrid(); mg_rec_q2->Draw("A"); leg_rec_q2->Draw();
 
     auto [mg_rec_x, leg_rec_x, log_rec_x] = makeEffMultiGraph(hX_rec_all, hX_rec_in, "Geom. acc. vs x", "x", true);
-    canvas_rec->cd(3); if (log_rec_x) gPad->SetLogx(); gPad->SetGrid(); mg_rec_x->Draw("A"); leg_rec_x->Draw();
+    canvas_rec->cd(3); setPadMargins(); if (log_rec_x) gPad->SetLogx(); gPad->SetGrid(); mg_rec_x->Draw("A"); leg_rec_x->Draw();
 
     auto [mg_rec_y, leg_rec_y, log_rec_y] = makeEffMultiGraph(hY_rec_all, hY_rec_in, "Geom. acc. vs y", "y", false);
-    canvas_rec->cd(4); gPad->SetGrid(); mg_rec_y->Draw("A"); leg_rec_y->Draw();
+    canvas_rec->cd(4); setPadMargins(); gPad->SetGrid(); mg_rec_y->Draw("A"); leg_rec_y->Draw();
 
     auto [mg_rec_w, leg_rec_w, log_rec_w] = makeEffMultiGraph(hW_rec_all, hW_rec_in, "Geom. acc. vs W", "W [GeV]", false);
-    canvas_rec->cd(5); gPad->SetGrid(); mg_rec_w->Draw("A"); leg_rec_w->Draw();
+    canvas_rec->cd(5); setPadMargins(); gPad->SetGrid(); mg_rec_w->Draw("A"); leg_rec_w->Draw();
 
-    canvas_rec->cd(6); gPad->SetLogx(); gPad->SetGrid(); hx_Q2->Draw("COLZ");
-    canvas_rec->cd(7); hEta1_Eta2->Draw("COLZ");
+    canvas_rec->cd(6); setPadMargins(); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
+    canvas_rec->cd(7); setPadMargins(); hEta1_Eta2->Draw("COLZ");
 
     canvas_rec->SaveAs(addPrefixAfterSlash(outname_png, "rec_").c_str());
     canvas_rec->SaveAs(addPrefixAfterSlash(outname_pdf, "rec_").c_str());
 
-    TCanvas* canvas = new TCanvas("canvas", "Muon analysis extra", 1800, 1200); 
-    canvas->Divide(3,4);                                                                 
-    canvas->cd(1); gPad->SetGrid(); hZ_proj->Draw();                                     
-    canvas->cd(2); gPad->SetGrid(); hZ_hits->Draw();                                     
-    canvas->cd(3); gPad->SetGrid(); hDxDyZ_layer->Draw("COLZ");     
-    canvas->cd(4); gPad->SetGrid(); hDxDy_all->Draw("COLZ"); 
-    canvas->cd(5); gPad->SetGrid(); hDrZ_layer->Draw("COLZ");                             
-    canvas->cd(6); gPad->SetGrid(); hDr_all->Draw("COLZ");                                      
-    canvas->cd(7); gPad->SetGrid(); hE_z->Draw("COLZ");                                  
-    canvas->cd(8); gPad->SetGrid(); hEsum_z->Draw("COLZ");                                
-    canvas->cd(9); gPad->SetGrid(); hP_all_mu->SetLineColor(kBlack); hP_all_mu->Draw();  
-    canvas->cd(10); gPad->SetGrid();                                                       
+    double letterSize = 0.045;
+    TCanvas* canvas1 = new TCanvas("canvas1", "Muon analysis extra 1", 1800, 1200);
+    canvas1->Divide(2,2);                                                                 
+    canvas1->cd(1); setPadMargins(); gPad->SetGrid(); hZ_proj->SetTitleSize(letterSize, "XYZ"); hZ_proj->Draw();                                     
+    canvas1->cd(2); setPadMargins(); gPad->SetGrid(); hZ_hits->SetTitleSize(letterSize, "XYZ"); hZ_hits->Draw();
+    canvas1->Update();
+    canvas1->SaveAs(addPrefixAfterSlash(outname_png, "extra1_").c_str());              
+    canvas1->SaveAs(addPrefixAfterSlash(outname_pdf, "extra1_").c_str()); 
+
+    TCanvas* canvas2 = new TCanvas("canvas2", "Muon analysis extra 2", 1800, 1200);
+    canvas2->Divide(2,2); 
+    canvas2->cd(1); setPadMargins(); gPad->SetGrid(); hDxDyZ_layer->SetTitleSize(letterSize, "XYZ"); hDxDyZ_layer->Draw("COLZ");     
+    canvas2->cd(2); setPadMargins(); gPad->SetGrid(); hDxDy_all->SetTitleSize(letterSize, "XYZ"); hDxDy_all->Draw("COLZ"); 
+    canvas2->cd(3); setPadMargins(); gPad->SetGrid(); hDrZ_layer->SetTitleSize(letterSize, "XYZ"); hDrZ_layer->Draw("COLZ");                             
+    canvas2->cd(4); setPadMargins(); gPad->SetGrid(); hDr_all->SetTitleSize(letterSize, "XYZ"); hDr_all->Draw("COLZ");
+    canvas2->SaveAs(addPrefixAfterSlash(outname_png, "extra2_").c_str());              
+    canvas2->SaveAs(addPrefixAfterSlash(outname_pdf, "extra2_").c_str()); 
+
+    TCanvas* canvas3 = new TCanvas("canvas3", "Muon analysis extra 3", 1800, 1200);
+    canvas3->Divide(2,2);                        
+    canvas3->cd(1); setPadMargins(); gPad->SetGrid(); hP_all_mu->SetLineColor(kBlack); hP_all_mu->SetTitleSize(letterSize, "XYZ"); hP_all_mu->Draw();  
+    canvas3->cd(2); setPadMargins(); gPad->SetGrid();                                                       
     TH1D* hEff_dr[3]; 
     for (int idr=0; idr<3; ++idr) { 
         hEff_dr[idr] = (TH1D*)hP_pass_dr[idr]->Clone( 
             Form("hEff_dr%.1fcm", DR_CUTS_CM[idr]) 
         ); 
-        hEff_dr[idr]->SetTitle("Matching efficiency vs p_{MC} (dr < d cm); p_{MC} [GeV]; efficiency"); 
+        hEff_dr[idr]->SetDirectory(nullptr);
+        hEff_dr[idr]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7); p_{MC} [GeV]; efficiency"); 
         hEff_dr[idr]->Divide(hP_all_mu); 
     } 
 
-    hEff_dr[0]->SetLineColor(kBlue);     hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.1); 
+    hEff_dr[0]->SetLineColor(kBlue);     hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.4); 
     hEff_dr[1]->SetLineColor(kRed);   
     hEff_dr[2]->SetLineColor(kGreen+2); 
 
-    hEff_dr[0]->Draw("HIST");            
-    hEff_dr[1]->Draw("HIST SAME");       
-    hEff_dr[2]->Draw("HIST SAME");       
-    { auto leg_dr = new TLegend(0.55,0.65,0.88,0.88);
+    hEff_dr[0]->SetTitleSize(letterSize, "XYZ"); hEff_dr[0]->Draw("HIST");            
+    hEff_dr[1]->SetTitleSize(letterSize, "XYZ"); hEff_dr[1]->Draw("HIST SAME");       
+    hEff_dr[2]->SetTitleSize(letterSize, "XYZ"); hEff_dr[2]->Draw("HIST SAME");       
+    { auto leg_dr = new TLegend(0.60,0.70,0.88,0.88);
         for(int idr=0; idr<3; ++idr)
         {leg_dr->AddEntry(hEff_dr[idr],Form("dr < %.1f cm", DR_CUTS_CM[idr]),"l");} 
         leg_dr->Draw(); 
     }  
                                                                    
-    canvas->cd(11); gPad->SetGrid();                                                        
+    canvas3->cd(3); setPadMargins(); gPad->SetGrid();                                                        
     TH1D* hEff_E[3]; 
     for (int ie=0; ie<3; ++ie) { 
-        hEff_E[ie] = (TH1D*)hP_pass_Ecut[ie]->Clone( 
+        hEff_E[ie] = (TH1D*)hP_pass_ECut[ie]->Clone( 
             Form("hEff_E%.1fcm", E_CUTS_GEV[ie]) 
         ); 
-        hEff_E[ie]->SetTitle("Matching efficiency vs p_{MC} (E < k MIP); p_{MC} [GeV]; efficiency"); 
+        hEff_E[ie]->SetDirectory(nullptr);
+        hEff_E[ie]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7, dr < 13cm); p_{MC} [GeV]; efficiency"); 
         hEff_E[ie]->Divide(hP_all_mu); 
     } 
 
-    hEff_E[0]->SetLineColor(kBlue);     hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.1); 
+    hEff_E[0]->SetLineColor(kBlue);     hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.4); 
     hEff_E[1]->SetLineColor(kRed);   
     hEff_E[2]->SetLineColor(kGreen+2); 
 
-    hEff_E[0]->Draw("HIST");            
-    hEff_E[1]->Draw("HIST SAME");       
-    hEff_E[2]->Draw("HIST SAME");       
-    { auto leg_E = new TLegend(0.55,0.65,0.88,0.88);
+    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[0]->Draw("HIST");            
+    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[1]->Draw("HIST SAME");       
+    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[2]->Draw("HIST SAME");       
+    { auto leg_E = new TLegend(0.60,0.70,0.88,0.88);
         for(int ie=0; ie<3; ++ie)
         {leg_E->AddEntry(hEff_E[ie],Form("E < %.1f MIP", E_CUTS_GEV[ie]),"l");}  
         leg_E->Draw(); 
+    }
+    
+    canvas3->cd(4); setPadMargins(); gPad->SetGrid();
+    TH1D* hEff_Layer[3]; 
+    for (int il=0; il<3; ++il) { 
+        hEff_Layer[il] = (TH1D*)hP_pass_LayerCut[il]->Clone( 
+            Form("hEff_Layer%d", LAYER_CUTS[il]) 
+        ); 
+        hEff_Layer[il]->SetDirectory(nullptr);
+        hEff_Layer[il]->SetTitle("Matching efficiency vs p_{MC} (dr < 13cm); p_{MC} [GeV]; efficiency"); 
+        hEff_Layer[il]->Divide(hP_all_mu); 
+    } 
+
+    hEff_Layer[0]->SetLineColor(kBlue); hEff_Layer[0]->SetMinimum(0.0); hEff_Layer[0]->SetMaximum(1.4); 
+    hEff_Layer[1]->SetLineColor(kRed);   
+    hEff_Layer[2]->SetLineColor(kGreen+2); 
+
+    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[0]->Draw("HIST");            
+    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[1]->Draw("HIST SAME");       
+    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[2]->Draw("HIST SAME");       
+    { auto leg_Layer = new TLegend(0.60,0.70,0.88,0.88);
+        for(int il=0; il<3; ++il)
+        {leg_Layer->AddEntry(hEff_Layer[il],Form("L > %d Layers", LAYER_CUTS[il]),"l");}  
+        leg_Layer->Draw(); 
     }  
-    canvas->SaveAs(addPrefixAfterSlash(outname_png, "extra_").c_str());              
-    canvas->SaveAs(addPrefixAfterSlash(outname_pdf, "extra_").c_str());              
+    canvas3->SaveAs(addPrefixAfterSlash(outname_png, "extra3_").c_str());              
+    canvas3->SaveAs(addPrefixAfterSlash(outname_pdf, "extra3_").c_str()); 
+    
+    TCanvas* canvas4 = new TCanvas("canvas4", "Muon analysis extra 4", 1800, 1200);
+    canvas4->Divide(2,2); 
+
+    canvas4->cd(1); setPadMargins(); gPad->SetGrid(); gPad->SetLogy(); hE_z->GetYaxis()->SetMoreLogLabels(); hE_z->GetYaxis()->SetTitle("E [GeV] (log)"); 
+                    hE_z->SetTitleSize(letterSize, "XYZ"); hE_z->Draw("COLZ");
+    TProfile* pE_z = hE_z->ProfileX("pE_z"); pE_z->SetLineWidth(3); pE_z->SetLineColor(kRed); pE_z->SetMarkerColor(kRed);
+                    pE_z->SetDirectory(nullptr); pE_z->Draw("SAME");
+    // const double Ecut_GeV = MIP_ENERGY_GEV * t_cm * 100;
+    // TLine* cut = new TLine(hE_z->GetXaxis()->GetXmin(), Ecut_GeV, hE_z->GetXaxis()->GetXmax(), Ecut_GeV);
+    // cut->SetLineColor(kRed+1); cut->SetLineStyle(2); cut->SetLineWidth(3);
+    // cut->Draw("SAME");                              
+    //SetRangeUser
+    canvas4->cd(2); setPadMargins(); gPad->SetGrid(); gPad->SetLogy(); hEsum_z->GetYaxis()->SetMoreLogLabels(); hEsum_z->GetYaxis()->SetTitle("E_{sum} [GeV] (log)"); 
+                    hEsum_z->SetTitleSize(letterSize, "XYZ"); hEsum_z->Draw("COLZ");
+    TProfile* pEsum_z = hEsum_z->ProfileX("pEsum_z"); pEsum_z->SetLineWidth(3); pEsum_z->SetLineColor(kRed); pEsum_z->SetMarkerColor(kRed);
+                    pEsum_z->SetDirectory(nullptr); pEsum_z->Draw("SAME"); 
+    canvas4->cd(3); setPadMargins(); gPad->SetGrid(); hE->Draw();
+    canvas4->cd(4); setPadMargins(); gPad->SetGrid(); hEsum->Draw();
+    
+    canvas4->Update();
+    canvas4->SaveAs(addPrefixAfterSlash(outname_png, "extra4_").c_str());              
+    canvas4->SaveAs(addPrefixAfterSlash(outname_pdf, "extra4_").c_str()); 
+
+    delete canvas_sim;
+    delete canvas_rec;
+    delete canvas1;
+    delete canvas2;
+    delete canvas3;
+    delete canvas4;
 
     return 0;
 }

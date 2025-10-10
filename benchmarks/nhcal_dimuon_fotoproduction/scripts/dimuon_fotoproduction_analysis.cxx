@@ -106,18 +106,6 @@ constexpr double ETA_MIN = -4.14, ETA_MAX = -1.16;
 
 inline bool inNHCal(double eta) {return (eta >= ETA_MIN && eta <= ETA_MAX);}
 
-inline void setPadMargins(double left = 0.15,
-                          double right = 0.05,
-                          double bottom = 0.15,
-                          double top = 0.10)
-{
-    if (!gPad) return;
-    gPad->SetLeftMargin(left);
-    gPad->SetRightMargin(right);
-    gPad->SetBottomMargin(bottom);
-    gPad->SetTopMargin(top);
-}
-
 inline string addPrefixAfterSlash(const string& path,
                                        const string& prefix) {
     const auto slash = path.find_last_of('/');
@@ -146,48 +134,71 @@ TLine* makeLine(double x1, double y1, double x2, double y2) {
     return l;
 }
 
-static TGraphErrors* makeEffGraph_B(TH1D* h_sel, TH1D* h_all,
-                                    const char* name,
-                                    int minAll = 2)
+static TGraph* makeEffGraph_B(TH1D* h_sel, TH1D* h_all,
+                              const char* name,
+                              int minAll = 2,
+                              bool logx = false)
 {
     if (!h_sel || !h_all) return nullptr;
 
     std::unique_ptr<TH1D> h_eff((TH1D*)h_sel->Clone(Form("tmp_%s", name ? name : "eff")));
     h_eff->SetDirectory(nullptr);
-    h_eff->Sumw2();                         
+    h_eff->Sumw2();
     h_eff->Divide(h_sel, h_all, 1.0, 1.0, "B");
 
     const int nb = h_all->GetNbinsX();
-    vector<double> xs, ys, exs, eys;
-    xs.reserve(nb); ys.reserve(nb); exs.reserve(nb); eys.reserve(nb);
 
+    std::unique_ptr<TGraphAsymmErrors> g_log;
+    std::unique_ptr<TGraphErrors>      g_lin;
+
+    if (logx) g_log = std::make_unique<TGraphAsymmErrors>();
+    else      g_lin = std::make_unique<TGraphErrors>();
+
+    int ip = 0;
     for (int b = 1; b <= nb; ++b) {
         const double all = h_all->GetBinContent(b);
         if (all < minAll) continue;
 
-        const double x   = h_all->GetBinCenter(b);
-        const double ex  = 0.5 * h_all->GetBinWidth(b);      
-        const double y   = 100.0 * h_eff->GetBinContent(b);  
-        const double ey  = 100.0 * h_eff->GetBinError(b);   
+        const double xl = h_all->GetXaxis()->GetBinLowEdge(b);
+        const double xh = h_all->GetXaxis()->GetBinUpEdge(b);
 
-        xs.push_back(x);   ys.push_back(y);
-        exs.push_back(ex); eys.push_back(ey);
+        const double y  = 100.0 * h_eff->GetBinContent(b);
+        const double ey = 100.0 * h_eff->GetBinError(b);
+
+        if (logx) {
+            if (xl <= 0.0 || xh <= 0.0) continue; 
+            const double x  = sqrt(xl * xh);
+            const double exl = x - xl;
+            const double exh = xh - x;
+
+            g_log->SetPoint(ip, x, y);
+            g_log->SetPointError(ip, exl, exh, ey, ey);
+        } else {
+            const double x  = h_all->GetBinCenter(b);
+            const double ex = 0.5 * (xh - xl);
+
+            g_lin->SetPoint(ip, x, y);
+            g_lin->SetPointError(ip, ex, ey);
+        }
+        ++ip;
     }
 
-    auto* g = new TGraphErrors((int)xs.size(), xs.data(), ys.data(), exs.data(), eys.data());
+    TGraph* g = logx ? (TGraph*)g_log.release() : (TGraph*)g_lin.release();
     g->SetName(Form("g_%s", name ? name : "eff"));
     return g;
 }
 
-inline tuple<TMultiGraph*, TLegend*, bool>
-makeEffMultiGraph(TH1D* h_all,
-                  TH1D* const h_in[3],
-                  const char* title,
-                  const char* xlabel,
-                  bool logx)
+inline void drawEffPanel(TH1D* h_all,
+                         TH1D* const h_in[3],
+                         const char* title,
+                         const char* xlabel,
+                         bool logx)
 {
-    TMultiGraph* mg = new TMultiGraph();
-    TLegend* leg   = new TLegend(0.63, 0.7, 0.88, 0.88);
+    gPad->SetGrid();
+    if (logx) gPad->SetLogx();
+
+    auto* mg = new TMultiGraph();
+    auto* leg = new TLegend(0.63, 0.7, 0.88, 0.88);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetTextSize(0.04);
@@ -199,8 +210,7 @@ makeEffMultiGraph(TH1D* h_all,
 
     for (int i = 0; i < 3; ++i) {
         if (!h_all || !h_in[i]) continue;
-
-        auto* g = makeEffGraph_B(h_in[i], h_all, Form("eff_%d", i), 2);
+        auto* g = makeEffGraph_B(h_in[i], h_all, Form("eff_%d", i), 2, logx);
         if (!g || g->GetN() == 0) continue;
 
         g->SetMarkerColor(colors[i]);
@@ -208,7 +218,7 @@ makeEffMultiGraph(TH1D* h_all,
         g->SetMarkerSize(1.0);
         g->SetLineColor(kBlack);
 
-        mg->Add(g, "PE"); 
+        mg->Add(g, "PE");
         leg->AddEntry(g, Form("%d mu-in nHCAL", i), "p");
         ++added;
     }
@@ -219,7 +229,7 @@ makeEffMultiGraph(TH1D* h_all,
         h_sum->Add(h_in[1]);
         h_sum->Add(h_in[2]);
 
-        auto* gsum = makeEffGraph_B(h_sum.get(), h_all, "eff_sum", 2);
+        auto* gsum = makeEffGraph_B(h_sum.get(), h_all, "eff_sum", 2, logx);
         if (gsum && gsum->GetN() > 0) {
             gsum->SetMarkerStyle(25);
             gsum->SetMarkerColor(kMagenta + 1);
@@ -234,19 +244,26 @@ makeEffMultiGraph(TH1D* h_all,
     }
 
     mg->SetTitle(Form("%s;%s;geom. acc. [%%]", title ? title : "", xlabel ? xlabel : ""));
+    mg->Draw("A");
 
-    if (added == 0 && h_all) {
-        TH1D* hframe = new TH1D("hframe_tmp", "", 10,
-                                h_all->GetXaxis()->GetXmin(),
-                                h_all->GetXaxis()->GetXmax());
-        hframe->SetMinimum(0.0);
-        hframe->SetMaximum(110.0);
-        hframe->GetXaxis()->SetTitle(xlabel ? xlabel : "");
-        hframe->GetYaxis()->SetTitle("geom. acc. [%]");
-        hframe->Draw();
+    gPad->Update();
+    if (mg->GetHistogram()) {
+        double ymax = mg->GetHistogram()->GetMaximum();
+        mg->GetHistogram()->SetMaximum(ymax * 1.35); 
+    }
+    gPad->Modified();
+    gPad->Update();
+
+    if (logx) {
+        auto* ax = mg->GetXaxis();
+        if (ax) {
+            double xmin = ax->GetXmin(), xmax = ax->GetXmax();
+            if (xmin <= 0) xmin = 1e-12;
+            mg->GetXaxis()->SetLimits(xmin, xmax);
+        }
     }
 
-    return make_tuple(mg, leg, logx);
+    leg->Draw();
 }
 
 inline double getPlasticThicknessCM(dd4hep::Detector& det,
@@ -364,6 +381,16 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     //double thickness_cm = det->constantAsDouble("HcalEndcapNPolystyreneThickness")* 0.1;
 
     constexpr int NBINS = 60; 
+
+    constexpr double Q2_MIN = 1e-2;
+    constexpr double Q2_MAX = 1.0;
+    constexpr double X_MIN = 1e-6;
+    constexpr double X_MAX = 1e-3;
+    constexpr double Y_MIN = 0.0;
+    constexpr double Y_MAX = 1.0;
+    constexpr double W_MIN = 0.0;
+    constexpr double W_MAX = 160.0;
+
     constexpr int    Z_NBINS = 100;
     constexpr double Z_MIN_MM = -4500.0;
     constexpr double Z_MAX_MM = -3600.0;
@@ -374,53 +401,66 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
     constexpr int    DR_NBINS  = 120;
     constexpr double DR_MIN_MM = 0.0;   
-    constexpr double DR_MAX_MM = 400.0;
+    constexpr double DR_MAX_MM = 400.0; 
 
     constexpr double P_MIN_GEV = 0.0;  
     constexpr double P_MAX_GEV = 25.0;   
-    constexpr int    P_NB  = 50;
+    constexpr int    P_NBINS  = 50;
 
-    constexpr double E_MIN_GEV = 0.0;
-    constexpr double E_MAX_GEV = 6.0;
+    constexpr double E_MIN_GEV = 2e-2;
+    constexpr double E_MAX_GEV = 10.0;
 
     constexpr int    SIZE = 3;
     constexpr double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
     constexpr double DR_THRESH_MM = DR_CUTS_CM[2]*10;
     constexpr double MIP_ENERGY_GEV = 0.002; 
-    constexpr double E_CUTS_GEV[SIZE] = {1.5, 1.7, 2.0}; 
-    constexpr double E_THRESH_GEV = E_CUTS_GEV[2]; 
+    constexpr double E_CUTS[SIZE] = {1.5, 1.7, 2.0}; 
+    constexpr double E_THRESH = E_CUTS[2]; 
     constexpr int    LAYER_CUTS[SIZE] = {5, 6, 7};
     constexpr int    LAYER_THRESH = LAYER_CUTS[2];
+    double t_cm;
+
+    vector<double> Xbins(NBINS+1), Q2bins(NBINS+1), Ebins(NBINS+1);
+    MakeLogBins(Q2bins.data(), NBINS, Q2_MIN, Q2_MAX);
+    MakeLogBins(Xbins.data(), NBINS, X_MIN, X_MAX);
+    MakeLogBins(Ebins.data(), NBINS, E_MIN_GEV, E_MAX_GEV);
+
+    gStyle->SetTitleSize(0.045, "XYZ");
+    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetPadLeftMargin(0.15);
+    gStyle->SetPadRightMargin(0.15);
+    gStyle->SetPadBottomMargin(0.15);
+    gStyle->SetPadTopMargin(0.10);
+    gROOT->ForceStyle();
 
     TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
-
-    TH2D* hx_Q2 = new TH2D("hx_Q2", "Muon x vs Q^{2}; x; Q^{2}[GeV^{2}]", 100, 1e-6, 1e-3, 100, 1e-2, 1.0);
+    TH2D* hx_Q2 = new TH2D("hx_Q2","Muon x vs Q^{2}; x; Q^{2} [GeV^{2}]", NBINS, Xbins.data(), NBINS, Q2bins.data());
     TH2D* hEta1_Eta2 = new TH2D("hEta1_Eta2", "Muon #eta_{+} vs #eta_{-}; #eta_{+} (PDG=-13); #eta_{-} (PDG=13)", 100, -6., 6., 100, -6., 6.);
 
-    TH1D* hQ2_all = new TH1D("hQ2_all", "Q^{2}", NBINS, 1e-2, 1.0);
-    TH1D* hX_all  = new TH1D("hX_all", "x",     NBINS, 1e-6, 1e-3);
-    TH1D* hY_all  = new TH1D("hY_all", "y",     NBINS, 0., 1.);
-    TH1D* hW_all  = new TH1D("hW_all", "W",     NBINS, 0., 160.);
+    TH1D* hQ2_all = new TH1D("hQ2_all", "Q^{2}", NBINS, Q2bins.data());
+    TH1D* hX_all  = new TH1D("hX_all", "x",     NBINS, Xbins.data());
+    TH1D* hY_all  = new TH1D("hY_all", "y",     NBINS, Y_MIN, Y_MAX);
+    TH1D* hW_all  = new TH1D("hW_all", "W",     NBINS, W_MIN, W_MAX);
 
     TH1D* hQ2_in[3], *hX_in[3], *hY_in[3], *hW_in[3];
     for (int i = 0; i < 3; ++i) {
-        hQ2_in[i] = new TH1D(Form("hQ2_in_%d", i), "", NBINS, 1e-2, 1.0);
-        hX_in[i]  = new TH1D(Form("hX_in_%d",  i), "", NBINS, 1e-6, 1e-3);
-        hY_in[i]  = new TH1D(Form("hY_in_%d",  i), "", NBINS, 0., 1.);
-        hW_in[i]  = new TH1D(Form("hW_in_%d",  i), "", NBINS, 0., 160.);
+        hQ2_in[i] = new TH1D(Form("hQ2_in_%d", i), "", NBINS, Q2bins.data());
+        hX_in[i]  = new TH1D(Form("hX_in_%d",  i), "", NBINS, Xbins.data());
+        hY_in[i]  = new TH1D(Form("hY_in_%d",  i), "", NBINS,  Y_MIN, Y_MAX);
+        hW_in[i]  = new TH1D(Form("hW_in_%d",  i), "", NBINS,  W_MIN, W_MAX);
     }
 
-    TH1D* hQ2_rec_all = new TH1D("hQ2_rec_all", "Q^{2} (rec)", NBINS, 1e-2, 1.0);
-    TH1D* hX_rec_all  = new TH1D("hX_rec_all", "x (rec)",      NBINS, 1e-6, 1e-3);
-    TH1D* hY_rec_all  = new TH1D("hY_rec_all", "y (rec)",      NBINS, 0., 1.);
-    TH1D* hW_rec_all  = new TH1D("hW_rec_all", "W (rec)",      NBINS, 0., 160.);
+    TH1D* hQ2_rec_all = new TH1D("hQ2_rec_all", "Q^{2} (rec)", NBINS, Q2bins.data());
+    TH1D* hX_rec_all  = new TH1D("hX_rec_all", "x (rec)",      NBINS, Xbins.data());
+    TH1D* hY_rec_all  = new TH1D("hY_rec_all", "y (rec)",      NBINS,  Y_MIN, Y_MAX);
+    TH1D* hW_rec_all  = new TH1D("hW_rec_all", "W (rec)",      NBINS,  W_MIN, W_MAX);
 
     TH1D* hQ2_rec_in[3], *hX_rec_in[3], *hY_rec_in[3], *hW_rec_in[3];
     for (int i = 0; i < 3; ++i) {
-        hQ2_rec_in[i] = new TH1D(Form("hQ2_rec_in_%d", i), "", NBINS, 1e-2, 1.0);
-        hX_rec_in[i]  = new TH1D(Form("hX_rec_in_%d",  i), "", NBINS, 1e-6, 1e-3);
-        hY_rec_in[i]  = new TH1D(Form("hY_rec_in_%d",  i), "", NBINS, 0., 1.);
-        hW_rec_in[i]  = new TH1D(Form("hW_rec_in_%d",  i), "", NBINS, 0., 160.);
+        hQ2_rec_in[i] = new TH1D(Form("hQ2_rec_in_%d", i), "", NBINS, Q2bins.data());
+        hX_rec_in[i]  = new TH1D(Form("hX_rec_in_%d",  i), "", NBINS, Xbins.data());
+        hY_rec_in[i]  = new TH1D(Form("hY_rec_in_%d",  i), "", NBINS,  Y_MIN, Y_MAX);
+        hW_rec_in[i]  = new TH1D(Form("hW_rec_in_%d",  i), "", NBINS,  W_MIN, W_MAX);
     }
 
     TH1D* hZ_proj = new TH1D("hZ_proj", "Muon track projections in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
@@ -439,33 +479,33 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                          "Radial residual dr = #sqrt{dx^{2}+dy^{2}} (all layers); dr [mm]; N",
                          DR_NBINS, DR_MIN_MM, DR_MAX_MM);
 
-    TH2D* hE_z = new TH2D("hE_z", "Reconstructed hit energy vs layer z; z_{layer} [mm]; E [GeV]", NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, E_MIN_GEV, E_MAX_GEV);
+    TH2D* hE_z = new TH2D("hE_z", "Reconstructed hit energy vs layer z; z_{layer} [mm]; E [GeV]", NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, Ebins.data());
 
     TH2D* hEsum_z = new TH2D("hEsum_z", "Layer energy sum vs z (reconstructed); z_{layer} [mm]; E_{sum} [GeV]",
-                            NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, E_MIN_GEV, E_MAX_GEV);
+                            NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, Ebins.data());
 
     TH1D* hE = new TH1D("hE", "Reconstructed hit energy; E [GeV]; N", 10000, 0.0, 1.0);
 
     TH1D* hEsum = new TH1D("hEsum", "Layer energy sum (reconstructed); E_{sum} [GeV]; N", 10000, 0.0, 1.0);
 
-    TH1D* hP_all_mu = new TH1D("hP_all_mu", "MC muon momentum (muons in nHCal acceptance); p_{MC} [GeV]; N", P_NB, P_MIN_GEV, P_MAX_GEV);
+    TH1D* hP_all_mu = new TH1D("hP_all_mu", "MC muon momentum (muons in nHCal acceptance); p_{MC} [GeV]; N", P_NBINS, P_MIN_GEV, P_MAX_GEV);
 
     TH1D* hP_pass_dr[3] = {
-        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[0]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[0]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[1]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[1]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[2]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[0]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[0]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[1]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[1]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[2]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[2]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
     };
 
     TH1D* hP_pass_ECut[3] = {
-        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[0]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[0]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[1]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[1]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS_GEV[2]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS_GEV[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS[0]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS[0]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS[1]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS[1]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_E< %.1f MIP", E_CUTS[2]), Form("Accepted (E< %.1f MIP); p_{MC} [GeV]; N",E_CUTS[2]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
     };
 
     TH1D* hP_pass_LayerCut[3] = {
-        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[0]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[0]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[1]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[1]), P_NB, P_MIN_GEV, P_MAX_GEV),
-        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[2]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[2]), P_NB, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[0]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[0]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[1]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[1]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
+        new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[2]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[2]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
     };
 
     for (unsigned ev = 0; ev < nEvents; ev++) {
@@ -650,10 +690,11 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                     segMinDistance[i] = best_dr_in_layer;
                     segHitEnergy[i]   = best_E_in_layer;
                     thickness_cm[i]   = getPlasticThicknessCM(*det, decoder, best_cid_in_layer, slice_index, 3);
+                    t_cm = thickness_cm[0];
                 }
                 for(int j = 0; j < SIZE; ++j){
                     if (segMinDistance[i] < DR_CUTS_CM[j] * 10){++count_DrCuts[j];}
-                    if (segHitEnergy[i] < (E_CUTS_GEV[j] * thickness_cm[i] * 100)){++count_ECuts[j];}
+                    if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_cm[i] * 100)){++count_ECuts[j];}
                 }
                 
             }
@@ -687,26 +728,12 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         }
     }
 
+    TCanvas* c = new TCanvas("c", "Muon analysis", 1600, 1000);
+    c->Divide(2,2);
 
-    TCanvas* canvas_sim = new TCanvas("canvas_sim", "Muon analysis", 1600, 800);
-    canvas_sim->Divide(4, 2);
-    canvas_sim->cd(1); setPadMargins(); hEtaPt->Draw("COLZ");
-
-    auto [mg_q2, leg_q2, log_q2] = makeEffMultiGraph(hQ2_all, hQ2_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
-    canvas_sim->cd(2); setPadMargins(); if (log_q2) gPad->SetLogx(); gPad->SetGrid(); mg_q2->Draw("A"); leg_q2->Draw();
-
-    auto [mg_x, leg_x, log_x] = makeEffMultiGraph(hX_all, hX_in, "Geom. acc. vs x", "x", true);
-    canvas_sim->cd(3); setPadMargins(); if (log_x) gPad->SetLogx(); gPad->SetGrid(); mg_x->Draw("A"); leg_x->Draw();
-
-    auto [mg_y, leg_y, log_y] = makeEffMultiGraph(hY_all, hY_in, "Geom. acc. vs y", "y", false);
-    canvas_sim->cd(4); setPadMargins(); gPad->SetGrid(); mg_y->Draw("A"); leg_y->Draw();
-
-    auto [mg_w, leg_w, log_w] = makeEffMultiGraph(hW_all, hW_in, "Geom. acc. vs W", "W [GeV]", false);
-    canvas_sim->cd(5); setPadMargins(); gPad->SetGrid(); mg_w->Draw("A"); leg_w->Draw();
-
-    canvas_sim->cd(6); setPadMargins(); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
-    canvas_sim->cd(7); setPadMargins(); hEta1_Eta2->Draw("COLZ"); 
-    
+    c->cd(1); hEtaPt->Draw("COLZ");
+    c->cd(2); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
+    c->cd(3); hEta1_Eta2->Draw("COLZ");
     auto* lv1 = makeLine(ETA_MIN, -6, ETA_MIN, 6);
     auto* lv2 = makeLine(ETA_MAX, -6, ETA_MAX, 6);
     auto* lh1 = makeLine(hEta1_Eta2->GetXaxis()->GetXmin(), ETA_MIN,
@@ -714,53 +741,52 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     auto* lh2 = makeLine(hEta1_Eta2->GetXaxis()->GetXmin(), ETA_MAX,
                         hEta1_Eta2->GetXaxis()->GetXmax(), ETA_MAX);
 
-    canvas_sim->SaveAs(outname_pdf.c_str());
-    canvas_sim->SaveAs(outname_png.c_str());
+    c->SaveAs(outname_pdf.c_str());
+    c->SaveAs(outname_png.c_str());
 
-    TCanvas* canvas_rec = new TCanvas("canvas_rec", "Muon analysis rec", 1600, 800);
-    canvas_rec->Divide(4, 2);
-    canvas_rec->cd(1); setPadMargins(); hEtaPt->Draw("COLZ");
 
-    auto [mg_rec_q2, leg_rec_q2, log_rec_q2] = makeEffMultiGraph(hQ2_rec_all, hQ2_rec_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
-    canvas_rec->cd(2); setPadMargins(); if (log_rec_q2) gPad->SetLogx(); gPad->SetGrid(); mg_rec_q2->Draw("A"); leg_rec_q2->Draw();
+    TCanvas* c_sim = new TCanvas("c_sim", "Muon geometrical accuracy analysis", 1600, 1000);
+    c_sim->Divide(2, 2);
 
-    auto [mg_rec_x, leg_rec_x, log_rec_x] = makeEffMultiGraph(hX_rec_all, hX_rec_in, "Geom. acc. vs x", "x", true);
-    canvas_rec->cd(3); setPadMargins(); if (log_rec_x) gPad->SetLogx(); gPad->SetGrid(); mg_rec_x->Draw("A"); leg_rec_x->Draw();
+    c_sim->cd(1); drawEffPanel(hQ2_all, hQ2_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
+    c_sim->cd(2); drawEffPanel(hX_all,  hX_in,  "Geom. acc. vs x",      "x",               true);
+    c_sim->cd(3); drawEffPanel(hY_all,  hY_in,  "Geom. acc. vs y",      "y",               false);
+    c_sim->cd(4); drawEffPanel(hW_all,  hW_in,  "Geom. acc. vs W",      "W [GeV]",         false);
 
-    auto [mg_rec_y, leg_rec_y, log_rec_y] = makeEffMultiGraph(hY_rec_all, hY_rec_in, "Geom. acc. vs y", "y", false);
-    canvas_rec->cd(4); setPadMargins(); gPad->SetGrid(); mg_rec_y->Draw("A"); leg_rec_y->Draw();
+    c_sim->SaveAs(addPrefixAfterSlash(outname_png, "sim_").c_str());
+    c_sim->SaveAs(addPrefixAfterSlash(outname_pdf, "sim_").c_str());
 
-    auto [mg_rec_w, leg_rec_w, log_rec_w] = makeEffMultiGraph(hW_rec_all, hW_rec_in, "Geom. acc. vs W", "W [GeV]", false);
-    canvas_rec->cd(5); setPadMargins(); gPad->SetGrid(); mg_rec_w->Draw("A"); leg_rec_w->Draw();
+    TCanvas* c_rec = new TCanvas("c_rec", "Muon geometrical accuracy analysis rec", 1600, 1000);
+    c_rec->Divide(2, 2);
 
-    canvas_rec->cd(6); setPadMargins(); gPad->SetLogx(); gPad->SetGrid(); gPad->SetLogy(); hx_Q2->Draw("COLZ");
-    canvas_rec->cd(7); setPadMargins(); hEta1_Eta2->Draw("COLZ");
+    c_rec->cd(1); drawEffPanel(hQ2_rec_all, hQ2_rec_in, "Geom. acc. vs Q^{2}", "Q^{2} [GeV^{2}]", true);
+    c_rec->cd(2); drawEffPanel(hX_rec_all,  hX_rec_in,  "Geom. acc. vs x",      "x",               true);
+    c_rec->cd(3); drawEffPanel(hY_rec_all,  hY_rec_in,  "Geom. acc. vs y",      "y",               false);
+    c_rec->cd(4); drawEffPanel(hW_rec_all,  hW_rec_in,  "Geom. acc. vs W",      "W [GeV]",         false);
 
-    canvas_rec->SaveAs(addPrefixAfterSlash(outname_png, "rec_").c_str());
-    canvas_rec->SaveAs(addPrefixAfterSlash(outname_pdf, "rec_").c_str());
+    c_rec->SaveAs(addPrefixAfterSlash(outname_png, "rec_").c_str());
+    c_rec->SaveAs(addPrefixAfterSlash(outname_pdf, "rec_").c_str());
 
-    double letterSize = 0.045;
-    TCanvas* canvas1 = new TCanvas("canvas1", "Muon analysis extra 1", 1800, 1200);
-    canvas1->Divide(2,2);                                                                 
-    canvas1->cd(1); setPadMargins(); gPad->SetGrid(); hZ_proj->SetTitleSize(letterSize, "XYZ"); hZ_proj->Draw();                                     
-    canvas1->cd(2); setPadMargins(); gPad->SetGrid(); hZ_hits->SetTitleSize(letterSize, "XYZ"); hZ_hits->Draw();
-    canvas1->Update();
-    canvas1->SaveAs(addPrefixAfterSlash(outname_png, "extra1_").c_str());              
-    canvas1->SaveAs(addPrefixAfterSlash(outname_pdf, "extra1_").c_str()); 
+    TCanvas* c_hitTrack = new TCanvas("c_hitTrack", "Muon hit and track analysis", 1600, 1000);
+    c_hitTrack->Divide(2,2);                                                                 
+    c_hitTrack->cd(1); gPad->SetGrid(); hZ_proj->Draw();                                     
+    c_hitTrack->cd(2); gPad->SetGrid(); hZ_hits->Draw();
+    c_hitTrack->SaveAs(addPrefixAfterSlash(outname_png, "hitTrack_").c_str());              
+    c_hitTrack->SaveAs(addPrefixAfterSlash(outname_pdf, "hitTrack_").c_str()); 
 
-    TCanvas* canvas2 = new TCanvas("canvas2", "Muon analysis extra 2", 1800, 1200);
-    canvas2->Divide(2,2); 
-    canvas2->cd(1); setPadMargins(); gPad->SetGrid(); hDxDyZ_layer->SetTitleSize(letterSize, "XYZ"); hDxDyZ_layer->Draw("COLZ");     
-    canvas2->cd(2); setPadMargins(); gPad->SetGrid(); hDxDy_all->SetTitleSize(letterSize, "XYZ"); hDxDy_all->Draw("COLZ"); 
-    canvas2->cd(3); setPadMargins(); gPad->SetGrid(); hDrZ_layer->SetTitleSize(letterSize, "XYZ"); hDrZ_layer->Draw("COLZ");                             
-    canvas2->cd(4); setPadMargins(); gPad->SetGrid(); hDr_all->SetTitleSize(letterSize, "XYZ"); hDr_all->Draw("COLZ");
-    canvas2->SaveAs(addPrefixAfterSlash(outname_png, "extra2_").c_str());              
-    canvas2->SaveAs(addPrefixAfterSlash(outname_pdf, "extra2_").c_str()); 
+    TCanvas* c_hitTrackDistance = new TCanvas("c_hitTrackDistance", "Muon hit-track distance analysis", 1600, 1000);
+    c_hitTrackDistance->Divide(2,2); 
+    c_hitTrackDistance->cd(1); gPad->SetGrid(); hDxDyZ_layer->Draw("COLZ");     
+    c_hitTrackDistance->cd(2); gPad->SetGrid(); hDxDy_all->Draw("COLZ"); 
+    c_hitTrackDistance->cd(3); gPad->SetGrid(); hDrZ_layer->Draw("COLZ");                             
+    c_hitTrackDistance->cd(4); gPad->SetGrid(); hDr_all->Draw("COLZ");
+    c_hitTrackDistance->SaveAs(addPrefixAfterSlash(outname_png, "hitTrackDistance_").c_str());              
+    c_hitTrackDistance->SaveAs(addPrefixAfterSlash(outname_pdf, "hitTrackDistance_").c_str()); 
 
-    TCanvas* canvas3 = new TCanvas("canvas3", "Muon analysis extra 3", 1800, 1200);
-    canvas3->Divide(2,2);                        
-    canvas3->cd(1); setPadMargins(); gPad->SetGrid(); hP_all_mu->SetLineColor(kBlack); hP_all_mu->SetTitleSize(letterSize, "XYZ"); hP_all_mu->Draw();  
-    canvas3->cd(2); setPadMargins(); gPad->SetGrid();                                                       
+    TCanvas* c_matchingEff = new TCanvas("c_matchingEff", "Muon matching efficiency analysis", 1600, 1000);
+    c_matchingEff->Divide(2,2);                        
+    c_matchingEff->cd(1); gPad->SetGrid(); hP_all_mu->SetLineColor(kBlack); hP_all_mu->Draw();  
+    c_matchingEff->cd(2); gPad->SetGrid();                                                       
     TH1D* hEff_dr[3]; 
     for (int idr=0; idr<3; ++idr) { 
         hEff_dr[idr] = (TH1D*)hP_pass_dr[idr]->Clone( 
@@ -771,44 +797,44 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         hEff_dr[idr]->Divide(hP_all_mu); 
     } 
 
-    hEff_dr[0]->SetLineColor(kBlue);     hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.4); 
+    hEff_dr[0]->SetLineColor(kBlue); hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.4); 
     hEff_dr[1]->SetLineColor(kRed);   
     hEff_dr[2]->SetLineColor(kGreen+2); 
 
-    hEff_dr[0]->SetTitleSize(letterSize, "XYZ"); hEff_dr[0]->Draw("HIST");            
-    hEff_dr[1]->SetTitleSize(letterSize, "XYZ"); hEff_dr[1]->Draw("HIST SAME");       
-    hEff_dr[2]->SetTitleSize(letterSize, "XYZ"); hEff_dr[2]->Draw("HIST SAME");       
+    hEff_dr[0]->Draw("HIST");            
+    hEff_dr[1]->Draw("HIST SAME");       
+    hEff_dr[2]->Draw("HIST SAME");       
     { auto leg_dr = new TLegend(0.60,0.70,0.88,0.88);
         for(int idr=0; idr<3; ++idr)
         {leg_dr->AddEntry(hEff_dr[idr],Form("dr < %.1f cm", DR_CUTS_CM[idr]),"l");} 
         leg_dr->Draw(); 
     }  
                                                                    
-    canvas3->cd(3); setPadMargins(); gPad->SetGrid();                                                        
+    c_matchingEff->cd(3); gPad->SetGrid();                                                        
     TH1D* hEff_E[3]; 
     for (int ie=0; ie<3; ++ie) { 
         hEff_E[ie] = (TH1D*)hP_pass_ECut[ie]->Clone( 
-            Form("hEff_E%.1fcm", E_CUTS_GEV[ie]) 
+            Form("hEff_E%.1fcm", E_CUTS[ie]) 
         ); 
         hEff_E[ie]->SetDirectory(nullptr);
         hEff_E[ie]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7, dr < 13cm); p_{MC} [GeV]; efficiency"); 
         hEff_E[ie]->Divide(hP_all_mu); 
     } 
 
-    hEff_E[0]->SetLineColor(kBlue);     hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.4); 
+    hEff_E[0]->SetLineColor(kBlue); hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.4); 
     hEff_E[1]->SetLineColor(kRed);   
     hEff_E[2]->SetLineColor(kGreen+2); 
 
-    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[0]->Draw("HIST");            
-    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[1]->Draw("HIST SAME");       
-    hEff_E[0]->SetTitleSize(letterSize, "XYZ"); hEff_E[2]->Draw("HIST SAME");       
+    hEff_E[0]->Draw("HIST");            
+    hEff_E[1]->Draw("HIST SAME");       
+    hEff_E[2]->Draw("HIST SAME");       
     { auto leg_E = new TLegend(0.60,0.70,0.88,0.88);
         for(int ie=0; ie<3; ++ie)
-        {leg_E->AddEntry(hEff_E[ie],Form("E < %.1f MIP", E_CUTS_GEV[ie]),"l");}  
+        {leg_E->AddEntry(hEff_E[ie],Form("E < %.1f MIP", E_CUTS[ie]),"l");}  
         leg_E->Draw(); 
     }
     
-    canvas3->cd(4); setPadMargins(); gPad->SetGrid();
+    c_matchingEff->cd(4); gPad->SetGrid();
     TH1D* hEff_Layer[3]; 
     for (int il=0; il<3; ++il) { 
         hEff_Layer[il] = (TH1D*)hP_pass_LayerCut[il]->Clone( 
@@ -823,46 +849,47 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     hEff_Layer[1]->SetLineColor(kRed);   
     hEff_Layer[2]->SetLineColor(kGreen+2); 
 
-    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[0]->Draw("HIST");            
-    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[1]->Draw("HIST SAME");       
-    hEff_Layer[0]->SetTitleSize(letterSize, "XYZ"); hEff_Layer[2]->Draw("HIST SAME");       
+    hEff_Layer[0]->Draw("HIST");            
+    hEff_Layer[1]->Draw("HIST SAME");       
+    hEff_Layer[2]->Draw("HIST SAME");       
     { auto leg_Layer = new TLegend(0.60,0.70,0.88,0.88);
         for(int il=0; il<3; ++il)
         {leg_Layer->AddEntry(hEff_Layer[il],Form("L > %d Layers", LAYER_CUTS[il]),"l");}  
         leg_Layer->Draw(); 
     }  
-    canvas3->SaveAs(addPrefixAfterSlash(outname_png, "extra3_").c_str());              
-    canvas3->SaveAs(addPrefixAfterSlash(outname_pdf, "extra3_").c_str()); 
+    c_matchingEff->SaveAs(addPrefixAfterSlash(outname_png, "matching_efficiency_").c_str());              
+    c_matchingEff->SaveAs(addPrefixAfterSlash(outname_pdf, "matching_efficiency_").c_str()); 
     
-    TCanvas* canvas4 = new TCanvas("canvas4", "Muon analysis extra 4", 1800, 1200);
-    canvas4->Divide(2,2); 
+    TCanvas* c_hEnergy = new TCanvas("c_hEnergy", "Muon hit energy analysis", 1600, 1000);
+    c_hEnergy->Divide(2,2); 
 
-    canvas4->cd(1); setPadMargins(); gPad->SetGrid(); gPad->SetLogy(); hE_z->GetYaxis()->SetMoreLogLabels(); hE_z->GetYaxis()->SetTitle("E [GeV] (log)"); 
-                    hE_z->SetTitleSize(letterSize, "XYZ"); hE_z->Draw("COLZ");
+    c_hEnergy->cd(1); gPad->SetGrid(); gPad->SetLogy(); hE_z->GetYaxis()->SetMoreLogLabels(); hE_z->Draw("COLZ");
     TProfile* pE_z = hE_z->ProfileX("pE_z"); pE_z->SetLineWidth(3); pE_z->SetLineColor(kRed); pE_z->SetMarkerColor(kRed);
                     pE_z->SetDirectory(nullptr); pE_z->Draw("SAME");
-    // const double Ecut_GeV = MIP_ENERGY_GEV * t_cm * 100;
-    // TLine* cut = new TLine(hE_z->GetXaxis()->GetXmin(), Ecut_GeV, hE_z->GetXaxis()->GetXmax(), Ecut_GeV);
-    // cut->SetLineColor(kRed+1); cut->SetLineStyle(2); cut->SetLineWidth(3);
-    // cut->Draw("SAME");                              
-    //SetRangeUser
-    canvas4->cd(2); setPadMargins(); gPad->SetGrid(); gPad->SetLogy(); hEsum_z->GetYaxis()->SetMoreLogLabels(); hEsum_z->GetYaxis()->SetTitle("E_{sum} [GeV] (log)"); 
-                    hEsum_z->SetTitleSize(letterSize, "XYZ"); hEsum_z->Draw("COLZ");
+
+    const double Ecut_GeV = MIP_ENERGY_GEV * t_cm * 100;
+    TLine* cut = new TLine(hE_z->GetXaxis()->GetXmin(), Ecut_GeV, hE_z->GetXaxis()->GetXmax(), Ecut_GeV);
+                cut->SetLineColor(kRed+1); cut->SetLineStyle(2); cut->SetLineWidth(2);
+                cut->Draw("SAME"); 
+    auto* leg = new TLegend(0.58, 0.75, 0.84, 0.88); leg->SetTextSize(0.04);leg->AddEntry(cut, Form("E_{cut} = %.3f GeV", Ecut_GeV), "l"); 
+                leg->Draw();    
+
+    c_hEnergy->cd(2); gPad->SetGrid(); gPad->SetLogy(); hEsum_z->GetYaxis()->SetMoreLogLabels(); hEsum_z->Draw("COLZ");
     TProfile* pEsum_z = hEsum_z->ProfileX("pEsum_z"); pEsum_z->SetLineWidth(3); pEsum_z->SetLineColor(kRed); pEsum_z->SetMarkerColor(kRed);
                     pEsum_z->SetDirectory(nullptr); pEsum_z->Draw("SAME"); 
-    canvas4->cd(3); setPadMargins(); gPad->SetGrid(); hE->Draw();
-    canvas4->cd(4); setPadMargins(); gPad->SetGrid(); hEsum->Draw();
+    c_hEnergy->cd(3); gPad->SetGrid(); hE->Draw();
+    c_hEnergy->cd(4); gPad->SetGrid(); hEsum->Draw();
     
-    canvas4->Update();
-    canvas4->SaveAs(addPrefixAfterSlash(outname_png, "extra4_").c_str());              
-    canvas4->SaveAs(addPrefixAfterSlash(outname_pdf, "extra4_").c_str()); 
+    c_hEnergy->SaveAs(addPrefixAfterSlash(outname_png, "hit_energy_").c_str());              
+    c_hEnergy->SaveAs(addPrefixAfterSlash(outname_pdf, "hit_energy_").c_str()); 
 
-    delete canvas_sim;
-    delete canvas_rec;
-    delete canvas1;
-    delete canvas2;
-    delete canvas3;
-    delete canvas4;
+    delete c;
+    delete c_sim;
+    delete c_rec;
+    delete c_hitTrack;
+    delete c_hitTrackDistance;
+    delete c_matchingEff;
+    delete c_hEnergy;
 
     return 0;
 }

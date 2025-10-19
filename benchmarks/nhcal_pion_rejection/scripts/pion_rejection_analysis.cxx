@@ -433,9 +433,9 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     gStyle->SetPadTopMargin(0.10);
     gROOT->ForceStyle();
 
-    TH2D* hEtaPt = new TH2D("hEtaPt", "Muon #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
+    TH2D* hEtaPt = new TH2D("hEtaPt", "Pion #eta vs p_{T};#eta;p_{T} [GeV]", 100, -6., 6., 100, 0., 7.);
 
-    TH1D* hZ_proj = new TH1D("hZ_proj", "Muon track projections in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
+    TH1D* hZ_proj = new TH1D("hZ_proj", "Pion track projections in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
 
     TH1D* hZ_hits = new TH1D("hZ_hits", "Reconstructed hit z in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
     
@@ -460,7 +460,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
 
     TH1D* hEsum = new TH1D("hEsum", "Layer energy sum (reconstructed); E_{sum} [GeV]; N", 10000, 0.0, 1.0);
 
-    TH1D* hP_all_pion = new TH1D("hP_all_pion", "MC muon momentum (muons in nHCal acceptance); p_{MC} [GeV]; N", P_NBINS, P_MIN_GEV, P_MAX_GEV);
+    TH1D* hP_all_pion = new TH1D("hP_all_pion", "MC pion momentum (pions in nHCal acceptance); p_{MC} [GeV]; N", P_NBINS, P_MIN_GEV, P_MAX_GEV);
 
     TH1D* hP_pass_dr[3] = {
         new TH1D(Form("hP_pass_dr%.1fcm",DR_CUTS_CM[0]),  Form("Accepted (dr<%.1fcm);  p_{MC} [GeV]; N",DR_CUTS_CM[0]), P_NBINS, P_MIN_GEV, P_MAX_GEV),

@@ -56,6 +56,7 @@ def find_epic_libraries():
 # include: "benchmarks/nhcal_basic_distribution/Snakefile"
 include: "benchmarks/nhcal_sampling_fraction/Snakefile"
 include: "benchmarks/nhcal_dimuon_fotoproduction/Snakefile"
+include: "benchmarks/nhcal_pion_rejection/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"

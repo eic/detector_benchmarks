@@ -14,7 +14,7 @@ rule nhcal_basic_distribution_simulate:
     cache: True
     shell:
         """
-exec ddsim \
+exec npsim \
     --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
     --numberOfEvents {params.N_EVENTS} \
     --random.seed {params.SEED} \

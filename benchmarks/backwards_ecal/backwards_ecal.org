@@ -185,12 +185,15 @@ for ix, energy in enumerate(energies):
     import scipy.stats
     def f(x, n, beta, m, loc, scale):
         return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
-    p0 = (np.sum(hist.values()[10:]), 2., 3., 0.95, 0.05)
+    n0 = np.sum(hist.values()[10:])
+    loc0 = hist.axes[0].centers[5:][np.argmax(hist.values()[5:])]
+    p0 = (n0, 2., 3., loc0, 0.05)
 
     try:
         import scipy.optimize
         par, pcov = scipy.optimize.curve_fit(f, hist.axes[0].centers[5:], hist.values()[5:], p0=p0, maxfev=10000)
     except RuntimeError:
+        print("Initial parameters:", p0)
         print(hist)
         raise
     plt.plot(hist.axes[0].centers, f(hist.axes[0].centers, *par), label=rf"Crystal Ball fit", color="tab:green", lw=0.8)

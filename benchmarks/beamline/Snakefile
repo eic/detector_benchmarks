@@ -120,4 +120,4 @@ rule beamline:
 ##########################################################################################
 rule beamline_local:
     input:
-        "results/beamline/local/"
+        "results/beamline/steering_local/"

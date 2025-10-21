@@ -20,6 +20,8 @@ retrain:lowq2_reconstruction:
   needs:
     - "bench:lowq2_reconstruction"
   script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
   when: on_failure
 

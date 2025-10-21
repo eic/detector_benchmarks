@@ -1,0 +1,5 @@
+numpy
+torch
+uproot
+argparse
+pyHepMC3

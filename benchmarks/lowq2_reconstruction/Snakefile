@@ -53,7 +53,7 @@ rule lowq2_reconstruction_particles_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -jana:nevents=500000 \
+        -Pjana:nevents=500000 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
@@ -75,7 +75,7 @@ rule lowq2_reconstruction_tensors_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -jana:nevents=500000 -jana:nskip=500000 \
+        -Pjana:nevents=500000 -Pjana:nskip=500000 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 

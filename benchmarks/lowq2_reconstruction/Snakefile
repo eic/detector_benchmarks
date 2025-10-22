@@ -33,7 +33,7 @@ rule lowq2_training_sim:
             --runType run \
             --random.seed 1 \
             --inputFiles {input.events} \
-            --numberOfEvents 1000000 \
+            --numberOfEvents 10000 \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
             --outputFile {output} \
@@ -53,7 +53,7 @@ rule lowq2_reconstruction_particles_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=500000 \
+        -Pjana:nevents=5000 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
@@ -75,7 +75,7 @@ rule lowq2_reconstruction_tensors_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=500000 -Pjana:nskip=500000 \
+        -Pjana:nevents=5000 -Pjana:nskip=5000 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
@@ -102,7 +102,7 @@ rule lowq2_steering_reconstruction_training:
         onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
     shell:
         """
-        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
+        python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 10
         """
 
 # Run eicrecon with the newly trained neural network
@@ -118,7 +118,7 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
         eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     shell:
         """
-        eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=500000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
+        eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=5000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
         -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 

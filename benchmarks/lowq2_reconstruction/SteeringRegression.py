@@ -57,7 +57,7 @@ model.to(device)  # Ensure the model is on the correct device
 
 torch.onnx.export(model, dummy_input, args.outModelFile, 
                   input_names=['input'], output_names=['output'],
-                  dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+                  dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}},
                   opset_version=11)
 
 print(f"Model has been saved to {args.outModelFile}")

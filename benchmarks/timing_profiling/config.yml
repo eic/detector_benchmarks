@@ -1,0 +1,29 @@
+sim:timing_profiling:
+  extends: .det_benchmark
+  stage: simulate
+  script:
+    - bash benchmarks/timing_profiling/run_profile.sh
+  variables:
+    JUGGLER_N_EVENTS: 100
+    DETECTOR_CONFIG: "epic_craterlake"
+
+bench:timing_profiling:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:timing_profiling"]
+  script:
+    - mkdir -p results/timing_profiling
+    - HISTOS_FILE=$(ls sim_output/timing_profile_*.histos.root 2>/dev/null | tail -1)
+    - python3 benchmarks/timing_profiling/analysis/plot_timing_profile.py ${HISTOS_FILE} results/timing_profiling/timing_profile ${JUGGLER_N_EVENTS}
+  artifacts:
+    paths:
+      - results/timing_profiling/
+
+collect_results:timing_profiling:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["bench:timing_profiling"]
+  script:
+    - ls -lrht results/timing_profiling/

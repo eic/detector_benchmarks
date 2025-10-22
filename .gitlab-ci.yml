@@ -121,7 +121,7 @@ common:setup:
     when:
       - runner_system_failure
 
-include: 
+include:
   - local: 'benchmarks/backgrounds/config.yml'
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/beamline/config.yml'
@@ -152,6 +152,7 @@ include:
   - local: 'benchmarks/femc_pi0/config.yml'
   - local: 'benchmarks/nhcal_acceptance/config.yml'
   - local: 'benchmarks/nhcal_basic_distribution/config.yml'
+  - local: 'benchmarks/timing_profiling/config.yml'
   
 deploy_results:
   allow_failure: true
@@ -186,6 +187,7 @@ deploy_results:
     - "collect_results:femc_pi0"
     - "collect_results:nhcal_acceptance"
     - "collect_results:nhcal_basic_distribution"
+    - "collect_results:timing_profiling"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt

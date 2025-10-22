@@ -1,6 +1,6 @@
-numpy>=1.21.0
-torch==1.12.1  
-uproot>=4.0.0
-pyHepMC3
-onnx==1.12.0
-onnxruntime==1.12.1
+numpy==2.3.1
+torch==2.5.1
+uproot==5.6.3
+pyHepMC3==3.3.0
+onnx==1.17.0
+onnxruntime==1.20.2

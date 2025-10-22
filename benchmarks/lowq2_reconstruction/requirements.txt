@@ -1,7 +1,6 @@
-numpy
-torch
-uproot
+numpy>=1.21.0
+torch==1.12.1  
+uproot>=4.0.0
 pyHepMC3
-onnx
-onnxscript
-onnxruntime
+onnx==1.12.0
+onnxruntime==1.12.1

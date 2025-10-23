@@ -79,7 +79,7 @@ upload_onnx:lowq2_reconstruction:
     - if [ -f $LOWQ2_ONNX_FILE ]; then
         echo "File $LOWQ2_ONNX_FILE exists, calculating hash";
         ONNX_HASH=$(sha256sum $LOWQ2_ONNX_FILE | cut -d' ' -f1);
-        echo "ONNX file hash: $ONNX_HASH";
+        echo "ONNX file hash = $ONNX_HASH";
       else
         echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
         exit 1;

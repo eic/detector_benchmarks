@@ -13,9 +13,6 @@ bench:lowq2_reconstruction:
     - ["sim:lowq2_reconstruction","bench:beamline"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
-  artifacts:
-    paths:
-      - results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json
 
 check:lowq2_reconstruction:
   needs: ["bench:lowq2_reconstruction"]

@@ -126,17 +126,17 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
 # Test and check resolutions
 ##########################################################################################
 
-# Produce hitsograms of th resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
+# Produce histograms of the resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
 rule lowq2_reconstruction_particles_test:
     input:
         script=workflow.source_path("reconstructionAnalysis.C"),
         data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     output:
         rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
-        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+        momentumCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_resolution_graphs_{CAMPAIGN}.png",
     shell:
         """
         root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
@@ -167,10 +167,10 @@ def get_onnx_input(wildcards):
 rule lowq2_reconstruction:
     input: 
         rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
-        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+        momentumCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_momentum_resolution_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_relation_resolution_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"Low-Q2_{STAGE}_resolution_graphs_{CAMPAIGN}.png",
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json",
         onnxfile=get_onnx_input,
     output:

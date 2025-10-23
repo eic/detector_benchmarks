@@ -45,10 +45,20 @@ collect_results:lowq2_reconstruction:
   extends: .det_benchmark
   stage: collect
   needs:
-    - "bench:lowq2_reconstruction"
     - "bench:lowq2_reconstruction_retrained"
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_local
+    - mv results{_save,}/
+
+collect_results:lowq2_reconstruction_retrained:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:lowq2_reconstruction_retrained"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_retrained
     - mv results{_save,}/

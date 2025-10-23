@@ -316,6 +316,8 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
             std::cout << "Warning: Only " << h->GetEntries()/nEntries << " of particles contributing to histogram " <<  name
                       << " , which is below the accepted threshold of " << acceptableEntries/nEntries << std::endl;
             pass = 1;
+        } else{
+            std::cout << "Histogram " << name << " has " << h->GetEntries() << " entries." << std::endl;
         }
 
         // Get the pipe radius for this histogram

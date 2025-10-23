@@ -1,31 +1,17 @@
 SIMOUTDIR="sim_output/beamline/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
 
+##########################################################################################
+### Rules for checking the steering of the electron beam through the magnets
+##########################################################################################
+
 rule beamline_steering_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
         macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
-    shell:
-        """
-            exec npsim \
-            --runType run \
-            --random.seed 1 \
-            --enableG4GPS \
-            --macroFile {input.macro} \
-            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
-            --printLevel WARNING \
-            --outputFile {output} \
-            --physics.rangecut 100*m
-        """
-
-rule beamline_acceptance_sim:
-    input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        macro=workflow.source_path("acceptanceGPS.mac"),
-    output:
-        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    cache: True
     shell:
         """
             exec npsim \
@@ -63,6 +49,29 @@ rule beamline_steering_analysis:
             "{output.pipe_parameter_canvas}")'
         """
 
+##########################################################################################
+### Rules for checking the acceptance of electrons at each stage of the beamline
+##########################################################################################
+
+rule beamline_acceptance_sim:
+    input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        macro=workflow.source_path("acceptanceGPS.mac"),
+    output:
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    cache: True
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --random.seed 1 \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --outputFile {output} \
+            --physics.rangecut 100*m
+        """
+
 rule beamline_acceptance_analysis:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
@@ -83,6 +92,9 @@ rule beamline_acceptance_analysis:
             "{output.entries_canvas}")'
         """
 
+##########################################################################################
+# Combine results
+##########################################################################################
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
@@ -96,15 +108,18 @@ rule beamline:
         ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
-        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png", 
+        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png"
     output:
-        directory("results/beamline/{CAMPAIGN}/")
+        directory("results/beamline/steering_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}        
-            cp {input} {output}
+            cp -r {input} {output}
         """
 
+##########################################################################################
+# Defualt running
+##########################################################################################
 rule beamline_local:
     input:
-        "results/beamline/local/"
+        "results/beamline/steering_local/"

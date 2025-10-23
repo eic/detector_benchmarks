@@ -98,6 +98,6 @@ int checkResolutions(const TString inputFile="/home/simong/EIC/detector_benchmar
     jsonFile << "}\n";
     jsonFile.close();
 
-    return fail;
+    return 0;
 
 }

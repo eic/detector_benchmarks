@@ -13,17 +13,35 @@ bench:lowq2_reconstruction:
     - ["sim:lowq2_reconstruction","bench:beamline"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
+  artefacts:
+    paths:
+      - results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json
+
+check:lowq2_reconstruction:
+  needs: ["bench:lowq2_reconstruction"]
+  stage: benchmarks
+  script:
+    - if grep '"fail": 1' results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json; then exit 1; fi
 
 retrain:lowq2_reconstruction:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "bench:lowq2_reconstruction"
+    - "check:lowq2_reconstruction"
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
   when: on_failure
+  artefacts:
+    paths:
+      - results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json
+
+check:lowq2_reconstruction2:
+  needs: ["retrain:lowq2_reconstruction"]
+  stage: benchmarks
+  script:
+    - if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then exit 1; fi
 
 collect_results:lowq2_reconstruction:
   extends: .det_benchmark

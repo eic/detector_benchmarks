@@ -22,7 +22,7 @@ check:lowq2_reconstruction:
       exit 1
     fi
 
-retrain:lowq2_reconstruction:
+bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
@@ -33,8 +33,8 @@ retrain:lowq2_reconstruction:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
   when: on_failure
 
-check:lowq2_reconstruction2:
-  needs: ["retrain:lowq2_reconstruction"]
+check:lowq2_reconstruction_retrained:
+  needs: ["bench:lowq2_reconstruction_retrained"]
   stage: benchmarks
   script: |
     if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
@@ -46,7 +46,7 @@ collect_results:lowq2_reconstruction:
   stage: collect
   needs:
     - "bench:lowq2_reconstruction"
-    - "retrain:lowq2_reconstruction"
+    - "bench:lowq2_reconstruction_retrained"
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

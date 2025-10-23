@@ -20,8 +20,10 @@ bench:lowq2_reconstruction:
 check:lowq2_reconstruction:
   needs: ["bench:lowq2_reconstruction"]
   stage: benchmarks
-  script:
-    - if grep '"fail": 1' results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json; then exit 1; fi
+  script: |
+    if grep '"fail": 1' results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json; then
+      exit 1
+    fi
 
 retrain:lowq2_reconstruction:
   extends: .det_benchmark
@@ -40,8 +42,10 @@ retrain:lowq2_reconstruction:
 check:lowq2_reconstruction2:
   needs: ["retrain:lowq2_reconstruction"]
   stage: benchmarks
-  script:
-    - if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then exit 1; fi
+  script: |
+    if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
+      exit 1
+    fi
 
 collect_results:lowq2_reconstruction:
   extends: .det_benchmark

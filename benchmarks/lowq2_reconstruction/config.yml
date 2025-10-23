@@ -45,7 +45,7 @@ collect_results:lowq2_reconstruction:
   extends: .det_benchmark
   stage: collect
   needs:
-    - "bench:lowq2_reconstruction_retrained"
+    - "bench:lowq2_reconstruction"
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

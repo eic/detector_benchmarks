@@ -59,7 +59,7 @@ int checkResolutions(const TString inputFile="/home/simong/EIC/detector_benchmar
     // Resolution limits
     double E_res_limit = 0.05; // 5% resolution
     double theta_res_limit = 0.001; // 1 mrad resolution
-    double phi_res_limit = 0; // 30 degrees resolution
+    double phi_res_limit = 30; // 30 degrees resolution
 
     // Fail if standard deviation is more than the limit
     if(std::abs(stddev_E_res) > E_res_limit) {

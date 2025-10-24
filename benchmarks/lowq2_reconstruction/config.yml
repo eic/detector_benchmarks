@@ -39,6 +39,10 @@ bench:lowq2_reconstruction_retrained:
 check:lowq2_reconstruction_retrained:
   needs: ["bench:lowq2_reconstruction_retrained"]
   stage: benchmarks
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_success
+    - when: never  
   script: |
     if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
       exit 1
@@ -60,6 +64,10 @@ collect_results:lowq2_reconstruction_retrained:
   stage: collect
   needs:
     - "bench:lowq2_reconstruction_retrained"
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_success
+    - when: never
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
@@ -72,7 +80,7 @@ upload_onnx:lowq2_reconstruction:
   needs:
     - "check:lowq2_reconstruction_retrained"
   rules:
-    - if: $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"
+    - if: '$BENCHMARKS_TAG =~ /nightly/ && $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
       when: on_success
     - if: '$GITHUB_REPOSITORY != "eic/epic"'
       when: never

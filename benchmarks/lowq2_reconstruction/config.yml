@@ -26,7 +26,7 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "check:lowq2_reconstruction"
+    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/lowq2_reconstruction/requirements.txt

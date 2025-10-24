@@ -92,7 +92,7 @@ upload_onnx:lowq2_reconstruction:
     - tar zxf pelican_Linux_x86_64.tar.gz 
     - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_URL
     - echo "Updating PR with lowq2 reconstruction results"
-    - python updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
+    - python benchmarks/lowq2_reconstruction/updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
         --githubToken $GITHUB_REPO_POST_COMMENT --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
         --xml compact/calibrations.xml --repository $GITHUB_REPOSITORY
     - echo "Updating GitHub status for lowq2 reconstruction"

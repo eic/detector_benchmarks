@@ -78,7 +78,7 @@ upload_onnx:lowq2_reconstruction:
   extends: .det_benchmark
   stage: deploy
   needs:
-    - "check:lowq2_reconstruction_retrained"
+    - "bench:lowq2_reconstruction_retrained"
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_success

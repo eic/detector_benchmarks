@@ -10,7 +10,7 @@ bench:lowq2_reconstruction:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["sim:lowq2_reconstruction","bench:beamline"]
+    - ["sim:lowq2_reconstruction"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
 
@@ -78,12 +78,11 @@ upload_onnx:lowq2_reconstruction:
   extends: .det_benchmark
   stage: deploy
   needs:
-    - "check:lowq2_reconstruction_retrained"
+    - "bench:lowq2_reconstruction_retrained"
   rules:
-    - if: '$BENCHMARKS_TAG =~ /nightly/ && $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_success
-    - if: '$GITHUB_REPOSITORY != "eic/epic"'
-      when: never
+    - when: never
   script:
     - echo "Deploying lowq2_onnx file to xrootd server"
     - LOWQ2_ONNX_FILE=results/lowq2_reconstruction/retrained_local/Low-Q2_Steering_Reconstruction_Test_local.onnx
@@ -96,15 +95,9 @@ upload_onnx:lowq2_reconstruction:
         exit 1;
       fi
     - ONNX_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
-    - echo "Deploying to xrootd server using pelican"
-    - echo "ONNX file will be available at $ONNX_URL"
-    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz 
-    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz') 
-    - tar zxf pelican_Linux_x86_64.tar.gz 
-    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_URL
     - echo "Updating PR with lowq2 reconstruction results"
-    - python benchmarks/lowq2_reconstruction/updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
+    - python benchmarks/lowq2_reconstruction/makePRSuggestion.py --pr 213 --newURL "$ONNX_URL" \
         --githubToken $GITHUB_REPO_POST_COMMENT --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
-        --xml compact/calibrations.xml --repository $GITHUB_REPOSITORY
+        --xml benchmarks/lowq2_reconstruction/calibrations.xml --repository eic/detector_benchmarks
     - echo "Updating GitHub status for lowq2 reconstruction"
 

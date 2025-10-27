@@ -107,3 +107,14 @@ upload_onnx:lowq2_reconstruction:
       --repository eic/detector_benchmarks
     - echo "Updating GitHub status for lowq2 reconstruction"
 
+download_onnx:lowq2_reconstruction:
+  extends: .det_benchmark
+  stage: deploy
+  needs:
+    - "upload_onnx:lowq2_reconstruction"
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_success
+    - when: never
+  script:
+    - xrdcp $ONNX_URL calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx

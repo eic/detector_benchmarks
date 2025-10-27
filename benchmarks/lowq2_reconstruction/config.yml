@@ -94,18 +94,21 @@ upload_onnx:lowq2_reconstruction:
         echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
         exit 1;
       fi
-    - ONNX_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - XROOTD_ENDPOINT="root://dtn-eic.jlab.org/"
+    - XROOTD_CALIB_PREFIX="/volatile/eic/EPIC/xrdtest/CALIB/"
+    - ONNX_UPLOAD_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - ONNX_DOWNLOAD_URL="$XROOTD_ENDPOINT$XROOTD_CALIB_PREFIX"/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - printenv
-    - echo "Updating PR with lowq2 reconstruction results" 
-    - echo "ONNX file will be available at $ONNX_URL"
-    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz 
-    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz') 
-    - tar zxf pelican_Linux_x86_64.tar.gz 
-    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_URL
+    - echo "Updating PR with lowq2 reconstruction results"
+    - echo "ONNX file will be available at $ONNX_UPLOAD_URL"
+    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz
+    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz')
+    - tar zxf pelican_Linux_x86_64.tar.gz
+    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_UPLOAD_URL
     - |
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
       --pr 213 \
-      --newURL $ONNX_URL \
+      --newURL $ONNX_DOWNLOAD_URL \
       --githubToken $GITHUB_REPO_POST_COMMENT_BENCHMARKS \
       --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
       --xml benchmarks/lowq2_reconstruction/calibrations.xml \

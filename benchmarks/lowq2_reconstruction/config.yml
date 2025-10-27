@@ -95,6 +95,7 @@ upload_onnx:lowq2_reconstruction:
         exit 1;
       fi
     - ONNX_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - printenv
     - echo "Updating PR with lowq2 reconstruction results"
     - python benchmarks/lowq2_reconstruction/makePRSuggestion.py --pr 213 --newURL "$ONNX_URL" \
         --githubToken $GITHUB_REPO_POST_COMMENT_BENCHMARKS --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \

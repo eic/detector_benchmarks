@@ -97,7 +97,7 @@ upload_onnx:lowq2_reconstruction:
     - XROOTD_ENDPOINT="root://dtn-eic.jlab.org/"
     - XROOTD_CALIB_PREFIX="/volatile/eic/EPIC/xrdtest/CALIB/"
     - ONNX_UPLOAD_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
-    - ONNX_DOWNLOAD_URL="$XROOTD_ENDPOINT$XROOTD_CALIB_PREFIX"/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - ONNX_DOWNLOAD_URL="$XROOTD_ENDPOINT$XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - printenv
     - echo "Updating PR with lowq2 reconstruction results"
     - echo "ONNX file will be available at $ONNX_UPLOAD_URL"

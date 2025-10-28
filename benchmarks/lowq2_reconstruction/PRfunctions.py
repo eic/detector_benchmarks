@@ -254,7 +254,7 @@ def find_existing_bot_comment(repo_owner, repo_name, pr_number, bot_comment_base
     response = requests.get(comments_url, headers=headers)
     
     if response.status_code != 200:
-        print(f"❌ Failed to get PR comments: {response.status_code}")
+        print(f"❌ Failed to get PR comment: {response.status_code}")
         return None
     
     comments = response.json()

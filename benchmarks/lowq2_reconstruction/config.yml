@@ -108,7 +108,7 @@ upload_onnx:lowq2_reconstruction:
     - xrdfs $XROOTD_ENDPOINT stat $XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx
     - |
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
-      --pr 213 \
+      --pr 215 \
       --newURL $ONNX_DOWNLOAD_URL \
       --githubToken $GITHUB_REPO_POST_COMMENT_BENCHMARKS \
       --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \

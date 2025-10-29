@@ -172,8 +172,8 @@ def find_line_number_of_change(original_content, old_value):
 # =============================================================================
 
 def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token):
-    """Create a PR review with code suggestion or update existing one"""
-    print(f"Creating/updating PR review with suggestion for #{pr_number}...")
+    """Create a PR comment with proposed changes"""
+    print(f"Creating PR comment with calibration update for #{pr_number}...")
     
     headers = {
         'Accept': 'application/vnd.github+json',
@@ -182,27 +182,42 @@ def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml
 
     bot_comment_base = f"🤖 **Automated Calibration `{calibration_file}` Update**"
 
-    # Check for existing review comments from bot
-    existing_comment_id = find_existing_bot_comment(repo_owner, repo_name, pr_number, bot_comment_base, xml_file, line_number, github_token)
+    # Check for existing comments from bot
+    existing_comment_id = find_existing_bot_comment_general(repo_owner, repo_name, pr_number, bot_comment_base, github_token)
     
     # Generate timestamp for the comment
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    suggestion_body = f"""{bot_comment_base}{' (Updated)' if existing_comment_id else ''}
+    # Get current line content for context
+    content = get_file_content(repo_owner, repo_name, xml_file, head_sha, github_token)
+    lines = content.split('\n') if content else []
+    current_line = lines[line_number - 1].strip() if line_number <= len(lines) else "Line not found"
+
+    comment_body = f"""{bot_comment_base}{' (Updated)' if existing_comment_id else ''}
 
 A new calibration has been generated and is ready for use.
 
+**File:** `{xml_file}`
+**Line:** {line_number}
 **Last updated:** {timestamp}
 
-```suggestion
-{suggested_line}
-```"""
+**Current line:**
+```xml
+{current_line}
+```
+
+**Proposed change:**
+```xml
+{suggested_line.strip()}
+```
+
+Please update the calibration URL in `{xml_file}` at line {line_number}."""
     
     if existing_comment_id:
         # Update existing comment
         print(f"Updating existing comment {existing_comment_id}...")
-        update_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls/comments/{existing_comment_id}"
-        update_data = {'body': suggestion_body}
+        update_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}"
+        update_data = {'body': comment_body}
         response = requests.patch(update_url, headers=headers, json=update_data)
         
         if response.status_code == 200:
@@ -213,30 +228,19 @@ A new calibration has been generated and is ready for use.
             print(f"   Response: {response.text}")
             return None
     else:
-        # Create new review comment
-        print("Creating new review comment...")
-        review_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls/{pr_number}/reviews"
+        # Create new regular PR comment
+        print("Creating new PR comment...")
+        comment_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/comments"
         
-        review_data = {
-            'body': f'🤖 Automated review with updated calibration URLs `{calibration_file}` for PR #{pr_number}',
-            'event': 'COMMENT',
-            'commit_id': head_sha,
-            'comments': [
-                {
-                    'path': xml_file,
-                    'line': line_number,
-                    'body': suggestion_body
-                }
-            ]
-        }
+        comment_data = {'body': comment_body}
         
-        response = requests.post(review_url, headers=headers, json=review_data)
+        response = requests.post(comment_url, headers=headers, json=comment_data)
         
-        if response.status_code == 200:
-            print("✅ New PR review with suggestion created successfully")
+        if response.status_code == 201:
+            print("✅ New PR comment created successfully")
             return response.json()
         else:
-            print(f"❌ Failed to create PR review: {response.status_code}")
+            print(f"❌ Failed to create PR comment: {response.status_code}")
             print(f"   Response: {response.text}")
             return None
 
@@ -266,6 +270,35 @@ def find_existing_bot_comment(repo_owner, repo_name, pr_number, bot_comment_base
         if (comment.get('path') == xml_file and 
             comment.get('line') == line_number and
             bot_comment_base in comment.get('body', '')):
+            print(f"✅ Found existing bot comment: {comment['id']}")
+            return comment['id']
+    
+    print("No existing bot comment found")
+    return None
+
+def find_existing_bot_comment_general(repo_owner, repo_name, pr_number, bot_comment_base, github_token):
+    """Find existing bot comment (general PR comment, not line-specific)"""
+    print(f"Checking for existing bot comments in PR #{pr_number}...")
+    
+    headers = {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': f'token {github_token}'
+    }
+        
+    # Get all general comments for the PR
+    comments_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/comments"
+    response = requests.get(comments_url, headers=headers)
+    
+    if response.status_code != 200:
+        print(f"❌ Failed to get PR comments: {response.status_code}")
+        return None
+    
+    comments = response.json()
+    
+    # Look for existing bot comment
+    for comment in comments:
+        # Check if it's from the bot (contains the bot identifier)
+        if bot_comment_base in comment.get('body', ''):
             print(f"✅ Found existing bot comment: {comment['id']}")
             return comment['id']
     

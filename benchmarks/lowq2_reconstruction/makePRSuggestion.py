@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Script to create GitHub PR suggestions for ONNX model updates
+Script to create GitHub PR comments for ONNX model updates
 """
 import argparse
 import sys
 from PRfunctions import *
 
 # Parse arguments
-parser = argparse.ArgumentParser(description='Update the calibration link for a PR')
+parser = argparse.ArgumentParser(description='Create a PR comment with calibration update suggestions')
 parser.add_argument('--pr', type=str, required=True, help='Pull request number')
 parser.add_argument('--newURL', type=str, required=True, help='URL of the new updated calibration')
 parser.add_argument('--githubToken', type=str, required=True, help='GitHub token for authentication')
@@ -60,13 +60,13 @@ if line_number is not None and suggested_line is not None:
     print(f"✅ Found URL to update in {xml_file} at line {line_number}")
     print(f"   Suggested change: {suggested_line.strip()}")
     
-    # Create the PR review with suggestion
+    # Create the PR comment with proposed changes
     response = create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, pr_info['head']['sha'], github_token)
     
     if response:
-        print("🎉 PR suggestion completed successfully!")
+        print("🎉 PR comment created successfully!")
     else:
-        print("❌ Failed to create PR suggestion")
+        print("❌ Failed to create PR comment")
         sys.exit(1)
 else:
     print(f"❌ Failed to find URL to update in {xml_file}")

@@ -5,8 +5,6 @@ Script to create GitHub PR suggestions for ONNX model updates
 import requests
 import base64
 import xml.etree.ElementTree as ET
-import os
-import mimetypes
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -173,72 +171,20 @@ def find_line_number_of_change(original_content, old_value):
 # GitHub PR Comment Functions
 # =============================================================================
 
-def upload_image_to_github(repo_owner, repo_name, image_path, github_token):
-    """
-    Process an image file for use in GitHub comments.
-    
-    Since GitHub doesn't provide a direct API for uploading images to comments,
-    we embed them as base64-encoded data URIs directly in the markdown.
-    This works well for reasonably-sized images (< 500KB).
-    
-    For larger images, they should be uploaded to a separate hosting service
-    or committed to the repository and referenced via raw GitHub URLs.
-    """
-    if not os.path.exists(image_path):
-        print(f"❌ Image file not found: {image_path}")
-        return None
-    
-    print(f"Processing image: {image_path}...")
-    
-    # Read the image file
-    try:
-        with open(image_path, 'rb') as f:
-            image_data = f.read()
-    except Exception as e:
-        print(f"❌ Failed to read image file: {e}")
-        return None
-    
-    # Detect MIME type
-    mime_type, _ = mimetypes.guess_type(image_path)
-    if not mime_type or not mime_type.startswith('image/'):
-        mime_type = 'application/octet-stream'
-    
-    # Use data URI to embed the image directly in markdown
-    return create_data_uri(image_path, image_data, mime_type)
-
-def create_data_uri(image_path, image_data, mime_type):
-    """Create a data URI for embedding images directly in markdown"""
-    # Check file size (GitHub has limits on comment size)
-    size_kb = len(image_data) / 1024
-    if size_kb > 500:  # Limit to 500KB for data URIs
-        print(f"⚠️ Image too large for data URI ({size_kb:.1f}KB): {image_path}")
-        return None
-    
-    encoded = base64.b64encode(image_data).decode('utf-8')
-    data_uri = f"data:{mime_type};base64,{encoded}"
-    print(f"✅ Created data URI for {image_path} ({size_kb:.1f}KB)")
-    return data_uri
-
-def process_image_list(image_list, repo_owner, repo_name, github_token):
-    """Process a list of images (URLs or local files) and return valid URLs"""
+def process_image_list(image_list):
+    """Process a list of images - should be URLs from gh CLI upload"""
     if not image_list:
         return []
     
     processed_images = []
     for img in image_list:
-        # If it's already a URL, use it as-is
+        # Accept URLs as-is (these should be GitHub user-attachments URLs from gh CLI)
         if img.startswith(('http://', 'https://')):
             processed_images.append(img)
-        # If it's a data URI, use it as-is
-        elif img.startswith('data:'):
-            processed_images.append(img)
-        # Otherwise, try to upload it
         else:
-            uploaded_url = upload_image_to_github(repo_owner, repo_name, img, github_token)
-            if uploaded_url:
-                processed_images.append(uploaded_url)
-            else:
-                print(f"⚠️ Skipping image that couldn't be uploaded: {img}")
+            # For local paths, warn the user
+            print(f"⚠️ Local file path provided: {img}")
+            print(f"   Images must be uploaded via gh CLI first to get GitHub CDN URLs")
     
     return processed_images
 
@@ -264,12 +210,12 @@ def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml
     lines = content.split('\n') if content else []
     current_line = lines[line_number - 1].strip() if line_number <= len(lines) else "Line not found"
 
-    # Process image lists - upload local files and get URLs
+    # Process image lists - should be URLs from gh CLI upload
     print("\nProcessing before images...")
-    processed_before_images = process_image_list(before_images, repo_owner, repo_name, github_token)
+    processed_before_images = process_image_list(before_images)
     
     print("\nProcessing after images...")
-    processed_after_images = process_image_list(after_images, repo_owner, repo_name, github_token)
+    processed_after_images = process_image_list(after_images)
 
     comment_body = f"""{bot_comment_base}{' (Updated)' if existing_comment_id else ''}
 

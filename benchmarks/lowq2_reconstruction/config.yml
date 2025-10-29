@@ -102,7 +102,53 @@ upload_onnx:lowq2_reconstruction:
     - printenv
     - echo "Updating PR with lowq2 reconstruction results"
     - echo "ONNX file will be available at $ONNX_UPLOAD_URL"
+    - echo "Uploading images to GitHub CDN"
     - |
+      # Function to upload image to GitHub's attachment CDN
+      upload_image() {
+        local img_path="$1"
+        
+        if [ ! -f "$img_path" ]; then
+          echo "⚠️ Image not found: $img_path"
+          return
+        fi
+        
+        # Upload using GitHub's attachment API endpoint
+        # This is what the web UI uses when you drag-and-drop images
+        response=$(curl -s -X POST \
+          -H "Authorization: Bearer $GITHUB_REPO_POST_COMMENT_BENCHMARKS" \
+          -H "Content-Type: $(file -b --mime-type "$img_path")" \
+          -H "Accept: application/vnd.github+json" \
+          --data-binary "@$img_path" \
+          "https://uploads.github.com/repos/eic/detector_benchmarks/assets?name=$(basename "$img_path")")
+        
+        # Extract URL from response
+        img_url=$(echo "$response" | grep -oP '"url":\s*"\K[^"]+' | head -1)
+        
+        if [ -n "$img_url" ]; then
+          echo "✅ Uploaded: $img_url"
+          echo "$img_url"
+        else
+          echo "⚠️ Upload failed for $img_path"
+          echo ""
+        fi
+      }
+      
+      BEFORE_IMAGE="results/lowq2_reconstruction/test_local/test_energy_theta_phi_resolution_local.png"
+      AFTER_IMAGE="results/lowq2_reconstruction/retrained_local/retrained_energy_theta_phi_resolution_local.png"
+      
+      BEFORE_URL=$(upload_image "$BEFORE_IMAGE")
+      AFTER_URL=$(upload_image "$AFTER_IMAGE")
+      
+      # Build image arguments
+      IMAGE_ARGS=""
+      if [ -n "$BEFORE_URL" ]; then
+        IMAGE_ARGS="$IMAGE_ARGS --beforeImages $BEFORE_URL"
+      fi
+      if [ -n "$AFTER_URL" ]; then
+        IMAGE_ARGS="$IMAGE_ARGS --afterImages $AFTER_URL"
+      fi
+      
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
       --pr 213 \
       --newURL $ONNX_DOWNLOAD_URL \
@@ -110,6 +156,5 @@ upload_onnx:lowq2_reconstruction:
       --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
       --xml benchmarks/lowq2_reconstruction/calibrations.xml \
       --repository eic/detector_benchmarks \
-      --beforeImages results/lowq2_reconstruction/test_local/test_energy_theta_phi_resolution_local.png \
-      --afterImages results/lowq2_reconstruction/retrained_local/retrained_energy_theta_phi_resolution_local.png
+      $IMAGE_ARGS
     - echo "Updating GitHub status for lowq2 reconstruction"

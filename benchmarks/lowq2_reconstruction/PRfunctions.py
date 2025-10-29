@@ -155,38 +155,8 @@ def find_line_number_of_change(original_content, old_value):
 # =============================================================================
 
 def process_image_list(image_list):
-    """Process a list of images - converts local paths to GitLab artifact URLs when in CI."""
-    if not image_list:
-        return []
-    
-    processed_images = []
-    ci_project_url = os.environ.get('CI_PROJECT_URL')
-    ci_job_id = os.environ.get('CI_JOB_ID')
-    ci_project_dir = os.environ.get('CI_PROJECT_DIR', os.getcwd())
-    
-    for img in image_list:
-        # If it's already a URL, accept as-is
-        if isinstance(img, str) and (img.startswith('http://') or img.startswith('https://')):
-            processed_images.append(img)
-            continue
-
-        # Handle local file paths - convert to GitLab artifact URLs
-        if isinstance(img, str) and os.path.exists(img):
-            if ci_project_url and ci_job_id:
-                try:
-                    rel_path = os.path.relpath(os.path.abspath(img), start=os.path.abspath(ci_project_dir))
-                    # Use raw endpoint so images render inline
-                    artifact_url = f"{ci_project_url}/-/jobs/{ci_job_id}/artifacts/raw/{rel_path}"
-                    processed_images.append(artifact_url)
-                    print(f"Using artifact URL for image: {artifact_url}")
-                except Exception as e:
-                    print(f"⚠️ Could not compute artifact URL for {img}: {e}. Skipping.")
-            else:
-                print(f"⚠️ CI environment variables not available; skipping local image: {img}")
-        else:
-            print(f"⚠️ Invalid image entry (not a URL or existing file): {img}")
-    
-    return processed_images
+    """Return image list as-is. URLs should be fully formed by the caller (CI script)."""
+    return image_list or []
 
 def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, before_images=None, after_images=None):
     """Create a PR comment with proposed changes"""
@@ -210,7 +180,7 @@ def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml
     lines = content.split('\n') if content else []
     current_line = lines[line_number - 1].strip() if line_number <= len(lines) else "Line not found"
 
-    # Process image lists
+    # Process image lists (already URLs)
     processed_before_images = process_image_list(before_images)
     processed_after_images = process_image_list(after_images)
 

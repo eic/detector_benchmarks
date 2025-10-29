@@ -44,13 +44,32 @@ if not pr_info:
 
 # =============================================================================
 
-# Create the PR review with suggestion (includes prep if needed)
-response = create_pr_suggestion_with_prep(repo_owner, repo_name, pr_number, calibration_file, xml_file, new_url, github_token)
+content = get_file_content(repo_owner, repo_name, xml_file, pr_info['head']['sha'], github_token)
+if not content:
+    print("Failed to retrieve file content. Exiting.")
+    sys.exit(1)
 
-if response:
-    print("🎉 PR suggestion completed successfully!")
+# =============================================================================
+
+# Parse the XML content and find the line to update
+line_number, suggested_line = find_and_update_epic_fileloader_url(content, calibration_file, new_url)
+
+# =============================================================================
+
+if line_number is not None and suggested_line is not None:
+    print(f"✅ Found URL to update in {xml_file} at line {line_number}")
+    print(f"   Suggested change: {suggested_line.strip()}")
+    
+    # Create the PR review with suggestion
+    response = create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, pr_info['head']['sha'], github_token)
+    
+    if response:
+        print("🎉 PR suggestion completed successfully!")
+    else:
+        print("❌ Failed to create PR suggestion")
+        sys.exit(1)
 else:
-    print("❌ Failed to create PR suggestion")
+    print(f"❌ Failed to find URL to update in {xml_file}")
     sys.exit(1)
 
 # =============================================================================

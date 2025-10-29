@@ -108,5 +108,7 @@ upload_onnx:lowq2_reconstruction:
       --githubToken $GITHUB_REPO_POST_COMMENT_BENCHMARKS \
       --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
       --xml benchmarks/lowq2_reconstruction/calibrations.xml \
-      --repository eic/detector_benchmarks
+      --repository eic/detector_benchmarks \
+      --beforeImages results/lowq2_reconstruction/test_local/test_energy_theta_phi_resolution_local.png \
+      --afterImages results/lowq2_reconstruction/retrained_local/retrained_energy_theta_phi_resolution_local.png
     - echo "Updating GitHub status for lowq2 reconstruction"

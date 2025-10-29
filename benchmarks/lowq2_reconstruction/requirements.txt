@@ -1,7 +1,7 @@
 --index-url https://download.pytorch.org/whl/cpu
 numpy==2.3.1
 #gpu version of torch on eicweb doesn't speed up things for our small model and takes a long time to install
-torch==2.5.1 
+torch==2.8.0+cpu 
 uproot==5.6.3
 pyHepMC3==3.3.0
 onnx==1.17.0

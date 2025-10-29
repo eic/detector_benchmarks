@@ -13,6 +13,7 @@ rule filter_hepmc_for_training:
         script=workflow.source_path("filterHEPMC3.py"),        
     output:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
+    cache: True
     params:
         events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
     shell:
@@ -27,6 +28,7 @@ rule lowq2_training_sim:
         events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",      
     output:
         SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+    cache: True
     shell:
         """
             exec npsim \

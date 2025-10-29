@@ -106,6 +106,10 @@ upload_onnx:lowq2_reconstruction:
     - tar zxf pelican_Linux_x86_64.tar.gz
     - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_UPLOAD_URL
     - xrdfs $XROOTD_ENDPOINT stat $XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx
+    - |
+      # Build artifact folder URL for review
+      ARTIFACTS_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/browse/results/lowq2_reconstruction/"
+      echo "Artifacts URL: $ARTIFACTS_URL"
     - echo "Updating PR with lowq2 reconstruction results"
     - |
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
@@ -114,6 +118,7 @@ upload_onnx:lowq2_reconstruction:
       --githubToken $GITHUB_REPO_POST_COMMENT \
       --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
       --xml compact/calibrations.xml \
-      --repository $GITHUB_REPOSITORY
+      --repository $GITHUB_REPOSITORY \
+      --artifactsURL "$ARTIFACTS_URL"
     - echo "Updating GitHub status for lowq2 reconstruction"
 

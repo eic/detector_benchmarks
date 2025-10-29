@@ -15,6 +15,7 @@ bench:lowq2_reconstruction:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
 
 check:lowq2_reconstruction:
+  extends: .det_benchmark
   needs: ["bench:lowq2_reconstruction"]
   stage: benchmarks
   script: |
@@ -25,13 +26,18 @@ check:lowq2_reconstruction:
 bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
-  needs: [bench:lowq2_reconstruction]
+  needs: [bench:lowq2_reconstruction,check:lowq2_reconstruction]
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_failure
+    - when: never
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
 
 check:lowq2_reconstruction_retrained:
+  extends: .det_benchmark
   needs: ["bench:lowq2_reconstruction_retrained"]
   stage: benchmarks
   rules:

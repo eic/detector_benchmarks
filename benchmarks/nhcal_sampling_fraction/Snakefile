@@ -1,7 +1,7 @@
 import os
 
 DETECTOR_PATH = os.environ["DETECTOR_PATH"]
-DETECTOR_CONFIG = "epic_backward_only_sampF.xml"
+DETECTOR_CONFIG = "epic_backward_hcal_only_sampF.xml"
 
 rule nhcal_sampling_fraction_simulate:
     output:

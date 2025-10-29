@@ -26,7 +26,10 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]    
+    - job: bench:lowq2_reconstruction
+      artifacts: true
+    - job: check:lowq2_reconstruction
+      artifacts: false
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_failure

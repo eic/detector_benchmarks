@@ -154,7 +154,7 @@ def find_line_number_of_change(original_content, old_value):
 # GitHub PR Comment Functions
 # =============================================================================
 
-def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, before_images=None, after_images=None):
+def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, artifacts_url=''):
     """Create a PR comment with proposed changes"""
     print(f"Creating PR comment with calibration update for #{pr_number}...")
     
@@ -196,20 +196,12 @@ A new calibration has been generated and is ready for use.
 
 Please update the calibration URL in `{xml_file}` at line {line_number}."""
 
-    # Add before images section if provided
-    if before_images:
-        comment_body += "\n\n---\n\n### 📊 Before Calibration Update\n\n"
-        for img_url in before_images:
-            comment_body += f"![Before Image]({img_url})\n\n"
-
-    # Add after images section if provided
-    if after_images:
-        comment_body += "\n\n---\n\n### 📈 After Calibration Update\n\n"
-        for img_url in after_images:
-            comment_body += f"![After Image]({img_url})\n\n"
+    # Add artifacts link if provided
+    if artifacts_url:
+        comment_body += f"\n\n---\n\n### 📊 Review Results\n\nPlease review the artifacts here: {artifacts_url}"
     
+    # Create or update comment via GitHub REST API (no gh CLI)
     if existing_comment_id:
-        # Update existing comment
         print(f"Updating existing comment {existing_comment_id}...")
         update_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}"
         update_data = {'body': comment_body}
@@ -221,7 +213,6 @@ Please update the calibration URL in `{xml_file}` at line {line_number}."""
             print(f"❌ Failed to update existing comment: {response.status_code}\n{response.text}")
             return None
     else:
-        # Create new regular PR comment
         print("Creating new PR comment...")
         comment_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/comments"
         comment_data = {'body': comment_body}

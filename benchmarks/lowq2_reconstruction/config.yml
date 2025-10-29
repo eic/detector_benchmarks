@@ -26,16 +26,23 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "check:lowq2_reconstruction"
+    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]    
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_failure
+    - when: never
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
-  when: on_failure
 
 check:lowq2_reconstruction_retrained:
   needs: ["bench:lowq2_reconstruction_retrained"]
   stage: benchmarks
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_success
+    - when: never  
   script: |
     if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
       exit 1
@@ -57,6 +64,10 @@ collect_results:lowq2_reconstruction_retrained:
   stage: collect
   needs:
     - "bench:lowq2_reconstruction_retrained"
+  rules:
+    - if: '$BENCHMARKS_TAG =~ /nightly/'
+      when: on_success
+    - when: never
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
@@ -69,7 +80,7 @@ upload_onnx:lowq2_reconstruction:
   needs:
     - "check:lowq2_reconstruction_retrained"
   rules:
-    - if: $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"
+    - if: '$BENCHMARKS_TAG =~ /nightly/ && $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
       when: on_success
     - if: '$GITHUB_REPOSITORY != "eic/epic"'
       when: never
@@ -84,15 +95,24 @@ upload_onnx:lowq2_reconstruction:
         echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
         exit 1;
       fi
-    - ONNX_URL="$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - XROOTD_ENDPOINT="root://dtn-eic.jlab.org/"
+    - XROOTD_CALIB_PREFIX="/volatile/eic/EPIC/xrdtest/CALIB/"
+    - ONNX_UPLOAD_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
+    - ONNX_DOWNLOAD_URL="$XROOTD_ENDPOINT$XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - echo "Deploying to xrootd server using pelican"
-    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz 
-    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz') 
-    - tar zxf pelican_Linux_x86_64.tar.gz 
-    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_URL
+    - echo "ONNX file will be available at $ONNX_UPLOAD_URL"
+    - wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz
+    - sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114  pelican_Linux_x86_64.tar.gz')
+    - tar zxf pelican_Linux_x86_64.tar.gz
+    - ./pelican-*/pelican object copy $LOWQ2_ONNX_FILE $ONNX_UPLOAD_URL
     - echo "Updating PR with lowq2 reconstruction results"
-    - python updatePR.py --pr $GITHUB_PR --url "$ONNX_URL" \
-        --githubToken $GITHUB_REPO_POST_COMMENT --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
-        --xml compact/calibrations.xml --repository $GITHUB_REPOSITORY
+    - |
+      python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
+      --pr $GITHUB_PR \
+      --newURL "$ONNX_DOWNLOAD_URL" \
+      --githubToken $GITHUB_REPO_POST_COMMENT \
+      --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
+      --xml compact/calibrations.xml \
+      --repository $GITHUB_REPOSITORY
     - echo "Updating GitHub status for lowq2 reconstruction"
 

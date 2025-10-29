@@ -108,7 +108,9 @@ upload_onnx:lowq2_reconstruction:
       AFTER_IMG_PATH="results/lowq2_reconstruction/retrained_local/retrained_energy_theta_phi_resolution_local.png"
       BEFORE_IMG_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/${BEFORE_IMG_PATH}"
       AFTER_IMG_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/raw/${AFTER_IMG_PATH}"
-      
+      echo "Before image URL: $BEFORE_IMG_URL"
+      echo "After image URL: $AFTER_IMG_URL"
+    - |
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
         --pr 213 \
         --newURL "$ONNX_DOWNLOAD_URL" \

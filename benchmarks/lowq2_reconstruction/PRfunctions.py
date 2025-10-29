@@ -154,10 +154,6 @@ def find_line_number_of_change(original_content, old_value):
 # GitHub PR Comment Functions
 # =============================================================================
 
-def process_image_list(image_list):
-    """Return image list as-is. URLs should be fully formed by the caller (CI script)."""
-    return image_list or []
-
 def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, before_images=None, after_images=None):
     """Create a PR comment with proposed changes"""
     print(f"Creating PR comment with calibration update for #{pr_number}...")
@@ -180,10 +176,6 @@ def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml
     lines = content.split('\n') if content else []
     current_line = lines[line_number - 1].strip() if line_number <= len(lines) else "Line not found"
 
-    # Process image lists (already URLs)
-    processed_before_images = process_image_list(before_images)
-    processed_after_images = process_image_list(after_images)
-
     comment_body = f"""{bot_comment_base}{' (Updated)' if existing_comment_id else ''}
 
 A new calibration has been generated and is ready for use.
@@ -205,16 +197,16 @@ A new calibration has been generated and is ready for use.
 Please update the calibration URL in `{xml_file}` at line {line_number}."""
 
     # Add before images section if provided
-    if processed_before_images:
+    if before_images:
         comment_body += "\n\n---\n\n### 📊 Before Calibration Update\n\n"
-        for i, img_url in enumerate(processed_before_images, 1):
-            comment_body += f"![Before Image {i}]({img_url})\n\n"
-    
+        for img_url in before_images:
+            comment_body += f"![Before Image]({img_url})\n\n"
+
     # Add after images section if provided
-    if processed_after_images:
+    if after_images:
         comment_body += "\n\n---\n\n### 📈 After Calibration Update\n\n"
-        for i, img_url in enumerate(processed_after_images, 1):
-            comment_body += f"![After Image {i}]({img_url})\n\n"
+        for img_url in after_images:
+            comment_body += f"![After Image]({img_url})\n\n"
     
     if existing_comment_id:
         # Update existing comment

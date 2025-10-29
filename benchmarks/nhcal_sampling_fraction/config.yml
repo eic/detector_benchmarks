@@ -3,7 +3,7 @@ sim:nhcal_sampling_fraction:
   stage: simulate
   parallel:
     matrix:
-      - ENERGY: ["1GeV", "2GeV", "5GeV", "10GeV"]
+      - ENERGY: ["0.5GeV", "0.7GeV","1GeV", "2GeV", "5GeV", "10GeV"]
         PARTICLE: ["pi-", "neutron", "e-"]
   script:
     - snakemake --cores 5 sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}/sim.edm4hep.root                 

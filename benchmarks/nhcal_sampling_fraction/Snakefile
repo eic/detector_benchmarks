@@ -1,7 +1,7 @@
 import os
 
 DETECTOR_PATH = os.environ["DETECTOR_PATH"]
-DETECTOR_CONFIG = "epic_backward_hcal_only.xml"
+DETECTOR_CONFIG = "epic_backward_only_sampF.xml"
 
 rule nhcal_sampling_fraction_simulate:
     output:
@@ -31,7 +31,7 @@ rule nhcal_sampling_fraction_combine:
     input:
         lambda wildcards: expand(
             "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root", 
-            ENERGY=["1", "2", "5", "10"],
+            ENERGY=["0.5", "0.7", "1", "2", "5", "10"],
             PARTICLE=["pi-", "neutron", "e-"],
         ),
     wildcard_constraints:

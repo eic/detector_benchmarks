@@ -29,11 +29,12 @@ default:
       - .local/bin
       - .local/include
       - .local/share
-      - .snakemake/log
+      - .snakemake/
       - results
       - config
       - .env
       - summary.txt
+      - warmup/
     reports:
       dotenv: .env
     when: always

@@ -7,6 +7,10 @@ import base64
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime, timezone
+import subprocess
+import tempfile
+import json
+import os
 
 # =============================================================================
 # Utility Functions
@@ -172,19 +176,15 @@ def find_line_number_of_change(original_content, old_value):
 # =============================================================================
 
 def process_image_list(image_list):
-    """Process a list of images - should be URLs from gh CLI upload"""
+    """Process a list of images - can be URLs or local file paths"""
     if not image_list:
         return []
     
     processed_images = []
     for img in image_list:
-        # Accept URLs as-is (these should be GitHub user-attachments URLs from gh CLI)
-        if img.startswith(('http://', 'https://')):
-            processed_images.append(img)
-        else:
-            # For local paths, warn the user
-            print(f"⚠️ Local file path provided: {img}")
-            print(f"   Images must be uploaded via gh CLI first to get GitHub CDN URLs")
+        # Accept both URLs and local file paths
+        # Local paths will be handled by gh CLI when creating the comment
+        processed_images.append(img)
     
     return processed_images
 
@@ -250,35 +250,61 @@ Please update the calibration URL in `{xml_file}` at line {line_number}."""
             comment_body += f"![After Image {i}]({img_url})\n\n"
     
     if existing_comment_id:
-        # Update existing comment
+        # Update existing comment using gh CLI
         print(f"Updating existing comment {existing_comment_id}...")
-        update_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}"
-        update_data = {'body': comment_body}
-        response = requests.patch(update_url, headers=headers, json=update_data)
         
-        if response.status_code == 200:
+        # Write comment body to temp file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
+            f.write(comment_body)
+            temp_file = f.name
+        
+        try:
+            # gh api to update comment
+            result = subprocess.run(
+                ['gh', 'api', 
+                 f'/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}',
+                 '-X', 'PATCH',
+                 '-F', f'body=@{temp_file}'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
             print("✅ Existing PR comment updated successfully")
-            return response.json()
-        else:
-            print(f"❌ Failed to update existing comment: {response.status_code}")
-            print(f"   Response: {response.text}")
+            return json.loads(result.stdout)
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to update existing comment: {e}")
+            print(f"   Error: {e.stderr}")
             return None
+        finally:
+            os.unlink(temp_file)
     else:
-        # Create new regular PR comment
+        # Create new regular PR comment using gh CLI
         print("Creating new PR comment...")
-        comment_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/comments"
         
-        comment_data = {'body': comment_body}
+        # Write comment body to temp file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
+            f.write(comment_body)
+            temp_file = f.name
         
-        response = requests.post(comment_url, headers=headers, json=comment_data)
-        
-        if response.status_code == 201:
+        try:
+            # gh pr comment will automatically upload local image files
+            result = subprocess.run(
+                ['gh', 'pr', 'comment', str(pr_number),
+                 '--repo', f'{repo_owner}/{repo_name}',
+                 '--body-file', temp_file],
+                capture_output=True,
+                text=True,
+                check=True
+            )
             print("✅ New PR comment created successfully")
-            return response.json()
-        else:
-            print(f"❌ Failed to create PR comment: {response.status_code}")
-            print(f"   Response: {response.text}")
+            # gh pr comment returns URL, parse to get comment data
+            return {'html_url': result.stdout.strip()}
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to create PR comment: {e}")
+            print(f"   Error: {e.stderr}")
             return None
+        finally:
+            os.unlink(temp_file)
 
 def find_existing_bot_comment(repo_owner, repo_name, pr_number, bot_comment_base, xml_file, line_number, github_token):
     """Find existing bot comment on the specific line"""

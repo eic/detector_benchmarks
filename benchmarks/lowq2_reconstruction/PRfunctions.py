@@ -7,9 +7,6 @@ import base64
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime, timezone
-import subprocess
-import tempfile
-import json
 import os
 
 # =============================================================================
@@ -24,24 +21,6 @@ def parse_repository(repository):
     except ValueError:
         print(f"❌ Invalid repository format: {repository}. Expected: 'owner/name'")
         return None, None
-
-def make_github_request(url, headers, method='GET', data=None):
-    """Make a GitHub API request with consistent error handling"""
-    try:
-        if method.upper() == 'GET':
-            response = requests.get(url, headers=headers)
-        elif method.upper() == 'POST':
-            response = requests.post(url, headers=headers, json=data)
-        elif method.upper() == 'PATCH':
-            response = requests.patch(url, headers=headers, json=data)
-        else:
-            print(f"❌ Unsupported HTTP method: {method}")
-            return None
-        
-        return response
-    except requests.RequestException as e:
-        print(f"❌ Request failed: {e}")
-        return None
 
 # =============================================================================
 # GitHub API Functions
@@ -176,15 +155,36 @@ def find_line_number_of_change(original_content, old_value):
 # =============================================================================
 
 def process_image_list(image_list):
-    """Process a list of images - can be URLs or local file paths"""
+    """Process a list of images - converts local paths to GitLab artifact URLs when in CI."""
     if not image_list:
         return []
     
     processed_images = []
+    ci_project_url = os.environ.get('CI_PROJECT_URL')
+    ci_job_id = os.environ.get('CI_JOB_ID')
+    ci_project_dir = os.environ.get('CI_PROJECT_DIR', os.getcwd())
+    
     for img in image_list:
-        # Accept both URLs and local file paths
-        # Local paths will be handled by gh CLI when creating the comment
-        processed_images.append(img)
+        # If it's already a URL, accept as-is
+        if isinstance(img, str) and (img.startswith('http://') or img.startswith('https://')):
+            processed_images.append(img)
+            continue
+
+        # Handle local file paths - convert to GitLab artifact URLs
+        if isinstance(img, str) and os.path.exists(img):
+            if ci_project_url and ci_job_id:
+                try:
+                    rel_path = os.path.relpath(os.path.abspath(img), start=os.path.abspath(ci_project_dir))
+                    # Use raw endpoint so images render inline
+                    artifact_url = f"{ci_project_url}/-/jobs/{ci_job_id}/artifacts/raw/{rel_path}"
+                    processed_images.append(artifact_url)
+                    print(f"Using artifact URL for image: {artifact_url}")
+                except Exception as e:
+                    print(f"⚠️ Could not compute artifact URL for {img}: {e}. Skipping.")
+            else:
+                print(f"⚠️ CI environment variables not available; skipping local image: {img}")
+        else:
+            print(f"⚠️ Invalid image entry (not a URL or existing file): {img}")
     
     return processed_images
 
@@ -210,11 +210,8 @@ def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml
     lines = content.split('\n') if content else []
     current_line = lines[line_number - 1].strip() if line_number <= len(lines) else "Line not found"
 
-    # Process image lists - should be URLs from gh CLI upload
-    print("\nProcessing before images...")
+    # Process image lists
     processed_before_images = process_image_list(before_images)
-    
-    print("\nProcessing after images...")
     processed_after_images = process_image_list(after_images)
 
     comment_body = f"""{bot_comment_base}{' (Updated)' if existing_comment_id else ''}
@@ -238,110 +235,44 @@ A new calibration has been generated and is ready for use.
 Please update the calibration URL in `{xml_file}` at line {line_number}."""
 
     # Add before images section if provided
-    if processed_before_images and len(processed_before_images) > 0:
+    if processed_before_images:
         comment_body += "\n\n---\n\n### 📊 Before Calibration Update\n\n"
         for i, img_url in enumerate(processed_before_images, 1):
             comment_body += f"![Before Image {i}]({img_url})\n\n"
     
     # Add after images section if provided
-    if processed_after_images and len(processed_after_images) > 0:
+    if processed_after_images:
         comment_body += "\n\n---\n\n### 📈 After Calibration Update\n\n"
         for i, img_url in enumerate(processed_after_images, 1):
             comment_body += f"![After Image {i}]({img_url})\n\n"
     
     if existing_comment_id:
-        # Update existing comment using gh CLI
+        # Update existing comment
         print(f"Updating existing comment {existing_comment_id}...")
-        
-        # Write comment body to temp file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
-            f.write(comment_body)
-            temp_file = f.name
-        
-        try:
-            # gh api to update comment
-            result = subprocess.run(
-                ['gh', 'api', 
-                 f'/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}',
-                 '-X', 'PATCH',
-                 '-F', f'body=@{temp_file}'],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+        update_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/comments/{existing_comment_id}"
+        update_data = {'body': comment_body}
+        response = requests.patch(update_url, headers=headers, json=update_data)
+        if response.status_code == 200:
             print("✅ Existing PR comment updated successfully")
-            return json.loads(result.stdout)
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to update existing comment: {e}")
-            print(f"   Error: {e.stderr}")
+            return response.json()
+        else:
+            print(f"❌ Failed to update existing comment: {response.status_code}\n{response.text}")
             return None
-        finally:
-            os.unlink(temp_file)
     else:
-        # Create new regular PR comment using gh CLI
+        # Create new regular PR comment
         print("Creating new PR comment...")
-        
-        # Write comment body to temp file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
-            f.write(comment_body)
-            temp_file = f.name
-        
-        try:
-            # gh pr comment will automatically upload local image files
-            result = subprocess.run(
-                ['gh', 'pr', 'comment', str(pr_number),
-                 '--repo', f'{repo_owner}/{repo_name}',
-                 '--body-file', temp_file],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+        comment_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{pr_number}/comments"
+        comment_data = {'body': comment_body}
+        response = requests.post(comment_url, headers=headers, json=comment_data)
+        if response.status_code == 201:
             print("✅ New PR comment created successfully")
-            # gh pr comment returns URL, parse to get comment data
-            return {'html_url': result.stdout.strip()}
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to create PR comment: {e}")
-            print(f"   Error: {e.stderr}")
+            return response.json()
+        else:
+            print(f"❌ Failed to create PR comment: {response.status_code}\n{response.text}")
             return None
-        finally:
-            os.unlink(temp_file)
-
-def find_existing_bot_comment(repo_owner, repo_name, pr_number, bot_comment_base, xml_file, line_number, github_token):
-    """Find existing bot comment on the specific line"""
-    print(f"Checking for existing bot comments on line {line_number}...")
-    
-    headers = {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': f'token {github_token}'
-    }
-        
-    # Get all review comments for the PR
-    comments_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls/{pr_number}/comments"
-    response = requests.get(comments_url, headers=headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to get PR comments: {response.status_code}")
-        return None
-    
-    comments = response.json()
-    
-    # Look for existing bot comment on the same line and file
-    for comment in comments:
-        # Check if it's from the bot (contains the bot identifier)
-        # and on the same file and line
-        if (comment.get('path') == xml_file and 
-            comment.get('line') == line_number and
-            bot_comment_base in comment.get('body', '')):
-            print(f"✅ Found existing bot comment: {comment['id']}")
-            return comment['id']
-    
-    print("No existing bot comment found")
-    return None
 
 def find_existing_bot_comment_general(repo_owner, repo_name, pr_number, bot_comment_base, github_token):
     """Find existing bot comment (general PR comment, not line-specific)"""
-    print(f"Checking for existing bot comments in PR #{pr_number}...")
-    
     headers = {
         'Accept': 'application/vnd.github+json',
         'Authorization': f'token {github_token}'
@@ -355,11 +286,8 @@ def find_existing_bot_comment_general(repo_owner, repo_name, pr_number, bot_comm
         print(f"❌ Failed to get PR comments: {response.status_code}")
         return None
     
-    comments = response.json()
-    
     # Look for existing bot comment
-    for comment in comments:
-        # Check if it's from the bot (contains the bot identifier)
+    for comment in response.json():
         if bot_comment_base in comment.get('body', ''):
             print(f"✅ Found existing bot comment: {comment['id']}")
             return comment['id']

@@ -103,9 +103,22 @@ upload_onnx:lowq2_reconstruction:
     - echo "Updating PR with lowq2 reconstruction results"
     - echo "ONNX file will be available at $ONNX_UPLOAD_URL"
     - |
-      # Build artifact folder URL for review
+      # Compress images for data URI embedding in GitHub comment
+      BEFORE_IMG="results/lowq2_reconstruction/test_local/test_energy_theta_phi_resolution_local.png"
+      AFTER_IMG="results/lowq2_reconstruction/retrained_local/retrained_energy_theta_phi_resolution_local.png"
+      BEFORE_COMPRESSED="results/lowq2_reconstruction/test_local/compressed_test_energy_theta_phi.png"
+      AFTER_COMPRESSED="results/lowq2_reconstruction/retrained_local/compressed_retrained_energy_theta_phi.png"
+      
+      echo "Compressing images for data URI embedding..."
+      magick "$BEFORE_IMG" -resize 800x600 -strip -quality 20 -colors 8 "$BEFORE_COMPRESSED"
+      magick "$AFTER_IMG" -resize 800x600 -strip -quality 20 -colors 8 "$AFTER_COMPRESSED"
+      
+      echo "Before compressed: $(ls -lh $BEFORE_COMPRESSED | awk '{print $5}')"
+      echo "After compressed: $(ls -lh $AFTER_COMPRESSED | awk '{print $5}')"
+      
+      # Build artifacts URL
       ARTIFACTS_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/browse/results/lowq2_reconstruction/"
-      echo "Artifacts URL: $ARTIFACTS_URL"
+      echo "Artifacts will be available at: $ARTIFACTS_URL"
     - |
       python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
         --pr 213 \
@@ -114,5 +127,7 @@ upload_onnx:lowq2_reconstruction:
         --calibrationFile calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx \
         --xml benchmarks/lowq2_reconstruction/calibrations.xml \
         --repository eic/detector_benchmarks \
+        --beforeImages "$BEFORE_COMPRESSED" \
+        --afterImages "$AFTER_COMPRESSED" \
         --artifactsURL "$ARTIFACTS_URL"
     - echo "Updating GitHub status for lowq2 reconstruction"

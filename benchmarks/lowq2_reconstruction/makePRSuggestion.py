@@ -14,7 +14,9 @@ parser.add_argument('--githubToken', type=str, required=True, help='GitHub token
 parser.add_argument('--calibrationFile', type=str, default='calibrations/onnx/Low-Q2_Steering_Reconstruction.onnx', help='Path to the local calibration file')
 parser.add_argument('--xml', type=str, default='compact/calibrations.xml', help='Path to the XML configuration file')
 parser.add_argument('--repository', type=str, default='eic/epic', help='GitHub repository (owner/name)')
-parser.add_argument('--artifactsURL', type=str, default='', help='URL to job artifacts for review')
+parser.add_argument('--beforeImages', type=str, nargs='*', default=[], help='List of before image file paths')
+parser.add_argument('--afterImages', type=str, nargs='*', default=[], help='List of after image file paths')
+parser.add_argument('--artifactsURL', type=str, default='', help='URL to job artifacts for additional review')
 
 
 args = parser.parse_args()
@@ -25,6 +27,8 @@ github_token         = args.githubToken
 calibration_file     = args.calibrationFile
 xml_file             = args.xml
 repository           = args.repository
+before_images        = args.beforeImages
+after_images         = args.afterImages
 artifacts_url        = args.artifactsURL
 
 # =============================================================================
@@ -63,7 +67,7 @@ if line_number is not None and suggested_line is not None:
     print(f"   Suggested change: {suggested_line.strip()}")
     
     # Create the PR comment with proposed changes
-    response = create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, pr_info['head']['sha'], github_token, artifacts_url)
+    response = create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, pr_info['head']['sha'], github_token, before_images, after_images, artifacts_url)
     
     if response:
         print("🎉 PR comment created successfully!")

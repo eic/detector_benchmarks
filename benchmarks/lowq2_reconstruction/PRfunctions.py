@@ -13,6 +13,31 @@ import os
 # Utility Functions
 # =============================================================================
 
+def create_data_uri_from_file(image_path):
+    """Read an image file and convert to base64 data URI"""
+    if not os.path.exists(image_path):
+        print(f"⚠️ Image file not found: {image_path}")
+        return None
+    
+    try:
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
+        
+        # Encode to base64
+        b64_data = base64.b64encode(image_data).decode('utf-8')
+        
+        # Determine mime type from extension
+        ext = Path(image_path).suffix.lower()
+        mime_type = 'image/png' if ext == '.png' else 'image/jpeg' if ext in ['.jpg', '.jpeg'] else 'image/png'
+        
+        data_uri = f"data:{mime_type};base64,{b64_data}"
+        
+        print(f"✅ Created data URI for {image_path} (size: {len(data_uri)} chars)")
+        return data_uri
+    except Exception as e:
+        print(f"❌ Failed to create data URI for {image_path}: {e}")
+        return None
+
 def parse_repository(repository):
     """Parse repository string into owner and name"""
     try:
@@ -154,7 +179,7 @@ def find_line_number_of_change(original_content, old_value):
 # GitHub PR Comment Functions
 # =============================================================================
 
-def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, artifacts_url=''):
+def create_pr_suggestion(repo_owner, repo_name, pr_number, calibration_file, xml_file, line_number, suggested_line, head_sha, github_token, before_images=None, after_images=None, artifacts_url=''):
     """Create a PR comment with proposed changes"""
     print(f"Creating PR comment with calibration update for #{pr_number}...")
     
@@ -196,9 +221,31 @@ A new calibration has been generated and is ready for use.
 
 Please update the calibration URL in `{xml_file}` at line {line_number}."""
 
-    # Add artifacts link if provided
+    # Convert image file paths to data URIs and embed
+    if before_images:
+        comment_body += "\n\n---\n\n### 📊 Before Calibration Update\n\n"
+        for img_path in before_images:
+            data_uri = create_data_uri_from_file(img_path)
+            if data_uri:
+                comment_body += f"![Before Image]({data_uri})\n\n"
+
+    if after_images:
+        comment_body += "\n\n---\n\n### ✨ After Calibration Update\n\n"
+        for img_path in after_images:
+            data_uri = create_data_uri_from_file(img_path)
+            if data_uri:
+                comment_body += f"![After Image]({data_uri})\n\n"
+    
+    # Add artifacts URL link if provided
     if artifacts_url:
-        comment_body += f"\n\n---\n\n### 📊 Review Results\n\nPlease review the artifacts here: {artifacts_url}"
+        comment_body += f"\n\n---\n\n📁 For comprehensive results and full-resolution artifacts, please visit: [{artifacts_url}]({artifacts_url})\n\n"
+    
+    # Check total comment size
+    comment_size = len(comment_body)
+    print(f"Total comment size: {comment_size} characters")
+    if comment_size > 65536:
+        print(f"⚠️ WARNING: Comment exceeds GitHub's 65KB limit by {comment_size - 65536} characters!")
+        print("   Consider further compressing images or reducing resolution.")
     
     # Create or update comment via GitHub REST API (no gh CLI)
     if existing_comment_id:

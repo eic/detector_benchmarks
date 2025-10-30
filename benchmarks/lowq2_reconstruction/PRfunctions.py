@@ -228,6 +228,7 @@ Please update the calibration URL in `{xml_file}` at line {line_number}."""
         for img_path in before_images:
             data_uri = create_data_uri_from_file(img_path)
             if data_uri:
+                print(f"   Embedding data URI (first 100 chars): {data_uri[:100]}...")
                 comment_body += f'<img src="{data_uri}" alt="Before Image" width="800" />\n\n'
 
     if after_images:
@@ -235,6 +236,7 @@ Please update the calibration URL in `{xml_file}` at line {line_number}."""
         for img_path in after_images:
             data_uri = create_data_uri_from_file(img_path)
             if data_uri:
+                print(f"   Embedding data URI (first 100 chars): {data_uri[:100]}...")
                 comment_body += f'<img src="{data_uri}" alt="After Image" width="800" />\n\n'
     
     # Add artifacts URL link if provided
@@ -247,6 +249,14 @@ Please update the calibration URL in `{xml_file}` at line {line_number}."""
     if comment_size > 65536:
         print(f"⚠️ WARNING: Comment exceeds GitHub's 65KB limit by {comment_size - 65536} characters!")
         print("   Consider further compressing images or reducing resolution.")
+    
+    # Debug: Print a snippet of the comment around the image tags
+    img_tag_pos = comment_body.find('<img src="')
+    if img_tag_pos > 0:
+        snippet_start = max(0, img_tag_pos - 50)
+        snippet_end = min(len(comment_body), img_tag_pos + 200)
+        print(f"\n📋 Comment snippet around first image tag:")
+        print(f"{comment_body[snippet_start:snippet_end]}...")
     
     # Create or update comment via GitHub REST API (no gh CLI)
     if existing_comment_id:

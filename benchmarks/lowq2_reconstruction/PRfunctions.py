@@ -221,20 +221,21 @@ A new calibration has been generated and is ready for use.
 
 Please update the calibration URL in `{xml_file}` at line {line_number}."""
 
-    # Convert image file paths to data URIs and embed
+    # Convert image file paths to data URIs and embed using HTML img tags
+    # (GitHub sometimes has issues with markdown syntax for very long data URIs)
     if before_images:
         comment_body += "\n\n---\n\n### 📊 Before Calibration Update\n\n"
         for img_path in before_images:
             data_uri = create_data_uri_from_file(img_path)
             if data_uri:
-                comment_body += f"![Before Image]({data_uri})\n\n"
+                comment_body += f'<img src="{data_uri}" alt="Before Image" width="800" />\n\n'
 
     if after_images:
         comment_body += "\n\n---\n\n### ✨ After Calibration Update\n\n"
         for img_path in after_images:
             data_uri = create_data_uri_from_file(img_path)
             if data_uri:
-                comment_body += f"![After Image]({data_uri})\n\n"
+                comment_body += f'<img src="{data_uri}" alt="After Image" width="800" />\n\n'
     
     # Add artifacts URL link if provided
     if artifacts_url:

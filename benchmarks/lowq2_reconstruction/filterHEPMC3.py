@@ -8,11 +8,13 @@ import sys
 parser = argparse.ArgumentParser(description='Train a regression model for the Tagger.')
 parser.add_argument('--outFile', type=str, default="temp.hepmc3.tree.root", help='Path to the output file')
 parser.add_argument('--inFile', type=str, nargs='+', help='Path to the input files')
+parser.add_argument('--maxEvents', type=int, default=-1, help='Maximum number of events to process')
 
 args = parser.parse_args()
 
 input_file = args.inFile[0]   # Change to your input file
 output_file = args.outFile
+max_events = args.maxEvents
 
 # Initialize reader and writer
 reader = hm.deduce_reader(input_file)
@@ -25,7 +27,7 @@ if not writer:
     sys.exit(1)
 
 event = hm.GenEvent()
-while not reader.failed():
+while not reader.failed() and (max_events < 0 or reader.event_number() < max_events):
     reader.read_event(event)
     for p in list(event.particles()):
         if p.pid() != 11:

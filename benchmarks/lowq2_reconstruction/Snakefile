@@ -26,10 +26,14 @@ rule filter_hepmc_for_training:
 rule lowq2_training_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",  
-        events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",      
-    cache: True
+        events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root", 
     output:
         SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),     
+    cache: True
     shell:
         """
             exec npsim \
@@ -37,7 +41,7 @@ rule lowq2_training_sim:
             --random.seed 1 \
             --inputFiles {input.events} \
             --numberOfEvents 100 \
-            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --compactFile {params.xml} \
             --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 100*m 

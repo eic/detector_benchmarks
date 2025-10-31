@@ -11,6 +11,10 @@ rule beamline_steering_sim:
         macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
     shell:
         """
@@ -19,7 +23,7 @@ rule beamline_steering_sim:
             --random.seed 1 \
             --enableG4GPS \
             --macroFile {input.macro} \
-            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --compactFile {params.xml} \
             --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 100*m

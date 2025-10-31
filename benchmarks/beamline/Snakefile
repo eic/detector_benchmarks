@@ -11,7 +11,6 @@ rule beamline_steering_sim:
         macro=workflow.source_path("beamlineGPS.mac"),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
-    cache: True
     shell:
         """
             exec npsim \

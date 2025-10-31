@@ -27,7 +27,8 @@ if not writer:
     sys.exit(1)
 
 event = hm.GenEvent()
-while not reader.failed() and (max_events < 0 or reader.event_number() < max_events):
+event_number = 0
+while not reader.failed() and (max_events < 0 or event_number < max_events):
     reader.read_event(event)
     for p in list(event.particles()):
         if p.pid() != 11:
@@ -36,6 +37,7 @@ while not reader.failed() and (max_events < 0 or reader.event_number() < max_eve
     if any(p.pid() == 11 for p in event.particles()):
         writer.write_event(event)
     event.clear()
+    event_number += 1
 
 reader.close()
 writer.close()

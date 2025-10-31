@@ -16,7 +16,7 @@ rule filter_hepmc_for_training:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
     params:
         events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
-        maxEvents=-1
+        maxEvents=100
     shell:
         """
         python {input.script} --outFile {output} --inFile {params.events} --maxEvents {params.maxEvents}
@@ -36,7 +36,7 @@ rule lowq2_training_sim:
             --runType run \
             --random.seed 1 \
             --inputFiles {input.events} \
-            --numberOfEvents 10000 \
+            --numberOfEvents 100 \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
             --outputFile {output} \
@@ -57,7 +57,7 @@ rule lowq2_reconstruction_particles_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=5000 \
+        -Pjana:nevents=50 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 
@@ -79,7 +79,7 @@ rule lowq2_reconstruction_tensors_eicrecon:
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=5000 -Pjana:nskip=5000 \
+        -Pjana:nevents=50 -Pjana:nskip=50 \
         -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
         """
 

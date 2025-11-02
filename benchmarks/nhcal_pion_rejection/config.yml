@@ -14,7 +14,7 @@ bench:nhcal_pion_rejection_analysis:
   needs:
     - "sim:nhcal_pion_rejection"
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_pion_rejection/analysis_epic_full_10files.pdf; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/nhcal_pion_rejection/sim_epic_full_10files.eicrecon.edm4hep.root
 
 collect_results:nhcal_pion_rejection:
   extends: .det_benchmark

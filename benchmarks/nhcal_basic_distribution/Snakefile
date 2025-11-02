@@ -1,6 +1,6 @@
 rule nhcal_basic_distribution_simulate:
     input:
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:
@@ -11,7 +11,7 @@ rule nhcal_basic_distribution_simulate:
         ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-    cache: True
+    # cache: True
     shell:
         """
 exec ddsim \
@@ -32,7 +32,7 @@ exec ddsim \
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root", 
+            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),

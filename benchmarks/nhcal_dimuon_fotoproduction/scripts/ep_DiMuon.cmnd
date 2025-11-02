@@ -1,0 +1,180 @@
+#==============================================================================
+# STAR Heavy Flavor Tune 1.1
+#
+# PYTHIA Version 8.1.08
+# Date:  November 7, 2008	
+# Last updated by: Thomas Ullrich
+#
+# This file contains commands to be read in for a Pythia8 run. 
+# Lines not beginning with a letter or digit are comments.
+# Names are case-insensitive  -  but spellings-sensitive!
+#
+# Important notes:
+# ================
+# For hard 2->2 processes, such as most heavy flavor producing one,
+# there's  divergence in PYTHIA that needs to be suppressed. Use
+# these two lines in the code before you initialize PYTHIA to avoid
+# any trouble: 
+# UserHooks *oniumUserHook = new SuppressSmallPT();
+# pythia.setUserHooksPtr(oniumUserHook);
+#
+#==============================================================================
+
+#------------------------------------------------------------------------------
+# Parameters that need to be set by whoever runs it.
+# Note that they have no meaning unless restored and used
+# in the user provided code (main program).
+# This is not part of the star_hf tune (just convenient)
+# Documentation: <pyhiadir>/htmldoc/MainProgramSettings.html
+#------------------------------------------------------------------------------
+Main:numberOfEvents = 1000       ! number of events to generate
+Next:numberShowEvent = 20             ! show event record
+Next:numberCount = 0              ! number of events to print
+Next:numberShowInfo = 100             ! show how far along run is this many times
+Main:timesAllowErrors = 100        ! abort run after this many flawed events
+Init:showChangedSettings = on      ! print changed flags/modes/parameters
+Init:showAllSettings = on          ! print all flags/modes/parameters
+#Init:showAllStatistics = on        ! print statistics at the end
+
+#------------------------------------------------------------------------------
+# Colliding beams and center-of-mass energy
+# Documentation: <pyhiadir>/htmldoc/BeamParameters.html
+#------------------------------------------------------------------------------
+Beams:frameType = 2
+Beams:idA = 2212                   ! proton
+Beams:idB = 11                 ! e-
+Beams:eA = 275.                  ! RHIC nominal (GeV)
+Beams:eB = 18.                  ! RHIC nominal (GeV)
+
+#------------------------------------------------------------------------------
+# Process Selection
+#------------------------------------------------------------------------------
+
+
+# Enable equivalent photon approximation (EPA) for both beams
+Photon:Q2Max = 1.0		  ! Upper Q^2 limit for EPA photons (in GeV^2)
+Photon:ProcessType = 4	  ! 4 = direct-direct photons
+#Photon:EPA = on
+
+PDF:beamA2gamma = on	! EPA photon flux from beam A
+PDF:beamB2gamma = on	! EPA photon flux from beam B
+
+# Enable gamma-gamma -> mu+ mu−
+PhotonCollision:gmgm2mumu = on
+
+# Optional: Turn off other QED or QCD backgrounds if you want exclusivity
+PartonLevel:ISR = off
+PartonLevel:FSR = off
+HadronLevel:all = off
+
+
+#------------------------------------------------------------------------------
+# K factor
+# Multiply almost all cross sections by this common fix factor.
+# This is usually no very useful. The data can be shifted up and down
+# later anyhow as we please. 
+# Documentation: <pyhiadir>/htmldoc/CouplingsAndScales.html
+#------------------------------------------------------------------------------
+# SigmaProcess:Kfactor = 3
+
+#------------------------------------------------------------------------------
+# Scales (Ramona's suggestions)
+# This sets the scale to settings typically for hard probes:
+# mu_F = mu_R = 2*mT
+# Documentation: <pyhiadir>/htmldoc/CouplingsAndScales.html
+#------------------------------------------------------------------------------
+# SigmaProcess:renormScale2 = 3
+# SigmaProcess:factorScale2 = 3
+# SigmaProcess:renormMultFac = 2   ! 2mT
+# SigmaProcess:factorMultFac = 2   ! 2mT
+
+#------------------------------------------------------------------------------
+# To limit particle production to a certain pthat range uncomment
+# these lines. Use only when you 100% know what you are doing.
+# It is extremely useful to split runs up in ptHat bins to generate
+# statistics evenly in pt. Book keeping is important then (cross-sections,
+# number of events) to compile the final complete spectra.
+# Documentation: <pyhiadir>/htmldoc/PhaseSpaceCuts.html
+#------------------------------------------------------------------------------
+# PhaseSpace:pTHatMin = 4		! Minimal pT cut
+# PhaseSpace:pTHatMax = 2
+
+#------------------------------------------------------------------------------
+# Random Number
+# Initialize random generator according to time. Otherwise multiple jobs
+# will produce the same sequence (unless you pass a different seed every
+# time which is not practical).
+# Documentation: <pyhiadir>/htmldoc/RandomNumberSeed.html
+#------------------------------------------------------------------------------
+Random:setSeed = on
+Random:seed = 0
+
+#------------------------------------------------------------------------------
+# PDF Selection:
+# Note: you need LHAPDF to be installed. Pythia 8 only provides a 
+# minimal set to get started.
+# The choice of PDF here is greatly motivated by:
+# A.~Sherstnev and R.~S.~Thorne, arXiv:0807.2132 and arXiv:0711.2473v3
+# and W. Vogelsang (private communication)
+# These are PDFs especially made for LO Monte-Carlo generators such
+# as PYTHIA.
+# The state-of-the-art NLO PDF is cteq66.LHgrid which can be used
+# as an alternative (also from LHAPDF) but with the known problems
+# that arise when using a NLO PDF in an LO simulator.
+# Documentation: <pyhiadir>/htmldoc/PDFSelection.html
+#------------------------------------------------------------------------------
+#PDF:useLHAPDF = off
+#PDF:LHAPDFset = MRSTMCal.LHgrid
+#PDF:extrapolateLHAPDF = on
+#PDF:pSet = 8
+#PDF:beamA2gamma = on
+
+#------------------------------------------------------------------------------
+# Settings for the event generation process in the Pythia8 library
+# Effect/Relevance of MI, ISR and FSR need to be checked. For sure
+# the use more CPU and hence less events/s.
+# If HadronLevel:Hadronize = off we end up with the pure c, b spectra
+# (which might be useful at times)
+# Documentation: <pyhiadir>/htmldoc/MasterSwitches.html
+# Documentation: <pyhiadir>/htmldoc/MultipleInteractions.html
+#------------------------------------------------------------------------------
+#PartonLevel:MPI = on              ! multiple interactions
+#PartonLevel:ISR = on             ! initial-state radiation 
+#BeamRemnants:primordialKT = on   ! primordial kt
+#PartonLevel:FSR = on             ! final-state radiation
+#HadronLevel:Hadronize = off     ! no hadronization use
+
+#------------------------------------------------------------------------------
+# Relative production ratio vector/pseudoscalar for charm and bottom mesons
+# This was originally PARJ(13) where PARJ(13) = V/(PS+V) that is the 
+# vector meson  fraction of primary charm+bottom mesons. 
+# Andre David (CERN/NA60) made an exhaustive study and found that the
+# world data supports 0.6 while PYTHIA default was PARJ(13) = 3/4 = 0.75
+# from simple spin counting.
+# In PYTHIA8 we now use V/PS not V/(PS+V)
+# Documentation: <pyhiadir>/htmldoc/FlavourSelection.html
+#------------------------------------------------------------------------------
+#StringFlav:mesonCvector = 1.5    ! same as PARJ(13)=0.6
+#StringFlav:mesonBvector = 3      ! leave at 0.75 
+
+#------------------------------------------------------------------------------
+# Heavy quark masses.
+# Note that this should match with the ones used in the PDF.
+# The masses are listed in the header of the refering PDF file.
+# Documentation: <pyhiadir>/htmldoc/ParticleDataScheme.html
+# Documentation: <pyhiadir>/htmldoc/ParticleData.html
+#------------------------------------------------------------------------------
+#4:m0 = 1.43
+#5:m0 = 4.30
+
+#------------------------------------------------------------------------------
+# Particle Decay limits
+# When on, only particles with a decay within a volume limited by 
+# rho = sqrt(x^2 + y^2) < xyMax and |z| < zMax are decayed. 
+# The above xyMax, expressed in mm/c.
+#------------------------------------------------------------------------------
+# ParticleDecays:limitCylinder = on
+# ParticleDecays:xyMax = 600
+# ParticleDecays:zMax = 1000
+
+# EOF

@@ -1,6 +1,16 @@
+rule nhcal_dimuon_fotoproduction_presimulate:
+    output:
+        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3"
+    params:
+        outdir=lambda wc, output: os.path.dirname(output[0])
+    shell:
+        """
+            benchmarks/nhcal_dimuon_fotoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} 
+        """
+
 rule nhcal_dimuon_fotoproduction_simulate:
     input:
-        "benchmarks/nhcal_dimuon_fotoproduction/DiMuon_ep_18x275GeV.0.hepmc3",
+        "benchmarks/nhcal_dimuon_fotoproduction/sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     output:
         "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:
@@ -8,22 +18,22 @@ rule nhcal_dimuon_fotoproduction_simulate:
         SEED=lambda wildcards: "1" + wildcards.INDEX,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-        #ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     wildcard_constraints:
         DETECTOR_CONFIG = r"[A-Za-z0-9_]+",
-        INDEX            = r"\d+",
+        INDEX = r"\d+",
     #cache: True
     shell:
         """
-exec npsim \
-    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-    --inputFile {input} \
-    -v WARNING \
-    --numberOfEvents {params.N_EVENTS} \
-    --outputFile {output}
-"""
+            exec npsim \
+                --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+                --inputFile {input} \
+                -v WARNING \
+                --random.seed {params.SEED} \
+                --numberOfEvents {params.N_EVENTS} \
+                --outputFile {output}
+        """
 
 rule nhcal_dimuon_fotoproduction_recon:
     input:
@@ -35,11 +45,11 @@ rule nhcal_dimuon_fotoproduction_recon:
     #cache: True
     shell: 
         """
-exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-          eicrecon {input} \
-          -Ppodio:output_file={output} \
-          
-"""
+            exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+                eicrecon {input} \
+                -Ppodio:output_file={output} \
+                
+        """
 
 rule nhcal_dimuon_fotoproduction_combine:
     input:
@@ -54,8 +64,8 @@ rule nhcal_dimuon_fotoproduction_combine:
         N = r"\d+",
     shell:
         """
-hadd -f {output} {input} 
-"""
+            hadd -f {output} {input} 
+        """
 
 rule nhcal_dimuon_fotoproduction_analysis:
     input:
@@ -64,7 +74,10 @@ rule nhcal_dimuon_fotoproduction_analysis:
     output:
         png=f"results/nhcal_dimuon_fotoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.png",
         pdf=f"results/nhcal_dimuon_fotoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.pdf",
+    params:
+        DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'
-"""
+            root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+        """

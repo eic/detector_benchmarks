@@ -20,6 +20,8 @@
 #include <TCanvas.h>
 #include <unordered_map> 
 #include <unordered_set>
+#include <TLine.h>
+#include <TStyle.h> 
 
 #include "TROOT.h"
 #include "TRandom.h"
@@ -266,13 +268,14 @@ inline void drawEffPanel(TH1D* h_all,
     leg->Draw();
 }
 
-inline double getPlasticThicknessCM(dd4hep::Detector& det,
+inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
                                     const dd4hep::DDSegmentation::BitFieldCoder* dec,
                                     dd4hep::DDSegmentation::CellID cid,
                                     int slice_idx,
                                     int plastic_slice_value = 3)
 {
     const double NaN = numeric_limits<double>::quiet_NaN();
+    TVector3 dims(NaN, NaN, NaN);
     try {
         if (!dec) throw runtime_error("decoder==nullptr");
         if (dec->get(cid, slice_idx) != plastic_slice_value)
@@ -290,12 +293,17 @@ inline double getPlasticThicknessCM(dd4hep::Detector& det,
         auto* box = dynamic_cast<TGeoBBox*>(vol.solid().ptr());
         if (!box) throw runtime_error("Solid is not TGeoBBox");
 
-        const double dz_cm = box->GetDZ();                     
-        const double thickness_cm = 2.0 * dz_cm;
-        return thickness_cm;
+        dims.SetXYZ(2.0 * box->GetDX(),
+                    2.0 * box->GetDY(),
+                    2.0 * box->GetDZ());
+
+        //const double dz_cm = box->GetDZ();                     
+        //const double thickness_cm = 2.0 * dz_cm;
+        //return thickness_cm;
+        return dims;
     } catch (const exception& e) {
         cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
-        return NaN;
+        return dims;
     }
 }
 
@@ -312,7 +320,7 @@ inline double getPlasticCenterZ_cm(
             throw std::runtime_error("cell is not plastic (slice mismatch)");
         return cellid_converter.position(cid).z();
     } catch (const std::exception& e) {
-        cerr << "[WARN] getPlasticThicknessCM: " << e.what()
+        cerr << "[WARN] getPlasticDimensionsCM: " << e.what()
                 << " (cellID=" << cid << ")\n";
         return std::numeric_limits<double>::quiet_NaN();;
     }
@@ -350,7 +358,7 @@ trackXYatZ_fromTwoStates(double x1,double y1,double z1,
 inline pair<double,double>
 trackXYatZ(const GeomState& A, const GeomState& B, double zTarget){
     return trackXYatZ_fromTwoStates(
-        A.x, A.y, A.z, B.x, B.y, B.z,
+        A.x, A.y, A.z, B.x, B.y, B.z, 
         zTarget
     );
 }
@@ -361,7 +369,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     gStyle->SetOptStat(0);
     podio::ROOTReader reader;
     reader.openFile(filename);
-    unsigned nEvents = reader.getEntries("events");
+    unsigned nEvents = reader.getEntries("events"); 
     cout << "Number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
@@ -411,14 +419,17 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     constexpr double E_MAX_GEV = 10.0;
 
     constexpr int    SIZE = 3;
-    constexpr double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
-    constexpr double DR_THRESH_MM = DR_CUTS_CM[2]*10;
     constexpr double MIP_ENERGY_GEV = 0.002; 
     constexpr double E_CUTS[SIZE] = {1.5, 1.7, 2.0}; 
     constexpr double E_THRESH = E_CUTS[2]; 
-    constexpr int    LAYER_CUTS[SIZE] = {5, 6, 7};
-    constexpr int    LAYER_THRESH = LAYER_CUTS[2];
+    constexpr double LAYER_PROC[SIZE] = {0.5, 0.6, 0.7};
+
     double t_cm;
+    double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
+    double DR_THRESH_MM = 10*DR_CUTS_CM[2];
+    int LAYER_MAX = 10;
+    int LAYER_CUTS[SIZE] = {5, 6, 7}; 
+    int LAYER_THRESH = LAYER_CUTS[2]; 
 
     vector<double> Xbins(NBINS+1), Q2bins(NBINS+1), Ebins(NBINS+1);
     MakeLogBins(Q2bins.data(), NBINS, Q2_MIN, Q2_MAX);
@@ -589,22 +600,37 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
         if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
-        set<double> uniqueCentersZ;
+        set<int> uniqueCentersZ10;
         map<double, double> layerData;
         for (const auto& hit : hcalRec) {    
             double z = hit.getPosition().z;
             double zBin = round(z);
             uint64_t cid = hit.getCellID();
             double zCenter_mm = 10 * getPlasticCenterZ_cm(decoder, cellid_converter, cid, slice_index, /*plastic_slice_value=*/3);
-            if (!std::isnan(zCenter_mm)) {uniqueCentersZ.insert(zCenter_mm);}
-
+            // TVector3 dim = getPlasticDimensionsCM(*det, decoder, cid, slice_index, 3);
+            // printf("dim.x: %f, dim.y: %f, dim.z: %f", dim.x(), dim.y(), dim.z());
+            // double dr = dim.x();
+            // if(ev == 0){ 
+            //     DR_CUTS_CM[0] = dr; DR_CUTS_CM[1] = dr * 2; DR_CUTS_CM[2] = dr * 3;
+            //     DR_THRESH_MM = DR_CUTS_CM[2]*10;
+            // }
+            if (!std::isnan(zCenter_mm)) {
+                int z10 = lround(zCenter_mm * 10.0); 
+                uniqueCentersZ10.insert(z10); 
+            }
+            
             layerData[zBin] += hit.getEnergy(); 
             hZ_hits->Fill(z);                
             hE_z->Fill(z, hit.getEnergy()); 
             hE->Fill(hit.getEnergy());
         }
+        vector<double> layerCentersZ;
+        layerCentersZ.reserve(uniqueCentersZ10.size());
+        for (int z10 : uniqueCentersZ10) layerCentersZ.push_back(z10 / 10.0);
+        if(layerCentersZ.size() > LAYER_MAX) LAYER_MAX = layerCentersZ.size();
 
-        vector<double> layerCentersZ(uniqueCentersZ.begin(), uniqueCentersZ.end());
+        for(size_t n = 0; n < SIZE; n++) LAYER_CUTS[n] = static_cast<int>(LAYER_MAX*LAYER_PROC[n]);
+        LAYER_THRESH = LAYER_CUTS[SIZE-1];
 
         for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
 
@@ -630,12 +656,12 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
         for (const auto& ST : segsTagged) {
 
-            size_t layerCentersZSize = layerCentersZ.size();
-            vector<double> segMinDistance(layerCentersZSize, std::numeric_limits<double>::infinity());
-            vector<double> segHitEnergy(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
-            vector<double> thickness_cm(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
+            vector<double> segMinDistance(LAYER_MAX, std::numeric_limits<double>::infinity());
+            vector<double> segHitEnergy(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
+            vector<double> thickness_cm(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
             vector<int> count_DrCuts(SIZE, 0);
             vector<int> count_ECuts(SIZE, 0);
+            double ratio_HitPartLESum = 0;
 
             GeomState A{}, B{};
             bool haveA = false, haveB = false;
@@ -657,9 +683,10 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
 
             if (!haveA || !haveB) {continue;}
 
-            for (int i = 0; i < layerCentersZSize; ++i) {
+            for (int i = 0; i < LAYER_MAX; ++i) {
                 double best_dr_in_layer = 1e10;
                 double best_E_in_layer;
+                double partLayerEnergySum = 0;
                 dd4hep::DDSegmentation::CellID best_cid_in_layer;
 
                 double zc = layerCentersZ[i];
@@ -673,6 +700,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                     const double dx = X - hp.x;
                     const double dy = Y - hp.y;
                     const double dr = sqrt(dx*dx + dy*dy);
+                    if (dr < 30*10 /*mm*/) partLayerEnergySum += hit.getEnergy();
 
                     hDxDyZ_layer->Fill(dx, dy, hp.z);
                     hDxDy_all->Fill(dx, dy);
@@ -689,19 +717,21 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                 if (best_dr_in_layer < DR_THRESH_MM) {
                     segMinDistance[i] = best_dr_in_layer;
                     segHitEnergy[i]   = best_E_in_layer;
-                    thickness_cm[i]   = getPlasticThicknessCM(*det, decoder, best_cid_in_layer, slice_index, 3);
+                    thickness_cm[i]   = getPlasticDimensionsCM(*det, decoder, best_cid_in_layer, slice_index, 3).z();
                     t_cm = thickness_cm[0];
                 }
                 for(int j = 0; j < SIZE; ++j){
-                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10){++count_DrCuts[j];}
+                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10 /*mm*/){++count_DrCuts[j];}
                     if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_cm[i] * 100)){++count_ECuts[j];}
                 }
+                ratio_HitPartLESum += segHitEnergy[i]/partLayerEnergySum;
                 
             }
 
             if (ST.muTag == 0 && count_DrCuts[SIZE-1] > LAYER_THRESH) m1_has_rec = true;
             if (ST.muTag == 1 && count_DrCuts[SIZE-1] > LAYER_THRESH) m2_has_rec = true;
 
+            if (std::isnan(ratio_HitPartLESum) || fabs(ratio_HitPartLESum - LAYER_MAX) >= 0.1 * LAYER_MAX) continue; 
             for (int j = 0; j < SIZE; ++j){
                 const double p = ST.muTag ? v2.P() : v1.P();
                 if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(p);
@@ -709,7 +739,6 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
                 if (count_DrCuts[SIZE-1] > LAYER_CUTS[j]) hP_pass_LayerCut[j]->Fill(p);
             }
         }   
-        
 
         int nInNH_rec_local = 0;
         if (m1_has_rec) ++nInNH_rec_local;
@@ -793,7 +822,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
             Form("hEff_dr%.1fcm", DR_CUTS_CM[idr]) 
         ); 
         hEff_dr[idr]->SetDirectory(nullptr);
-        hEff_dr[idr]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7); p_{MC} [GeV]; efficiency"); 
+        hEff_dr[idr]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d); p_{MC} [GeV]; efficiency", LAYER_THRESH)); 
         hEff_dr[idr]->Divide(hP_all_mu); 
     } 
 
@@ -817,7 +846,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
             Form("hEff_E%.1fcm", E_CUTS[ie]) 
         ); 
         hEff_E[ie]->SetDirectory(nullptr);
-        hEff_E[ie]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7, dr < 13cm); p_{MC} [GeV]; efficiency"); 
+        hEff_E[ie]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d, dr < %.1f cm); p_{MC} [GeV]; efficiency",LAYER_THRESH, DR_THRESH_MM/10)); 
         hEff_E[ie]->Divide(hP_all_mu); 
     } 
 
@@ -841,7 +870,7 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
             Form("hEff_Layer%d", LAYER_CUTS[il]) 
         ); 
         hEff_Layer[il]->SetDirectory(nullptr);
-        hEff_Layer[il]->SetTitle("Matching efficiency vs p_{MC} (dr < 13cm); p_{MC} [GeV]; efficiency"); 
+        hEff_Layer[il]->SetTitle(Form("Matching efficiency vs p_{MC} (dr < %.1f cm); p_{MC} [GeV]; efficiency", DR_THRESH_MM/10)); 
         hEff_Layer[il]->Divide(hP_all_mu); 
     } 
 

@@ -266,13 +266,14 @@ inline void drawEffPanel(TH1D* h_all,
     leg->Draw();
 }
 
-inline double getPlasticThicknessCM(dd4hep::Detector& det,
+inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
                                     const dd4hep::DDSegmentation::BitFieldCoder* dec,
                                     dd4hep::DDSegmentation::CellID cid,
                                     int slice_idx,
                                     int plastic_slice_value = 3)
 {
     const double NaN = numeric_limits<double>::quiet_NaN();
+    TVector3 dims(NaN, NaN, NaN);
     try {
         if (!dec) throw runtime_error("decoder==nullptr");
         if (dec->get(cid, slice_idx) != plastic_slice_value)
@@ -290,12 +291,17 @@ inline double getPlasticThicknessCM(dd4hep::Detector& det,
         auto* box = dynamic_cast<TGeoBBox*>(vol.solid().ptr());
         if (!box) throw runtime_error("Solid is not TGeoBBox");
 
-        const double dz_cm = box->GetDZ();                     
-        const double thickness_cm = 2.0 * dz_cm;
-        return thickness_cm;
+        dims.SetXYZ(2.0 * box->GetDX(),
+                    2.0 * box->GetDY(),
+                    2.0 * box->GetDZ());
+
+        //const double dz_cm = box->GetDZ();                     
+        //const double thickness_cm = 2.0 * dz_cm;
+        //return thickness_cm;
+        return dims;
     } catch (const exception& e) {
         cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
-        return NaN;
+        return dims;
     }
 }
 
@@ -411,14 +417,17 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     constexpr double E_MAX_GEV = 10.0;
 
     constexpr int    SIZE = 3;
-    constexpr double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
-    constexpr double DR_THRESH_MM = DR_CUTS_CM[2]*10;
     constexpr double MIP_ENERGY_GEV = 0.002; 
     constexpr double E_CUTS[SIZE] = {1.5, 1.7, 2.0}; 
     constexpr double E_THRESH = E_CUTS[2]; 
-    constexpr int    LAYER_CUTS[SIZE] = {5, 6, 7};
-    constexpr int    LAYER_THRESH = LAYER_CUTS[2];
+    constexpr double LAYER_PROC[SIZE] = {0.5, 0.6, 0.7};
+
     double t_cm;
+    double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
+    double DR_THRESH_MM = 10*DR_CUTS_CM[2];
+    int LAYER_MAX = 10;
+    int LAYER_CUTS[SIZE] = {5, 6, 7}; 
+    int LAYER_THRESH = LAYER_CUTS[2];
 
     vector<double> Xbins(NBINS+1), Q2bins(NBINS+1), Ebins(NBINS+1);
     MakeLogBins(Q2bins.data(), NBINS, Q2_MIN, Q2_MAX);
@@ -530,22 +539,30 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
 
         if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
-        set<double> uniqueCentersZ;
+        set<int> uniqueCentersZ10;
         map<double, double> layerData;
         for (const auto& hit : hcalRec) {    
             double z = hit.getPosition().z;
             double zBin = round(z);
             uint64_t cid = hit.getCellID();
             double zCenter_mm = 10 * getPlasticCenterZ_cm(decoder, cellid_converter, cid, slice_index, /*plastic_slice_value=*/3);
-            if (!std::isnan(zCenter_mm)) {uniqueCentersZ.insert(zCenter_mm);}
-
+            if (!std::isnan(zCenter_mm)) {
+                int z10 = lround(zCenter_mm * 10.0); 
+                uniqueCentersZ10.insert(z10); 
+            }
             layerData[zBin] += hit.getEnergy(); 
             hZ_hits->Fill(z);                
             hE_z->Fill(z, hit.getEnergy()); 
             hE->Fill(hit.getEnergy());
         }
 
-        vector<double> layerCentersZ(uniqueCentersZ.begin(), uniqueCentersZ.end());
+        vector<double> layerCentersZ;
+        layerCentersZ.reserve(uniqueCentersZ10.size());
+        for (int z10 : uniqueCentersZ10) layerCentersZ.push_back(z10 / 10.0);
+        if(layerCentersZ.size() > LAYER_MAX) LAYER_MAX = layerCentersZ.size();
+
+        for(size_t n = 0; n < SIZE; n++) LAYER_CUTS[n] = static_cast<int>(LAYER_MAX*LAYER_PROC[n]);
+        LAYER_THRESH = LAYER_CUTS[SIZE-1];
 
         for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
 
@@ -569,12 +586,12 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
 
         for (size_t s = 0; s < segsTagged.size(); ++s) {
 
-            size_t layerCentersZSize = layerCentersZ.size();
-            vector<double> segMinDistance(layerCentersZSize, std::numeric_limits<double>::infinity());
-            vector<double> segHitEnergy(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
-            vector<double> thickness_cm(layerCentersZSize, std::numeric_limits<double>::quiet_NaN());
+            vector<double> segMinDistance(LAYER_MAX, std::numeric_limits<double>::infinity());
+            vector<double> segHitEnergy(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
+            vector<double> thickness_cm(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
             vector<int> count_DrCuts(SIZE, 0);
             vector<int> count_ECuts(SIZE, 0);
+            double ratio_HitPartLESum = 0;
 
             GeomState A{}, B{};
             bool haveA = false, haveB = false;
@@ -596,9 +613,10 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
 
             if (!haveA || !haveB) {continue;}
 
-            for (size_t i = 0; i < layerCentersZSize; ++i) {
+            for (size_t i = 0; i < LAYER_MAX; ++i) {
                 double best_dr_in_layer = 1e10;
                 double best_E_in_layer;
+                double partLayerEnergySum = 0;
                 dd4hep::DDSegmentation::CellID best_cid_in_layer;
 
                 double zc = layerCentersZ[i];
@@ -612,6 +630,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
                     const double dx = X - hp.x;
                     const double dy = Y - hp.y;
                     const double dr = sqrt(dx*dx + dy*dy);
+                    if(dr < 30*10 /*mm*/) partLayerEnergySum += hit.getEnergy();
 
                     hDxDyZ_layer->Fill(dx, dy, hp.z);
                     hDxDy_all->Fill(dx, dy);
@@ -628,16 +647,17 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
                 if (best_dr_in_layer < DR_THRESH_MM) {
                     segMinDistance[i] = best_dr_in_layer;
                     segHitEnergy[i]   = best_E_in_layer;
-                    thickness_cm[i]   = getPlasticThicknessCM(*det, decoder, best_cid_in_layer, slice_index, 3);
+                    thickness_cm[i]   = getPlasticDimensionsCM(*det, decoder, best_cid_in_layer, slice_index, 3).z();
                     t_cm = thickness_cm[0];
                 }
                 for(size_t j = 0; j < SIZE; ++j){
-                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10){++count_DrCuts[j];}
+                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10 /*mm*/){++count_DrCuts[j];}
                     if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_cm[i] * 100)){++count_ECuts[j];}
                 }
-                
+                ratio_HitPartLESum += segHitEnergy[i]/partLayerEnergySum;
             }
 
+            if (std::isnan(ratio_HitPartLESum) || fabs(ratio_HitPartLESum - LAYER_MAX) >= 0.1 * LAYER_MAX) continue;  
             for (int j = 0; j < SIZE; ++j){
                 if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(vLorentzPions[s].P());
                 if (count_ECuts[j] > LAYER_THRESH) hP_pass_ECut[j]->Fill(vLorentzPions[s].P());
@@ -680,7 +700,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             Form("hEff_dr%.1fcm", DR_CUTS_CM[idr]) 
         ); 
         hEff_dr[idr]->SetDirectory(nullptr);
-        hEff_dr[idr]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7); p_{MC} [GeV]; efficiency"); 
+        hEff_dr[idr]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d); p_{MC} [GeV]; efficiency", LAYER_THRESH)); 
         hEff_dr[idr]->Divide(hP_all_pion); 
     } 
 
@@ -704,7 +724,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             Form("hEff_E%.1fcm", E_CUTS[ie]) 
         ); 
         hEff_E[ie]->SetDirectory(nullptr);
-        hEff_E[ie]->SetTitle("Matching efficiency vs p_{MC} (Layers > 7, dr < 13cm); p_{MC} [GeV]; efficiency"); 
+        hEff_E[ie]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d, dr < %.1f cm); p_{MC} [GeV]; efficiency",LAYER_THRESH, DR_THRESH_MM/10)); 
         hEff_E[ie]->Divide(hP_all_pion); 
     } 
 
@@ -728,7 +748,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             Form("hEff_Layer%d", LAYER_CUTS[il]) 
         ); 
         hEff_Layer[il]->SetDirectory(nullptr);
-        hEff_Layer[il]->SetTitle("Matching efficiency vs p_{MC} (dr < 13cm); p_{MC} [GeV]; efficiency"); 
+        hEff_Layer[il]->SetTitle(Form("Matching efficiency vs p_{MC} (dr < %.1f cm); p_{MC} [GeV]; efficiency", DR_THRESH_MM/10)); 
         hEff_Layer[il]->Divide(hP_all_pion); 
     } 
 

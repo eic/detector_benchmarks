@@ -1,8 +1,8 @@
 rule nhcal_dimuon_fotoproduction_presimulate:
     output:
-        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3"
+        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     params:
-        outdir=lambda wc, output: os.path.dirname(output[0])
+        outdir=lambda wc, output: os.path.dirname(output[0]),
     shell:
         """
             benchmarks/nhcal_dimuon_fotoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} 

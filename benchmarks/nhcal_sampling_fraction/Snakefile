@@ -11,9 +11,8 @@ rule nhcal_sampling_fraction_simulate:
     shell:
         """
 set -m
-mkdir -p sim_output/nhcal_sampling_fraction/{wildcards.PARTICLE}/E{wildcards.ENERGY}GeV
-exec ddsim \
-    --compactFile {DETECTOR_PATH}/{DETECTOR_CONFIG} \
+exec npsim \
+    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG} \
     --numberOfEvents {params.N_EVENTS} \
     --random.seed $RANDOM \
     --enableGun \

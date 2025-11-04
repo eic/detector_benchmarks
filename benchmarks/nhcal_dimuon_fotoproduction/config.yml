@@ -5,7 +5,7 @@ sim:nhcal_dimuon_fotoproduction:
     matrix:
       - INDEX_RANGE: ["0 4","5 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB --restart-times 2 $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_fotoproduction/sim_epic_full.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_fotoproduction/sim_epic_full.${INDEX}.edm4hep.root; done)
 
 bench:nhcal_dimuon_fotoproduction_analysis:
   extends: .det_benchmark
@@ -13,7 +13,7 @@ bench:nhcal_dimuon_fotoproduction_analysis:
   needs:
     - "sim:nhcal_dimuon_fotoproduction"
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB --restart-times 2 results/nhcal_dimuon_fotoproduction/analysis_epic_full_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/nhcal_dimuon_fotoproduction/analysis_epic_full_10files.pdf
 
 collect_results:nhcal_dimuon_fotoproduction:
   extends: .det_benchmark

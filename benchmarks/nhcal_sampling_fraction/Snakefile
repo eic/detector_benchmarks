@@ -4,7 +4,7 @@ rule nhcal_sampling_fraction_simulate:
     params:
         N_EVENTS=1000,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
-        DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml"
+        DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     # cache: True

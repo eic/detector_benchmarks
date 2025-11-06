@@ -54,5 +54,5 @@ rule nhcal_sampling_fraction_analysis:
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml"
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{DETECTOR_PATH}/{DETECTOR_CONFIG}")'
+    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
 """

@@ -1,3 +1,10 @@
+import glob
+from pathlib import Path
+
+def get_energy_resolution_files(wildcards):
+    pattern = f"sim_output/nhcal_basic_distribution/energy_resolution_E*GeV_{wildcards.DETECTOR_CONFIG}_*files.root"
+    return sorted(glob.glob(pattern))
+
 rule nhcal_basic_distribution_simulate:
     input:
          warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
@@ -14,19 +21,19 @@ rule nhcal_basic_distribution_simulate:
     # cache: True
     shell:
         """
-exec npsim \
-    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-    --numberOfEvents {params.N_EVENTS} \
-    --random.seed {params.SEED} \
-    --enableGun \
-    -v WARNING \
-    --gun.particle neutron \
-    --gun.thetaMin 120*degree \
-    --gun.thetaMax 180*degree \
-    --gun.distribution uniform \
-    --gun.energy "{params.ENERGY}*GeV" \
-    --outputFile {output}
-"""
+            exec npsim \
+                --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+                --numberOfEvents {params.N_EVENTS} \
+                --random.seed {params.SEED} \
+                --enableGun \
+                -v WARNING \
+                --gun.particle neutron \
+                --gun.thetaMin 120*degree \
+                --gun.thetaMax 180*degree \
+                --gun.distribution uniform \
+                --gun.energy "{params.ENERGY}*GeV" \
+                --outputFile {output}
+        """
 
 
 rule nhcal_basic_distribution_combine:
@@ -41,20 +48,43 @@ rule nhcal_basic_distribution_combine:
         N=r"\d+",
         ENERGY=r"\d+(\.\d+)?"
     output:
-        temp("sim_output/nhcal_basic_distribution/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root"),
+        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
     shell:
         """
-hadd -f {output} {input} 
-"""
+            hadd -f {output} {input} 
+        """
+
 
 rule nhcal_basic_distribution_analysis:
     input:
-        combined="sim_output/nhcal_basic_distribution/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
+        combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
         script="benchmarks/nhcal_basic_distribution/scripts/basic_distribution_analysis.cxx",
     output:
-        pdf=f"results/nhcal_basic_distribution/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
-        png=f"results/nhcal_basic_distribution/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
+        png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
+        root="sim_output/nhcal_basic_distribution/energy_resolution_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.root",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
-"""
+            root -l -b -q '{input.script}("{input.combined}","{output.png}","{output.root}")'
+        """
+    
+rule nhcal_basic_distribution_combine_energy_resolution:
+    input:
+        get_energy_resolution_files
+    output:
+        temp("sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root"),
+    shell:
+        """
+            hadd -f {output} {input} 
+        """
+
+rule nhcal_basic_distribution_analysis_energy_resolution:
+    input:
+        root="sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root",
+        script="benchmarks/nhcal_basic_distribution/scripts/basic_distribution_energy_resolution.cxx",
+    output:
+        png="results/nhcal_basic_distribution/energy_resolution_analysis_{DETECTOR_CONFIG}.png",
+    shell:
+        """
+            root -l -b -q '{input.script}("{input.root}","{output.png}")'
+        """
+

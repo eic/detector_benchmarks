@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS3.edm4hep.root",
                         TString outFile         = "output.root",
                         std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beamspotCanvasName = "beamspot_canvas.png",

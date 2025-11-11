@@ -4,9 +4,11 @@
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 #include "DD4hep/VolumeManager.h"
+#include "DD4hep/DetElement.h"
 #include "TFile.h"
 
 using RVecHits = ROOT::VecOps::RVec<edm4hep::SimTrackerHitData>;
+using namespace dd4hep;
 
 //-----------------------------------------------------------------------------------------
 // Grab Component functor
@@ -183,4 +185,13 @@ TH1F* CreateFittedHistogram(const std::string& histName,
   hist->SetMarkerColor(kRed);
 
   return hist;
+}
+
+void printHierarchy(const DetElement& de, int level = 0) {
+  std::string indent(level * 2, ' ');
+  std::cout << indent << "- " << de.name() << " (ID: " << de.id() << ")\n";
+
+  for (const auto& [childName, child] : de.children()) {
+    printHierarchy(child, level + 1);
+  }
 }

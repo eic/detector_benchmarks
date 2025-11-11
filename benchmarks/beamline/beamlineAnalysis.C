@@ -79,6 +79,13 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
                 }
                 return radii;
                 }, {"pipeParameters"})
+                .Define("isConeSegment",[](const ROOT::VecOps::RVec<volParams>& params) {
+                ROOT::VecOps::RVec<bool> cones;
+                for (const auto& param : params) {
+                    cones.push_back(param.isConeSegment);
+                }
+                return cones;
+                }, {"pipeParameters"})
                 .Define("xdet",[](const ROOT::VecOps::RVec<volParams>& params) {
                 ROOT::VecOps::RVec<double> xPos;
                 for (const auto& param : params) {
@@ -170,6 +177,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
     std::map<TString,double> pipeXPos;
     std::map<TString,double> pipeZPos;
     std::map<TString,double> pipeRotation;
+    std::map<TString,bool> pipeIsConeSegment;
 
     // Queue up all actions
     auto xmin_ptr  = d1.Min("xpos");
@@ -201,6 +209,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
                           .Define("xmomf","xmom[pipeID=="+std::to_string(i)+"]")
                           .Define("ymomf","ymom[pipeID=="+std::to_string(i)+"]")
                           .Define("pipeRadiusf","pipeRadius[pipeID=="+std::to_string(i)+"]")
+                          .Define("isConeSegmentf","isConeSegment[pipeID=="+std::to_string(i)+"]")
                           .Define("xdetf","xdet[pipeID=="+std::to_string(i)+"]")
                           .Define("zdetf","zdet[pipeID=="+std::to_string(i)+"]")
                           .Define("rotationf","rotation[pipeID=="+std::to_string(i)+"]");
@@ -273,6 +282,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         pipeXPos[name]     = filterDF.Max("xdetf").GetValue();
         pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
         pipeRotation[name] = filterDF.Max("rotationf").GetValue();
+        pipeIsConeSegment[name] = filterDF.Max("isConeSegmentf").GetValue();
 
         //Fit gaussian to the x, y, px and py distributions
         auto xhist = hHistsxy[name]->ProjectionX();
@@ -325,12 +335,15 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         cXY->cd(i++);
 
         h->Draw("col");
-        //Draw cicle
-        TEllipse *circle = new TEllipse(0,0,pipeRadius);
-        circle->SetLineColor(kRed);
-        circle->SetLineWidth(2);
-        circle->SetFillStyle(0);
-        circle->Draw("same");
+        
+        // Only draw circle overlay if the shape is a cone segment
+        if (pipeIsConeSegment[name] && pipeRadius > 0) {
+            TEllipse *circle = new TEllipse(0,0,pipeRadius);
+            circle->SetLineColor(kRed);
+            circle->SetLineWidth(2);
+            circle->SetFillStyle(0);
+            circle->Draw("same");
+        }
 
         // Add zoomed version in the top-right corner
         TPad *pad = new TPad("zoomPad", "Zoomed View", 0.65, 0.65, 1.0, 1.0);

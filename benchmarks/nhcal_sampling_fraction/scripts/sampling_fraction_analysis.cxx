@@ -98,38 +98,31 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         return 1;
     }
 
+    constexpr int NBINS = 50; 
+
+    constexpr double E_MIN_GEV = 0.0;
+    constexpr double E_MAX_GEV = 12.0;
+    constexpr double SAMP_F_MIN = 0.0;
+    constexpr double SAMP_F_MAX = 1.0;
+    constexpr double SAMP_F_LOW = 0.2;
+
     TH2D *h_sampF_e = new TH2D("h_sampF_e", "nHCal sampling fraction vs. energy (e-); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_e = new TProfile("p_sampF_e", "nHCal sampling fraction vs. energy (e-); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);
-    
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_MAX);
+   
     TH2D *h_sampF_n = new TH2D("h_sampF_n", "nHCal sampling fraction vs. energy (neutron); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_n = new TProfile("p_sampF_n", "nHCal sampling fraction vs. energy (neutron); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);                                        
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_MAX);
 
     TH2D *h_sampF_pi = new TH2D("h_sampF_pi", "nHCal sampling fraction vs. energy (#pi-); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_pi = new TProfile("p_sampF_pi", "nHCal sampling fraction vs. energy (#pi-); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);   
-                                            
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_MAX);                                           
     
     TH2D *h_sampF_e_Ekin = new TH2D("h_sampF_e_Ekin", "nHCal sampling fraction vs. energy kin (e-); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_e_Ekin = new TProfile("p_sampF_e_Ekin", "nHCal sampling fraction vs. energy kin (e-); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);
-    
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_LOW);
+   
     TH2D *h_sampF_n_Ekin = new TH2D("h_sampF_n_Ekin", "nHCal sampling fraction vs. energy kin (neutron); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_n_Ekin = new TProfile("p_sampF_n_Ekin", "nHCal sampling fraction vs. energy kin (neutron); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);                                        
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_LOW);
 
     TH2D *h_sampF_pi_Ekin = new TH2D("h_sampF_pi_Ekin", "nHCal sampling fraction vs. energy kin (#pi-); E [GeV]; sampling fraction; counts", 
-                                            50, 0.0, 12.0, 50, 0.0, 1.0);
-    TProfile *p_sampF_pi_Ekin = new TProfile("p_sampF_pi_Ekin", "nHCal sampling fraction vs. energy kin (#pi-); E [GeV]; sampling fraction", 
-                                            50, 0.0, 12.0, 0.0, 1.0);  
-
-
+                                            NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_LOW);
 
     for (unsigned ev = 0; ev < nEvents; ev++) 
     {
@@ -172,31 +165,43 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         if (pdg == 11)               // e-
         {
             h_sampF_e->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
-		    p_sampF_e->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
             h_sampF_e_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
-		    p_sampF_e_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }
         else if (pdg == -211)        // pi-
         {
             h_sampF_pi->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
-		    p_sampF_pi->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
             h_sampF_pi_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
-		    p_sampF_pi_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }
         else if (pdg == 2112)        // neutron
         {
             h_sampF_n->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
-		    p_sampF_n->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
             h_sampF_n_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
-		    p_sampF_n_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }   
     }
 
     delete reader; 
 
-    TProfile *p_e_over_pi = (TProfile*) p_sampF_e->Clone("p_e_over_pi");
-    p_e_over_pi->SetTitle("e/h ratio;E [GeV];e/h");
-    p_e_over_pi->Divide(p_sampF_pi);
+    h_sampF_e->Sumw2();
+    h_sampF_e_Ekin->Sumw2();
+    h_sampF_pi->Sumw2();
+    h_sampF_pi_Ekin->Sumw2();
+    h_sampF_n->Sumw2();
+    h_sampF_n_Ekin->Sumw2();
+
+    TProfile* p_sampF_e = h_sampF_e->ProfileX();                p_sampF_e ->SetTitle("nHCal sampling fraction vs. energy (e-); E [GeV]; sampling fraction");
+    TProfile* p_sampF_e_Ekin = h_sampF_e_Ekin->ProfileX();      p_sampF_e_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (e-); E [GeV]; sampling fraction");
+    TProfile* p_sampF_pi = h_sampF_pi->ProfileX();              p_sampF_pi ->SetTitle("nHCal sampling fraction vs. energy (#pi-); E [GeV]; sampling fraction");
+    TProfile* p_sampF_pi_Ekin = h_sampF_pi_Ekin->ProfileX();    p_sampF_pi_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (#pi-); E [GeV]; sampling fraction");
+    TProfile* p_sampF_n = h_sampF_n->ProfileX();                p_sampF_n ->SetTitle("nHCal sampling fraction vs. energy (neutron); E [GeV]; sampling fraction");
+    TProfile* p_sampF_n_Ekin = h_sampF_n_Ekin->ProfileX();      p_sampF_n_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (neutron); E [GeV]; sampling fraction");
+
+    TH1D *h_e = p_sampF_e->ProjectionX("h_e");
+    TH1D *h_pi = p_sampF_pi->ProjectionX("h_pi");
+
+    TH1D *h_e_over_pi = (TH1D*)h_e->Clone("h_e_over_pi");
+    h_e_over_pi->SetTitle("e/h ratio;E [GeV];e/h");
+    h_e_over_pi->Divide(h_e, h_pi, 1, 1); 
+
 
     TCanvas *c_h = new TCanvas("canvas_h", "c_h", 1600, 800);
     c_h->Divide(2,2);
@@ -224,14 +229,17 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     p_sampF_n->SetLineWidth(3); p_sampF_n->SetLineColor(kRed); p_sampF_n->SetMarkerColor(kRed);
     p_sampF_n->Draw();
     c_p->cd(4);
-    p_e_over_pi->Draw();
+    h_e_over_pi->Draw();
 
     c_p->SaveAs(addPrefixAfterSlash(outname_png, "profile_Ehit_").c_str());
     c_p->SaveAs(addPrefixAfterSlash(outname_pdf, "profile_Ehit_").c_str());
 
-    TProfile *p_e_over_pi_Ekin = (TProfile*) p_sampF_e_Ekin->Clone("p_e_over_pi");
-    p_e_over_pi_Ekin->SetTitle("e/h ratio;E [GeV];e/h");
-    p_e_over_pi_Ekin->Divide(p_sampF_pi_Ekin);
+    TH1D *h_e_Ekin = p_sampF_e_Ekin->ProjectionX("h_e_Ekin");
+    TH1D *h_pi_Ekin = p_sampF_pi_Ekin->ProjectionX("h_pi_Ekin");
+
+    TH1D *h_e_over_pi_Ekin = (TH1D*)h_e_Ekin->Clone("h_e_over_pi_Ekin");
+    h_e_over_pi_Ekin->SetTitle("e/h ratio;E [GeV];e/h");
+    h_e_over_pi_Ekin->Divide(h_e_Ekin, h_pi_Ekin, 1, 1); 
 
     TCanvas *c_h_Ekin = new TCanvas("canvas_h_Ekin", "c_h_Ekin", 1600, 800);
     c_h_Ekin->Divide(2,2);
@@ -259,7 +267,7 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     p_sampF_n_Ekin->SetLineWidth(3); p_sampF_n_Ekin->SetLineColor(kRed); p_sampF_n_Ekin->SetMarkerColor(kRed);
     p_sampF_n_Ekin->Draw();
     c_p_Ekin->cd(4);
-    p_e_over_pi_Ekin->Draw();
+    h_e_over_pi_Ekin->Draw();
 
     c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_png, "profile_Ekin_").c_str());
     c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "profile_Ekin_").c_str());

@@ -420,14 +420,14 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     constexpr double MIP_ENERGY_GEV = 0.002; 
     constexpr double E_CUTS[SIZE] = {1.5, 1.7, 2.0}; 
     constexpr double E_THRESH = E_CUTS[2]; 
-    constexpr double LAYER_PROC[SIZE] = {0.5, 0.6, 0.7};
+    constexpr double LAYER_PROC[SIZE] = {0.6, 0.7, 0.8};
 
     double t_cm;
     double DR_CUTS_CM[SIZE] = {7.0, 10.0, 13.0};
     double DR_THRESH_MM = 10*DR_CUTS_CM[2];
     int LAYER_MAX = 10;
     int LAYER_CUTS[SIZE] = {5, 6, 7}; 
-    int LAYER_THRESH = LAYER_CUTS[2];
+    int LAYER_THRESH = LAYER_CUTS[0];
 
     vector<double> Xbins(NBINS+1), Q2bins(NBINS+1), Ebins(NBINS+1);
     MakeLogBins(Q2bins.data(), NBINS, Q2_MIN, Q2_MAX);
@@ -562,7 +562,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         if(layerCentersZ.size() > LAYER_MAX) LAYER_MAX = layerCentersZ.size();
 
         for(size_t n = 0; n < SIZE; n++) LAYER_CUTS[n] = static_cast<int>(LAYER_MAX*LAYER_PROC[n]);
-        LAYER_THRESH = LAYER_CUTS[SIZE-1];
+        LAYER_THRESH = LAYER_CUTS[0];
 
         for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
 
@@ -591,7 +591,6 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             vector<double> thickness_cm(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
             vector<int> count_DrCuts(SIZE, 0);
             vector<int> count_ECuts(SIZE, 0);
-            double ratio_HitPartLESum = 0;
 
             GeomState A{}, B{};
             bool haveA = false, haveB = false;
@@ -617,6 +616,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
                 double best_dr_in_layer = 1e10;
                 double best_E_in_layer;
                 double partLayerEnergySum = 0;
+                double ratio_HitPartLayerEnergy = 0;
                 dd4hep::DDSegmentation::CellID best_cid_in_layer;
 
                 double zc = layerCentersZ[i];
@@ -650,14 +650,13 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
                     thickness_cm[i]   = getPlasticDimensionsCM(*det, decoder, best_cid_in_layer, slice_index, 3).z();
                     t_cm = thickness_cm[0];
                 }
+                ratio_HitPartLayerEnergy += segHitEnergy[i]/partLayerEnergySum;
+                if (std::isnan(ratio_HitPartLayerEnergy) || fabs(ratio_HitPartLayerEnergy - 1) >= 0.2) continue; 
                 for(size_t j = 0; j < SIZE; ++j){
                     if (segMinDistance[i] < DR_CUTS_CM[j] * 10 /*mm*/){++count_DrCuts[j];}
                     if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_cm[i] * 100)){++count_ECuts[j];}
                 }
-                ratio_HitPartLESum += segHitEnergy[i]/partLayerEnergySum;
             }
-
-            if (std::isnan(ratio_HitPartLESum) || fabs(ratio_HitPartLESum - LAYER_MAX) >= 0.1 * LAYER_MAX) continue;  
             for (int j = 0; j < SIZE; ++j){
                 if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(vLorentzPions[s].P());
                 if (count_ECuts[j] > LAYER_THRESH) hP_pass_ECut[j]->Fill(vLorentzPions[s].P());
@@ -690,82 +689,82 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     c_hitTrackDistance->SaveAs(addPrefixAfterSlash(outname_png, "hitTrackDistance_").c_str());              
     c_hitTrackDistance->SaveAs(addPrefixAfterSlash(outname_pdf, "hitTrackDistance_").c_str()); 
 
-    TCanvas* c_matchingEff = new TCanvas("c_matchingEff", "Pion matching efficiency analysis", 1600, 1000);
-    c_matchingEff->Divide(2,2);                        
-    c_matchingEff->cd(1); gPad->SetGrid(); hP_all_pion->SetLineColor(kBlack); hP_all_pion->Draw();  
-    c_matchingEff->cd(2); gPad->SetGrid();                                                       
+    TCanvas* c_Eff = new TCanvas("c_Eff", "Pion efficiency analysis", 1600, 1000);
+    c_Eff->Divide(2,2);                        
+    c_Eff->cd(1); gPad->SetGrid(); hP_all_pion->SetLineColor(kBlack); hP_all_pion->Draw();  
+    c_Eff->cd(2); gPad->SetGrid();                                                       
     TH1D* hEff_dr[3]; 
     for (int idr=0; idr<3; ++idr) { 
         hEff_dr[idr] = (TH1D*)hP_pass_dr[idr]->Clone( 
             Form("hEff_dr%.1fcm", DR_CUTS_CM[idr]) 
         ); 
         hEff_dr[idr]->SetDirectory(nullptr);
-        hEff_dr[idr]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d); p_{MC} [GeV]; efficiency", LAYER_THRESH)); 
-        hEff_dr[idr]->Divide(hP_all_pion); 
+        hEff_dr[idr]->SetTitle(Form("Efficiency vs p_{MC} (Layers > %d); p_{MC} [GeV]; efficiency", LAYER_THRESH)); 
+        hEff_dr[idr]->Divide(hP_pass_dr[idr], hP_all_pion, 1, 1, "B");
     } 
 
     hEff_dr[0]->SetLineColor(kBlue); hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.4); 
     hEff_dr[1]->SetLineColor(kRed);   
     hEff_dr[2]->SetLineColor(kGreen+2); 
 
-    hEff_dr[0]->Draw("HIST");            
-    hEff_dr[1]->Draw("HIST SAME");       
-    hEff_dr[2]->Draw("HIST SAME");       
+    hEff_dr[0]->Draw("HIST E");            
+    hEff_dr[1]->Draw("HIST E SAME");       
+    hEff_dr[2]->Draw("HIST E SAME");       
     { auto leg_dr = new TLegend(0.60,0.70,0.88,0.88);
         for(int idr=0; idr<3; ++idr)
         {leg_dr->AddEntry(hEff_dr[idr],Form("dr < %.1f cm", DR_CUTS_CM[idr]),"l");} 
         leg_dr->Draw(); 
     }  
                                                                    
-    c_matchingEff->cd(3); gPad->SetGrid();                                                        
+    c_Eff->cd(3); gPad->SetGrid();                                                        
     TH1D* hEff_E[3]; 
     for (int ie=0; ie<3; ++ie) { 
         hEff_E[ie] = (TH1D*)hP_pass_ECut[ie]->Clone( 
             Form("hEff_E%.1fcm", E_CUTS[ie]) 
         ); 
         hEff_E[ie]->SetDirectory(nullptr);
-        hEff_E[ie]->SetTitle(Form("Matching efficiency vs p_{MC} (Layers > %d, dr < %.1f cm); p_{MC} [GeV]; efficiency",LAYER_THRESH, DR_THRESH_MM/10)); 
-        hEff_E[ie]->Divide(hP_all_pion); 
+        hEff_E[ie]->SetTitle(Form("Efficiency vs p_{MC} (Layers > %d, dr < %.1f cm); p_{MC} [GeV]; efficiency",LAYER_THRESH, DR_THRESH_MM/10)); 
+        hEff_E[ie]->Divide(hP_pass_ECut[ie], hP_all_pion, 1, 1, "B");
     } 
 
     hEff_E[0]->SetLineColor(kBlue); hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.4); 
     hEff_E[1]->SetLineColor(kRed);   
     hEff_E[2]->SetLineColor(kGreen+2); 
 
-    hEff_E[0]->Draw("HIST");            
-    hEff_E[1]->Draw("HIST SAME");       
-    hEff_E[2]->Draw("HIST SAME");       
+    hEff_E[0]->Draw("HIST E");            
+    hEff_E[1]->Draw("HIST E SAME");       
+    hEff_E[2]->Draw("HIST E SAME");       
     { auto leg_E = new TLegend(0.60,0.70,0.88,0.88);
         for(int ie=0; ie<3; ++ie)
         {leg_E->AddEntry(hEff_E[ie],Form("E < %.1f MIP", E_CUTS[ie]),"l");}  
         leg_E->Draw(); 
     }
     
-    c_matchingEff->cd(4); gPad->SetGrid();
+    c_Eff->cd(4); gPad->SetGrid();
     TH1D* hEff_Layer[3]; 
     for (int il=0; il<3; ++il) { 
         hEff_Layer[il] = (TH1D*)hP_pass_LayerCut[il]->Clone( 
             Form("hEff_Layer%d", LAYER_CUTS[il]) 
         ); 
         hEff_Layer[il]->SetDirectory(nullptr);
-        hEff_Layer[il]->SetTitle(Form("Matching efficiency vs p_{MC} (dr < %.1f cm); p_{MC} [GeV]; efficiency", DR_THRESH_MM/10)); 
-        hEff_Layer[il]->Divide(hP_all_pion); 
+        hEff_Layer[il]->SetTitle(Form("Efficiency vs p_{MC} (dr < %.1f cm); p_{MC} [GeV]; efficiency", DR_THRESH_MM/10)); 
+        hEff_Layer[il]->Divide(hP_pass_LayerCut[il], hP_all_pion, 1, 1, "B");
     } 
 
     hEff_Layer[0]->SetLineColor(kBlue); hEff_Layer[0]->SetMinimum(0.0); hEff_Layer[0]->SetMaximum(1.4); 
     hEff_Layer[1]->SetLineColor(kRed);   
     hEff_Layer[2]->SetLineColor(kGreen+2); 
 
-    hEff_Layer[0]->Draw("HIST");            
-    hEff_Layer[1]->Draw("HIST SAME");       
-    hEff_Layer[2]->Draw("HIST SAME");       
+    hEff_Layer[0]->Draw("HIST E");            
+    hEff_Layer[1]->Draw("HIST E SAME");       
+    hEff_Layer[2]->Draw("HIST E SAME");       
     { auto leg_Layer = new TLegend(0.60,0.70,0.88,0.88);
         for(int il=0; il<3; ++il)
         {leg_Layer->AddEntry(hEff_Layer[il],Form("L > %d Layers", LAYER_CUTS[il]),"l");}  
         leg_Layer->Draw(); 
     }  
-    c_matchingEff->SaveAs(addPrefixAfterSlash(outname_png, "matching_efficiency_").c_str());              
-    c_matchingEff->SaveAs(addPrefixAfterSlash(outname_pdf, "matching_efficiency_").c_str()); 
+    c_Eff->SaveAs(addPrefixAfterSlash(outname_png, "matching_efficiency_").c_str());              
+    c_Eff->SaveAs(addPrefixAfterSlash(outname_pdf, "matching_efficiency_").c_str()); 
     
     TCanvas* c_hEnergy = new TCanvas("c_hEnergy", "Pion hit energy analysis", 1600, 1000);
     c_hEnergy->Divide(2,2); 
@@ -793,7 +792,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     delete c;
     delete c_hitTrack;
     delete c_hitTrackDistance;
-    delete c_matchingEff;
+    delete c_Eff;
     delete c_hEnergy;
 
     return 0;

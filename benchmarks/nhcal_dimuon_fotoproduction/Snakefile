@@ -10,7 +10,7 @@ rule nhcal_dimuon_fotoproduction_presimulate:
 
 rule nhcal_dimuon_fotoproduction_simulate:
     input:
-        "benchmarks/nhcal_dimuon_fotoproduction/sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
+        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     output:
         "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:

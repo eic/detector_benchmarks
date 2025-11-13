@@ -1,17 +1,5 @@
 import os
 
-rule compile_analysis:
-    input:
-        "{path}/{filename}.cxx",
-    output:
-        "{path}/{filename}_cxx.d",
-        "{path}/{filename}_cxx.so",
-        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
-    shell:
-        """
-root -l -b -q -e '.L {input}+'
-"""
-
 rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",

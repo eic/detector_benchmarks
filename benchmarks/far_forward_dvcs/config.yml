@@ -3,8 +3,10 @@ sim:far_forward_dvcs:
   stage: simulate
   timeout: 4 hours
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/far_forward_dvcs/epic_craterlake_10x100/DVCS.1.ab.hiAcc.10x100.eicrecon.edm4eic.root
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/far_forward_dvcs/epic_craterlake_5x41/DVCS.1.ab.hiAcc.5x41.eicrecon.edm4eic.root
+    -|
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
+        sim_output/far_forward_dvcs/epic_craterlake_10x100/DVCS.1.ab.hiAcc.10x100.eicrecon.edm4eic.root \
+        sim_output/far_forward_dvcs/epic_craterlake_5x41/DVCS.1.ab.hiAcc.5x41.eicrecon.edm4eic.root
   retry:
     max: 2
     when:

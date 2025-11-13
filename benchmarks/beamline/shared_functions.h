@@ -6,6 +6,9 @@
 #include "DD4hep/VolumeManager.h"
 #include "DD4hep/DetElement.h"
 #include "TFile.h"
+#include "TGeoShape.h"
+#include "TGeoBBox.h"
+#include "TPolyLine.h"
 
 using RVecHits = ROOT::VecOps::RVec<edm4hep::SimTrackerHitData>;
 using namespace dd4hep;
@@ -241,8 +244,6 @@ private:
 //-----------------------------------------------------------------------------------------
 // Helper function to draw shape outline on a canvas
 //-----------------------------------------------------------------------------------------
-#include "TPolyLine.h"
-
 void drawShapeOutline(const std::vector<std::pair<double, double>>& outline, 
                       int lineColor = kRed, 
                       int lineWidth = 2) {

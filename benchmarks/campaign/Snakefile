@@ -10,12 +10,9 @@ rule campaign_run:
                 "npsim.prmon.log",
                 "eicrecon.prmon.txt",
                 "npsim.prmon.json",
-                "hepmcmerger.prmon.txt",
                 "eicrecon.dot",
-                "hepmcmerger.prmon.json",
                 "eicrecon.prmon.json",
                 "npsim.prmon.txt",
-                "hepmcmerger.log",
                 "eicrecon.log",
             ],
         ),
@@ -64,7 +61,6 @@ rule campaign_benchmark:
         expand(
             "LOG/main/epic/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.{PROG}.{MODE}.png",
             PROG=[
-                "hepmcmerger",
                 "npsim",
                 "eicrecon",
             ],

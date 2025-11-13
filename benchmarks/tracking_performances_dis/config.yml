@@ -1,6 +1,7 @@
 sim:tracking_performances_dis:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/tracking_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/hists.root
   retry:

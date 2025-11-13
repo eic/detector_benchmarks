@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/acceptanceTest.edm4hep.root",
+int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS2.edm4hep.root",
                         TString outFile            = "output.root",
                         std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beampipeCanvasName = "acceptance_in_beampipe.png",

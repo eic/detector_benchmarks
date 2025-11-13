@@ -1,10 +1,11 @@
-image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
+image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}${BENCHMARKS_SIGIL}${BENCHMARKS_TAG}
 
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  GITHUB_SHA: ''
+  GITHUB_PR: ''
   GITHUB_REPOSITORY: ''
+  GITHUB_SHA: ''
   SNAKEMAKE_FLAGS: '--cache'
 
 workflow:
@@ -127,6 +128,8 @@ include:
   - local: 'benchmarks/calo_pid/config.yml'
   - local: 'benchmarks/campaign/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
+  - local: 'benchmarks/far_forward_dvcs/config.yml'
+  - local: 'benchmarks/lowq2_reconstruction/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
@@ -163,7 +166,9 @@ deploy_results:
     - "collect_results:calo_pid"
     - "collect_results:campaign"
     - "collect_results:ecal_gaps"
+    - "collect_results:far_forward_dvcs"
     - "collect_results:lfhcal"
+    - "collect_results:lowq2_reconstruction"
     - "collect_results:material_scan"
     - "collect_results:pid"
     - "collect_results:rich"

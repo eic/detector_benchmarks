@@ -1,7 +1,7 @@
 def get_n_events(wildcards):
     energy = float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))
     n_events = 1000 if wildcards.PARTICLE == "e-" else 2000
-    n_events = int(n_events // (energy ** 0.5))
+    n_events = int(n_events // (energy ** 0.75))
     return n_events
 
 
@@ -30,7 +30,7 @@ rule backwards_ecal_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
@@ -45,7 +45,7 @@ exec ddsim \
 
 rule backwards_ecal_recon:
     input:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -60,7 +60,7 @@ rule backwards_ecal_recon:
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters
 """
 

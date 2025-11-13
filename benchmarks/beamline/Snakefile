@@ -1,6 +1,10 @@
 SIMOUTDIR="sim_output/beamline/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
 
+##########################################################################################
+### Rules for checking the steering of the electron beam through the magnets
+##########################################################################################
+
 rule beamline_steering_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
@@ -20,30 +24,9 @@ rule beamline_steering_sim:
             --physics.rangecut 100*m
         """
 
-rule beamline_acceptance_sim:
-    input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        macro=workflow.source_path("acceptanceGPS.mac"),
-    output:
-        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
-    shell:
-        """
-            exec npsim \
-            --runType run \
-            --random.seed 1 \
-            --enableG4GPS \
-            --macroFile {input.macro} \
-            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
-            --printLevel WARNING \
-            --outputFile {output} \
-            --physics.rangecut 100*m
-        """
-
 rule beamline_steering_analysis:
-    params:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         script=workflow.source_path("beamlineAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
@@ -55,6 +38,8 @@ rule beamline_steering_analysis:
         fitted_position_means_stdevs_canvas=ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         fitted_momentum_means_stdevs_canvas=ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
         pipe_parameter_canvas=ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
@@ -63,11 +48,32 @@ rule beamline_steering_analysis:
             "{output.pipe_parameter_canvas}")'
         """
 
-rule beamline_acceptance_analysis:
-    params:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+##########################################################################################
+### Rules for checking the acceptance of electrons at each stage of the beamline
+##########################################################################################
+
+rule beamline_acceptance_sim:
     input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        macro=workflow.source_path("acceptanceGPS.mac"),
+    output:
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+    cache: True
+    shell:
+        """
+            exec npsim \
+            --runType run \
+            --random.seed 1 \
+            --enableG4GPS \
+            --macroFile {input.macro} \
+            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --outputFile {output} \
+            --physics.rangecut 100*m
+        """
+
+rule beamline_acceptance_analysis:
+    input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
         script=workflow.source_path("acceptanceAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
@@ -77,12 +83,17 @@ rule beamline_acceptance_analysis:
         etheta_canvas=ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         etheta_acceptance_canvas=ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
         entries_canvas=ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png",
+    params:
+        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
             root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
             "{output.entries_canvas}")'
         """
 
+##########################################################################################
+# Combine results
+##########################################################################################
 rule beamline:
     input:
         ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
@@ -96,15 +107,18 @@ rule beamline:
         ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
-        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png", 
+        ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png"
     output:
-        directory("results/beamline/{CAMPAIGN}/")
+        directory("results/beamline/steering_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}        
-            cp {input} {output}
+            cp -r {input} {output}
         """
 
+##########################################################################################
+# Defualt running
+##########################################################################################
 rule beamline_local:
     input:
-        "results/beamline/local/"
+        "results/beamline/steering_local/"

@@ -26,7 +26,7 @@ rule ecal_gaps_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
@@ -41,7 +41,7 @@ exec ddsim \
 
 rule ecal_gaps_recon:
     input:
-        "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/ecal_gaps/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -56,7 +56,7 @@ rule ecal_gaps_recon:
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
 """
 

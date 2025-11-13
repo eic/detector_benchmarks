@@ -31,7 +31,7 @@ rule calo_pid_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
   --runType batch \
   --enableGun \
   --gun.momentumMin "{params.ENERGY_MIN}" \
@@ -51,7 +51,7 @@ exec ddsim \
 
 rule calo_pid_recon:
     input:
-        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -65,7 +65,7 @@ rule calo_pid_recon:
     cache: True
     shell: """
 DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-exec eicrecon {input} -Ppodio:output_file={output} \
+exec eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNParticleIDInput_features,EcalEndcapNParticleIDTarget,EcalEndcapNParticleIDOutput_probability_tensor
 """
 

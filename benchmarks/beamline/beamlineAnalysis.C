@@ -178,6 +178,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     std::map<TString,double> pipeZPos;
     std::map<TString,double> pipeRotation;
     std::map<TString,bool> pipeIsConeSegment;
+    std::map<TString,volParams> pipeParams;
 
     // Queue up all actions
     auto xmin_ptr  = d1.Min("xpos");
@@ -210,6 +211,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
                           .Define("ymomf","ymom[pipeID=="+std::to_string(i)+"]")
                           .Define("pipeRadiusf","pipeRadius[pipeID=="+std::to_string(i)+"]")
                           .Define("isConeSegmentf","isConeSegment[pipeID=="+std::to_string(i)+"]")
+                          .Define("pipeParametersf","pipeParameters[pipeID=="+std::to_string(i)+"]")
                           .Define("xdetf","xdet[pipeID=="+std::to_string(i)+"]")
                           .Define("zdetf","zdet[pipeID=="+std::to_string(i)+"]")
                           .Define("rotationf","rotation[pipeID=="+std::to_string(i)+"]");
@@ -283,6 +285,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
         pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
         pipeRotation[name] = filterDF.Max("rotationf").GetValue();
         pipeIsConeSegment[name] = filterDF.Max("isConeSegmentf").GetValue();
+        pipeParams[name] = filterDF.Max("pipeParametersf").GetValue();
 
         //Fit gaussian to the x, y, px and py distributions
         auto xhist = hHistsxy[name]->ProjectionX();
@@ -343,6 +346,9 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
             circle->SetLineWidth(2);
             circle->SetFillStyle(0);
             circle->Draw("same");
+        } else if (!pipeParams[name].shapeOutline.empty()) {
+            // Draw arbitrary shape outline for non-cone segments
+            drawShapeOutline(pipeParams[name].shapeOutline, kRed, 2);
         }
 
         // Add zoomed version in the top-right corner

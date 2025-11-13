@@ -85,5 +85,6 @@ root -l -b -q '{input.script}+("{output.list}", "{output.dir}")'
 rule far_forward_dvcs_run_locally:
     input:
         "results/far_forward_dvcs/epic_craterlake_10x100/10x100/",
+        "results/far_forward_dvcs/epic_craterlake_5x41/5x41/",
     message:
-        "See output in {input[0]}"
+        "See output in input"

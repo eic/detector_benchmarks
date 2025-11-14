@@ -87,4 +87,4 @@ rule far_forward_dvcs_run_locally:
         "results/far_forward_dvcs/epic_craterlake_10x100/10x100/",
         "results/far_forward_dvcs/epic_craterlake_5x41/5x41/",
     message:
-        "See output in input"
+        "See output in {input[0]} {input[1]}"

@@ -17,11 +17,15 @@ root -l -b -q '{input.script}+("{output}", {params.JUGGLER_N_EVENTS}, {wildcards
 
 rule emcal_barrel_particles:
     input:
-        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc"
+        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
+        geometry_lib=find_epic_libraries(),
     params:
         JUGGLER_N_EVENTS = 100,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
     output:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes

@@ -16,10 +16,14 @@ rule zdc_neutron_sim:
     input:
         hepmcfile="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.hepmc",
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
     params:
         num_events=100,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 exec npsim \
@@ -40,6 +44,9 @@ rule zdc_neutron_reco:
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
+    params:
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes

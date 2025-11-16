@@ -23,10 +23,15 @@ rule filter_hepmc_for_training:
 # Run pythia6 Low-Q2 events through the simulation
 rule lowq2_training_sim:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",  
-        events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",      
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
+        geometry_lib=find_epic_libraries(),
     output:
         SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+    params:
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
             exec npsim \
@@ -45,11 +50,13 @@ rule lowq2_reconstruction_particles_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile",
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    cache: True
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -67,11 +74,13 @@ rule lowq2_reconstruction_tensors_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="BackwardsBeamlineHits,TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile",
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
+    cache: True
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -110,12 +119,14 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile",
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
         onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+    cache: True
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=500000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \

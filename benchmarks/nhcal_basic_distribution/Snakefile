@@ -1,6 +1,7 @@
 rule nhcal_basic_distribution_simulate:
     input:
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:

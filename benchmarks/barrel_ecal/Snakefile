@@ -17,7 +17,7 @@ root -l -b -q '{input.script}+("{output}", {params.JUGGLER_N_EVENTS}, {wildcards
 
 rule emcal_barrel_particles:
     input:
-        "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
+        hepmc="data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
         geometry_lib=find_epic_libraries(),
     params:
         JUGGLER_N_EVENTS = 100,
@@ -36,7 +36,7 @@ exec npsim \
    --filter.tracker edep0 \
    --numberOfEvents {params.JUGGLER_N_EVENTS} \
    --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
-   --inputFiles {input} \
+   --inputFiles {input.hepmc} \
    --outputFile {output}
 """
 

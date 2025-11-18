@@ -41,7 +41,7 @@ npsim \
 
 rule lfhcal_recon:
     input:
-        "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
         warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
     output:
         "sim_output/lfhcal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -54,7 +54,7 @@ rule lfhcal_recon:
     cache: True
     shell: """
 env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,ReconstructedParticles,LFHCALTruthClusters,LFHCALClusters,LFHCALHits,EcalEndcapPTruthClusters,EcalEndcapPClusters,EcalEndcapPHits
 """
 

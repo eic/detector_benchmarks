@@ -28,16 +28,16 @@ Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 df = pd.DataFrame({})
 for eng in Energy:
     tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.edm4eic.root')['events']
-    ecal_reco_energy = list(map(sum, tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array()))
-    hcal_reco_energy = list(map(sum, tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array()))
-    ecal_rec_energy = list(map(sum, tree['EcalFarForwardZDCRecHits/EcalFarForwardZDCRecHits.energy'].array()))
-    hcal_rec_energy = list(map(sum, tree['HcalFarForwardZDCRecHits/HcalFarForwardZDCRecHits.energy'].array()))
+    ecal_reco_energy = ak.sum(tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    hcal_reco_energy = ak.sum(tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    ecal_rec_energy = ak.sum(tree['EcalFarForwardZDCRecHits/EcalFarForwardZDCRecHits.energy'].array(), axis=-1)
+    hcal_rec_energy = ak.sum(tree['HcalFarForwardZDCRecHits/HcalFarForwardZDCRecHits.energy'].array(), axis=-1)
     ecal_reco_clusters = [len(row) if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
     ecal_reco_nhits = [row[0] if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
     
     tree = uproot.open(f'sim_output/zdc_lyso/{os.environ["DETECTOR_CONFIG"]}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.root')['events']
-    ecal_sim_energy = list(map(sum, tree['EcalFarForwardZDCHits/EcalFarForwardZDCHits.energy'].array()))
-    hcal_sim_energy = list(map(sum, tree['HcalFarForwardZDCHits/HcalFarForwardZDCHits.energy'].array()))
+    ecal_sim_energy = ak.sum(tree['EcalFarForwardZDCHits/EcalFarForwardZDCHits.energy'].array(), axis=-1)
+    hcal_sim_energy = ak.sum(tree['HcalFarForwardZDCHits/HcalFarForwardZDCHits.energy'].array(), axis=-1)
 
     par_x = tree['MCParticles/MCParticles.momentum.x'].array()[:,2]
     par_y = tree['MCParticles/MCParticles.momentum.y'].array()[:,2]

@@ -97,6 +97,7 @@ common:setup:
     - mkdir -p results
     - mkdir -p config
     - print_env.sh
+    - eic-info
     - |
       flock --nonblock /scratch/garbage-collect.lock \
         ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \

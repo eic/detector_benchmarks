@@ -8,7 +8,7 @@
 /gps/particle e-
 /gps/ene/type Lin
 /gps/ene/gradient 0.00001
-/gps/ene/min 6 GeV
+/gps/ene/min 2 GeV
 /gps/ene/max 18 GeV
 
 /run/beamOn 1000000

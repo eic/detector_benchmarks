@@ -142,7 +142,7 @@ rule lowq2_reconstruction_particles_test:
         xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{CAMPAIGN}.png",   
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
+        root -l -b -q '{input.script}("{input.data}", 18, 275, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
         """
 
 # Check the resloutions and offsets are within tollerance

@@ -11,7 +11,8 @@
 #include "TMath.h"
 
 void reconstructionAnalysis( TString inFile                       = "/home/simong/EIC/detector_benchmarks_anl/sim_output/lowq2_reconstruction/analysis/Low-Q2_retrained_Particles_new.eicrecon.edm4hep.root",
-                             float   beamEnergy                   = 18.0,
+                             float   electronEnergy               = 18.0,
+                             float   protonEnergy                 = 275.0,
                              TString outFile                      = "reconstruction_results.root",
                              TString momentumCanvasName           = "momentum_resolution.png",
                              TString energyThetaPhiCanvasName     = "energy_theta_phi_resolution.png",
@@ -20,6 +21,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
                              TString acceptanceCanvasName         = "acceptance_canvas.png",
                              TString energyQ2acceptanceCanvasName = "energy_Q2_acceptance_canvas.png",
                              TString xQ2acceptanceCanvasName      = "x_Q2_acceptance_canvas.png",
+                             TString Q2xResolutionCanvasName      = "Q2_x_resolution.png",
                              std::string particleCollectionName   = "TaggerTrackerReconstructedParticles") {
 
     //Set ROOT style    
@@ -48,43 +50,63 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
                     .Define("theta_mc", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
                     .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
                     .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
-                    // Q2 using initial electron beam along -z
-                    .Define("Q2_mc", [beamEnergy](double px, double py, double pz, double E){
-                        double Ee = beamEnergy; // electron beam energy (along -z)
-                        double dE = Ee - E;
-                        double dqx = px;
-                        double dqy = py;
-                        double dqz = -Ee - pz;
-                        double q2 = (dE*dE - (dqx*dqx + dqy*dqy + dqz*dqz));
+                    // Invariant kinematics (head-on ep collider):
+                    //   Initial electron: k0 = (Ee, 0,0, -|pe|)
+                    //   Initial proton:  P  = (Ep, 0,0, +|pp|)
+                    //   Scattered electron: k' = (E, px, py, pz)
+                    //   Four-momentum transfer: q = k0 - k'
+                    // Definitions:
+                    //   Q2 = -q^2  (positive)
+                    //   Bjorken x = Q2 / (2 P·q)
+                    //   W^2 = M_p^2 + 2 P·q - Q2  (invariant mass of hadronic final state)
+                    // These formulas correctly incorporate the proton beam energy in the CM frame via P·q.
+                    // Q2 using initial electron beam along -z, full 4-vector definition
+                    .Define("Q2_mc", [electronEnergy](double px, double py, double pz, double E){
+                        const double me = 0.00051099895; // GeV
+                        const double Ee = electronEnergy;
+                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
+                        const double dE = Ee - E;
+                        const double dqx = -px;
+                        const double dqy = -py;
+                        const double dqz = -pe - pz; // initial e momentum along -z
+                        const double q2 = dE*dE - (dqx*dqx + dqy*dqy + dqz*dqz);
                         return -q2; // ensure positive Q2
                     }, {"px_mc","py_mc","pz_mc","E_mc"})
-                    // W using full collider initial state: electron (Ee,0,0,-Ee) + proton (Ep,0,0,+pz_p)
-                    .Define("W_mc", [beamEnergy](double Q2, double px, double py, double pz, double E){
-                        const double Mp = 0.9382720813; // proton mass GeV
-                        const double Ep = 275.0; // proton beam energy GeV
-                        double pz_p = std::sqrt(Ep*Ep - Mp*Mp);
-                        double Ee = beamEnergy;
-                        // q = p_e0 - p_e
-                        double qE = Ee - E;
-                        double qx = -px;
-                        double qy = -py;
-                        double qz = -Ee - pz;
-                        // p_p0 + q
-                        double totalE = Ep + qE;
-                        double totalPx = qx;
-                        double totalPy = qy;
-                        double totalPz = pz_p + qz;
-                        double W2 = totalE*totalE - (totalPx*totalPx + totalPy*totalPy + totalPz*totalPz);
+                    // W using invariants: W^2 = Mp^2 + 2 P·q - Q^2
+                    .Define("W_mc", [electronEnergy, protonEnergy](double Q2, double px, double py, double pz, double E){
+                        const double Mp = 0.9382720813; // GeV
+                        const double me = 0.00051099895; // GeV
+                        const double Ee = electronEnergy;
+                        const double Ep = protonEnergy;
+                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
+                        const double pp = std::sqrt(std::max(0.0, Ep*Ep - Mp*Mp));
+                        // q = k0 - k'
+                        const double qE = Ee - E;
+                        const double qx = -px;
+                        const double qy = -py;
+                        const double qz = -pe - pz; // initial e along -z
+                        // P·q with P0 = (Ep,0,0,+pp)
+                        const double Pdotq = Ep*qE - (0.0*qx + 0.0*qy + pp*qz);
+                        const double W2 = Mp*Mp + 2.0*Pdotq - Q2;
                         return W2 > 0 ? std::sqrt(W2) : 0.0;
                     }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc"})
                     .Define("log10Q2_mc", "Q2_mc>0 ? std::log10(Q2_mc) : -10.0")
-                    // Bjorken x = Q2 / (2 * Mp * nu), where nu = Ee - E_mc
-                    .Define("x_bj", [beamEnergy](double Q2, double E){
-                        const double Mp = 0.9382720813; // proton mass GeV
-                        double Ee = beamEnergy;
-                        double nu = Ee - E;
-                        return (nu > 0 && Q2 > 0) ? Q2 / (2.0 * Mp * nu) : 1e-10;
-                    }, {"Q2_mc","E_mc"})
+                    // Bjorken x = Q2 / (2 P·q)
+                    .Define("x_bj", [electronEnergy, protonEnergy](double Q2, double px, double py, double pz, double E){
+                        const double Mp = 0.9382720813; // GeV
+                        const double me = 0.00051099895; // GeV
+                        const double Ee = electronEnergy;
+                        const double Ep = protonEnergy;
+                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
+                        const double pp = std::sqrt(std::max(0.0, Ep*Ep - Mp*Mp));
+                        const double qE = Ee - E;
+                        const double qx = -px;
+                        const double qy = -py;
+                        const double qz = -pe - pz;
+                        const double Pdotq = Ep*qE - (0.0*qx + 0.0*qy + pp*qz);
+                        const double denom = 2.0 * Pdotq;
+                        return (Q2 > 0.0 && denom > 0.0) ? (Q2 / denom) : 1e-10;
+                    }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc"})
                     .Define("log10x_mc", "x_bj>0 ? std::log10(x_bj) : -10.0");
 
     // Denominator: events with a valid scattered electron
@@ -109,7 +131,40 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         .Define("E_rec", particleCollectionName+"[0].energy")
         .Define("E_res", "(E_rec - E_mc)/E_mc")
         .Define("theta_diff", "(theta_rec - theta_mc)")
-        .Define("phi_diff", "TMath::RadToDeg()*ROOT::VecOps::DeltaPhi(phi_rec_rad, phi_mc_rad)");
+        .Define("phi_diff", "TMath::RadToDeg()*ROOT::VecOps::DeltaPhi(phi_rec_rad, phi_mc_rad)")
+        // Reconstructed Q2 and x using reconstructed kinematics and full collider invariants
+        .Define("Q2_rec", [electronEnergy](float px, float py, float pz, float E){
+            const double me = 0.00051099895; // GeV
+            const double Ee = electronEnergy;
+            const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
+            const double dE = Ee - E;
+            const double dqx = -px;
+            const double dqy = -py;
+            const double dqz = -pe - pz;
+            const double q2 = (dE*dE - (dqx*dqx + dqy*dqy + dqz*dqz));
+            return -q2;
+        }, {"px_rec","py_rec","pz_rec","E_rec"})
+        .Define("x_bj_rec", [electronEnergy, protonEnergy](double Q2, float px, float py, float pz, float E){
+            const double Mp = 0.9382720813; // GeV
+            const double me = 0.00051099895; // GeV
+            const double Ee = electronEnergy;
+            const double Ep = protonEnergy;
+            const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
+            const double pp = std::sqrt(std::max(0.0, Ep*Ep - Mp*Mp));
+            const double qE = Ee - E;
+            const double qx = -px;
+            const double qy = -py;
+            const double qz = -pe - pz;
+            const double Pdotq = Ep*qE - (0.0*qx + 0.0*qy + pp*qz);
+            const double denom = 2.0 * Pdotq;
+            return (Q2 > 0.0 && denom > 0.0) ? (Q2 / denom) : 1e-10;
+        }, {"Q2_rec","px_rec","py_rec","pz_rec","E_rec"})
+        .Define("log10Q2_rec", "Q2_rec>0 ? std::log10(Q2_rec) : -10.0")
+        .Define("log10x_rec", "x_bj_rec>0 ? std::log10(x_bj_rec) : -10.0")
+        .Define("Q2_diff", "(Q2_rec - Q2_mc)")
+        .Define("x_diff", "(x_bj_rec - x_bj)")
+        .Define("log10Q2_diff", "(log10Q2_rec - log10Q2_mc)")
+        .Define("log10x_diff", "(log10x_rec - log10x_mc)");
 
     //Print the size of the original DataFrame
     std::cout << "Original DataFrame size: " << d0.Count().GetValue() << std::endl;
@@ -119,7 +174,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     int   momentumBins      = 100;
     float momentumXRange[2] = {-0.1, 0.1};
     float momentumYRange[2] = {-0.1, 0.1};
-    float momentumZRange[2] = {-beamEnergy, 0};
+    float momentumZRange[2] = {-electronEnergy, 0.0f};
 
     int   momentumResolutionBins      = 100;
     float momentumDifferenceXRange[2] = {-0.05, 0.05};
@@ -129,7 +184,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     int   energyBins      = 100;
     int   thetaBins       = 100;
     int   phiBins         = 100;
-    float energyRange[2]  = {3.5, beamEnergy}; // GeV
+    float energyRange[2]  = {0.0f, electronEnergy};
     float thetaRange[2]   = {3.134, TMath::Pi()}; // radians from 3.1 to pi
     float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
@@ -137,6 +192,23 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     float energyResolutionRange[2] = {-0.1, 0.1};
     float thetaResolutionRange[2]  = {-0.003, 0.003};
     float phiResolutionRange[2]    = {-90, 90}; // degrees from -90 to 90
+
+    // Q2 and x binning configuration
+    int   Q2Bins           = 100;
+    float Q2Range[2]       = {0.0, 1.0};
+    int   xBins            = 100;
+    float xRange[2]        = {0.0, 0.1};
+    int   log10Q2Bins      = 100;
+    float log10Q2Range[2]  = {-10.0, 0.0};
+    int   log10xBins       = 100;
+    float log10xRange[2]   = {-13.0, 0.0};
+    int   Q2DiffBins       = 100;
+    float Q2DiffRange[2]   = {-0.2, 0.2};
+    int   xDiffBins        = 100;
+    float xDiffRange[2]    = {-0.02, 0.02};
+    int   log10DiffBins    = 100;
+    float log10Q2DiffRange[2] = {-2.0, 2.0};
+    float log10xDiffRange[2]  = {-2.0, 2.0};
 
     // Plot reconstructed vs montecarlo momentum components
     auto px_Hist = momentumDF.Histo2D({"px_vs_px", "Reconstructed vs MC px; px reconstructed [GeV]; px MC [GeV]", momentumBins, momentumXRange[0], momentumXRange[1], momentumBins, momentumXRange[0], momentumXRange[1]}, "px_rec", "px_mc");
@@ -168,26 +240,42 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta reconstructed; theta reconstructed [rad]; phi difference [deg]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_rec", "phi_diff");
     auto phi_diff_vs_phi_Hist     = momentumDF.Histo2D({"phi_diff_vs_phi", "phi difference vs phi reconstructed; phi reconstructed [deg]; phi difference [deg]", phiBins, phiRange[0], phiRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_rec", "phi_diff");
 
+    // Q2 and x resolution plots
+    auto Q2_Hist = momentumDF.Histo2D({"Q2_vs_Q2", "Reconstructed vs MC Q^{2}; Q^{2} reconstructed [GeV^{2}]; Q^{2} MC [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2Bins, Q2Range[0], Q2Range[1]}, "Q2_rec", "Q2_mc");
+    auto x_Hist  = momentumDF.Histo2D({"x_vs_x", "Reconstructed vs MC x; x reconstructed; x MC", xBins, xRange[0], xRange[1], xBins, xRange[0], xRange[1]}, "x_bj_rec", "x_bj");
+    auto log10Q2_comp_Hist = momentumDF.Histo2D({"log10Q2_vs_log10Q2", "Reconstructed vs MC log10(Q^{2}); log10(Q^{2}) reconstructed; log10(Q^{2}) MC", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_rec", "log10Q2_mc");
+    auto log10x_comp_Hist  = momentumDF.Histo2D({"log10x_vs_log10x", "Reconstructed vs MC log10(x); log10(x) reconstructed; log10(x) MC", log10xBins, log10xRange[0], log10xRange[1], log10xBins, log10xRange[0], log10xRange[1]}, "log10x_rec", "log10x_mc");
+
+    auto Q2_diff_Hist = momentumDF.Histo1D({"Q2_diff", "Q^{2} difference; Q^{2} difference [GeV^{2}]; Entries", Q2DiffBins, Q2DiffRange[0], Q2DiffRange[1]}, "Q2_diff");
+    auto x_diff_Hist  = momentumDF.Histo1D({"x_diff", "x difference; x difference; Entries", xDiffBins, xDiffRange[0], xDiffRange[1]}, "x_diff");
+    auto log10Q2_diff_Hist = momentumDF.Histo1D({"log10Q2_diff", "log10(Q^{2}) difference; log10(Q^{2}) difference; Entries", log10DiffBins, log10Q2DiffRange[0], log10Q2DiffRange[1]}, "log10Q2_diff");
+    auto log10x_diff_Hist  = momentumDF.Histo1D({"log10x_diff", "log10(x) difference; log10(x) difference; Entries", log10DiffBins, log10xDiffRange[0], log10xDiffRange[1]}, "log10x_diff");
+
+    auto Q2_diff_vs_Q2_Hist = momentumDF.Histo2D({"Q2_diff_vs_Q2", "Q^{2} difference vs MC Q^{2}; Q^{2} MC [GeV^{2}]; Q^{2} difference [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2DiffBins, Q2DiffRange[0], Q2DiffRange[1]}, "Q2_mc", "Q2_diff");
+    auto x_diff_vs_x_Hist   = momentumDF.Histo2D({"x_diff_vs_x", "x difference vs MC x; x MC; x difference", xBins, xRange[0], xRange[1], xDiffBins, xDiffRange[0], xDiffRange[1]}, "x_bj", "x_diff");
+    auto log10Q2_diff_vs_log10Q2_Hist = momentumDF.Histo2D({"log10Q2_diff_vs_log10Q2", "log10(Q^{2}) difference vs MC log10(Q^{2}); log10(Q^{2}) MC; log10(Q^{2}) difference", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10DiffBins, log10Q2DiffRange[0], log10Q2DiffRange[1]}, "log10Q2_mc", "log10Q2_diff");
+    auto log10x_diff_vs_log10x_Hist   = momentumDF.Histo2D({"log10x_diff_vs_log10x", "log10(x) difference vs MC log10(x); log10(x) MC; log10(x) difference", log10xBins, log10xRange[0], log10xRange[1], log10DiffBins, log10xDiffRange[0], log10xDiffRange[1]}, "log10x_mc", "log10x_diff");
+
     // Acceptance histograms (denominator vs numerator)
     auto E_all_Hist     = denomDF.Histo1D({"E_all",     "MC Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
     auto theta_all_Hist = denomDF.Histo1D({"theta_all", "MC Electron Theta; theta [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
     auto phi_all_Hist   = denomDF.Histo1D({"phi_all",   "MC Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
-    auto log10Q2_all_Hist = denomDF.Histo1D({"log10Q2_all", "MC log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", 100, -10.0, 0.0}, "log10Q2_mc");
+    auto log10Q2_all_Hist = denomDF.Histo1D({"log10Q2_all", "MC log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_all_Hist     = denomDF.Histo1D({"W_all",     "MC W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
 
     auto E_acc_Hist     = filterDF.Histo1D({"E_acc",     "Accepted Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
     auto theta_acc_Hist = filterDF.Histo1D({"theta_acc", "Accepted Electron Theta; theta [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
     auto phi_acc_Hist   = filterDF.Histo1D({"phi_acc",   "Accepted Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
-    auto log10Q2_acc_Hist = filterDF.Histo1D({"log10Q2_acc", "Accepted log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", 100, -10.0, 0.0}, "log10Q2_mc");
+    auto log10Q2_acc_Hist = filterDF.Histo1D({"log10Q2_acc", "Accepted log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_acc_Hist     = filterDF.Histo1D({"W_acc",     "Accepted W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
 
     // 2D acceptance: log10Q2 vs E
-    auto log10Q2_vs_E_all_Hist = denomDF.Histo2D({"log10Q2_vs_E_all", "MC log10(Q^{2}) vs E; E [GeV]; log10(Q^{2})", energyBins, energyRange[0], energyRange[1], 100, -10.0, 0.0}, "E_mc", "log10Q2_mc");
-    auto log10Q2_vs_E_acc_Hist = filterDF.Histo2D({"log10Q2_vs_E_acc", "Accepted log10(Q^{2}) vs E; E [GeV]; log10(Q^{2})", energyBins, energyRange[0], energyRange[1], 100, -10.0, 0.0}, "E_mc", "log10Q2_mc");
+    auto log10Q2_vs_E_all_Hist = denomDF.Histo2D({"log10Q2_vs_E_all", "MC log10(Q^{2}) vs E; E [GeV]; log10(Q^{2})", energyBins, energyRange[0], energyRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "E_mc", "log10Q2_mc");
+    auto log10Q2_vs_E_acc_Hist = filterDF.Histo2D({"log10Q2_vs_E_acc", "Accepted log10(Q^{2}) vs E; E [GeV]; log10(Q^{2})", energyBins, energyRange[0], energyRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "E_mc", "log10Q2_mc");
 
     // 2D acceptance: log10Q2 vs log10x
-    auto log10Q2_vs_log10x_all_Hist = denomDF.Histo2D({"log10Q2_vs_log10x_all", "MC log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", 100, -10.0, 0.0, 100, -10.0, 0.0}, "log10x_mc", "log10Q2_mc");
-    auto log10Q2_vs_log10x_acc_Hist = filterDF.Histo2D({"log10Q2_vs_log10x_acc", "Accepted log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", 100, -10.0, 0.0, 100, -10.0, 0.0}, "log10x_mc", "log10Q2_mc");
+    auto log10Q2_vs_log10x_all_Hist = denomDF.Histo2D({"log10Q2_vs_log10x_all", "MC log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", log10xBins, log10xRange[0], log10xRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10x_mc", "log10Q2_mc");
+    auto log10Q2_vs_log10x_acc_Hist = filterDF.Histo2D({"log10Q2_vs_log10x_acc", "Accepted log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", log10xBins, log10xRange[0], log10xRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10x_mc", "log10Q2_mc");
 
     TH1D* hE_acceptance     = (TH1D*)E_acc_Hist->Clone("hE_acceptance");     hE_acceptance->Divide(E_all_Hist.GetPtr());
     TH1D* hTheta_acceptance = (TH1D*)theta_acc_Hist->Clone("hTheta_acceptance"); hTheta_acceptance->Divide(theta_all_Hist.GetPtr());
@@ -254,6 +342,35 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     cAcceptanceXQ2->SetRightMargin(0.15);
     cAcceptanceXQ2->Update();
     cAcceptanceXQ2->SaveAs(xQ2acceptanceCanvasName);
+
+    // Create canvas for Q2 and x resolution
+    TCanvas *cQ2xResolution = new TCanvas("Q2_x_resolution_canvas", "Q^{2} and x Resolution", 3000, 1600);
+    cQ2xResolution->Divide(4, 2);
+    cQ2xResolution->cd(1);
+    log10Q2_comp_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->cd(2);
+    log10Q2_diff_Hist->Draw();
+    cQ2xResolution->cd(3);
+    log10Q2_diff_vs_log10Q2_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->cd(4);
+    Q2_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->cd(5);
+    log10x_comp_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->cd(6);
+    log10x_diff_Hist->Draw();
+    cQ2xResolution->cd(7);
+    log10x_diff_vs_log10x_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->cd(8);
+    x_Hist->Draw("colz");
+    gPad->SetLogz();
+    cQ2xResolution->SetGrid();
+    cQ2xResolution->Update();
+    cQ2xResolution->SaveAs(Q2xResolutionCanvasName);
 
     // Create canvas for momentum component plots
     TCanvas *cMomentum = new TCanvas("momentum_canvas", "Momentum Resolution", 3000, 1600);
@@ -410,6 +527,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     cAcceptance1D->Write();
     cAcceptance2D->Write();
     cAcceptanceXQ2->Write();
+    cQ2xResolution->Write();
     px_Hist->Write();
     py_Hist->Write();
     pz_Hist->Write();
@@ -431,6 +549,19 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     phi_diff_vs_E_Hist->Write();
     phi_diff_vs_theta_Hist->Write();
     phi_diff_vs_phi_Hist->Write();
+    // Write Q2 and x resolution histograms
+    Q2_Hist->Write();
+    x_Hist->Write();
+    log10Q2_comp_Hist->Write();
+    log10x_comp_Hist->Write();
+    Q2_diff_Hist->Write();
+    x_diff_Hist->Write();
+    log10Q2_diff_Hist->Write();
+    log10x_diff_Hist->Write();
+    Q2_diff_vs_Q2_Hist->Write();
+    x_diff_vs_x_Hist->Write();
+    log10Q2_diff_vs_log10Q2_Hist->Write();
+    log10x_diff_vs_log10x_Hist->Write();
     // Write acceptance related histograms
     E_all_Hist->Write(); E_acc_Hist->Write(); hE_acceptance->Write();
     theta_all_Hist->Write(); theta_acc_Hist->Write(); hTheta_acceptance->Write();

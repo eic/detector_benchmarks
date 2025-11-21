@@ -111,6 +111,13 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
                     radii.push_back(param.radius);
                 }
                 return radii;
+                }, {"pipeParameters"})
+                .Define("isConeSegment",[](const ROOT::VecOps::RVec<volParams>& params) {
+                ROOT::VecOps::RVec<bool> cones;
+                for (const auto& param : params) {
+                    cones.push_back(param.isConeSegment);
+                }
+                return cones;
                 }, {"pipeParameters"});
                 
 
@@ -139,6 +146,8 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     
 
     std::map<TString,ROOT::RDF::RResultPtr<double>> pipeRadii;
+    std::map<TString,ROOT::RDF::RResultPtr<bool>> pipeIsConeSegment;
+    std::map<TString,ROOT::RDF::RResultPtr<volParams>> pipeParams;
     std::map<TString,double> filterEntries;
     std::map<TString,double> filterAcceptanceIntegral;
     
@@ -150,7 +159,9 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
         name += str_i;
         auto filterDF = d1.Define("xposf","xpos[pipeID=="+str_i+"]")
                           .Define("yposf","ypos[pipeID=="+str_i+"]")
-                          .Define("pipeRadiusf","pipeRadius[pipeID=="+str_i+"]");
+                          .Define("pipeRadiusf","pipeRadius[pipeID=="+str_i+"]")
+                          .Define("isConeSegmentf","isConeSegment[pipeID=="+str_i+"]")
+                          .Define("pipeParametersf","pipeParameters[pipeID=="+str_i+"]");
                    
 
         TString beamspotName = "Beamspot ID"+str_i+";x offset [cm]; y offset [cm]";
@@ -165,7 +176,9 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
         hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,2,18,thetaBins,0,0.011},"energy","theta");
 
         //Parameters of the pipe
-        pipeRadii[name]    = filterDF.Max("pipeRadiusf");        
+        pipeRadii[name]    = filterDF.Max("pipeRadiusf");
+        pipeIsConeSegment[name] = filterDF.Max("isConeSegmentf");
+        pipeParams[name] = filterDF.Max("pipeParametersf");
         // std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
     
     }
@@ -175,17 +188,25 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     cXY->Divide(4,2);
     int i=1;
     for(auto [name,h] : hHistsxy){
-        // Get the pipe radius for this histogram
+        // Get the pipe parameters for this histogram
         auto pipeRadius = pipeRadii[name].GetValue();
+        auto isCone = pipeIsConeSegment[name].GetValue();
+        auto params = pipeParams[name].GetValue();
         cXY->cd(i++);
 
         h->Draw("col");
-        //Draw cicle
-        TEllipse *circle = new TEllipse(0,0,pipeRadius);
-        circle->SetLineColor(kRed);
-        circle->SetLineWidth(2);
-        circle->SetFillStyle(0);
-        circle->Draw("same");
+        
+        // Only draw circle overlay if the shape is a cone segment
+        if (isCone && pipeRadius > 0) {
+            TEllipse *circle = new TEllipse(0,0,pipeRadius);
+            circle->SetLineColor(kRed);
+            circle->SetLineWidth(2);
+            circle->SetFillStyle(0);
+            circle->Draw("same");
+        } else if (!params.shapeOutline.empty()) {
+            // Draw arbitrary shape outline for non-cone segments
+            drawShapeOutline(params.shapeOutline, kRed, 2);
+        }
 
     }
 

@@ -47,7 +47,9 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
                     .Define("py_mc", "mc_momentum.y")
                     .Define("pz_mc", "mc_momentum.z")
                     .Define("E_mc", "sqrt(px_mc*px_mc + py_mc*py_mc + pz_mc*pz_mc + (hasElectron ? SimParticles[0].mass*SimParticles[0].mass : MCParticles[0].mass*MCParticles[0].mass))")
-                    .Define("theta_mc", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
+                    // Raw polar angle and derived scattering angle (pi - raw)
+                    .Define("theta_mc_raw", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
+                    .Define("theta_mc", "TMath::Pi() - theta_mc_raw")
                     .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
                     .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
                     // Invariant kinematics (head-on ep collider):
@@ -121,7 +123,8 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         .Define("py_rec", "reco_momentum.y")
         .Define("pz_rec", "reco_momentum.z")
         // Calculate theta and phi for reco
-        .Define("theta_rec", "std::atan2(std::sqrt(px_rec*px_rec + py_rec*py_rec), pz_rec)")
+    .Define("theta_rec_raw", "std::atan2(std::sqrt(px_rec*px_rec + py_rec*py_rec), pz_rec)")
+    .Define("theta_rec", "TMath::Pi() - theta_rec_raw")
         .Define("phi_rec_rad", "std::atan2(py_rec, px_rec)")
         .Define("phi_rec", "TMath::RadToDeg()*phi_rec_rad")
         // Calculate resolutions
@@ -185,7 +188,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     int   thetaBins       = 100;
     int   phiBins         = 100;
     float energyRange[2]  = {0.0f, electronEnergy};
-    float thetaRange[2]   = {3.134, TMath::Pi()}; // radians from 3.1 to pi
+    float thetaRange[2]   = {0.0, 0.009}; // scattering angle range (pi - theta_raw) forward angles
     float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
     int   resolutionBins           = 100;
@@ -222,7 +225,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     // Plot reconstructed vs montecarlo energy, theta and phi
     auto E_Hist     = momentumDF.Histo2D({"E_vs_E",         "Reconstructed vs MC energy; E reconstructed [GeV]; E MC [GeV]",        energyBins, energyRange[0], energyRange[1], energyBins, energyRange[0], energyRange[1]}, "E_rec", "E_mc");
-    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC theta; theta reconstructed [rad]; theta MC [rad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec", "theta_mc");
+    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC scattering angle; scattering angle reco [rad]; scattering angle MC [rad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec", "theta_mc");
     auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi reconstructed [deg]; phi MC [deg]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
 
     auto E_res_Hist      = momentumDF.Histo1D({"E_res", "E resolution; E resolution [GeV]; Entries", resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_res");
@@ -239,6 +242,11 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     auto phi_diff_vs_E_Hist       = momentumDF.Histo2D({"phi_diff_vs_E", "phi difference vs E reconstructed; E reconstructed [GeV]; phi difference [rad]", energyBins, energyRange[0], energyRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "E_rec", "phi_diff");
     auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta reconstructed; theta reconstructed [rad]; phi difference [deg]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_rec", "phi_diff");
     auto phi_diff_vs_phi_Hist     = momentumDF.Histo2D({"phi_diff_vs_phi", "phi difference vs phi reconstructed; phi reconstructed [deg]; phi difference [deg]", phiBins, phiRange[0], phiRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_rec", "phi_diff");
+
+    // Filtered dataframe for scattering angle > 1 mrad (0.001 rad)
+    auto phiThetaFilteredDF = momentumDF.Filter("theta_mc > 0.001");
+    auto phi_filtered_Hist = phiThetaFilteredDF.Histo2D({"phi_filtered_vs_phi", "Reco vs MC phi (theta>1mrad); phi reco [deg]; phi MC [deg]", phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
+    auto phi_filtered_diff_Hist = phiThetaFilteredDF.Histo1D({"phi_filtered_diff", "Phi difference (theta>1mrad); phi difference [deg]; Entries", resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_diff");
 
     // Q2 and x resolution plots
     auto Q2_Hist = momentumDF.Histo2D({"Q2_vs_Q2", "Reconstructed vs MC Q^{2}; Q^{2} reconstructed [GeV^{2}]; Q^{2} MC [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2Bins, Q2Range[0], Q2Range[1]}, "Q2_rec", "Q2_mc");
@@ -258,13 +266,13 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     // Acceptance histograms (denominator vs numerator)
     auto E_all_Hist     = denomDF.Histo1D({"E_all",     "MC Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
-    auto theta_all_Hist = denomDF.Histo1D({"theta_all", "MC Electron Theta; theta [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
+    auto theta_all_Hist = denomDF.Histo1D({"theta_all", "MC Electron Scattering Angle; scattering angle [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
     auto phi_all_Hist   = denomDF.Histo1D({"phi_all",   "MC Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
     auto log10Q2_all_Hist = denomDF.Histo1D({"log10Q2_all", "MC log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_all_Hist     = denomDF.Histo1D({"W_all",     "MC W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
 
     auto E_acc_Hist     = filterDF.Histo1D({"E_acc",     "Accepted Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
-    auto theta_acc_Hist = filterDF.Histo1D({"theta_acc", "Accepted Electron Theta; theta [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
+    auto theta_acc_Hist = filterDF.Histo1D({"theta_acc", "Accepted Electron Scattering Angle; scattering angle [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
     auto phi_acc_Hist   = filterDF.Histo1D({"phi_acc",   "Accepted Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
     auto log10Q2_acc_Hist = filterDF.Histo1D({"log10Q2_acc", "Accepted log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_acc_Hist     = filterDF.Histo1D({"W_acc",     "Accepted W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
@@ -300,7 +308,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         h->SetLineColor(kBlue+1);
     };
     styleAcc(hE_acceptance,     "Electron Acceptance vs E; E [GeV]");
-    styleAcc(hTheta_acceptance, "Electron Acceptance vs theta; theta [rad]");
+    styleAcc(hTheta_acceptance, "Electron Acceptance vs scattering angle; scattering angle [rad]");
     styleAcc(hPhi_acceptance,   "Electron Acceptance vs phi; phi [deg]");
     styleAcc(hLog10Q2_acceptance, "Electron Acceptance vs log10(Q^{2}); log10(Q^{2})");
     styleAcc(hW_acceptance,     "Electron Acceptance vs W; W [GeV]");
@@ -418,6 +426,19 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     // Save the canvas as a PNG file
     cEnergyThetaPhi->SaveAs(energyThetaPhiCanvasName);
     
+    // New canvas replicating energy/theta/phi layout but with phi plots filtered (theta>1mrad)
+    TCanvas *cEnergyThetaPhiFiltered = new TCanvas("energy_theta_phi_filtered_canvas", "Energy, Scatt Angle and Filtered Phi Resolution", 3000, 1600);
+    cEnergyThetaPhiFiltered->Divide(3,2);
+    cEnergyThetaPhiFiltered->cd(1); E_Hist->Draw("colz"); gPad->SetLogz();
+    cEnergyThetaPhiFiltered->cd(2); theta_Hist->Draw("colz"); gPad->SetLogz();
+    cEnergyThetaPhiFiltered->cd(3); phi_filtered_Hist->Draw("colz"); gPad->SetLogz();
+    cEnergyThetaPhiFiltered->cd(4); E_res_Hist->Draw();
+    cEnergyThetaPhiFiltered->cd(5); theta_diff_Hist->Draw();
+    cEnergyThetaPhiFiltered->cd(6); phi_filtered_diff_Hist->Draw();
+    cEnergyThetaPhiFiltered->SetGrid();
+    cEnergyThetaPhiFiltered->Update();
+    cEnergyThetaPhiFiltered->SaveAs("energy_theta_phi_filtered.png");
+    
     // Create canvas for resolution vs MC values
     TCanvas *cResolutionVsMC = new TCanvas("resolution_vs_mc_canvas", "Resolution vs MC Values", 3000, 1600);
     cResolutionVsMC->Divide(3, 3);
@@ -522,6 +543,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     TFile *f = new TFile(outFile,"RECREATE");
     cMomentum->Write();
     cEnergyThetaPhi->Write();
+    cEnergyThetaPhiFiltered->Write();
     cResolutionVsMC->Write();
     cResolutionGraphs->Write();
     cAcceptance1D->Write();
@@ -549,6 +571,8 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     phi_diff_vs_E_Hist->Write();
     phi_diff_vs_theta_Hist->Write();
     phi_diff_vs_phi_Hist->Write();
+    phi_filtered_Hist->Write();
+    phi_filtered_diff_Hist->Write();
     // Write Q2 and x resolution histograms
     Q2_Hist->Write();
     x_Hist->Write();

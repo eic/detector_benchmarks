@@ -137,9 +137,12 @@ rule lowq2_reconstruction_particles_test:
         energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{CAMPAIGN}.png",
+        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{CAMPAIGN}.png",
+        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{CAMPAIGN}.png",   
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
+        root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
         """
 
 # Check the resloutions and offsets are within tollerance
@@ -171,6 +174,9 @@ rule lowq2_reconstruction:
         energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{CAMPAIGN}.png",
+        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{CAMPAIGN}.png",
+        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{CAMPAIGN}.png",   
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json",
         onnxfile=get_onnx_input,
     output:

@@ -136,7 +136,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     }    
 
     // Calculate the maximum pipe radius for plotting
-    auto maxPipeRadius = 1.2*d1.Max("pipeRadius").GetValue();
+    auto maxPipeRadius = 2*d1.Max("pipeRadius").GetValue();
 
     std::cout << "Executing Analysis and creating histograms" << std::endl;
 
@@ -289,27 +289,47 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
         auto yhist = hHistsxy[name]->ProjectionY();
         auto pxhist = hHistsxpx[name]->ProjectionY();
         auto pyhist = hHistsypy[name]->ProjectionY();
-        xhist->Fit("gaus","Q");
-        yhist->Fit("gaus","Q");
-        pxhist->Fit("gaus","Q");
-        pyhist->Fit("gaus","Q");
-        //Get the fit parameters and errors
-        xMeanFit[name] = xhist->GetFunction("gaus")->GetParameter(1);
-        yMeanFit[name] = yhist->GetFunction("gaus")->GetParameter(1);
-        xMeanFitErr[name] = xhist->GetFunction("gaus")->GetParError(1);
-        yMeanFitErr[name] = yhist->GetFunction("gaus")->GetParError(1);
-        xStdDevFit[name] = xhist->GetFunction("gaus")->GetParameter(2);
-        yStdDevFit[name] = yhist->GetFunction("gaus")->GetParameter(2);
-        xStdDevFitErr[name] = xhist->GetFunction("gaus")->GetParError(2);
-        yStdDevFitErr[name] = yhist->GetFunction("gaus")->GetParError(2);
-        pxMeanFit[name] = pxhist->GetFunction("gaus")->GetParameter(1);
-        pyMeanFit[name] = pyhist->GetFunction("gaus")->GetParameter(1);
-        pxMeanFitErr[name] = pxhist->GetFunction("gaus")->GetParError(1);
-        pyMeanFitErr[name] = pyhist->GetFunction("gaus")->GetParError(1);
-        pxStdDevFit[name] = pxhist->GetFunction("gaus")->GetParameter(2);
-        pyStdDevFit[name] = pyhist->GetFunction("gaus")->GetParameter(2);
-        pxStdDevFitErr[name] = pxhist->GetFunction("gaus")->GetParError(2);
-        pyStdDevFitErr[name] = pyhist->GetFunction("gaus")->GetParError(2);
+
+        if(hHistsxy[name]->GetEntries() > 0){
+            xhist->Fit("gaus","Q");
+            yhist->Fit("gaus","Q");
+            pxhist->Fit("gaus","Q");
+            pyhist->Fit("gaus","Q");
+            //Get the fit parameters and errors
+            xMeanFit[name] = xhist->GetFunction("gaus")->GetParameter(1);
+            yMeanFit[name] = yhist->GetFunction("gaus")->GetParameter(1);
+            xMeanFitErr[name] = xhist->GetFunction("gaus")->GetParError(1);
+            yMeanFitErr[name] = yhist->GetFunction("gaus")->GetParError(1);
+            xStdDevFit[name] = xhist->GetFunction("gaus")->GetParameter(2);
+            yStdDevFit[name] = yhist->GetFunction("gaus")->GetParameter(2);
+            xStdDevFitErr[name] = xhist->GetFunction("gaus")->GetParError(2);
+            yStdDevFitErr[name] = yhist->GetFunction("gaus")->GetParError(2);
+            pxMeanFit[name] = pxhist->GetFunction("gaus")->GetParameter(1);
+            pyMeanFit[name] = pyhist->GetFunction("gaus")->GetParameter(1);
+            pxMeanFitErr[name] = pxhist->GetFunction("gaus")->GetParError(1);
+            pyMeanFitErr[name] = pyhist->GetFunction("gaus")->GetParError(1);
+            pxStdDevFit[name] = pxhist->GetFunction("gaus")->GetParameter(2);
+            pyStdDevFit[name] = pyhist->GetFunction("gaus")->GetParameter(2);
+            pxStdDevFitErr[name] = pxhist->GetFunction("gaus")->GetParError(2);
+            pyStdDevFitErr[name] = pyhist->GetFunction("gaus")->GetParError(2);
+        } else {
+            xMeanFit[name] = 0;
+            yMeanFit[name] = 0;
+            xMeanFitErr[name] = 0;
+            yMeanFitErr[name] = 0;
+            xStdDevFit[name] = 0;
+            yStdDevFit[name] = 0;
+            xStdDevFitErr[name] = 0;
+            yStdDevFitErr[name] = 0;
+            pxMeanFit[name] = 0;
+            pyMeanFit[name] = 0;
+            pxMeanFitErr[name] = 0;
+            pyMeanFitErr[name] = 0;
+            pxStdDevFit[name] = 0;
+            pyStdDevFit[name] = 0;
+            pxStdDevFitErr[name] = 0;
+            pyStdDevFitErr[name] = 0;
+        }
      
     }
 
@@ -522,7 +542,6 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
 
     std::cout << "Analysis complete. Results saved to " << outFile << std::endl;
     return pass;
-
     // std::cout << "Saving events to file" << std::endl;
 
     // ROOT::RDF::RSnapshotOptions opts;

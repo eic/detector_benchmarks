@@ -50,6 +50,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
                     // Raw polar angle and derived scattering angle (pi - raw)
                     .Define("theta_mc_raw", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
                     .Define("theta_mc", "TMath::Pi() - theta_mc_raw")
+                    .Define("theta_mc_mrad", "1000.0*theta_mc")
                     .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
                     .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
                     // Invariant kinematics (head-on ep collider):
@@ -125,6 +126,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         // Calculate theta and phi for reco
     .Define("theta_rec_raw", "std::atan2(std::sqrt(px_rec*px_rec + py_rec*py_rec), pz_rec)")
     .Define("theta_rec", "TMath::Pi() - theta_rec_raw")
+    .Define("theta_rec_mrad", "1000.0*theta_rec")
         .Define("phi_rec_rad", "std::atan2(py_rec, px_rec)")
         .Define("phi_rec", "TMath::RadToDeg()*phi_rec_rad")
         // Calculate resolutions
@@ -133,7 +135,8 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         .Define("pz_res", "(pz_rec - pz_mc)/pz_mc")
         .Define("E_rec", particleCollectionName+"[0].energy")
         .Define("E_res", "(E_rec - E_mc)/E_mc")
-        .Define("theta_diff", "(theta_rec - theta_mc)")
+    .Define("theta_diff", "(theta_rec - theta_mc)")
+    .Define("theta_diff_mrad", "1000.0*theta_diff")
         .Define("phi_diff", "TMath::RadToDeg()*ROOT::VecOps::DeltaPhi(phi_rec_rad, phi_mc_rad)")
         // Reconstructed Q2 and x using reconstructed kinematics and full collider invariants
         .Define("Q2_rec", [electronEnergy](float px, float py, float pz, float E){
@@ -188,12 +191,12 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     int   thetaBins       = 100;
     int   phiBins         = 100;
     float energyRange[2]  = {0.0f, electronEnergy};
-    float thetaRange[2]   = {0.0, 0.009}; // scattering angle range (pi - theta_raw) forward angles
+    float thetaRange[2]   = {0.0, 8.0}; // scattering angle range (pi - theta_raw) in mrad (forward angles)
     float phiRange[2]     = {-180, 180}; // degrees from -180 to 180
 
     int   resolutionBins           = 100;
     float energyResolutionRange[2] = {-0.1, 0.1};
-    float thetaResolutionRange[2]  = {-0.003, 0.003};
+    float thetaResolutionRange[2]  = {-3.0, 3.0}; // mrad
     float phiResolutionRange[2]    = {-90, 90}; // degrees from -90 to 90
 
     // Q2 and x binning configuration
@@ -225,22 +228,22 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     // Plot reconstructed vs montecarlo energy, theta and phi
     auto E_Hist     = momentumDF.Histo2D({"E_vs_E",         "Reconstructed vs MC energy; E reconstructed [GeV]; E MC [GeV]",        energyBins, energyRange[0], energyRange[1], energyBins, energyRange[0], energyRange[1]}, "E_rec", "E_mc");
-    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC scattering angle; scattering angle reco [rad]; scattering angle MC [rad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec", "theta_mc");
+    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC scattering angle; scattering angle reco [mrad]; scattering angle MC [mrad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec_mrad", "theta_mc_mrad");
     auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi reconstructed [deg]; phi MC [deg]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
 
     auto E_res_Hist      = momentumDF.Histo1D({"E_res", "E resolution; E resolution [GeV]; Entries", resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_res");
-    auto theta_diff_Hist = momentumDF.Histo1D({"theta_diff", "theta difference; theta difference [rad]; Entries", resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_diff");
+    auto theta_diff_Hist = momentumDF.Histo1D({"theta_diff", "theta difference; theta difference [mrad]; Entries", resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_diff_mrad");
     auto phi_diff_Hist   = momentumDF.Histo1D({"phi_diff", "phi difference; phi difference [deg]; Entries", resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_diff");
 
     // Plot Reconstructed energy, theta and phi resolutions as a function of each reconstructed value of energy, thata and phi
     auto E_res_vs_E_Hist          = momentumDF.Histo2D({"E_res_vs_E", "E resolution vs E reconstructed; E reconstructed [GeV]; E resolution [GeV]", energyBins, energyRange[0], energyRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_rec", "E_res");
-    auto E_res_vs_theta_Hist      = momentumDF.Histo2D({"E_res_vs_theta", "E resolution vs theta reconstructed; theta reconstructed [rad]; E resolution [GeV]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "theta_rec", "E_res");
+    auto E_res_vs_theta_Hist      = momentumDF.Histo2D({"E_res_vs_theta", "E resolution vs theta reconstructed; theta reconstructed [mrad]; E resolution [GeV]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "theta_rec_mrad", "E_res");
     auto E_res_vs_phi_Hist        = momentumDF.Histo2D({"E_res_vs_phi", "E resolution vs phi reconstructed; phi reconstructed [deg]; E resolution [GeV]", phiBins, phiRange[0], phiRange[1], resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "phi_rec", "E_res");
-    auto theta_diff_vs_E_Hist     = momentumDF.Histo2D({"theta_diff_vs_E", "theta difference vs E reconstructed; E reconstructed [GeV]; theta difference [rad]", energyBins, energyRange[0], energyRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "E_rec", "theta_diff");
-    auto theta_diff_vs_theta_Hist = momentumDF.Histo2D({"theta_diff_vs_theta", "theta difference vs theta reconstructed; theta reconstructed [rad]; theta difference [rad]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_rec", "theta_diff");
-    auto theta_diff_vs_phi_Hist   = momentumDF.Histo2D({"theta_diff_vs_phi", "theta difference vs phi reconstructed; phi reconstructed [deg]; theta difference [rad]", phiBins, phiRange[0], phiRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "phi_rec", "theta_diff");
-    auto phi_diff_vs_E_Hist       = momentumDF.Histo2D({"phi_diff_vs_E", "phi difference vs E reconstructed; E reconstructed [GeV]; phi difference [rad]", energyBins, energyRange[0], energyRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "E_rec", "phi_diff");
-    auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta reconstructed; theta reconstructed [rad]; phi difference [deg]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_rec", "phi_diff");
+    auto theta_diff_vs_E_Hist     = momentumDF.Histo2D({"theta_diff_vs_E", "theta difference vs E reconstructed; E reconstructed [GeV]; theta difference [mrad]", energyBins, energyRange[0], energyRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "E_rec", "theta_diff_mrad");
+    auto theta_diff_vs_theta_Hist = momentumDF.Histo2D({"theta_diff_vs_theta", "theta difference vs theta reconstructed; theta reconstructed [mrad]; theta difference [mrad]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_rec_mrad", "theta_diff_mrad");
+    auto theta_diff_vs_phi_Hist   = momentumDF.Histo2D({"theta_diff_vs_phi", "theta difference vs phi reconstructed; phi reconstructed [deg]; theta difference [mrad]", phiBins, phiRange[0], phiRange[1], resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "phi_rec", "theta_diff_mrad");
+    auto phi_diff_vs_E_Hist       = momentumDF.Histo2D({"phi_diff_vs_E", "phi difference vs E reconstructed; E reconstructed [GeV]; phi difference [deg]", energyBins, energyRange[0], energyRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "E_rec", "phi_diff");
+    auto phi_diff_vs_theta_Hist   = momentumDF.Histo2D({"phi_diff_vs_theta", "phi difference vs theta reconstructed; theta reconstructed [mrad]; phi difference [deg]", thetaBins, thetaRange[0], thetaRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "theta_rec_mrad", "phi_diff");
     auto phi_diff_vs_phi_Hist     = momentumDF.Histo2D({"phi_diff_vs_phi", "phi difference vs phi reconstructed; phi reconstructed [deg]; phi difference [deg]", phiBins, phiRange[0], phiRange[1], resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_rec", "phi_diff");
 
     // Filtered dataframe for scattering angle > 1 mrad (0.001 rad)
@@ -266,13 +269,13 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     // Acceptance histograms (denominator vs numerator)
     auto E_all_Hist     = denomDF.Histo1D({"E_all",     "MC Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
-    auto theta_all_Hist = denomDF.Histo1D({"theta_all", "MC Electron Scattering Angle; scattering angle [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
+    auto theta_all_Hist = denomDF.Histo1D({"theta_all", "MC Electron Scattering Angle; scattering angle [mrad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc_mrad");
     auto phi_all_Hist   = denomDF.Histo1D({"phi_all",   "MC Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
     auto log10Q2_all_Hist = denomDF.Histo1D({"log10Q2_all", "MC log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_all_Hist     = denomDF.Histo1D({"W_all",     "MC W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
 
     auto E_acc_Hist     = filterDF.Histo1D({"E_acc",     "Accepted Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
-    auto theta_acc_Hist = filterDF.Histo1D({"theta_acc", "Accepted Electron Scattering Angle; scattering angle [rad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc");
+    auto theta_acc_Hist = filterDF.Histo1D({"theta_acc", "Accepted Electron Scattering Angle; scattering angle [mrad]; Entries", thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc_mrad");
     auto phi_acc_Hist   = filterDF.Histo1D({"phi_acc",   "Accepted Electron Phi; phi [deg]; Entries", phiBins, phiRange[0], phiRange[1]}, "phi_mc");
     auto log10Q2_acc_Hist = filterDF.Histo1D({"log10Q2_acc", "Accepted log10(Q^{2}); log10(Q^{2}) [GeV^{2}]; Entries", log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc");
     auto W_acc_Hist     = filterDF.Histo1D({"W_acc",     "Accepted W; W [GeV]; Entries", energyBins, 0.0, 5.0}, "W_mc");
@@ -308,7 +311,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         h->SetLineColor(kBlue+1);
     };
     styleAcc(hE_acceptance,     "Electron Acceptance vs E; E [GeV]");
-    styleAcc(hTheta_acceptance, "Electron Acceptance vs scattering angle; scattering angle [rad]");
+    styleAcc(hTheta_acceptance, "Electron Acceptance vs scattering angle; scattering angle [mrad]");
     styleAcc(hPhi_acceptance,   "Electron Acceptance vs phi; phi [deg]");
     styleAcc(hLog10Q2_acceptance, "Electron Acceptance vs log10(Q^{2}); log10(Q^{2})");
     styleAcc(hW_acceptance,     "Electron Acceptance vs W; W [GeV]");
@@ -508,28 +511,28 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     hE_vs_E_stddev->SetMinimum(0); // Adjust minimum for better visibility
     hE_vs_E_stddev->Draw();
     cResolutionGraphs->cd(2);
-    hTheta_vs_E_mean->SetTitle("Mean Theta Offset vs E MC; Energy MC [GeV]; Mean Theta Offset [rad]");
+    hTheta_vs_E_mean->SetTitle("Mean Theta Offset vs E MC; Energy MC [GeV]; Mean Theta Offset [mrad]");
     hTheta_vs_E_mean->SetMarkerStyle(20);
     hTheta_vs_E_mean->SetMarkerColor(kBlue);
-    hTheta_vs_E_mean->SetMaximum(0.0003); // Adjust maximum for better visibility
-    hTheta_vs_E_mean->SetMinimum(-0.0003); // Adjust minimum for better visibility
+    hTheta_vs_E_mean->SetMaximum(0.3); // Adjust maximum for better visibility
+    hTheta_vs_E_mean->SetMinimum(-0.3); // Adjust minimum for better visibility
     hTheta_vs_E_mean->Draw();
     cResolutionGraphs->cd(5);
-    hTheta_vs_E_stddev->SetTitle("Std Dev Theta Offset vs E MC; Energy MC [GeV]; Std Dev Theta Offset [rad]");
+    hTheta_vs_E_stddev->SetTitle("Std Dev Theta Offset vs E MC; Energy MC [GeV]; Std Dev Theta Offset [mrad]");
     hTheta_vs_E_stddev->SetMarkerStyle(20);
     hTheta_vs_E_stddev->SetMarkerColor(kRed);
-    hTheta_vs_E_stddev->SetMaximum(0.0005); // Adjust maximum for better visibility
+    hTheta_vs_E_stddev->SetMaximum(0.5); // Adjust maximum for better visibility
     hTheta_vs_E_stddev->SetMinimum(0); // Adjust minimum for better visibility
     hTheta_vs_E_stddev->Draw();
     cResolutionGraphs->cd(3);
-    hPhi_vs_theta_mean->SetTitle("Mean Phi Offset vs theta MC; theta MC [rad]; Mean Phi Offset [deg]");
+    hPhi_vs_theta_mean->SetTitle("Mean Phi Offset vs theta MC; theta MC [mrad]; Mean Phi Offset [deg]");
     hPhi_vs_theta_mean->SetMarkerStyle(20);
     hPhi_vs_theta_mean->SetMarkerColor(kBlue);
     hPhi_vs_theta_mean->SetMaximum(5); // Adjust maximum for better visibility
     hPhi_vs_theta_mean->SetMinimum(-5); // Adjust minimum for better visibility
     hPhi_vs_theta_mean->Draw();
     cResolutionGraphs->cd(6);
-    hPhi_vs_theta_stddev->SetTitle("Std Dev Phi Offset vs theta MC; theta MC [rad]; Std Dev Phi Offset [deg]");
+    hPhi_vs_theta_stddev->SetTitle("Std Dev Phi Offset vs theta MC; theta MC [mrad]; Std Dev Phi Offset [deg]");
     hPhi_vs_theta_stddev->SetMarkerStyle(20);
     hPhi_vs_theta_stddev->SetMarkerColor(kRed);
     hPhi_vs_theta_stddev->SetMaximum(60); // Adjust maximum for better visibility

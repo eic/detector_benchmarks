@@ -402,9 +402,12 @@ void emcal_barrel_pion_rejection_analysis(
       auto hp = d_pim.Filter(minCut).Filter(maxCut).Filter(etaCutMin).Filter(etaCutMax).Histo1D({"hp", title.c_str(), 50, 0, 0.02}, "EDep6OverP");
       auto hecopy = he->DrawCopy();
       hecopy->Fit("gaus", "", "", 0, hecopy->GetMaximum());
-      double* res = hecopy->GetFunction("gaus")->GetParameters();
-      cutEEta += fmt::format("EDep6OverP>={}", res[1] - 2.0*res[2]);
-      cutEEta += fmt::format("&&EDep6OverP<{})||",res[1] + 3.0*res[2]);
+      TF1* gaus = hecopy->GetFunction("gaus");
+      if (gaus != nullptr) {
+        double* res = gaus->GetParameters();
+        cutEEta += fmt::format("EDep6OverP>={}", res[1] - 2.0*res[2]);
+        cutEEta += fmt::format("&&EDep6OverP<{})||",res[1] + 3.0*res[2]);
+      }
 
       hp->GetYaxis()->SetTitleOffset(1.4);
       he->SetLineWidth(2);

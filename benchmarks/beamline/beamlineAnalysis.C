@@ -44,7 +44,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     gStyle->SetOptStat(0);
 
     //Set implicit multi-threading
-    ROOT::EnableImplicitMT();
+    ROOT::EnableImplicitMT(4); // use 4 threads
        
     int pass = 0;
 

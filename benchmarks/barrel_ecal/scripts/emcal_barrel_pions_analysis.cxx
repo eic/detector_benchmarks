@@ -37,7 +37,7 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
 
-  ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT(4); // use 4 threads
   ROOT::RDataFrame d0("events", input_fname);
 
   // Sampling Fraction

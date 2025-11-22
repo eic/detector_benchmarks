@@ -51,7 +51,7 @@ void save_canvas(TCanvas* c, std::string var_label, std::string E_label, std::st
 std::tuple <double, double, double, double> extract_sampling_fraction_parameters(std::string particle_label, std::string E_label, dd4hep::Detector& detector)
 {
   std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.edm4hep.root", E_label, particle_label);
-  ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT(4); // use 4 threads
   ROOT::RDataFrame d0("events", input_fname);
 
   // Thrown Energy [GeV]

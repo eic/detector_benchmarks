@@ -96,7 +96,7 @@ ROOT::RDF::RNode add_subsystems(ROOT::RDF::RNode df, std::vector<std::pair<std::
 
 int sim_track_hits(const char* fname = "sim_track_hits.edm4hep.root") {
 
-  ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT(4); // use 4 threads
   ROOT::RDataFrame df("events", fname);
 
   // detect detector setup

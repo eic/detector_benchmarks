@@ -66,7 +66,7 @@ void emcal_barrel_pion_rejection_analysis(
   gStyle->SetPadLeftMargin(0.14);
   gStyle->SetPadRightMargin(0.14);
 
-  ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT(4); // use 4 threads
   ROOT::RDataFrame d0("events", {input_fname1, input_fname2});
 
   // Script requires EcalBarrelScFiHits

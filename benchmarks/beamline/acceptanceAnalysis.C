@@ -43,7 +43,7 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     int pass = 0;
 
     //Set implicit multi-threading
-    // ROOT::EnableImplicitMT();
+    // ROOT::EnableImplicitMT(4); // use 4 threads
        
     //Load the detector config
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();

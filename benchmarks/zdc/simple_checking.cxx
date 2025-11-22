@@ -31,7 +31,7 @@ R__LOAD_LIBRARY(libDDG4IO.so)
 
 void simple_checking(const char* fname = "sim_output/output_zdc_photons.edm4hep.root"){
 std::cout << "testing 1\n";
-  ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
+  ROOT::EnableImplicitMT(4); // use 4 threads
   //using namespace lcio2;
   double degree = TMath::Pi()/180.0;
 

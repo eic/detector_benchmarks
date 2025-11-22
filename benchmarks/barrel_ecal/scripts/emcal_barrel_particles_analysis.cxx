@@ -60,7 +60,7 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
   double fSam_img_mean_err;
   double fSam_scfi_mean_err;
 
-  ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT(4); // use 4 threads
   std::string input_fname = fmt::format("sim_output/sim_emcal_barrel_{}.edm4hep.root", particle_name);
   ROOT::RDataFrame d0("events", input_fname);
 

@@ -25,7 +25,7 @@ R__LOAD_LIBRARY(libfmt.so)
 
 void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.edm4hep.root"){
 
-  ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
+  ROOT::EnableImplicitMT(4); // use 4 threads
   double degree = TMath::Pi()/180.0;
 
   TChain* t = new TChain("events");

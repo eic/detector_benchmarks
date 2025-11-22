@@ -407,6 +407,10 @@ void emcal_barrel_pion_rejection_analysis(
         double* res = gaus->GetParameters();
         cutEEta += fmt::format("&&EDep6OverP>={}", res[1] - 2.0*res[2]);
         cutEEta += fmt::format("&&EDep6OverP<{})||",res[1] + 3.0*res[2]);
+      } else {
+        // Close the eta condition without EDep6OverP cut when fit fails
+        cutEEta += ")||";
+        std::cerr << "Warning: Gaussian fit failed for E bin " << i << ", eta bin " << j << std::endl;
       }
 
       hp->GetYaxis()->SetTitleOffset(1.4);

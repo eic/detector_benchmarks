@@ -196,5 +196,5 @@ rule emcal_barrel_pion_rejection_analysis:
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
-root -l -b -q '{input.script}+("../{input.electron}", "../{input.piminus}")'
+root -l -b -q '{input.script}+g("../{input.electron}", "../{input.piminus}")'
 """

@@ -15,11 +15,9 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
                              float   protonEnergy                 = 275.0,
                              TString outFile                      = "reconstruction_results.root",
                              TString momentumCanvasName           = "momentum_resolution.png",
-                             TString energyThetaPhiCanvasName     = "energy_theta_phi_resolution.png",
                              TString relationCanvasName           = "relation_resolution.png",
                              TString resolutionGraphsCanvasName   = "resolution_graphs.png",
                              TString acceptanceCanvasName         = "acceptance_canvas.png",
-                             TString energyQ2acceptanceCanvasName = "energy_Q2_acceptance_canvas.png",
                              TString xQ2acceptanceCanvasName      = "x_Q2_acceptance_canvas.png",
                              TString Q2xResolutionCanvasName      = "Q2_x_resolution.png",
                              std::string particleCollectionName   = "TaggerTrackerReconstructedParticles") {
@@ -39,78 +37,95 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     ROOT::RDataFrame d0("events",inFile, {"MCParticles",particleCollectionName});
 
-    // Base MC electron definitions prior to reconstruction filter
-    auto baseDF = d0.Define("SimParticles", "MCParticles[MCParticles.generatorStatus==1 && MCParticles.PDG==11]")
-                    .Define("hasElectron", "SimParticles.size()==1")
-                    .Define("mc_momentum", "hasElectron ? SimParticles[0].momentum : MCParticles[0].momentum")
-                    .Define("px_mc", "mc_momentum.x")
-                    .Define("py_mc", "mc_momentum.y")
-                    .Define("pz_mc", "mc_momentum.z")
-                    .Define("E_mc", "sqrt(px_mc*px_mc + py_mc*py_mc + pz_mc*pz_mc + (hasElectron ? SimParticles[0].mass*SimParticles[0].mass : MCParticles[0].mass*MCParticles[0].mass))")
-                    // Raw polar angle and derived scattering angle (pi - raw)
-                    .Define("theta_mc_raw", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
-                    .Define("theta_mc", "TMath::Pi() - theta_mc_raw")
-                    .Define("theta_mc_mrad", "1000.0*theta_mc")
-                    .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
-                    .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
-                    // Invariant kinematics (head-on ep collider):
-                    //   Initial electron: k0 = (Ee, 0,0, -|pe|)
-                    //   Initial proton:  P  = (Ep, 0,0, +|pp|)
-                    //   Scattered electron: k' = (E, px, py, pz)
-                    //   Four-momentum transfer: q = k0 - k'
-                    // Definitions:
-                    //   Q2 = -q^2  (positive)
-                    //   Bjorken x = Q2 / (2 P·q)
-                    //   W^2 = M_p^2 + 2 P·q - Q2  (invariant mass of hadronic final state)
-                    // These formulas correctly incorporate the proton beam energy in the CM frame via P·q.
-                    // Q2 using initial electron beam along -z, full 4-vector definition
-                    .Define("Q2_mc", [electronEnergy](double px, double py, double pz, double E){
-                        const double me = 0.00051099895; // GeV
-                        const double Ee = electronEnergy;
-                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
-                        const double dE = Ee - E;
-                        const double dqx = -px;
-                        const double dqy = -py;
-                        const double dqz = -pe - pz; // initial e momentum along -z
-                        const double q2 = dE*dE - (dqx*dqx + dqy*dqy + dqz*dqz);
-                        return -q2; // ensure positive Q2
-                    }, {"px_mc","py_mc","pz_mc","E_mc"})
-                    // W using invariants: W^2 = Mp^2 + 2 P·q - Q^2
-                    .Define("W_mc", [electronEnergy, protonEnergy](double Q2, double px, double py, double pz, double E){
-                        const double Mp = 0.9382720813; // GeV
-                        const double me = 0.00051099895; // GeV
-                        const double Ee = electronEnergy;
-                        const double Ep = protonEnergy;
-                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
-                        const double pp = std::sqrt(std::max(0.0, Ep*Ep - Mp*Mp));
-                        // q = k0 - k'
-                        const double qE = Ee - E;
-                        const double qx = -px;
-                        const double qy = -py;
-                        const double qz = -pe - pz; // initial e along -z
-                        // P·q with P0 = (Ep,0,0,+pp)
-                        const double Pdotq = Ep*qE - (0.0*qx + 0.0*qy + pp*qz);
-                        const double W2 = Mp*Mp + 2.0*Pdotq - Q2;
-                        return W2 > 0 ? std::sqrt(W2) : 0.0;
-                    }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc"})
-                    .Define("log10Q2_mc", "Q2_mc>0 ? std::log10(Q2_mc) : -10.0")
-                    // Bjorken x = Q2 / (2 P·q)
-                    .Define("x_bj", [electronEnergy, protonEnergy](double Q2, double px, double py, double pz, double E){
-                        const double Mp = 0.9382720813; // GeV
-                        const double me = 0.00051099895; // GeV
-                        const double Ee = electronEnergy;
-                        const double Ep = protonEnergy;
-                        const double pe = std::sqrt(std::max(0.0, Ee*Ee - me*me));
-                        const double pp = std::sqrt(std::max(0.0, Ep*Ep - Mp*Mp));
-                        const double qE = Ee - E;
-                        const double qx = -px;
-                        const double qy = -py;
-                        const double qz = -pe - pz;
-                        const double Pdotq = Ep*qE - (0.0*qx + 0.0*qy + pp*qz);
-                        const double denom = 2.0 * Pdotq;
-                        return (Q2 > 0.0 && denom > 0.0) ? (Q2 / denom) : 1e-10;
-                    }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc"})
-                    .Define("log10x_mc", "x_bj>0 ? std::log10(x_bj) : -10.0");
+    // Base MC scattered electron plus real beam particle definitions
+    auto baseDF = d0
+        // Scattered (final state) electron (generatorStatus==1, PDG==11)
+        .Define("SimParticles", "MCParticles[MCParticles.generatorStatus==1 && MCParticles.PDG==11]")
+        .Define("hasElectron", "SimParticles.size()==1")
+        // Beam particles (incoming) with generatorStatus==4
+        .Define("BeamElectrons", "MCParticles[MCParticles.generatorStatus==4 && MCParticles.PDG==11]")
+        .Define("BeamProtons",   "MCParticles[MCParticles.generatorStatus==4 && MCParticles.PDG==2212]")
+        .Define("hasBeamElectron", "BeamElectrons.size()==1")
+        .Define("hasBeamProton",   "BeamProtons.size()==1")
+        // Use scattered electron momentum for mc truth k'
+        .Define("mc_momentum", "hasElectron ? SimParticles[0].momentum : MCParticles[0].momentum")
+        .Define("px_mc", "mc_momentum.x")
+        .Define("py_mc", "mc_momentum.y")
+        .Define("pz_mc", "mc_momentum.z")
+        .Define("E_mc", "sqrt(px_mc*px_mc + py_mc*py_mc + pz_mc*pz_mc + (hasElectron ? SimParticles[0].mass*SimParticles[0].mass : MCParticles[0].mass*MCParticles[0].mass))")
+        // Beam electron 4-vector (fallback to ideal if missing)
+        .Define("beam_e_px", [electronEnergy](const ROOT::RVec<edm4hep::MCParticleData>& be){
+            if(be.size()==1) return be[0].momentum.x;
+            // ideal head-on along -z
+            return 0.0; }, {"BeamElectrons"})
+        .Define("beam_e_py", [electronEnergy](const ROOT::RVec<edm4hep::MCParticleData>& be){
+            if(be.size()==1) return be[0].momentum.y; return 0.0; }, {"BeamElectrons"})
+        .Define("beam_e_pz", [electronEnergy](const ROOT::RVec<edm4hep::MCParticleData>& be){
+            if(be.size()==1) return be[0].momentum.z; // fallback approximate -|p|
+            const double me = 0.00051099895; const double pe = std::sqrt(std::max(0.0, electronEnergy*electronEnergy - me*me)); return -pe; }, {"BeamElectrons"})
+        .Define("beam_e_E", [electronEnergy](const ROOT::RVec<edm4hep::MCParticleData>& be){
+            if(be.size()==1){
+                auto p = be[0].momentum;
+                double m = be[0].mass;
+                return std::sqrt(p.x*p.x + p.y*p.y + p.z*p.z + m*m);
+            }
+            return (double)electronEnergy; }, {"BeamElectrons"})
+        // Beam proton 4-vector (fallback to ideal if missing)
+        .Define("beam_p_px", [] (const ROOT::RVec<edm4hep::MCParticleData>& bp){ if(bp.size()==1) return bp[0].momentum.x; return 0.0; }, {"BeamProtons"})
+        .Define("beam_p_py", [] (const ROOT::RVec<edm4hep::MCParticleData>& bp){ if(bp.size()==1) return bp[0].momentum.y; return 0.0; }, {"BeamProtons"})
+        .Define("beam_p_pz", [protonEnergy](const ROOT::RVec<edm4hep::MCParticleData>& bp){
+            if(bp.size()==1) return bp[0].momentum.z; // fallback +|p|
+            const double Mp = 0.9382720813; const double pp = std::sqrt(std::max(0.0, protonEnergy*protonEnergy - Mp*Mp)); return pp; }, {"BeamProtons"})
+        .Define("beam_p_E", [protonEnergy](const ROOT::RVec<edm4hep::MCParticleData>& bp){
+            if(bp.size()==1){
+                auto p = bp[0].momentum;
+                double m = bp[0].mass;
+                return std::sqrt(p.x*p.x + p.y*p.y + p.z*p.z + m*m);
+            }
+            return (double)protonEnergy; }, {"BeamProtons"})
+        // Raw polar angle and derived scattering angle (pi - raw)
+        .Define("theta_mc_raw", "std::atan2(std::sqrt(px_mc*px_mc + py_mc*py_mc), pz_mc)")
+        .Define("theta_mc", "TMath::Pi() - theta_mc_raw")
+        .Define("theta_mc_mrad", "1000.0*theta_mc")
+        .Define("phi_mc_rad", "std::atan2(py_mc, px_mc)")
+        .Define("phi_mc", "TMath::RadToDeg()*phi_mc_rad")
+        // Invariant kinematics using real beam 4-vectors when available:
+        //   k0 (beam e), P (beam p), k' (scattered e)
+        //   q = k0 - k'
+        //   Q2 = -q^2 (>0)
+        //   x = Q2 / (2 P·q)
+        //   W^2 = M_p^2 + 2 P·q - Q2
+        .Define("Q2_mc", [](double px, double py, double pz, double E,
+                              double bex,double bey,double bez,double beE){
+            const double qE = beE - E;
+            const double qx = bex - px;
+            const double qy = bey - py;
+            const double qz = bez - pz;
+            const double q2 = qE*qE - (qx*qx + qy*qy + qz*qz);
+            return -q2; }, {"px_mc","py_mc","pz_mc","E_mc","beam_e_px","beam_e_py","beam_e_pz","beam_e_E"})
+        .Define("W_mc", [](double Q2,double px,double py,double pz,double E,
+                            double bex,double bey,double bez,double beE,
+                            double bpx,double bpy,double bpz,double bpE){
+            const double qE = beE - E;
+            const double qx = bex - px;
+            const double qy = bey - py;
+            const double qz = bez - pz;
+            const double Pdotq = bpE*qE - (bpx*qx + bpy*qy + bpz*qz);
+            const double Mp = 0.9382720813; // GeV
+            const double W2 = Mp*Mp + 2.0*Pdotq - Q2;
+            return W2>0 ? std::sqrt(W2) : 0.0; }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc","beam_e_px","beam_e_py","beam_e_pz","beam_e_E","beam_p_px","beam_p_py","beam_p_pz","beam_p_E"})
+        .Define("log10Q2_mc", "Q2_mc>0 ? std::log10(Q2_mc) : -10.0")
+        .Define("x_bj", [](double Q2,double px,double py,double pz,double E,
+                            double bex,double bey,double bez,double beE,
+                            double bpx,double bpy,double bpz,double bpE){
+            const double qE = beE - E;
+            const double qx = bex - px;
+            const double qy = bey - py;
+            const double qz = bez - pz;
+            const double Pdotq = bpE*qE - (bpx*qx + bpy*qy + bpz*qz);
+            const double denom = 2.0*Pdotq;
+            return (Q2>0.0 && denom>0.0) ? Q2/denom : 1e-10; }, {"Q2_mc","px_mc","py_mc","pz_mc","E_mc","beam_e_px","beam_e_py","beam_e_pz","beam_e_E","beam_p_px","beam_p_py","beam_p_pz","beam_p_E"})
+        .Define("log10x_mc", "x_bj>0 ? std::log10(x_bj) : -10.0");
 
     // Denominator: events with a valid scattered electron
     auto denomDF = baseDF.Filter("hasElectron");
@@ -138,7 +153,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     .Define("theta_diff", "(theta_rec - theta_mc)")
     .Define("theta_diff_mrad", "1000.0*theta_diff")
         .Define("phi_diff", "TMath::RadToDeg()*ROOT::VecOps::DeltaPhi(phi_rec_rad, phi_mc_rad)")
-        // Reconstructed Q2 and x using reconstructed kinematics and full collider invariants
+        // Reconstructed Q2 and x using ideal beam kinematics (reconstruction doesn't have access to MC beam particles)
         .Define("Q2_rec", [electronEnergy](float px, float py, float pz, float E){
             const double me = 0.00051099895; // GeV
             const double Ee = electronEnergy;
@@ -200,26 +215,26 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     float phiResolutionRange[2]    = {-90, 90}; // degrees from -90 to 90
 
     // Q2 and x binning configuration
-    int   Q2Bins           = 100;
+    int   Q2Bins           = 200;
     float Q2Range[2]       = {0.0, 1.0};
-    int   xBins            = 100;
+    int   xBins            = 200;
     float xRange[2]        = {0.0, 0.1};
-    int   log10Q2Bins      = 100;
-    float log10Q2Range[2]  = {-10.0, 0.0};
-    int   log10xBins       = 100;
+    int   log10Q2Bins      = 200;
+    float log10Q2Range[2]  = {-9.0, 0.0};
+    int   log10xBins       = 200;
     float log10xRange[2]   = {-13.0, 0.0};
-    int   Q2DiffBins       = 100;
+    int   Q2DiffBins       = 200;
     float Q2DiffRange[2]   = {-0.2, 0.2};
-    int   xDiffBins        = 100;
+    int   xDiffBins        = 200;
     float xDiffRange[2]    = {-0.02, 0.02};
-    int   log10DiffBins    = 100;
+    int   log10DiffBins    = 200;
     float log10Q2DiffRange[2] = {-2.0, 2.0};
     float log10xDiffRange[2]  = {-2.0, 2.0};
 
     // Plot reconstructed vs montecarlo momentum components
-    auto px_Hist = momentumDF.Histo2D({"px_vs_px", "Reconstructed vs MC px; px reconstructed [GeV]; px MC [GeV]", momentumBins, momentumXRange[0], momentumXRange[1], momentumBins, momentumXRange[0], momentumXRange[1]}, "px_rec", "px_mc");
-    auto py_Hist = momentumDF.Histo2D({"py_vs_py", "Reconstructed vs MC py; py reconstructed [GeV]; py MC [GeV]", momentumBins, momentumYRange[0], momentumYRange[1], momentumBins, momentumYRange[0], momentumYRange[1]}, "py_rec", "py_mc");
-    auto pz_Hist = momentumDF.Histo2D({"pz_vs_pz", "Reconstructed vs MC pz; pz reconstructed [GeV]; pz MC [GeV]", momentumBins, momentumZRange[0], momentumZRange[1], momentumBins, momentumZRange[0], momentumZRange[1]}, "pz_rec", "pz_mc");
+    auto px_Hist = momentumDF.Histo2D({"px_vs_px", "Reconstructed vs MC px; px MC [GeV]; px reconstructed [GeV]", momentumBins, momentumXRange[0], momentumXRange[1], momentumBins, momentumXRange[0], momentumXRange[1]}, "px_mc", "px_rec");
+    auto py_Hist = momentumDF.Histo2D({"py_vs_py", "Reconstructed vs MC py; py MC [GeV]; py reconstructed [GeV]", momentumBins, momentumYRange[0], momentumYRange[1], momentumBins, momentumYRange[0], momentumYRange[1]}, "py_mc", "py_rec");
+    auto pz_Hist = momentumDF.Histo2D({"pz_vs_pz", "Reconstructed vs MC pz; pz MC [GeV]; pz reconstructed [GeV]", momentumBins, momentumZRange[0], momentumZRange[1], momentumBins, momentumZRange[0], momentumZRange[1]}, "pz_mc", "pz_rec");
 
     // Plot individual momentum resolutions
     auto px_diff_Hist = momentumDF.Histo1D({"px_diff", "px difference; px difference [GeV]; Entries", momentumResolutionBins, momentumDifferenceXRange[0], momentumDifferenceXRange[1]}, "px_diff");
@@ -227,9 +242,9 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     auto pz_res_Hist  = momentumDF.Histo1D({"pz_res",  "pz resolution; pz resolution [GeV]; Entries", momentumResolutionBins, momentumResolutionZRange[0], momentumResolutionZRange[1]}, "pz_res");
 
     // Plot reconstructed vs montecarlo energy, theta and phi
-    auto E_Hist     = momentumDF.Histo2D({"E_vs_E",         "Reconstructed vs MC energy; E reconstructed [GeV]; E MC [GeV]",        energyBins, energyRange[0], energyRange[1], energyBins, energyRange[0], energyRange[1]}, "E_rec", "E_mc");
-    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC scattering angle; scattering angle reco [mrad]; scattering angle MC [mrad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_rec_mrad", "theta_mc_mrad");
-    auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi reconstructed [deg]; phi MC [deg]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
+    auto E_Hist     = momentumDF.Histo2D({"E_vs_E",         "Reconstructed vs MC energy; E MC [GeV]; E reconstructed [GeV]",        energyBins, energyRange[0], energyRange[1], energyBins, energyRange[0], energyRange[1]}, "E_mc", "E_rec");
+    auto theta_Hist = momentumDF.Histo2D({"theta_vs_theta", "Reconstructed vs MC scattering angle; scattering angle MC [mrad]; scattering angle reco [mrad]", thetaBins, thetaRange[0], thetaRange[1], thetaBins, thetaRange[0], thetaRange[1]}, "theta_mc_mrad", "theta_rec_mrad");
+    auto phi_Hist   = momentumDF.Histo2D({"phi_vs_phi",     "Reconstructed vs MC phi; phi MC [deg]; phi reconstructed [deg]",       phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_mc", "phi_rec");
 
     auto E_res_Hist      = momentumDF.Histo1D({"E_res", "E resolution; E resolution [GeV]; Entries", resolutionBins, energyResolutionRange[0], energyResolutionRange[1]}, "E_res");
     auto theta_diff_Hist = momentumDF.Histo1D({"theta_diff", "theta difference; theta difference [mrad]; Entries", resolutionBins, thetaResolutionRange[0], thetaResolutionRange[1]}, "theta_diff_mrad");
@@ -248,14 +263,14 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     // Filtered dataframe for scattering angle > 1 mrad (0.001 rad)
     auto phiThetaFilteredDF = momentumDF.Filter("theta_mc > 0.001");
-    auto phi_filtered_Hist = phiThetaFilteredDF.Histo2D({"phi_filtered_vs_phi", "Reco vs MC phi (theta>1mrad); phi reco [deg]; phi MC [deg]", phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_rec", "phi_mc");
+    auto phi_filtered_Hist = phiThetaFilteredDF.Histo2D({"phi_filtered_vs_phi", "Reco vs MC phi (theta>1mrad); phi MC [deg]; phi reco [deg]", phiBins, phiRange[0], phiRange[1], phiBins, phiRange[0], phiRange[1]}, "phi_mc", "phi_rec");
     auto phi_filtered_diff_Hist = phiThetaFilteredDF.Histo1D({"phi_filtered_diff", "Phi difference (theta>1mrad); phi difference [deg]; Entries", resolutionBins, phiResolutionRange[0], phiResolutionRange[1]}, "phi_diff");
 
     // Q2 and x resolution plots
-    auto Q2_Hist = momentumDF.Histo2D({"Q2_vs_Q2", "Reconstructed vs MC Q^{2}; Q^{2} reconstructed [GeV^{2}]; Q^{2} MC [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2Bins, Q2Range[0], Q2Range[1]}, "Q2_rec", "Q2_mc");
-    auto x_Hist  = momentumDF.Histo2D({"x_vs_x", "Reconstructed vs MC x; x reconstructed; x MC", xBins, xRange[0], xRange[1], xBins, xRange[0], xRange[1]}, "x_bj_rec", "x_bj");
-    auto log10Q2_comp_Hist = momentumDF.Histo2D({"log10Q2_vs_log10Q2", "Reconstructed vs MC log10(Q^{2}); log10(Q^{2}) reconstructed; log10(Q^{2}) MC", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_rec", "log10Q2_mc");
-    auto log10x_comp_Hist  = momentumDF.Histo2D({"log10x_vs_log10x", "Reconstructed vs MC log10(x); log10(x) reconstructed; log10(x) MC", log10xBins, log10xRange[0], log10xRange[1], log10xBins, log10xRange[0], log10xRange[1]}, "log10x_rec", "log10x_mc");
+    auto Q2_Hist = momentumDF.Histo2D({"Q2_vs_Q2", "Reconstructed vs MC Q^{2}; Q^{2} MC [GeV^{2}]; Q^{2} reconstructed [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2Bins, Q2Range[0], Q2Range[1]}, "Q2_mc", "Q2_rec");
+    auto x_Hist  = momentumDF.Histo2D({"x_vs_x", "Reconstructed vs MC x; x MC; x reconstructed", xBins, xRange[0], xRange[1], xBins, xRange[0], xRange[1]}, "x_bj", "x_bj_rec");
+    auto log10Q2_comp_Hist = momentumDF.Histo2D({"log10Q2_vs_log10Q2", "Reconstructed vs MC log10(Q^{2}); log10(Q^{2}) MC; log10(Q^{2}) reconstructed", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10Q2_mc", "log10Q2_rec");
+    auto log10x_comp_Hist  = momentumDF.Histo2D({"log10x_vs_log10x", "Reconstructed vs MC log10(x); log10(x) MC; log10(x) reconstructed", log10xBins, log10xRange[0], log10xRange[1], log10xBins, log10xRange[0], log10xRange[1]}, "log10x_mc", "log10x_rec");
 
     auto Q2_diff_Hist = momentumDF.Histo1D({"Q2_diff", "Q^{2} difference; Q^{2} difference [GeV^{2}]; Entries", Q2DiffBins, Q2DiffRange[0], Q2DiffRange[1]}, "Q2_diff");
     auto x_diff_Hist  = momentumDF.Histo1D({"x_diff", "x difference; x difference; Entries", xDiffBins, xDiffRange[0], xDiffRange[1]}, "x_diff");
@@ -338,14 +353,6 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     cAcceptance1D->Update();
     cAcceptance1D->SaveAs(acceptanceCanvasName);
 
-    TCanvas *cAcceptance2D = new TCanvas("acceptance_2D_canvas", "Electron Acceptance: log10(Q^{2}) vs E", 1200, 1000);
-    cAcceptance2D->cd();
-    gStyle->SetOptStat(0);
-    hLog10Q2_vs_E_acceptance->Draw("COLZ");
-    cAcceptance2D->SetRightMargin(0.15);
-    cAcceptance2D->Update();
-    cAcceptance2D->SaveAs(energyQ2acceptanceCanvasName);
-
     TCanvas *cAcceptanceXQ2 = new TCanvas("acceptance_xQ2_canvas", "Electron Acceptance: log10(Q^{2}) vs log10(x)", 1200, 1000);
     cAcceptanceXQ2->cd();
     gStyle->SetOptStat(0);
@@ -405,43 +412,7 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     cMomentum->Update();
     // Save the canvas as a PNG file
     cMomentum->SaveAs(momentumCanvasName);
-
-    // Create canvas for energy, theta and phi resolution plots
-    TCanvas *cEnergyThetaPhi = new TCanvas("energy_theta_phi_canvas", "Energy, Theta and Phi Resolution", 3000, 1600);
-    cEnergyThetaPhi->Divide(3, 2);
-    cEnergyThetaPhi->cd(1);
-    E_Hist->Draw("colz");
-    gPad->SetLogz();
-    cEnergyThetaPhi->cd(2);
-    theta_Hist->Draw("colz");
-    gPad->SetLogz();
-    cEnergyThetaPhi->cd(3);
-    phi_Hist->Draw("colz");
-    gPad->SetLogz();
-    cEnergyThetaPhi->cd(4);
-    E_res_Hist->Draw();
-    cEnergyThetaPhi->cd(5);
-    theta_diff_Hist->Draw();
-    cEnergyThetaPhi->cd(6);
-    phi_diff_Hist->Draw();
-    cEnergyThetaPhi->SetGrid();
-    cEnergyThetaPhi->Update();
-    // Save the canvas as a PNG file
-    cEnergyThetaPhi->SaveAs(energyThetaPhiCanvasName);
-    
-    // New canvas replicating energy/theta/phi layout but with phi plots filtered (theta>1mrad)
-    TCanvas *cEnergyThetaPhiFiltered = new TCanvas("energy_theta_phi_filtered_canvas", "Energy, Scatt Angle and Filtered Phi Resolution", 3000, 1600);
-    cEnergyThetaPhiFiltered->Divide(3,2);
-    cEnergyThetaPhiFiltered->cd(1); E_Hist->Draw("colz"); gPad->SetLogz();
-    cEnergyThetaPhiFiltered->cd(2); theta_Hist->Draw("colz"); gPad->SetLogz();
-    cEnergyThetaPhiFiltered->cd(3); phi_filtered_Hist->Draw("colz"); gPad->SetLogz();
-    cEnergyThetaPhiFiltered->cd(4); E_res_Hist->Draw();
-    cEnergyThetaPhiFiltered->cd(5); theta_diff_Hist->Draw();
-    cEnergyThetaPhiFiltered->cd(6); phi_filtered_diff_Hist->Draw();
-    cEnergyThetaPhiFiltered->SetGrid();
-    cEnergyThetaPhiFiltered->Update();
-    cEnergyThetaPhiFiltered->SaveAs("energy_theta_phi_filtered.png");
-    
+        
     // Create canvas for resolution vs MC values
     TCanvas *cResolutionVsMC = new TCanvas("resolution_vs_mc_canvas", "Resolution vs MC Values", 3000, 1600);
     cResolutionVsMC->Divide(3, 3);
@@ -545,12 +516,12 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
 
     TFile *f = new TFile(outFile,"RECREATE");
     cMomentum->Write();
-    cEnergyThetaPhi->Write();
-    cEnergyThetaPhiFiltered->Write();
+    // cEnergyThetaPhi->Write();
+    // cEnergyThetaPhiFiltered->Write();
     cResolutionVsMC->Write();
     cResolutionGraphs->Write();
     cAcceptance1D->Write();
-    cAcceptance2D->Write();
+    // cAcceptance2D->Write();
     cAcceptanceXQ2->Write();
     cQ2xResolution->Write();
     px_Hist->Write();

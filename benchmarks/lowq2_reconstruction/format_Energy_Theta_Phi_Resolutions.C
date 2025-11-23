@@ -62,8 +62,8 @@ void Style1D(TH1* h, const char* title, Color_t col) {
     h->GetYaxis()->SetLabelSize(0.04);
 }
 
-void EnergyThetaPhiResolutions(const char* inFile="reconstruction_results.root",
-                               const char* outPng="energy_theta_phi_filtered_nice.png") {
+void format_Energy_Theta_Phi_Resolutions(const char* inFile="reconstruction_results.root",
+                                         const char* outPng="energy_theta_phi_filtered_nice.png") {
     // Global style tweaks
     gStyle->SetOptStat(0);
     gStyle->SetNumberContours(60);
@@ -93,9 +93,9 @@ void EnergyThetaPhiResolutions(const char* inFile="reconstruction_results.root",
     if(hE_res) hE_res->Scale(100.0);
 
     // Style histograms
-    Style2D(hE_vs_E, "Reco vs MC Energy; E_{e} reco [GeV]; E_{e} MC [GeV]");
-    Style2D(hTheta_vs_theta, "Reco vs MC Scattering Angle; #theta_{reco} [mrad]; #theta_{MC} [mrad]");
-    Style2D(hPhi_filtered_vs_phi, "Reco vs MC #phi ( #theta > 1 mrad ); #phi_{reco} [deg]; #phi_{MC} [deg]");
+    Style2D(hE_vs_E, "Reco vs MC Energy; E_{e} MC [GeV]; E_{e} reco [GeV]");
+    Style2D(hTheta_vs_theta, "Reco vs MC Scattering Angle; #theta_{MC} [mrad]; #theta_{reco} [mrad]");
+    Style2D(hPhi_filtered_vs_phi, "Reco vs MC #phi ( #theta > 1 mrad ); #phi_{MC} [deg]; #phi_{reco} [deg]");
 
     Style1D(hE_res, "Energy Resolution; #DeltaE/E_{MC} [%]", kAzure+2);
     Style1D(hTheta_diff, "Scattering Angle Difference; #Delta#theta [mrad]", kOrange+7);

@@ -1,5 +1,12 @@
+import os
+
+DETECTOR_PATH=os.getenv("DETECTOR_PATH")
+
 SIMOUTDIR="sim_output/lowq2_reconstruction/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
+
+# Common list of plugins to ignore (avoid long wrapped lines causing syntax issues)
+LOWQ2_IGNORE_PLUGINS="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
 
 ##########################################################################################
 ### Rules for checking the reconstruction of the electron momentum
@@ -12,9 +19,9 @@ rule filter_hepmc_for_training:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
         script=workflow.source_path("filterHEPMC3.py"),        
     output:
-        SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
+        SIMOUTDIR+"Low-Q2_Training_Events_{BEAMENERGY}.hepmc3.tree.root",
     params:
-        events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
+        events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/{BEAMENERGY}/q2_0to1/pythia_ep_noradcor_{BEAMENERGY}_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
     shell:
         """
         python {input.script} --outFile {output} --inFile {params.events}
@@ -24,9 +31,10 @@ rule filter_hepmc_for_training:
 rule lowq2_training_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",  
-        events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",      
+        events=SIMOUTDIR+"Low-Q2_Training_Events_{BEAMENERGY}.hepmc3.tree.root",      
+        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml"),
     output:
-        SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+        SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
     shell:
         """
             exec npsim \
@@ -34,7 +42,7 @@ rule lowq2_training_sim:
             --random.seed 1 \
             --inputFiles {input.events} \
             --numberOfEvents 1000000 \
-            --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --compactFile {input.xml} \
             --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 100*m 
@@ -43,18 +51,24 @@ rule lowq2_training_sim:
 # Run EICrecon to create TaggerTrackerReconstructedParticles
 rule lowq2_reconstruction_particles_eicrecon:
     params:
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins=LOWQ2_IGNORE_PLUGINS,
+        ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
-        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:
         """
-        eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=500000 \
-        -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
+        eicrecon -Ppodio:output_file={output.eicreconfile} \
+            -PLOWQ2:TaggerTrackerTransportationPreML:beamE={params.ebeam} \
+            -PLOWQ2:TaggerTrackerTransportationPostML:beamE={params.ebeam} \
+            -Pdd4hep:xml_files={input.xml} \
+            -Pjana:nevents=500000 \
+            -Ppodio:output_collections={params.output_collections} \
+            -Pplugins_to_ignore={params.ignore_plugins} \
+            {input.data}
         """
 
 
@@ -65,30 +79,37 @@ rule lowq2_reconstruction_particles_eicrecon:
 # Run EICrecon and create input tensors for reconstruction.
 rule lowq2_reconstruction_tensors_eicrecon:
     params:
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="BackwardsBeamlineHits,TaggerTrackerFeatureTensor,TaggerTrackerTargetTensor,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins=LOWQ2_IGNORE_PLUGINS,
+        ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
-        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_Training_Tensors_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:
         """
-        eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -Pjana:nevents=500000 -Pjana:nskip=500000 \
-        -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
+        eicrecon -Ppodio:output_file={output.eicreconfile} \
+            -PLOWQ2:TaggerTrackerTransportationPreML:beamE={params.ebeam} \
+            -Pdd4hep:xml_files={input.xml} \
+            -Pjana:nevents=500000 -Pjana:nskip=500000 \
+            -Ppodio:output_collections={params.output_collections} \
+            -Pplugins_to_ignore={params.ignore_plugins} \
+            {input.data}
         """
 
 # Processes the simulation output data for training
 rule lowq2_steering_reconstruction_preparation:
+    params:
+        ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
         script=workflow.source_path("cleanData.C"),
-        data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
+        data=ANALYSISDIR+"Low-Q2_Training_Tensors_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     output:
-        rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
+        rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data_{BEAMENERGY}_{CAMPAIGN}.root"
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}",18.0)'
+        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}",{params.ebeam})'
         """
 
 # Trains a regression model to predict the MCParticle momentum from the lowq2 tagger tracker hits.
@@ -97,9 +118,9 @@ rule lowq2_steering_reconstruction_training:
         script=workflow.source_path("SteeringRegression.py"),
         scriptdata=workflow.source_path("LoadData.py"),
         scriptmodel=workflow.source_path("RegressionModel.py"),
-        data=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
+        data=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data_{BEAMENERGY}_{CAMPAIGN}.root",
     output:
-        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{BEAMENERGY}_{CAMPAIGN}.onnx",
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
@@ -108,18 +129,26 @@ rule lowq2_steering_reconstruction_training:
 # Run eicrecon with the newly trained neural network
 rule lowq2_steering_reconstruction_particles_trained_eicrecon:
     params:
-        xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
         output_collections="TaggerTrackerReconstructedParticles,MCParticles,EventHeader",
-        ignore_plugins="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
+        ignore_plugins=LOWQ2_IGNORE_PLUGINS,
+        ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
-        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{CAMPAIGN}.edm4hep.root",
-        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
+        data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+        onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{BEAMENERGY}_{CAMPAIGN}.onnx",
+        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
     output:
-        eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:
         """
-        eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=500000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
-        -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} -Ppodio:output_collections={params.output_collections} -Pplugins_to_ignore={params.ignore_plugins}  {input.data} 
+        eicrecon -Ppodio:output_file={output.eicreconfile} \
+            -Pjana:nevents=500000 \
+            -PLOWQ2:TaggerTrackerTransportationPreML:beamE={params.ebeam} \
+            -PLOWQ2:TaggerTrackerTransportationPostML:beamE={params.ebeam} \
+            -Pdd4hep:xml_files={input.xml} \
+            -PLOWQ2:TaggerTrackerTransportationInference:modelPath={input.onnxfile} \
+            -Ppodio:output_collections={params.output_collections} \
+            -Pplugins_to_ignore={params.ignore_plugins} \
+            {input.data}
         """
 
 ##########################################################################################
@@ -128,30 +157,52 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
 
 # Produce hitsograms of th resolution of TaggerTrackerReconstructedParticles compared to their MCParticles
 rule lowq2_reconstruction_particles_test:
+    params:
+        ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0],
+        pbeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[1]
     input:
         script=workflow.source_path("reconstructionAnalysis.C"),
-        data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
+        etpscript=workflow.source_path("format_Energy_Theta_Phi_Resolutions.C"),
+        eq2script=workflow.source_path("format_Energy_Q2_Acceptance.C"),
+        q2recoscript=workflow.source_path("format_Q2_Reconstruction.C"),
+        data=ANALYSISDIR+"Low-Q2_{STAGE}_Particles_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     output:
-        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
-        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
-        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{CAMPAIGN}.png",
-        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{CAMPAIGN}.png",
-        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{CAMPAIGN}.png",   
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.root",
+        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{BEAMENERGY}_{CAMPAIGN}.png",
+        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",
+        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",
+        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",
+        Q2reconstructionCanvas=ANALYSISDIR+"{STAGE}_Q2_Reconstruction_{BEAMENERGY}_{CAMPAIGN}.png",
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", 18, 275, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
+        root -l -b -q '{input.script}("{input.data}", {params.ebeam}, {params.pbeam}, "{output.rootfile}", "{output.momentumCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
+        root -l -b -q '{input.etpscript}("{output.rootfile}", "{output.energyThetaPhiCanvas}")'
+        root -l -b -q '{input.eq2script}("{output.rootfile}", "{output.energyQ2acceptanceCanvas}")'
+        root -l -b -q '{input.q2recoscript}("{output.rootfile}", "{output.Q2reconstructionCanvas}")'
+        """
+rule lowq2_reconstruction_x_Q2_plots:
+    input:
+        script=workflow.source_path("format_X_Q2_Acceptance.C"),
+        data5=ANALYSISDIR+"Low-Q2_test_Resolution_Results_5x41_{CAMPAIGN}.root",
+        data10=ANALYSISDIR+"Low-Q2_test_Resolution_Results_10x100_{CAMPAIGN}.root",
+        data18=ANALYSISDIR+"Low-Q2_test_Resolution_Results_18x275_{CAMPAIGN}.root"
+    output:
+        xQ2Canvas=ANALYSISDIR+"test_X_Q2_Acceptance_{CAMPAIGN}.png"
+    shell:
+        """
+        root -l -b -q '{input.script}("{input.data5}", "{input.data10}", "{input.data18}", "{output.xQ2Canvas}")'
         """
 
 # Check the resloutions and offsets are within tollerance
 rule lowq2_reconstruction_particles_check:
     input:
         script=workflow.source_path("checkResolutions.C"),
-        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root"
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.root"
     output:
-        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
+        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.json"
     shell:
         """
         root -l -b -q '{input.script}("{input.rootfile}", "{output.jsonfile}")'
@@ -163,24 +214,24 @@ rule lowq2_reconstruction_particles_check:
 ##########################################################################################
 def get_onnx_input(wildcards):
     if wildcards.STAGE == "retrained":
-        return ANALYSISDIR + f"Low-Q2_Steering_Reconstruction_Test_{wildcards.CAMPAIGN}.onnx"
+        return ANALYSISDIR + f"Low-Q2_Steering_Reconstruction_Test_{wildcards.BEAMENERGY}_{wildcards.CAMPAIGN}.onnx"
     else:
         return []
 
 rule lowq2_reconstruction:
     input: 
-        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root",
-        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{CAMPAIGN}.png",
-        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
-        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
-        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
-        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{CAMPAIGN}.png",
-        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{CAMPAIGN}.png",
-        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{CAMPAIGN}.png",   
-        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json",
+        rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.root",
+        momentumCanvas=ANALYSISDIR+"{STAGE}_momentum_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{BEAMENERGY}_{CAMPAIGN}.png",
+        resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{BEAMENERGY}_{CAMPAIGN}.png",
+        acceptanceCanvas=ANALYSISDIR+"{STAGE}_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",
+        energyQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_energy_Q2_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",
+        xQ2acceptanceCanvas=ANALYSISDIR+"{STAGE}_x_Q2_acceptance_{BEAMENERGY}_{CAMPAIGN}.png",   
+        jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.json",
         onnxfile=get_onnx_input,
     output:
-        directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
+        directory("results/lowq2_reconstruction/{STAGE}_{BEAMENERGY}_{CAMPAIGN}/")
     shell:
         """
             mkdir {output}        
@@ -192,8 +243,8 @@ rule lowq2_reconstruction:
 ##########################################################################################
 rule lowq2_reconstruction_local:
     input:
-        "results/lowq2_reconstruction/test_local/"
+        "results/lowq2_reconstruction/test_18x275_local/"
 
 rule lowq2_reconstruction_retrained:
     input:
-        "results/lowq2_reconstruction/retrained_local/"
+        "results/lowq2_reconstruction/retrained_18x275_local/"

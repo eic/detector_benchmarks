@@ -1,11 +1,7 @@
-import os
-
-DETECTOR_PATH=os.getenv("DETECTOR_PATH")
-
 SIMOUTDIR="sim_output/lowq2_reconstruction/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
 
-# Common list of plugins to ignore (avoid long wrapped lines causing syntax issues)
+# Common list of plugins to ignore so eicrecon runs faster
 LOWQ2_IGNORE_PLUGINS="janatop,LUMISPECCAL,ECTOF,BTOF,FOFFMTRK,RPOTS,B0TRK,MPGD,ECTRK,DRICH,DIRC,pid,tracking,EEMC,BEMC,FEMC,EHCAL,BHCAL,FHCAL,B0ECAL,ZDC,BTRK,BVTX,PFRICH,richgeo,evaluator,pid_lut,reco,rootfile"
 
 ##########################################################################################
@@ -32,7 +28,7 @@ rule lowq2_training_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",  
         events=SIMOUTDIR+"Low-Q2_Training_Events_{BEAMENERGY}.hepmc3.tree.root",      
-        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml"),
+        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml"),
     output:
         SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
     shell:
@@ -56,7 +52,7 @@ rule lowq2_reconstruction_particles_eicrecon:
         ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
-        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
+        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml")
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:
@@ -84,7 +80,7 @@ rule lowq2_reconstruction_tensors_eicrecon:
         ebeam=lambda wildcards: wildcards.BEAMENERGY.split('x')[0]
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
-        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
+        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml")
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_Training_Tensors_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:
@@ -135,7 +131,7 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
     input:
         data=SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
         onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{BEAMENERGY}_{CAMPAIGN}.onnx",
-        xml=workflow.source_path("epic_ip6_extended_{BEAMENERGY}.xml")
+        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml")
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{BEAMENERGY}_{CAMPAIGN}.eicrecon.edm4hep.root"
     shell:

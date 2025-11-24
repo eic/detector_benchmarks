@@ -32,8 +32,8 @@ void format_Q2_Reconstruction(const char* infile = "reconstruction_results.root"
     
     // Canvas
     TCanvas* c = new TCanvas("c", "Q2 Reconstruction", 1200, 700);
-    c->SetLeftMargin(0.12);
-    c->SetRightMargin(0.16);
+    c->SetLeftMargin(0.10);
+    c->SetRightMargin(0.10);
     c->SetBottomMargin(0.12);
     c->SetTopMargin(0.08);
     c->SetLogz();

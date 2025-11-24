@@ -1,6 +1,7 @@
 sim:nhcal_basic_distribution:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
@@ -11,6 +12,7 @@ sim:nhcal_basic_distribution:
 sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   parallel:
     matrix:
       - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV"]

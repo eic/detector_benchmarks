@@ -22,6 +22,8 @@ void format_X_Q2_Acceptance(TString file5 = "lowq2-5x41/reconstruction_results.r
 
     // Global style tweaks
     gStyle->SetOptStat(0);
+    gStyle->SetPadGridX(kFALSE);  // Turn off X grid
+    gStyle->SetPadGridY(kFALSE);  // Turn off Y grid
 
     bool add_epic_logo = false;
 
@@ -48,7 +50,7 @@ void format_X_Q2_Acceptance(TString file5 = "lowq2-5x41/reconstruction_results.r
     // Create canvas
     TCanvas *c1 = new TCanvas("c1", "x-Q^{2} Acceptance with Resolution Regions", 1000, 700);
 
-    TLegend *leg = new TLegend(0.15, 0.65, 0.45, 0.88);
+    TLegend *leg = new TLegend(0.16, 0.57, 0.47, 0.88);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     

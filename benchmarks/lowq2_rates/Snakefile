@@ -1,5 +1,6 @@
-SIMOUTDIR="sim_output/lowq2_reconstruction/"
+SIMOUTDIR="sim_output/lowq2_rates/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
+GETaLM_PATH="/home/simong/Generators/GETaLM"
 
 ##########################################################################################
 ### Rules for checking the reconstruction of the electron momentum
@@ -7,10 +8,10 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 
 # Filter LowQ2 events from xrootd server - Using the acceptance events didn't work
 # ToDo: Do a proper investigation into how the feature to target mapping isn't unique
-rule filter_hepmc_for_training:
+rule generate_Bremsstrahlung_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
-        script=workflow.source_path("filterHEPMC3.py"),        
+        steering=workflow.source_path(GETaLM_PATH+"cardsfilterHEPMC3.py"),        
     output:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
     params:

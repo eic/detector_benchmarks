@@ -1,4 +1,4 @@
-sim:lowq2_reconstruction:
+sim:lowq2_rates:
   extends: .det_benchmark
   stage: simulate
   script:

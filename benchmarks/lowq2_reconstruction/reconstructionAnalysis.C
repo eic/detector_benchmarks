@@ -185,7 +185,8 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
         .Define("Q2_diff", "(Q2_rec - Q2_mc)")
         .Define("x_diff", "(x_bj_rec - x_bj)")
         .Define("log10Q2_diff", "(log10Q2_rec - log10Q2_mc)")
-        .Define("log10x_diff", "(log10x_rec - log10x_mc)");
+        .Define("log10x_diff", "(log10x_rec - log10x_mc)")
+        .Define("Q2_rel_resolution", "Q2_mc > 0 ? Q2_diff / Q2_mc : 1.0");
 
     //Print the size of the original DataFrame
     std::cout << "Original DataFrame size: " << d0.Count().GetValue() << std::endl;
@@ -228,8 +229,10 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     int   xDiffBins        = 200;
     float xDiffRange[2]    = {-0.02, 0.02};
     int   log10DiffBins    = 200;
-    float log10Q2DiffRange[2] = {-2.0, 2.0};
-    float log10xDiffRange[2]  = {-2.0, 2.0};
+    float log10Q2DiffRange[2] = {-3, 3};
+    float log10xDiffRange[2]  = {-3, 3};
+    int   Q2RelResBins     = 200;
+    float Q2RelResRange[2] = {-2.0, 2.0}; // 0 to 200% relative resolution
 
     // Plot reconstructed vs montecarlo momentum components
     auto px_Hist = momentumDF.Histo2D({"px_vs_px", "Reconstructed vs MC px; px MC [GeV]; px reconstructed [GeV]", momentumBins, momentumXRange[0], momentumXRange[1], momentumBins, momentumXRange[0], momentumXRange[1]}, "px_mc", "px_rec");
@@ -277,10 +280,16 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     auto log10Q2_diff_Hist = momentumDF.Histo1D({"log10Q2_diff", "log10(Q^{2}) difference; log10(Q^{2}) difference; Entries", log10DiffBins, log10Q2DiffRange[0], log10Q2DiffRange[1]}, "log10Q2_diff");
     auto log10x_diff_Hist  = momentumDF.Histo1D({"log10x_diff", "log10(x) difference; log10(x) difference; Entries", log10DiffBins, log10xDiffRange[0], log10xDiffRange[1]}, "log10x_diff");
 
-    auto Q2_diff_vs_Q2_Hist = momentumDF.Histo2D({"Q2_diff_vs_Q2", "Q^{2} difference vs MC Q^{2}; Q^{2} MC [GeV^{2}]; Q^{2} difference [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2DiffBins, Q2DiffRange[0], Q2DiffRange[1]}, "Q2_mc", "Q2_diff");
+    auto Q2_diff_vs_Q2_Hist = momentumDF.Histo2D({"Q2_diff_vs_Q2", "Q^{2} difference vs MC Q^{2}; Q^{2} MC [GeV^{2}]; Q^{2} difference [GeV^{2}]", Q2Bins, Q2Range[0], Q2Range[1], Q2DiffBins, Q2DiffRange[0], Q2DiffRange[1]}, "Q2_rec", "Q2_diff");
     auto x_diff_vs_x_Hist   = momentumDF.Histo2D({"x_diff_vs_x", "x difference vs MC x; x MC; x difference", xBins, xRange[0], xRange[1], xDiffBins, xDiffRange[0], xDiffRange[1]}, "x_bj", "x_diff");
-    auto log10Q2_diff_vs_log10Q2_Hist = momentumDF.Histo2D({"log10Q2_diff_vs_log10Q2", "log10(Q^{2}) difference vs MC log10(Q^{2}); log10(Q^{2}) MC; log10(Q^{2}) difference", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10DiffBins, log10Q2DiffRange[0], log10Q2DiffRange[1]}, "log10Q2_mc", "log10Q2_diff");
-    auto log10x_diff_vs_log10x_Hist   = momentumDF.Histo2D({"log10x_diff_vs_log10x", "log10(x) difference vs MC log10(x); log10(x) MC; log10(x) difference", log10xBins, log10xRange[0], log10xRange[1], log10DiffBins, log10xDiffRange[0], log10xDiffRange[1]}, "log10x_mc", "log10x_diff");
+    auto log10Q2_diff_vs_log10Q2_Hist = momentumDF.Histo2D({"log10Q2_diff_vs_log10Q2", "log10(Q^{2}) difference vs MC log10(Q^{2}); log10(Q^{2}) MC; log10(Q^{2}) difference", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], log10DiffBins, log10Q2DiffRange[0], log10Q2DiffRange[1]}, "log10Q2_rec", "log10Q2_diff");
+    auto log10x_diff_vs_log10x_Hist   = momentumDF.Histo2D({"log10x_diff_vs_log10x", "log10(x) difference vs MC log10(x); log10(x) MC; log10(x) difference", log10xBins, log10xRange[0], log10xRange[1], log10DiffBins, log10xDiffRange[0], log10xDiffRange[1]}, "log10x_rec", "log10x_diff");
+
+    // Q2 relative resolution histogram for threshold determination
+    auto Q2_rel_res_vs_log10Q2_Hist = momentumDF.Histo2D({"Q2_rel_res_vs_log10Q2", "Q^{2} Relative Resolution vs log_{10}(Q^{2}) MC; log_{10}(Q^{2}) MC [GeV^{2}]; Q^{2} Relative Resolution", log10Q2Bins, log10Q2Range[0], log10Q2Range[1], Q2RelResBins, Q2RelResRange[0], Q2RelResRange[1]}, "log10Q2_rec", "Q2_rel_resolution");
+
+    // New Q2 resolution analysis histograms  
+    auto x_vs_Q2_all_Hist = momentumDF.Histo2D({"x_vs_Q2_all", "x vs Q^{2} (all events); Q^{2}_{MC} [GeV^{2}]; x_{MC}", Q2Bins, Q2Range[0], Q2Range[1], xBins, xRange[0], xRange[1]}, "Q2_mc", "x_bj");
 
     // Acceptance histograms (denominator vs numerator)
     auto E_all_Hist     = denomDF.Histo1D({"E_all",     "MC Electron Energy; E [GeV]; Entries", energyBins, energyRange[0], energyRange[1]}, "E_mc");
@@ -303,6 +312,9 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     auto log10Q2_vs_log10x_all_Hist = denomDF.Histo2D({"log10Q2_vs_log10x_all", "MC log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", log10xBins, log10xRange[0], log10xRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10x_mc", "log10Q2_mc");
     auto log10Q2_vs_log10x_acc_Hist = filterDF.Histo2D({"log10Q2_vs_log10x_acc", "Accepted log10(Q^{2}) vs log10(x); log10(x); log10(Q^{2})", log10xBins, log10xRange[0], log10xRange[1], log10Q2Bins, log10Q2Range[0], log10Q2Range[1]}, "log10x_mc", "log10Q2_mc");
 
+    TH2D* hLog10Q2_vs_log10x_acceptance = (TH2D*)log10Q2_vs_log10x_acc_Hist->Clone("hLog10Q2_vs_log10x_acceptance");
+    hLog10Q2_vs_log10x_acceptance->Divide(log10Q2_vs_log10x_all_Hist.GetPtr());
+
     TH1D* hE_acceptance     = (TH1D*)E_acc_Hist->Clone("hE_acceptance");     hE_acceptance->Divide(E_all_Hist.GetPtr());
     TH1D* hTheta_acceptance = (TH1D*)theta_acc_Hist->Clone("hTheta_acceptance"); hTheta_acceptance->Divide(theta_all_Hist.GetPtr());
     TH1D* hPhi_acceptance   = (TH1D*)phi_acc_Hist->Clone("hPhi_acceptance");   hPhi_acceptance->Divide(phi_all_Hist.GetPtr());
@@ -312,9 +324,6 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     // 2D acceptance
     TH2D* hLog10Q2_vs_E_acceptance = (TH2D*)log10Q2_vs_E_acc_Hist->Clone("hLog10Q2_vs_E_acceptance");
     hLog10Q2_vs_E_acceptance->Divide(log10Q2_vs_E_all_Hist.GetPtr());
-
-    TH2D* hLog10Q2_vs_log10x_acceptance = (TH2D*)log10Q2_vs_log10x_acc_Hist->Clone("hLog10Q2_vs_log10x_acceptance");
-    hLog10Q2_vs_log10x_acceptance->Divide(log10Q2_vs_log10x_all_Hist.GetPtr());
 
     auto styleAcc = [](TH1* h,const char* title){
         h->SetTitle(title);
@@ -448,13 +457,15 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     // Save the canvas as a PNG file
     cResolutionVsMC->SaveAs(relationCanvasName);
 
-    // Fit Gaussians to the E vs E histogram slices
+    // Fit Gaussians to histogram slices including new Q2 resolution analysis
     TObjArray* fitE_vs_E = new TObjArray();
     TObjArray* fitTheta_vs_E = new TObjArray();
     TObjArray* fitPhi_vs_theta = new TObjArray();
+    TObjArray* fitQ2_resolution = new TObjArray();
     E_res_vs_E_Hist->FitSlicesY(nullptr, 1, -1, 0, "Q", fitE_vs_E);
     theta_diff_vs_E_Hist->FitSlicesY(nullptr, 1, -1, 0, "Q", fitTheta_vs_E);
     phi_diff_vs_theta_Hist->FitSlicesY(nullptr, 1, -1, 0, "Q", fitPhi_vs_theta);
+    Q2_rel_res_vs_log10Q2_Hist->FitSlicesY(nullptr, 1, -1, 0, "Q", fitQ2_resolution);
 
     // Create graphs containing the fitted means and standard deviations
     TH1* hE_vs_E_mean         = (TH1*)fitE_vs_E->At(1);     // mean values (index 1)
@@ -463,10 +474,12 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     TH1* hTheta_vs_E_stddev   = (TH1*)fitTheta_vs_E->At(2); // stddev values (index 2)
     TH1* hPhi_vs_theta_mean   = (TH1*)fitPhi_vs_theta->At(1);   // mean values (index 1)
     TH1* hPhi_vs_theta_stddev = (TH1*)fitPhi_vs_theta->At(2);   // stddev values (index 2)
+    TH1* hQ2_resolution_mean  = (TH1*)fitQ2_resolution->At(1);  // Q2 bias vs log10(Q2)
+    TH1* hQ2_resolution_sigma = (TH1*)fitQ2_resolution->At(2);  // Q2 resolution vs log10(Q2)
 
     // Create a canvas for the resolution graphs
-    TCanvas *cResolutionGraphs = new TCanvas("resolution_graphs_canvas", "Resolution Graphs", 1200, 800);
-    cResolutionGraphs->Divide(3, 2);
+    TCanvas *cResolutionGraphs = new TCanvas("resolution_graphs_canvas", "Resolution Graphs", 1800, 1200);
+    cResolutionGraphs->Divide(4, 2);
     cResolutionGraphs->cd(1);
     hE_vs_E_mean->SetTitle("Mean Energy Offset vs E MC; Energy MC [GeV]; Mean Energy Offset [GeV]");
     hE_vs_E_mean->SetMarkerStyle(20);
@@ -509,6 +522,18 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     hPhi_vs_theta_stddev->SetMaximum(60); // Adjust maximum for better visibility
     hPhi_vs_theta_stddev->SetMinimum(0); // Adjust minimum for better visibility
     hPhi_vs_theta_stddev->Draw();
+    // Add Q2 resolution plots
+    cResolutionGraphs->cd(7);
+    hQ2_resolution_mean->SetTitle("Mean Q^{2} Bias vs log_{10}(Q^{2}) Reco; log_{10}(Q^{2}) Reco [GeV^{2}]; Mean Q^{2} Bias [GeV^{2}]");
+    hQ2_resolution_mean->SetMarkerStyle(20);
+    hQ2_resolution_mean->SetMarkerColor(kBlue);
+    hQ2_resolution_mean->Draw();
+    cResolutionGraphs->cd(8);
+    hQ2_resolution_sigma->SetTitle("Q^{2} Resolution vs log_{10}(Q^{2}) Reco; log_{10}(Q^{2}) Reco [GeV^{2}]; Q^{2} Resolution [GeV^{2}]");
+    hQ2_resolution_sigma->SetMarkerStyle(20);
+    hQ2_resolution_sigma->SetMarkerColor(kRed);
+    hQ2_resolution_sigma->SetMinimum(0);
+    hQ2_resolution_sigma->Draw();
     cResolutionGraphs->SetGrid();
     cResolutionGraphs->Update();
     // Save the canvas as a PNG file
@@ -575,6 +600,13 @@ void reconstructionAnalysis( TString inFile                       = "/home/simon
     hTheta_vs_E_stddev->Write();
     hPhi_vs_theta_mean->Write();
     hPhi_vs_theta_stddev->Write();
+    
+    // Write new Q2 resolution analysis histograms
+    x_vs_Q2_all_Hist->Write();
+    hQ2_resolution_mean->Write();
+    hQ2_resolution_sigma->Write();
+
+    Q2_rel_res_vs_log10Q2_Hist->Write();
 
     f->Close();
 

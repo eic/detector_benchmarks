@@ -14,7 +14,7 @@ rule generate_Bremsstrahlung_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
         # xml=lambda wildcards:
-        steeringCard=lambda wildcards: workflow.source_path("lumi_{wildcards.BEAMENERGY}.ini"),
+        steeringCard=lambda wildcards: workflow.source_path(f"lumi_{wildcards.BEAMENERGY}.ini"),
         GETaLM_EXE=GETaLM_PATH+"/GETaLM"
     output:
         SIMOUTDIR+"brems_{BEAMENERGY}.hepmc3.tree.root",

@@ -243,7 +243,7 @@ void LOWQ2Benchmarks( string inName, TString outName, dd4hep::Detector& detector
     //-----------------------------------------
     auto ids = detector.readout(readoutName).idSpec().fields();
 
-    node = node.Define("hitParticleIndex","_TaggerTrackerHits_MCParticle.index")
+    node = node.Define("hitParticleIndex","_TaggerTrackerHits_particle.index")
                .Define("generatorStat","MCParticles.generatorStatus")
                .Define("primary",[](RVecI index, RVecI status){
                         RVecI result(index.size());

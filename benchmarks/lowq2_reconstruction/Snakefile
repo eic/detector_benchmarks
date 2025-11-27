@@ -28,6 +28,7 @@ rule lowq2_training_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
         events=SIMOUTDIR+"Low-Q2_Training_Events_{BEAMENERGY}.hepmc3.tree.root",
+        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml"),
         geometry_lib=find_epic_libraries(),
     output:
         SIMOUTDIR+"Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",

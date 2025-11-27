@@ -397,14 +397,20 @@ void emcal_barrel_pion_rejection_analysis(
       title += fmt::format(" & {} < #eta < {};EDep6/p; Events", j, j+1);
       std::string etaCutMin = fmt::format("Eta>={}", j);
       std::string etaCutMax = fmt::format("Eta<{}",j+1);
-      cutEEta += "(" + etaCutMin + "&&" + etaCutMax + "&&";
+      cutEEta += "(" + etaCutMin + "&&" + etaCutMax;
       auto he = d_ele.Filter(minCut).Filter(maxCut).Filter(etaCutMin).Filter(etaCutMax).Histo1D({"he", title.c_str(), 50, 0, 0.02}, "EDep6OverP");
       auto hp = d_pim.Filter(minCut).Filter(maxCut).Filter(etaCutMin).Filter(etaCutMax).Histo1D({"hp", title.c_str(), 50, 0, 0.02}, "EDep6OverP");
       auto hecopy = he->DrawCopy();
       hecopy->Fit("gaus", "", "", 0, hecopy->GetMaximum());
-      double* res = hecopy->GetFunction("gaus")->GetParameters();
-      cutEEta += fmt::format("EDep6OverP>={}", res[1] - 2.0*res[2]);
-      cutEEta += fmt::format("&&EDep6OverP<{})||",res[1] + 3.0*res[2]);
+      TF1* gaus = hecopy->GetFunction("gaus");
+      if (gaus != nullptr) {
+        double* res = gaus->GetParameters();
+        cutEEta += fmt::format("&&EDep6OverP>={}", res[1] - 2.0*res[2]);
+        cutEEta += fmt::format("&&EDep6OverP<{})||",res[1] + 3.0*res[2]);
+      } else {
+        cutEEta += ")||"; // Close the eta condition without EDep6OverP
+        std::cerr << "Warning: Gaussian fit failed for E bin " << i << ", eta bin " << j << std::endl;
+      }
 
       hp->GetYaxis()->SetTitleOffset(1.4);
       he->SetLineWidth(2);

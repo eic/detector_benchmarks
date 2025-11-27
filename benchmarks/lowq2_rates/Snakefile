@@ -29,10 +29,11 @@ rule afterburner_Bremsstrahlung_events:
     output:
         SIMOUTDIR+"Brems_{BEAMENERGY}.ab.hepmc3.tree.root",
     params:
+        tempbase="temp_{BEAMENERGY}",
         temp="temp_{BEAMENERGY}.hepmc.root",
     shell:
         """
-        abconv --preset 0 --out-format treeroot --plot-off --output {params.temp} {input.data}
+        abconv --preset 0 --out-format treeroot --plot-off --output {params.tempbase} {input.data}
         mv {params.temp} {output}        
         """
 

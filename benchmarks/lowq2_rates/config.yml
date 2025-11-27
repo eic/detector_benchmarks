@@ -4,66 +4,66 @@ sim:lowq2_rates:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
-        sim_output/lowq2_reconstruction/Low-Q2_Training_SimEvents_local.edm4hep.root \
+        sim_output/lowq2_rates/Low-Q2_Training_SimEvents_local.edm4hep.root \
 
-bench:lowq2_reconstruction:
+bench:lowq2_rates:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["sim:lowq2_reconstruction","bench:beamline"]
+    - ["sim:lowq2_rates","bench:beamline"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_rates_local
 
-check:lowq2_reconstruction:
-  needs: ["bench:lowq2_reconstruction"]
+check:lowq2_rates:
+  needs: ["bench:lowq2_rates"]
   stage: benchmarks
   script: |
-    if grep '"fail": 1' results/lowq2_reconstruction/test_local/Low-Q2_test_Resolution_Results_local.json; then
+    if grep '"fail": 1' results/lowq2_rates/test_local/Low-Q2_test_Resolution_Results_local.json; then
       exit 1
     fi
 
-bench:lowq2_reconstruction_retrained:
+bench:lowq2_rates_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]    
+    - ["bench:lowq2_rates","check:lowq2_rates"]    
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_failure
     - when: never
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
-    - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_retrained
+    - pip install -r benchmarks/lowq2_rates/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_rates_retrained
 
-check:lowq2_reconstruction_retrained:
-  needs: ["bench:lowq2_reconstruction_retrained"]
+check:lowq2_rates_retrained:
+  needs: ["bench:lowq2_rates_retrained"]
   stage: benchmarks
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_success
     - when: never  
   script: |
-    if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
+    if grep '"fail": 1' results/lowq2_rates/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
       exit 1
     fi
 
-collect_results:lowq2_reconstruction:
+collect_results:lowq2_rates:
   extends: .det_benchmark
   stage: collect
   needs:
-    - "bench:lowq2_reconstruction"
+    - "bench:lowq2_rates"
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_local
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_rates_local
     - mv results{_save,}/
 
-collect_results:lowq2_reconstruction_retrained:
+collect_results:lowq2_rates_retrained:
   extends: .det_benchmark
   stage: collect
   needs:
-    - "bench:lowq2_reconstruction_retrained"
+    - "bench:lowq2_rates_retrained"
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/'
       when: on_success
@@ -71,14 +71,14 @@ collect_results:lowq2_reconstruction_retrained:
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_reconstruction_retrained
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output lowq2_rates_retrained
     - mv results{_save,}/
 
-upload_onnx:lowq2_reconstruction:
+upload_onnx:lowq2_rates:
   extends: .det_benchmark
   stage: deploy
   needs:
-    - "check:lowq2_reconstruction_retrained"
+    - "check:lowq2_rates_retrained"
   rules:
     - if: '$BENCHMARKS_TAG =~ /nightly/ && $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
       when: on_success
@@ -86,7 +86,7 @@ upload_onnx:lowq2_reconstruction:
       when: never
   script:
     - echo "Deploying lowq2_onnx file to xrootd server"
-    - LOWQ2_ONNX_FILE=results/lowq2_reconstruction/retrained_local/Low-Q2_Steering_Reconstruction_Test_local.onnx
+    - LOWQ2_ONNX_FILE=results/lowq2_rates/retrained_local/Low-Q2_Steering_Reconstruction_Test_local.onnx
     - if [ -f $LOWQ2_ONNX_FILE ]; then
         echo "File $LOWQ2_ONNX_FILE exists, calculating hash";
         ONNX_HASH=$(sha256sum $LOWQ2_ONNX_FILE | cut -d' ' -f1);
@@ -108,11 +108,11 @@ upload_onnx:lowq2_reconstruction:
     - xrdfs $XROOTD_ENDPOINT stat $XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx
     - |
       # Build artifact folder URL for review
-      ARTIFACTS_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/browse/results/lowq2_reconstruction/"
+      ARTIFACTS_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/browse/results/lowq2_rates/"
       echo "Artifacts URL: $ARTIFACTS_URL"
     - echo "Updating PR with lowq2 reconstruction results"
     - |
-      python benchmarks/lowq2_reconstruction/makePRSuggestion.py \
+      python benchmarks/lowq2_rates/makePRSuggestion.py \
       --pr $GITHUB_PR \
       --newURL "$ONNX_DOWNLOAD_URL" \
       --githubToken $GITHUB_REPO_POST_COMMENT \

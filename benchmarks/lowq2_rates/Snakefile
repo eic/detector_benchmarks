@@ -56,6 +56,11 @@ rule simulate_Bremsstrahlung_events:
             --physics.rangecut 100*m 
         """
 
+rule simulate_QR_events:
+    input:
+        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        data="sim_output/lowq2_reconstruction/lowq2_QR_5GeV_events.hepmc3.root",
+
 rule plot_rates:
     input:
         events=SIMOUTDIR+"{source}_{BEAMENERGY}.edm4hep.root",

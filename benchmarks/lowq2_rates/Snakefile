@@ -13,9 +13,8 @@ GETaLM_PATH="/home/simong/Generators/GETaLM"
 rule generate_Bremsstrahlung_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
-        # xml=lambda wildcards:
-        steeringCard=lambda wildcards: workflow.source_path(f"lumi_{wildcards.BEAMENERGY}.ini"),
-        GETaLM_EXE=GETaLM_PATH+"/GETaLM"
+        steeringCard="benchmarks/lowq2_rates/lumi_{BEAMENERGY}.ini",
+        GETaLM_EXE=GETaLM_PATH+"/GETaLM",
     output:
         SIMOUTDIR+"brems_{BEAMENERGY}.hepmc3.tree.root",
     shell:
@@ -28,28 +27,30 @@ rule afterburner_Bremsstrahlung_events:
         data=SIMOUTDIR+"brems_{BEAMENERGY}.hepmc3.tree.root",
         warmup="warmup/epic_ip6_extended.edm4hep.root",
     output:
-        SIMOUTDIR+"brems_{BEAMENERGY}.ab.hepmc3.tree.root",
+        SIMOUTDIR+"Brems_{BEAMENERGY}.ab.hepmc3.tree.root",
+    params:
+        temp="temp_{BEAMENERGY}.hepmc.root",
     shell:
         """
-        abconv --preset 0 --out-format treeroot --plot-off --output temp {input.data}
-        mv temp.hepmc.root {output}        
+        abconv --preset 0 --out-format treeroot --plot-off --output {params.temp} {input.data}
+        mv {params.temp} {output}        
         """
 
 rule simulate_Bremsstrahlung_events:
     input:
-        events=SIMOUTDIR+"brems_{BEAMENERGY}.ab.hepmc3.tree.root",
+        events=SIMOUTDIR+"Brems_{BEAMENERGY}.ab.hepmc3.tree.root",
         warmup="warmup/epic_ip6_extended.edm4hep.root",
-        xml=lambda wildcards: workflow.source_path(f"epic_ip6_extended_{wildcards.BEAMENERGY}.xml"),
+        xml="benchmarks/lowq2_rates/epic_ip6_extended_{BEAMENERGY}.xml",
         geometry_lib=find_epic_libraries(),
     output:
-        SIMOUTDIR+"brems_{BEAMENERGY}.edm4hep.root",
+        SIMOUTDIR+"Brems_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
     shell:
         """
             exec npsim \
             --runType run \
             --random.seed 1 \
             --inputFiles {input.events} \
-            --numberOfEvents 10000 \
+            --numberOfEvents 1000000 \
             --compactFile {input.xml} \
             --printLevel WARNING \
             --outputFile {output} \
@@ -59,23 +60,36 @@ rule simulate_Bremsstrahlung_events:
 rule simulate_QR_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
-        data="sim_output/lowq2_reconstruction/lowq2_QR_5GeV_events.hepmc3.root",
+        data="sim_output/lowq2_reconstruction/Low-Q2_Training_SimEvents_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+    output:
+        SIMOUTDIR+"QR_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+    shell:
+        """
+            ln -s {input.data} {output}
+        """
 
 rule plot_rates:
     input:
-        events=SIMOUTDIR+"{source}_{BEAMENERGY}.edm4hep.root",
-        script=workflow.source_path("RunLOWQ2.C"),
-        headerBM=workflow.source_path("LOWQ2Benchmarks.h"),
-        headerHits=workflow.source_path("LOWQ2hits.h"),
-        headerCluster=workflow.source_path("LOWQ2clusters.h"),
-        headerAcceptance=workflow.source_path("LOWQ2acceptance.h"),
-        headerReconstruction=workflow.source_path("LOWQ2reconstruction.h"),
-        headerFunctor=workflow.source_path("functors.h"),
+        events=SIMOUTDIR+"{source}_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
+        script="benchmarks/lowq2_rates/RunLOWQ2.C",
+        headerBM="benchmarks/lowq2_rates/LOWQ2Benchmarks.h",
+        headerHits="benchmarks/lowq2_rates/LOWQ2hits.h",
+        headerCluster="benchmarks/lowq2_rates/LOWQ2clusters.h",
+        headerAcceptance="benchmarks/lowq2_rates/LOWQ2acceptance.h",
+        headerReconstruction="benchmarks/lowq2_rates/LOWQ2reconstruction.h",
+        headerFunctor="benchmarks/lowq2_rates/functors.h",
     output:
-        ANALYSISDIR+"{source}_{BEAMENERGY}_rates_plots.root",
+        ANALYSISDIR+"Rates_Plots_{source}_{BEAMENERGY}_{CAMPAIGN}.root",
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
         root -l -b -q '{input.script}("{input.events}", "{output}", "{params.xml}")'
         """
+
+rule lowq2_rates_test:
+    input:
+        expand(ANALYSISDIR+"Rates_Plots_{source}_{BEAMENERGY}_{CAMPAIGN}.root",
+               source=["QR", "Brems"],
+               BEAMENERGY=["5x41", "10x100", "18x275"],
+               CAMPAIGN=["TEST"])

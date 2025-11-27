@@ -9,8 +9,13 @@ rule beamline_steering_sim:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
         macro=workflow.source_path("beamlineGPS.mac"),
+        geometry_lib=find_epic_libraries(),
     output:
         SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+    params:
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
             exec npsim \

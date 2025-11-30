@@ -54,19 +54,48 @@ import matplotlib.pyplot as plt
        
 def setup_presentation_style():
     mpl.rcParams.update(mpl.rcParamsDefault)
-    plt.style.use('ggplot')
-    plt.rcParams.update({
-        'axes.labelsize': 8,
-        'axes.titlesize': 9,
-        'figure.titlesize': 9,
-        'figure.figsize': (4, 3),
-        'legend.fontsize': 7,
-        'xtick.labelsize': 8,
-        'ytick.labelsize': 8,
-        'xaxis.labellocation': 'right',
-        'yaxis.labellocation': 'top',
-        'pgf.rcfonts': False,
-    })
+    if int(os.environ.get("USE_PUBLICATION_STYLE", "0")):
+      import mplhep
+      plt.style.use([mplhep.style.CMSTex])
+      plt.rcParams.update({
+        "text.usetex": True,
+        "savefig.pad_inches": 0.,
+        "text.latex.preamble": r"\usepackage{amsmath}",
+        "pgf.rcfonts": False,
+        "font.family": "serif",
+        "font.serif": [],
+        "font.sans-serif": [],
+        "mathtext.fontset": "cm",
+        "figure.figsize": (3.4, 3.4),
+        "font.size": 10,
+        "lines.linewidth": 0.25,
+        "xtick.major.width": 0.4,
+        "xtick.minor.width": 0.3,
+        "xtick.major.size": 6.0,
+        "xtick.minor.size": 3.0,
+        "ytick.major.width": 0.4,
+        "ytick.minor.width": 0.3,
+        "ytick.major.size": 6.0,
+        "ytick.minor.size": 3.0,
+        "axes.linewidth": 0.5,
+        "lines.markersize": 5,
+        "hatch.linewidth": 0.5
+      })
+    else:
+      plt.style.use("ggplot")
+      plt.rcParams.update({
+        "axes.labelsize": 8,
+        "axes.titlesize": 9,
+        "figure.titlesize": 9,
+        "figure.figsize": (4, 3),
+        "legend.fontsize": 7,
+        "xtick.labelsize": 8,
+        "ytick.labelsize": 8,
+        "xaxis.labellocation": "right",
+        "yaxis.labellocation": "top",
+        "pgf.rcfonts": False,
+      })
+
 
 setup_presentation_style()
 #+end_src       
@@ -276,7 +305,7 @@ plt.xlim(0., xmax)
 plt.ylim(top=6.)
 plt.legend()
 plt.xlabel("Energy, GeV", loc="right")
-plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, %", loc="top")
+plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, \%", loc="top")
 plt.savefig(output_dir / f"resolution.pdf", bbox_inches="tight")
 plt.savefig(output_dir / f"resolution.png", bbox_inches="tight")
 plt.show()
@@ -355,7 +384,7 @@ plt.xlim(0., xmax)
 plt.yscale("log")
 plt.legend()
 plt.xlabel("Energy, GeV")
-plt.ylabel("Pion rejection at 95%")
+plt.ylabel(r"Pion rejection at 95\%")
 plt.savefig(output_dir / f"pion_rej.pdf", bbox_inches="tight")
 plt.savefig(output_dir / f"pion_rej.png", bbox_inches="tight")
 plt.show()

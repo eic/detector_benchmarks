@@ -47,7 +47,7 @@ rule beamline_steering_analysis:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
-            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}",
+            root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}", "{params.xml}",
             "{output.beamspot_canvas}", "{output.x_px_canvas}", "{output.y_py_canvas}",
             "{output.fitted_position_means_stdevs_canvas}", "{output.fitted_momentum_means_stdevs_canvas}",
             "{output.pipe_parameter_canvas}")'

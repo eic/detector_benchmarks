@@ -57,5 +57,5 @@ rule nhcal_basic_distribution_analysis:
         png=f"results/nhcal_basic_distribution/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
+    root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}")'
 """

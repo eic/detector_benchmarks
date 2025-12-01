@@ -97,7 +97,7 @@ rule lowq2_steering_reconstruction_preparation:
         rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}",18.0)'
+        root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}",18.0)'
         """
 
 # Trains a regression model to predict the MCParticle momentum from the lowq2 tagger tracker hits.
@@ -150,7 +150,7 @@ rule lowq2_reconstruction_particles_test:
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
+        root -l -b -q '{input.script}+("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
         """
 
 # Check the resloutions and offsets are within tollerance
@@ -162,7 +162,7 @@ rule lowq2_reconstruction_particles_check:
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
     shell:
         """
-        root -l -b -q '{input.script}("{input.rootfile}", "{output.jsonfile}")'
+        root -l -b -q '{input.script}+("{input.rootfile}", "{output.jsonfile}")'
         """
 
 

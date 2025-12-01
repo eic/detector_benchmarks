@@ -96,7 +96,7 @@ rule beamline_acceptance_analysis:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
     shell:
         """
-            root -l -b -q '{input.script}("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
+            root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
             "{output.entries_canvas}")'
         """
 

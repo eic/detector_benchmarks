@@ -1,28 +1,28 @@
-sim:nhcal_dimuon_fotoproduction:
+sim:nhcal_dimuon_photoproduction:
   extends: .det_benchmark
   stage: simulate
   parallel:
     matrix:
       - INDEX_RANGE: ["0 1", "2 3", "4 5", "6 7", "8 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_fotoproduction/sim_epic_full.${INDEX}.edm4hep.root; done)
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_fotoproduction/sim_epic_full.${INDEX}.eicrecon.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_photoproduction/sim_epic_full.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_dimuon_photoproduction/sim_epic_full.${INDEX}.eicrecon.edm4hep.root; done)
 
-bench:nhcal_dimuon_fotoproduction_analysis:
+bench:nhcal_dimuon_photoproduction_analysis:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - "sim:nhcal_dimuon_fotoproduction"
+    - "sim:nhcal_dimuon_photoproduction"
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/nhcal_dimuon_fotoproduction/analysis_epic_full_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/nhcal_dimuon_photoproduction/analysis_epic_full_10files.pdf
 
-collect_results:nhcal_dimuon_fotoproduction:
+collect_results:nhcal_dimuon_photoproduction:
   extends: .det_benchmark
   stage: collect
   needs: 
-    - "bench:nhcal_dimuon_fotoproduction_analysis"
+    - "bench:nhcal_dimuon_photoproduction_analysis"
   script:
     - ls -lrht
     - mv results{,_save}/ 
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_dimuon_fotoproduction/analysis_epic_full_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_dimuon_photoproduction/analysis_epic_full_10files.pdf
     - mv results{_save,}/

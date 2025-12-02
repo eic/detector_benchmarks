@@ -1,18 +1,18 @@
-rule nhcal_dimuon_fotoproduction_presimulate:
+rule nhcal_dimuon_photoproduction_presimulate:
     output:
         "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     params:
         outdir=lambda wc, output: os.path.dirname(output[0]),
     shell:
         """
-            benchmarks/nhcal_dimuon_fotoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} 
+            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} 
         """
 
-rule nhcal_dimuon_fotoproduction_simulate:
+rule nhcal_dimuon_photoproduction_simulate:
     input:
         "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     output:
-        "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
+        "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
     params:
         N_EVENTS=1000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
@@ -35,11 +35,11 @@ rule nhcal_dimuon_fotoproduction_simulate:
                 --outputFile {output}
         """
 
-rule nhcal_dimuon_fotoproduction_recon:
+rule nhcal_dimuon_photoproduction_recon:
     input:
-        "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root"
+        "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root"
     output:
-        "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
+        "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
     cache: True
@@ -51,15 +51,15 @@ rule nhcal_dimuon_fotoproduction_recon:
                 
         """
 
-rule nhcal_dimuon_fotoproduction_combine:
+rule nhcal_dimuon_photoproduction_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
+            "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             INDEX=range(int(wildcards.N)),
         )
     output:
-        "sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
     wildcard_constraints:
         N = r"\d+",
     shell:
@@ -67,13 +67,13 @@ rule nhcal_dimuon_fotoproduction_combine:
             hadd -f {output} {input} 
         """
 
-rule nhcal_dimuon_fotoproduction_analysis:
+rule nhcal_dimuon_photoproduction_analysis:
     input:
-        combined="sim_output/nhcal_dimuon_fotoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
-        script="benchmarks/nhcal_dimuon_fotoproduction/scripts/dimuon_fotoproduction_analysis.cxx",
+        combined="sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        script="benchmarks/nhcal_dimuon_photoproduction/scripts/dimuon_photoproduction_analysis.cxx",
     output:
-        png=f"results/nhcal_dimuon_fotoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.png",
-        pdf=f"results/nhcal_dimuon_fotoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.pdf",
+        png=f"results/nhcal_dimuon_photoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.png",
+        pdf=f"results/nhcal_dimuon_photoproduction/analysis_{{DETECTOR_CONFIG}}_{{N}}files.pdf",
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",

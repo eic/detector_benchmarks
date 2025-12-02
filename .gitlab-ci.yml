@@ -152,7 +152,7 @@ include:
   # - local: 'benchmarks/nhcal_acceptance/config.yml'
   - local: 'benchmarks/nhcal_basic_distribution/config.yml'
   - local: 'benchmarks/nhcal_sampling_fraction/config.yml'
-  - local: 'benchmarks/nhcal_dimuon_fotoproduction/config.yml'
+  - local: 'benchmarks/nhcal_dimuon_photoproduction/config.yml'
   - local: 'benchmarks/nhcal_pion_rejection/config.yml'
   
 deploy_results:
@@ -188,7 +188,7 @@ deploy_results:
     # - "collect_results:nhcal_acceptance"
     - "collect_results:nhcal_basic_distribution"
     - "collect_results:nhcal_sampling_fraction"
-    - "collect_results:nhcal_dimuon_fotoproduction"
+    - "collect_results:nhcal_dimuon_photoproduction"
     - "collect_results:nhcal_pion_rejection"
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json

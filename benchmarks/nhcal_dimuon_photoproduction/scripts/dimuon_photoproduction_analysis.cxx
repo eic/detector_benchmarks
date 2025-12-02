@@ -364,7 +364,7 @@ trackXYatZ(const GeomState& A, const GeomState& B, double zTarget){
 }
 
 
-int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
+int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
 
     gStyle->SetOptStat(0);
     podio::ROOTReader reader;

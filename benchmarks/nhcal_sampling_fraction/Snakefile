@@ -2,12 +2,12 @@ rule nhcal_sampling_fraction_simulate:
     output:
         "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root",
     params:
-        N_EVENTS=1000,
+        N_EVENTS=5000,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-    # cache: True
+    cache: True
     shell:
         """
 set -m
@@ -47,8 +47,8 @@ rule nhcal_sampling_fraction_analysis:
         combined="sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
         script="benchmarks/nhcal_sampling_fraction/scripts/sampling_fraction_analysis.cxx",
     output:
-        pdf="results/nhcal_sampling_fraction/analysis.pdf",
-        png="results/nhcal_sampling_fraction/analysis.png",
+        pdf="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf",
+        png="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.png",
     params:
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml"

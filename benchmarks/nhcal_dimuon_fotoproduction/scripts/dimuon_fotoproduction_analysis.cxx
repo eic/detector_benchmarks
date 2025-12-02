@@ -474,9 +474,9 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
         hW_rec_in[i]  = new TH1D(Form("hW_rec_in_%d",  i), "", NBINS,  W_MIN, W_MAX);
     }
 
-    TH1D* hZ_proj = new TH1D("hZ_proj", "Muon track projections in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
+    TH1D* hZ_proj = new TH1D("hZ_proj", "Muon track projections in nHCal; z [mm]; N_{proj}", NBINS, Z_MIN_MM, Z_MAX_MM);
 
-    TH1D* hZ_hits = new TH1D("hZ_hits", "Reconstructed hit z in nHCal; z [mm]; N", NBINS, Z_MIN_MM, Z_MAX_MM);
+    TH1D* hZ_hits = new TH1D("hZ_hits", "Reconstructed hit z in nHCal; z [mm]; N_{hits}", NBINS, Z_MIN_MM, Z_MAX_MM);
     
     TH3D* hDxDyZ_layer = new TH3D("hDxDyZ_layer","3D residuals (rec - proj): dx, dy vs z; dx [mm]; dy [mm]; z [mm]", NBINS, DXY_MIN_MM, DXY_MAX_MM, NBINS, DXY_MIN_MM, DXY_MAX_MM, NBINS, Z_MIN_MM, Z_MAX_MM); 
     
@@ -495,9 +495,9 @@ int dimuon_fotoproduction_analysis(const string& filename, string outname_pdf, s
     TH2D* hEsum_z = new TH2D("hEsum_z", "Layer energy sum vs z (reconstructed); z_{layer} [mm]; E_{sum} [GeV]",
                             NBINS, Z_MIN_MM, Z_MAX_MM, NBINS, Ebins.data());
 
-    TH1D* hE = new TH1D("hE", "Reconstructed hit energy; E [GeV]; N", 10000, 0.0, 1.0);
+    TH1D* hE = new TH1D("hE", "Reconstructed hit energy; E [GeV]; N_{hits}", 10000, 0.0, 1.0);
 
-    TH1D* hEsum = new TH1D("hEsum", "Layer energy sum (reconstructed); E_{sum} [GeV]; N", 10000, 0.0, 1.0);
+    TH1D* hEsum = new TH1D("hEsum", "Reconstructed layer energy sum; E_{sum} [GeV]; N_{energy}", 10000, 0.0, 1.0);
 
     TH1D* hP_all_mu = new TH1D("hP_all_mu", "MC muon momentum (muons in nHCal acceptance); p_{MC} [GeV]; N", P_NBINS, P_MIN_GEV, P_MAX_GEV);
 

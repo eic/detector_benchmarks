@@ -11,7 +11,7 @@ rule nhcal_pion_rejection_simulate:
     wildcard_constraints:
         DETECTOR_CONFIG = r"[A-Za-z0-9_]+",
         INDEX            = r"\d+",
-    #cache: True
+    cache: True
     shell:
         """
 exec npsim \
@@ -36,7 +36,7 @@ rule nhcal_pion_rejection_recon:
         "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
-    #cache: True
+    cache: True
     shell: 
         """
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \

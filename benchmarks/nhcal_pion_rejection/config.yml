@@ -3,10 +3,10 @@ sim:nhcal_pion_rejection:
   stage: simulate
   parallel:
     matrix:
-      - INDEX_RANGE: ["0 4","5 9"]
+      - INDEX_RANGE: ["0 1", "2 3", "4 5", "6 7", "8 9"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_pion_rejection/sim_epic_full.${INDEX}.edm4hep.root; done)
-
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_pion_rejection/sim_epic_full.${INDEX}.eicrecon.edm4hep.root; done)
 
 bench:nhcal_pion_rejection_analysis:
   extends: .det_benchmark

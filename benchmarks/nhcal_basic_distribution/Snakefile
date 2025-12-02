@@ -18,7 +18,7 @@ rule nhcal_basic_distribution_simulate:
         ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-    # cache: True
+    cache: True
     shell:
         """
             exec npsim \

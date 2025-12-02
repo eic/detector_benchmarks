@@ -98,7 +98,7 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
 
     gStyle->SetTitleSize(0.045, "XYZ");
     gStyle->SetLabelSize(0.04, "XYZ");
-    gStyle->SetPadLeftMargin(0.15);
+    gStyle->SetPadLeftMargin(0.20);
     gStyle->SetPadRightMargin(0.15);
     gStyle->SetPadBottomMargin(0.15);
     gStyle->SetPadTopMargin(0.10);
@@ -110,7 +110,7 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     unsigned nEvents = reader->getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
-    TH1D *h_energyTotal = new TH1D("h_energyTotal", "Total Energy per Event; Energy per Event [GeV]", 
+    TH1D *h_energyTotal = new TH1D("h_energyTotal", "Total Energy per Event; Energy per Event [GeV]; N_{events}", 
                                     NBINS, MIN_TOTAL_ENERGY_GEV, MAX_TOTAL_ENERGY_GEV);
     
     TH2D *h_layerEnergy = new TH2D("h_layerEnergy", "Energy in Layers; Z [mm]; Energy [GeV]", 
@@ -119,29 +119,29 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     TProfile *p_layerEnergy = new TProfile("p_layerEnergy", "Energy in Layers; Z [mm]; Mean Energy [GeV]",
                                             NBINS, MIN_Z_MM, MAX_Z_MM);
     
-    TH1D *h_hitCount = new TH1D("h_hitCount", "Hits per Event; Hits per Event; N", 
+    TH1D *h_hitCount = new TH1D("h_hitCount", "Hits per Event; Hits per Event; N_{hits}", 
                                 NBINS, MIN_HITS, MAX_HITS);
     
-    TH2D *h_layerHits = new TH2D("h_layerHits", "Hits in Layers; Z [mm]; Hits", 
+    TH2D *h_layerHits = new TH2D("h_layerHits", "Hits in Layers; Z [mm]; N_{hits}", 
                                   NBINS, MIN_Z_MM, MAX_Z_MM, NBINS, MIN_LAYER_HITS, MAX_LAYER_HITS);
     
     TProfile *p_layerHits = new TProfile("p_layerHits", "Hits in Layers; Z [mm]; Mean Hits",
                                           NBINS, MIN_Z_MM, MAX_Z_MM);
     
     TH2D *h_XYPos = new TH2D("h_XYPos", "Hits position;X [mm];Y [mm]", 
-                              NBINS, MIN_X_MM, MAX_X_MM, NBINS, MIN_Y_MM, MAX_Y_MM);
+                              NBINS*2, MIN_X_MM, MAX_X_MM, NBINS*2, MIN_Y_MM, MAX_Y_MM);
     
     TH2D *h_ZRPos = new TH2D("h_ZRPos", "Hits position;Z [mm];R [mm]", 
                               NBINS, MIN_Z_MM, MAX_Z_MM, NBINS, MIN_R_MM, MAX_R_MM);
     
     TH2D *h_XYEnergy = new TH2D("h_XYEnergy", "Hits energy;X [mm];Y [mm]", 
-                                 NBINS, MIN_X_MM, MAX_X_MM, NBINS, MIN_Y_MM, MAX_Y_MM);
+                                 NBINS*2, MIN_X_MM, MAX_X_MM, NBINS*2, MIN_Y_MM, MAX_Y_MM);
 
-    TH2D *h_energyRes = new TH2D("h_energyRes", "Kinetic energy vs sum hit energy;Ekin [GeV]; Ehit sum [GeV]", 
+    TH2D *h_energyRes = new TH2D("h_energyRes", "Kinetic energy vs #sum hit energy;E_{kin} [GeV]; #sum E_{hit} [GeV]", 
                                   NBINS, MIN_KINETIC_GEV, MAX_KINETIC_GEV,
                                   NBINS, MIN_TOTAL_ENERGY_GEV, MAX_TOTAL_ENERGY_GEV);
     
-    TProfile *p_energyRes = new TProfile("p_energyRes", "Kinetic energy vs sum hit energy",
+    TProfile *p_energyRes = new TProfile("p_energyRes", "Kinetic energy vs #sum hit energy",
                                           NBINS, MIN_KINETIC_GEV, MAX_KINETIC_GEV, "s");
     
     for (unsigned ev = 0; ev < nEvents; ev++) 

@@ -81,7 +81,7 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
         
     gStyle->SetTitleSize(0.045, "XYZ");
     gStyle->SetLabelSize(0.04, "XYZ");
-    gStyle->SetPadLeftMargin(0.15);
+    gStyle->SetPadLeftMargin(0.25);
     gStyle->SetPadRightMargin(0.15);
     gStyle->SetPadBottomMargin(0.15);
     gStyle->SetPadTopMargin(0.10);
@@ -121,15 +121,15 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
     }
 
     // Fit σ/E = a/√E ⊕ b
-    TF1 *fit = new TF1("fit", "sqrt([0]*[0]/x + [1]*[1])", 0.1, 6);
-    fit->SetParameters(0.5, 0.05);
-    fit->SetParNames("a (stochastic)", "b (constant)");
+    TF1 *fit = new TF1("fit", "[0]*pow(x, -0.5) + [1] + [2]*pow(x, 1)", 0.1, 6);
+    fit->SetParameters(0.5, 0.05, 0.001);
+    fit->SetParNames("a (stochastic)", "b (constant)", "c (noise)");
     g_resolution->Fit(fit, "R");
 
     TCanvas *c = new TCanvas("c", "Energy Resolution", 1600, 800);
     c->Divide(2, 1);
+    c->cd(1); 
     
-    c->cd(1);
     h_energyRes->Draw("COLZ");
     p_energyRes->SetLineWidth(3); 
     p_energyRes->SetLineColor(kRed); 
@@ -142,10 +142,13 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
     g_resolution->Draw("AP");
     fit->Draw("SAME");
     
+    double par_a = fit->GetParameter(0);
+    double par_b = fit->GetParameter(1);
+    double par_c = fit->GetParameter(2);
+    
     TLegend *leg = new TLegend(0.45, 0.65, 0.80, 0.80);
     leg->AddEntry(g_resolution, "Data", "p");
-    leg->AddEntry(fit, Form("Fit: #sqrt{(%.3f/#sqrt{E})^{2} + (%.3f)^{2}}", 
-                           fit->GetParameter(0), fit->GetParameter(1)), "l");
+    leg->AddEntry(fit, Form("Fit: %.3f/#sqrt{E} + %.3f + %.3f#timesE", par_a, par_b, par_c), "l");
     leg->Draw();
 
     c->SaveAs(outname_png.c_str());

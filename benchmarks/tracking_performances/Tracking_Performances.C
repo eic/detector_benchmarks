@@ -40,6 +40,26 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    histp[i] = new TH1D(Form("hist_etabin%d",i),Form("hist_etabin%d",i),600,-0.3,0.3);
    histp[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f ",eta[i],eta[i+1],mom));
    histp[i]->SetName(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
+   
+   hpull_invp[i] = new TH1D(Form("hpull_invp_etabin%d",i),Form("hist_etabin%d",i),100,-10.0,10.0);
+   hpull_invp[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f (GeV/c);Pull (q/p);Entries (a.u.)",eta[i],eta[i+1],mom));
+   hpull_invp[i]->SetName(Form("hpull_invp_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
+   
+   hpull_d0xy[i] = new TH1D(Form("hpull_d0xy_etabin%d",i),Form("hist_etabin%d",i),100,-10.0,10.0);
+   hpull_d0xy[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f (GeV/c);Pull (d0_{xy});Entries (a.u.)",eta[i],eta[i+1],mom));
+   hpull_d0xy[i]->SetName(Form("hpull_d0xy_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
+   
+   hpull_d0z[i] = new TH1D(Form("hpull_d0z_etabin%d",i),Form("hist_etabin%d",i),100,-10.0,10.0);
+   hpull_d0z[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f (GeV/c);Pull (d0_{z});Entries (a.u.)",eta[i],eta[i+1],mom));
+   hpull_d0z[i]->SetName(Form("hpull_d0z_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
+   
+   hpull_phi[i] = new TH1D(Form("hpull_phi_etabin%d",i),Form("hist_etabin%d",i),100,-10.0,10.0);
+   hpull_phi[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f (GeV/c);Pull (#phi);Entries (a.u.)",eta[i],eta[i+1],mom));
+   hpull_phi[i]->SetName(Form("hpull_phi_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
+   
+   hpull_theta[i] = new TH1D(Form("hpull_theta_etabin%d",i),Form("hist_etabin%d",i),100,-10.0,10.0);
+   hpull_theta[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f (GeV/c);Pull (#theta);Entries (a.u.)",eta[i],eta[i+1],mom));
+   hpull_theta[i]->SetName(Form("hpull_theta_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
    
    TFile* file = TFile::Open(filename.Data());

@@ -109,6 +109,7 @@ rule warmup_run:
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
+  -v VERBOSE \
   --runType batch \
   --numberOfEvents 1 \
   --compactFile "$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml" \

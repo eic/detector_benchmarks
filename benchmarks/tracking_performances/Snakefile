@@ -274,7 +274,6 @@ rule tracking_performance_campaigns:
         expand(
             "results/tracking_performances/{CAMPAIGN}",
             CAMPAIGN=[
-                "24.10.1",
                 "25.07.0",
                 "25.08.0",
                 "25.10.4",

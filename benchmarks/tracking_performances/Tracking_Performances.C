@@ -1,6 +1,7 @@
 // Code to extract the Tracking Performances
 // Shyam Kumar; INFN Bari, Italy
 // shyam.kumar@ba.infn.it; shyam.kumar@cern.ch
+// Pull distributions: https://indico.bnl.gov/event/28544/contributions/109057/attachments/62799/108633/ePIC_Tracking_Meeting_30June2025_ShyamKumar.pdf
 
 #include "TGraphErrors.h"
 #include "TF1.h"
@@ -30,7 +31,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    int nfiles = 100; 
    double eta[nbins_eta+1]={-3.5,-2.5,-1.0,1.0,2.5,3.5};
    double pt[nbins_eta+1]={0.5,1.0,2.0,5.0,10.0,20.1};
-   TH1D *histp[nbins_eta]; 
+   TH1D *histp[nbins_eta], *hpull_invp[nbins_eta], *hpull_d0xy[nbins_eta], *hpull_d0z[nbins_eta], *hpull_phi[nbins_eta], *hpull_theta[nbins_eta];  
    
     TH3D *h_d0xy_3d= new TH3D("h_d0xy_3d","Transverse Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
     TH3D *h_d0z_3d= new TH3D("h_d0z_3d","Longitudinal Pointing Resolution",500,-0.1,0.1,70,-3.5,3.5,201,0.,20.1);
@@ -88,6 +89,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    TTreeReaderArray<Float_t> theta(myReader, Form("CentralCKF%sTrackParameters.theta",tag.Data()));
    TTreeReaderArray<Float_t> phi(myReader, Form("CentralCKF%sTrackParameters.phi",tag.Data()));
    TTreeReaderArray<Float_t> qoverp(myReader, Form("CentralCKF%sTrackParameters.qOverP",tag.Data()));
+   TTreeReaderArray<std::array<float, 21>> rcTrkCov(myReader, Form("CentralCKF%sTrackParameters.covariance.covariance[21]",tag.Data()));
 
   int count =0;
   int matchId = 1; // Always matched track assigned the index 0 
@@ -111,9 +113,24 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
       
       Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
       Double_t p_resol = (prec-pmc)/pmc;
+      // Accessing the pull distributions 
+      std::array<float, 21>& cov = rcTrkCov.At(j); // access covariance
+      Double_t pull_invmom = (fabs(1./prec)-fabs(1./pmc))/sqrt(cov[14]); // cov[14] = sigma_1/p^2 
+      Double_t pull_dcaxy = d0xy[j]/sqrt(cov[0]); // cov[0] = sigma_l0^2 
+      Double_t pull_dcaz = d0z[j]/sqrt(cov[2]);  // cov[2] = sigma_l1^2 
+      Double_t pull_phi = (phi[j]-phi_mc)/sqrt(cov[5]); 
+      Double_t pull_theta = (theta[j]-theta_mc)/sqrt(cov[9]);          
+      
       
       for (int ibin=0; ibin<nbins_eta; ++ibin){ 
-      if(etamc>eta[ibin] && etamc<eta[ibin+1]) histp[ibin]->Fill(p_resol); 
+      if(etamc>eta[ibin] && etamc<eta[ibin+1]){ 
+      histp[ibin]->Fill(p_resol);
+      hpull_invp[ibin]->Fill(pull_invmom);
+      hpull_d0xy[ibin]->Fill(pull_dcaxy); 
+      hpull_d0z[ibin]->Fill(pull_dcaz);
+      hpull_phi[ibin]->Fill(pull_phi);
+      hpull_theta[ibin]->Fill(pull_theta);  
+      } 
       }
       h_d0xy_3d->Fill(d0xy[j]*0.1, etamc, ptmc); // cm
       h_d0z_3d->Fill(d0z[j]*0.1, etamc, ptmc); // cm
@@ -124,7 +141,14 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
   
    TFile *fout_mom = new TFile(Form("%s/%s/mom/Performances_mom_%1.1f_%s_%s.root",dir.Data(),particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
    fout_mom->cd();
-   for (int ibin=0; ibin<nbins_eta; ++ibin) histp[ibin]->Write();
+   for (int ibin=0; ibin<nbins_eta; ++ibin){
+   histp[ibin]->Write();
+   hpull_invp[ibin]->Write();
+   hpull_d0xy[ibin]->Write(); 
+   hpull_d0z[ibin]->Write();
+   hpull_phi[ibin]->Write();
+   hpull_theta[ibin]->Write();
+   }
    fout_mom->Close();
 
    TFile *fout_dca = new TFile(Form("%s/%s/dca/Performances_dca_%1.1f_%s_%s.root",dir.Data(),particle.Data(),mom,dist_dir_dca.Data(),particle.Data()),"recreate");

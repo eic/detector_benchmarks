@@ -21,8 +21,8 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
   
   for (int i =0; i<nfiles; ++i){
       
-  TCanvas *can = new TCanvas("can","can",1400,1000);
-  can->SetMargin(0.10, 0.05 ,0.1,0.07);
+  TCanvas *can = new TCanvas("can","can",2000,1000);
+  can->Divide(3,2);
 
 	fmom_real[i] = TFile::Open(Form("./realseed/pi-/mom/Performances_mom_%1.1f_mom_resol_realseed_%s.root",mom[i],particle.Data()));
 	TH1D *hpull_invp = (TH1D*) fmom_real[i]->Get(Form("hpull_invp_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
@@ -31,26 +31,22 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
 	TH1D *hpull_phi = (TH1D*) fmom_real[i]->Get(Form("hpull_phi_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
 	TH1D *hpull_theta = (TH1D*) fmom_real[i]->Get(Form("hpull_theta_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
 	
-	can->cd();
+	can->cd(1);
 	hpull_invp->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpull_invp_%1.1f_%1.1f_pmax_%1.1f",particle.Data(),etamin,etamax,mom[i]));
-	
-	can->Clear(); can->cd();
+
+	can->cd(2);
 	hpull_d0xy->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpull_d0xy_%1.1f_%1.1f_pmax_%1.1f",particle.Data(),etamin,etamax,mom[i]));
-	
-	can->Clear(); can->cd();
+
+	can->cd(3);
 	hpull_d0z->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpull_d0z_%1.1f_%1.1f_pmax_%1.1f",particle.Data(),etamin,etamax,mom[i]));
-	
-	can->Clear(); can->cd();
+
+    can->cd(4);
 	hpull_phi->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpull_phi_%1.1f_%1.1f_pmax_%1.1f",particle.Data(),etamin,etamax,mom[i]));
 	
-  can->Clear(); can->cd();
+	can->cd(5);
 	hpull_theta->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpull_theta_%1.1f_%1.1f_pmax_%1.1f",particle.Data(),etamin,etamax,mom[i]));
-	
+	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_%1.1f_pmax_%1.1f.png",particle.Data(),etamin,etamax,mom[i]));
+	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_%1.1f_pmax_%1.1f.root",particle.Data(),etamin,etamax,mom[i]));
 	}
 
 }   

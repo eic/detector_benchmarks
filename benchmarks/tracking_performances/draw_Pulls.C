@@ -45,8 +45,8 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
 	
 	can->cd(5);
 	hpull_theta->Draw("hist")
-	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_%1.1f_pmax_%1.1f.png",particle.Data(),etamin,etamax,mom[i]));
-	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_%1.1f_pmax_%1.1f.root",particle.Data(),etamin,etamax,mom[i]));
+	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.png",particle.Data(),etamin,etamax,mom[i]));
+	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.root",particle.Data(),etamin,etamax,mom[i]));
 	}
 
 }   

@@ -166,6 +166,7 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/truthseed/pi-/dca/final_hist_dca_truthseed.root",
         "{CAMPAIGN}/realseed/pi-/dca/final_hist_dca_realseed.root",
         script_mom="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
+        script_pulls="benchmarks/tracking_performances/draw_Pulls.C",
         script_dcaT="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaT.C",
         script_dcaz="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaz.C",
     output:
@@ -208,6 +209,7 @@ else
 fi
 cd {wildcards.CAMPAIGN}
 root -l -b -q ../{input.script_mom}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q ../{input.script_pulls}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX})'
 root -l -b -q ../{input.script_dcaT}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
 root -l -b -q ../{input.script_dcaz}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
 """

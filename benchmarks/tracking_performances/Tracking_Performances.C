@@ -122,7 +122,10 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
      	
       if (status[j] !=1 && pdg.GetSize()!=1) continue;
       Double_t ptmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]); 
-      
+      TVector3 mom_MC(px_mc[j],py_mc[j],pz_mc[j]); 
+      Double_t theta_mc = mom_MC.Theta();   
+      Double_t phi_mc = mom_MC.Phi();
+
       if (fabs(ptmc) < pTcut) continue;
 
       Double_t pmc = (1./charge[j])*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec

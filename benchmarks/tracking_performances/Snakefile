@@ -243,11 +243,12 @@ rule tracking_performance:
             [
                 "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.png",
                 "{{CAMPAIGN}}/Final_Results/pi-/mom/mom_resol_{ETA_BIN}.root",
-                "{{CAMPAIGN}}/Final_Results/pi-/mom/hpulls_{{ETA_BIN}}_pmax_0.5.png",
-                "{{CAMPAIGN}}/Final_Results/pi-/mom/hpulls_{{ETA_BIN}}_pmax_1.0.png",
+                "{{CAMPAIGN}}/Final_Results/pi-/mom/hpulls_{ETA_BIN}_pmax_{PMAX}.png",
+                "{{CAMPAIGN}}/Final_Results/pi-/mom/hpulls_{ETA_BIN}_pmax_{PMAX}.root",
                 "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
             ],
             ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
+            PMAX=["0.5", "1.0", "2.0", "5.0", "10.0", "20.0"],
         ),
         lambda wildcards: branch(
             wildcards.CAMPAIGN == "local",

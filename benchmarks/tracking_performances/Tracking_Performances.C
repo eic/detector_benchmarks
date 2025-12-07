@@ -121,28 +121,28 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
      for (int j = 0; j < pdg.GetSize(); ++j){
      	
       if (status[j] !=1 && pdg.GetSize()!=1) continue;
-      Double_t ptmc = sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]); 
       TVector3 mom_MC(px_mc[j],py_mc[j],pz_mc[j]); 
       Double_t theta_mc = mom_MC.Theta();   
       Double_t phi_mc = mom_MC.Phi();
-
-      if (fabs(ptmc) < pTcut) continue;
-
-      Double_t pmc = (1./charge[j])*sqrt(px_mc[j]*px_mc[j]+py_mc[j]*py_mc[j]+pz_mc[j]*pz_mc[j]); // 1./(q/p); similar to prec
+      Double_t ptmc = mom_MC.Pt();
+      Double_t etamc = mom_MC.Eta();
+     
+     if (fabs(ptmc) < pTcut) continue;
+      Double_t pmc = mom_MC.Mag() / charge[j]; // 1./(q/p); similar to prec
       Double_t prec = 1./qoverp[j]; 
 
       Double_t pzrec = prec*TMath::Cos(theta[j]);  Double_t pt_rec = sqrt(prec*prec-pzrec*pzrec);  
       Double_t pzmc = pz_mc[j];  
       
-      Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
+     // Double_t etamc = -1.0*TMath::Log(TMath::Tan((TMath::ACos(pzmc/fabs(pmc)))/2));
       Double_t p_resol = (prec-pmc)/pmc;
       // Accessing the pull distributions 
       std::array<float, 21>& cov = rcTrkCov.At(j); // access covariance
       Double_t pull_invmom = (fabs(1./prec)-fabs(1./pmc))/sqrt(cov[14]); // cov[14] = sigma_1/p^2 
       Double_t pull_dcaxy = d0xy[j]/sqrt(cov[0]); // cov[0] = sigma_l0^2 
       Double_t pull_dcaz = d0z[j]/sqrt(cov[2]);  // cov[2] = sigma_l1^2 
-      Double_t pull_phi = (phi[j]-phi_mc)/sqrt(cov[5]); 
-      Double_t pull_theta = (theta[j]-theta_mc)/sqrt(cov[9]);          
+      Double_t pull_phi = (phi[j]-phi_mc)/sqrt(cov[5]); // cov[5] = sigma_phi^2 
+      Double_t pull_theta = (theta[j]-theta_mc)/sqrt(cov[9]); // cov[9] = sigma_theta^2          
       
       
       for (int ibin=0; ibin<nbins_eta; ++ibin){ 

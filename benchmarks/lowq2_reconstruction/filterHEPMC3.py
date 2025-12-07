@@ -1,4 +1,4 @@
-
+import ROOT
 from pyHepMC3 import HepMC3 as hm
 from pyHepMC3.rootIO import HepMC3 as hmrootIO
 import argparse

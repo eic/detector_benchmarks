@@ -109,7 +109,6 @@ rule warmup_run:
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
-  -v DEBUG \
   --runType batch \
   --numberOfEvents 1 \
   --compactFile "$DETECTOR_PATH/epic_ip6.xml" \

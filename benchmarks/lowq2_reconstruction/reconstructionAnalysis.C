@@ -7,6 +7,7 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "TCanvas.h"
+#include "TFile.h"
 #include "TStyle.h"
 #include "TMath.h"
 

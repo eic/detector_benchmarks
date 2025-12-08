@@ -14,7 +14,8 @@
 #include "shared_functions.h"
 #include "TCanvas.h"
 #include "TStyle.h"
-
+#include "TF1.h"
+#include "TEllipse.h"
 
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;

@@ -114,7 +114,7 @@ rule lowq2_steering_reconstruction_preparation:
         rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data_{BEAMENERGY}_{CAMPAIGN}.root"
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", "{output.rootfile}",{params.ebeam})'
+        root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}",{params.ebeam})'
         """
 
 # Trains a regression model to predict the MCParticle momentum from the lowq2 tagger tracker hits.
@@ -185,10 +185,10 @@ rule lowq2_reconstruction_particles_test:
         Q2reconstructionCanvas=ANALYSISDIR+"{STAGE}_Q2_Reconstruction_{BEAMENERGY}_{CAMPAIGN}.png",
     shell:
         """
-        root -l -b -q '{input.script}("{input.data}", {params.ebeam}, {params.pbeam}, "{output.rootfile}", "{output.momentumCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
-        root -l -b -q '{input.etpscript}("{output.rootfile}", "{output.energyThetaPhiCanvas}")'
-        root -l -b -q '{input.eq2script}("{output.rootfile}", "{output.energyQ2acceptanceCanvas}")'
-        root -l -b -q '{input.q2recoscript}("{output.rootfile}", "{output.Q2reconstructionCanvas}")'
+        root -l -b -q '{input.script}+("{input.data}", {params.ebeam}, {params.pbeam}, "{output.rootfile}", "{output.momentumCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}", "{output.acceptanceCanvas}", "{output.energyQ2acceptanceCanvas}", "{output.xQ2acceptanceCanvas}")'
+        root -l -b -q '{input.etpscript}+("{output.rootfile}", "{output.energyThetaPhiCanvas}")'
+        root -l -b -q '{input.eq2script}+("{output.rootfile}", "{output.energyQ2acceptanceCanvas}")'
+        root -l -b -q '{input.q2recoscript}+("{output.rootfile}", "{output.Q2reconstructionCanvas}")'
         """
 rule lowq2_reconstruction_x_Q2_plots:
     input:
@@ -200,7 +200,7 @@ rule lowq2_reconstruction_x_Q2_plots:
         xQ2Canvas=ANALYSISDIR+"test_X_Q2_Acceptance_{CAMPAIGN}.png"
     shell:
         """
-        root -l -b -q '{input.script}("{input.data5}", "{input.data10}", "{input.data18}", "{output.xQ2Canvas}")'
+        root -l -b -q '{input.script}+("{input.data5}", "{input.data10}", "{input.data18}", "{output.xQ2Canvas}")'
         """
 
 # Check the resloutions and offsets are within tollerance
@@ -212,7 +212,7 @@ rule lowq2_reconstruction_particles_check:
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{BEAMENERGY}_{CAMPAIGN}.json"
     shell:
         """
-        root -l -b -q '{input.script}("{input.rootfile}", "{output.jsonfile}")'
+        root -l -b -q '{input.script}+("{input.rootfile}", "{output.jsonfile}")'
         """
 
 

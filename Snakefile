@@ -104,15 +104,15 @@ exit 1
 
 rule warmup_run:
     output:
-        "warmup/{DETECTOR_CONFIG}.edm4hep.root",
-    message: "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
+        "warmup.edm4hep.root",
+    message: "Ensuring that calibrations/fieldmaps are available"
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
   -v DEBUG \
   --runType batch \
   --numberOfEvents 1 \
-  --compactFile "$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml" \
+  --compactFile "$DETECTOR_PATH/epic_ip6.xml" \
   --outputFile "{output}" \
   --enableGun
 """

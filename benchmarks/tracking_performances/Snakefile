@@ -187,13 +187,13 @@ rule tracking_performance_summary_at_eta:
         ),
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
-       expand(
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.png",
-        PMAX=["0.5", "1.0", "2.0", "20.0"],
+        expand(
+            "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.png",
+            PMAX=["0.5", "1.0", "2.0", "20.0"],
         ),
-       expand(
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.root",
-        PMAX=["0.5", "1.0", "2.0", "20.0"],
+        expand(
+            "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.root",
+            PMAX=["0.5", "1.0", "2.0", "20.0"],
         ),
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root", 

@@ -187,8 +187,14 @@ rule tracking_performance_summary_at_eta:
         ),
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_0.5.png",
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_0.5.root",
+       expand(
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.png",
+        PMAX=["0.5", "1.0", "2.0", "20.0"],
+        ),
+       expand(
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_{PMAX}.root",
+        PMAX=["0.5", "1.0", "2.0", "20.0"],
+        ),
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
@@ -248,7 +254,7 @@ rule tracking_performance:
                 "{{CAMPAIGN}}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
             ],
             ETA_BIN=[f"{eta_min:.1f}_eta_{eta_max:.1f}" for eta_min, eta_max in zip(TRACKING_PERFORMANCE_ETA_BINS[:-1], TRACKING_PERFORMANCE_ETA_BINS[1:])],
-            PMAX=["0.5"],
+            PMAX=["0.5","1.0","2.0","20.0"],
         ),
         lambda wildcards: branch(
             wildcards.CAMPAIGN == "local",

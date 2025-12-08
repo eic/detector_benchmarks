@@ -4,10 +4,10 @@
 void RunLOWQ2(  std::string inputFileName  = "Brems_input.root", 
                 std::string outputFileName = "plots/LOWQ2QRRecon3.root",
                 std::string compactName    = "/opt/detector/epic-nightly/share/epic/epic.xml",
-                bool   inputIsTimeBased    = false,      // true if the event sample is time-based, false if it is event-based
-                double timeWindow          = 10.15*1e-9, //[s]
                 double eventCrossSection   = 0.0551,     // [mb]
-                double luminosity          = 1e34        // [cm^-2 s^-1]
+                double luminosity          = 1e34,        // [cm^-2 s^-1]
+                bool   inputIsTimeBased    = false,      // true if the event sample is time-based, false if it is event-based
+                double timeWindow          = 10.15*1e-9  //[s]
             ) {
     
     //Set implicit multi-threading

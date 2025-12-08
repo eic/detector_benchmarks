@@ -266,9 +266,9 @@ void LOWQ2Benchmarks( string inName, TString outName, dd4hep::Detector& detector
     }
 
     //Create Rate Plots
-    histMap["Rates/AllHits"]        = createHitPlots(node,eventWeight);
-    histMap["Rates/PrimaryHits"]    = createHitPlots(primarynode,eventWeight);
-    histMap["Rates/SecondaryHits"]  = createHitPlots(secondarynode,eventWeight); 
+    histMap["Rates/AllHits"]        = createHitPlots(node,eventWeight,detector);
+    histMap["Rates/PrimaryHits"]    = createHitPlots(primarynode,eventWeight,detector);
+    histMap["Rates/SecondaryHits"]  = createHitPlots(secondarynode,eventWeight,detector); 
 
   }
 

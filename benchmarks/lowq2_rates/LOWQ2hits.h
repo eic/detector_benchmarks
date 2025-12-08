@@ -1,6 +1,8 @@
 #pragma once
 
 #include "functors.h"
+#include <DD4hep/Detector.h>
+#include <DD4hep/DetElement.h>
 
 // Define alias
 using RNode       = ROOT::RDF::RNode;
@@ -10,20 +12,126 @@ using H3ResultPtr = ROOT::RDF::RResultPtr<TH3D>;
 using RVecI       = ROOT::VecOps::RVec<int>;
 using RVecD       = ROOT::VecOps::RVec<double>;
 
-// Lazy execution methods
-std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<TString,H3ResultPtr>> createHitPlots( RNode d2, double eventWeight ){
+// Structure to hold tagger dimensions
+struct TaggerDimensions {
+    double width_mm;
+    double height_mm;
+    double pixel_size_mm;
+    int n_pixels_x;
+    int n_pixels_y;
+};
 
+// Function to extract tagger dimensions from detector description
+std::map<int, TaggerDimensions> getTaggerDimensions(const dd4hep::Detector& detector) {
+    std::map<int, TaggerDimensions> dimensions;
+    
+    TaggerDimensions tagger1, tagger2;
+    
+    try {
+        // Try to extract tagger dimensions from detector constants
+        std::map<std::string, double> constants;
+        
+        // Attempt to access detector constants
+        auto constantsMap = detector.constants();
+        
+        // Look for tagger dimension constants and pixel size
+        bool foundTagger1Width = false, foundTagger1Height = false;
+        bool foundTagger2Width = false, foundTagger2Height = false;
+        bool foundPixelSize = false;
+        double pixel_size_mm = 0.055; // Default 55 μm pixel size
+
+        pixel_size_mm = detector.constant<double>("tracker_pixel_size") * 10.0; // Convert cm to mm
+        tagger1.width_mm = detector.constant<double>("Tagger1_Width") * 10.0; // Convert cm to mm
+        tagger1.height_mm = detector.constant<double>("Tagger1_Height") * 10.0; // Convert cm to mm
+        tagger2.width_mm = detector.constant<double>("Tagger2_Width") * 10.0; // Convert cm to mm
+        tagger2.height_mm = detector.constant<double>("Tagger2_Height") * 10.0; // Convert cm to mm
+        
+        // Set pixel size for both taggers
+        tagger1.pixel_size_mm = pixel_size_mm;
+        tagger2.pixel_size_mm = pixel_size_mm;
+        
+        if (!foundPixelSize) {
+            std::cout << "Using default pixel size: " << pixel_size_mm << " mm" << std::endl;
+        } else {
+            std::cout << "Loaded pixel size from detector: " << pixel_size_mm << " mm" << std::endl;
+        }
+        
+        // Calculate pixel counts from dimensions if found, otherwise use defaults
+        // if (foundTagger1Width && foundTagger1Height) {
+            tagger1.n_pixels_x = static_cast<int>(tagger1.width_mm / pixel_size_mm);
+            tagger1.n_pixels_y = static_cast<int>(tagger1.height_mm / pixel_size_mm);
+        // } else {
+        //     // Default values based on current pixel layout
+        //     tagger1.n_pixels_x = 6 * 448;  // 6 chips × 448 pixels
+        //     tagger1.n_pixels_y = 6 * 512;  // 6 chips × 512 pixels
+        //     tagger1.width_mm = tagger1.n_pixels_x * tagger1.pixel_size_mm;
+        //     tagger1.height_mm = tagger1.n_pixels_y * tagger1.pixel_size_mm;
+        //     std::cout << "Using default dimensions for Tagger1" << std::endl;
+        // }
+        
+        // if (foundTagger2Width && foundTagger2Height) {
+            tagger2.n_pixels_x = static_cast<int>(tagger2.width_mm / pixel_size_mm);
+            tagger2.n_pixels_y = static_cast<int>(tagger2.height_mm / pixel_size_mm);
+        // } else {
+        //     // Default values (same as tagger1)
+        //     tagger2.n_pixels_x = tagger1.n_pixels_x;
+        //     tagger2.n_pixels_y = tagger1.n_pixels_y;
+        //     tagger2.width_mm = tagger1.width_mm;
+        //     tagger2.height_mm = tagger1.height_mm;
+        //     std::cout << "Using default dimensions for Tagger2" << std::endl;
+        // }
+        
+        dimensions[1] = tagger1;
+        dimensions[2] = tagger2;
+        
+        std::cout << "Loaded tagger dimensions from detector description:" << std::endl;
+        std::cout << "  Tagger1: " << tagger1.width_mm << " mm × " << tagger1.height_mm << " mm" << std::endl;
+        std::cout << "  Tagger2: " << tagger2.width_mm << " mm × " << tagger2.height_mm << " mm" << std::endl;
+        
+    } catch (...) {
+        // Fallback to default values
+        std::cout << "Warning: Could not extract tagger dimensions from XML, using defaults" << std::endl;
+        
+        tagger1.pixel_size_mm = 0.055;
+        tagger1.n_pixels_x = 6 * 448;
+        tagger1.n_pixels_y = 6 * 512;
+        tagger1.width_mm = tagger1.n_pixels_x * tagger1.pixel_size_mm;
+        tagger1.height_mm = tagger1.n_pixels_y * tagger1.pixel_size_mm;
+        
+        tagger2 = tagger1;
+        dimensions[1] = tagger1;
+        dimensions[2] = tagger2;
+    }
+    
+    return dimensions;
+}
+
+// Lazy execution methods
+std::tuple<std::map<TString,H1ResultPtr>,std::map<TString,H2ResultPtr>,std::map<TString,H3ResultPtr>> createHitPlots( RNode d2, double eventWeight, const dd4hep::Detector& detector ){
+
+  // Get tagger dimensions from detector description
+  auto taggerDims = getTaggerDimensions(detector);
+  
+  // Use the detector dimensions to set pixel ranges
+  std::map<int,int> xPixelMin, xPixelMax, yPixelMin, yPixelMax;
+  
+  for (auto& [module, dims] : taggerDims) {
+      int half_x = dims.n_pixels_x / 2;
+      int half_y = dims.n_pixels_y / 2;
+      
+      xPixelMin[module] = -half_x;
+      xPixelMax[module] = half_x;
+      yPixelMin[module] = -half_y;
+      yPixelMax[module] = half_y;
+      
+      std::cout << "Module " << module << ": " << dims.width_mm << " mm × " << dims.height_mm 
+                << " mm (" << dims.n_pixels_x << " × " << dims.n_pixels_y << " pixels)" << std::endl;
+  }
+
+  // Get chip dimensions (assuming consistent across modules)
   int xChip = 448;
   int yChip = 512;
-  int xChips = 6;
-  int yChips = 6;
-  std::map<int,int> xPixelMin = {{1,-xChip*xChips/2},{2,-xChip*xChips/2}};
-  std::map<int,int> xPixelMax = {{1, xChip*xChips/2},{2, xChip*xChips/2}};
-
-  std::map<int,int> yPixelMin = {{1,-yChip*yChips/2},{2,-yChip*yChips/2}};
-  std::map<int,int> yPixelMax = {{1, yChip*yChips/2},{2, yChip*yChips/2}};
-
-
+  
   std::map<TString,H1ResultPtr> hHists1D;
   std::map<TString,H2ResultPtr> hHists2D;
   std::map<TString,H3ResultPtr> hHists3D;

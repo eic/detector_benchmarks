@@ -4,12 +4,26 @@ SIMOUTDIR="sim_output/lowq2_rates/"
 ANALYSISDIR=SIMOUTDIR+"analysis/"
 GETaLM_PATH="/home/simong/Generators/GETaLM"
 
+# Luminosity map for different beam energies [cm^-2 s^-1]
+LUMINOSITY_MAP = {
+    "5x41": 0.44e33,
+    "10x100": 4.48e33, 
+    "18x275": 1.54e33
+}
+
+# Cross section unit conversion factors
+# Brems: already in mb, factor = 1
+# QR: convert from fb to mb, factor = 1e-12
+CROSS_SECTION_SCALE = {
+    "Brems": 1.0,
+    "QR": 1e-12
+}
+
 ##########################################################################################
-### Rules for checking the reconstruction of the electron momentum
+### Rules for checking the rates in the LowQ2 taggers
 ##########################################################################################
 
-# Filter LowQ2 events from xrootd server - Using the acceptance events didn't work
-# ToDo: Do a proper investigation into how the feature to target mapping isn't unique
+#Generate Bremsstrahlung events with GETaLM
 rule generate_Bremsstrahlung_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
@@ -22,6 +36,7 @@ rule generate_Bremsstrahlung_events:
         {input.GETaLM_EXE} {input.steeringCard}
         """
 
+# Add beam effects with the afterburner
 rule afterburner_Bremsstrahlung_events:
     input:
         data=SIMOUTDIR+"brems_{BEAMENERGY}.hepmc3.tree.root",
@@ -37,6 +52,7 @@ rule afterburner_Bremsstrahlung_events:
         mv {params.temp} {output}        
         """
 
+# Simulate the Bremsstrahlung events
 rule simulate_Bremsstrahlung_events:
     input:
         events=SIMOUTDIR+"Brems_{BEAMENERGY}.ab.hepmc3.tree.root",
@@ -58,6 +74,7 @@ rule simulate_Bremsstrahlung_events:
             --physics.rangecut 100*m 
         """
 
+# Simulate the QRa events by linking to the lowq2 reconstruction sim output
 rule simulate_QR_events:
     input:
         warmup="warmup/epic_ip6_extended.edm4hep.root",
@@ -66,9 +83,38 @@ rule simulate_QR_events:
         SIMOUTDIR+"QR_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
     shell:
         """
-            ln -s {input.data} {output}
+            cp {input.data} {output}
         """
 
+# Extract cross section from HepMC file for Bremsstrahlung events
+rule extract_cross_section_brems:
+    input:
+        hepmc_file=SIMOUTDIR+"Brems_{BEAMENERGY}.ab.hepmc3.tree.root",
+        script="benchmarks/lowq2_rates/extract_cross_section.py"
+    output:
+        SIMOUTDIR+"cross_section_Brems_{BEAMENERGY}.txt"
+    params:
+        scale_factor=lambda wildcards: CROSS_SECTION_SCALE["Brems"]
+    shell:
+        """
+        python {input.script} {input.hepmc_file} {params.scale_factor} > {output}
+        """
+
+# Extract cross section from HepMC file for QR events  
+rule extract_cross_section_qr:
+    input:
+        hepmc_file="sim_output/lowq2_reconstruction/Low-Q2_Training_Events_{BEAMENERGY}.hepmc3.tree.root",
+        script="benchmarks/lowq2_rates/extract_cross_section.py"
+    output:
+        SIMOUTDIR+"cross_section_QR_{BEAMENERGY}.txt"
+    params:
+        scale_factor=lambda wildcards: CROSS_SECTION_SCALE["QR"]
+    shell:
+        """
+        python {input.script} {input.hepmc_file} {params.scale_factor} > {output}
+        """
+
+# Create Plots of the rates (unified rule for both Brems and QR)
 rule plot_rates:
     input:
         events=SIMOUTDIR+"{source}_{BEAMENERGY}_{CAMPAIGN}.edm4hep.root",
@@ -79,13 +125,16 @@ rule plot_rates:
         headerAcceptance="benchmarks/lowq2_rates/LOWQ2acceptance.h",
         headerReconstruction="benchmarks/lowq2_rates/LOWQ2reconstruction.h",
         headerFunctor="benchmarks/lowq2_rates/functors.h",
+        cross_section_file=SIMOUTDIR+"cross_section_{source}_{BEAMENERGY}.txt"
     output:
         ANALYSISDIR+"Rates_Plots_{source}_{BEAMENERGY}_{CAMPAIGN}.root",
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+        luminosity=lambda wildcards: LUMINOSITY_MAP.get(wildcards.BEAMENERGY, 1e34)
     shell:
         """
-        root -l -b -q '{input.script}("{input.events}", "{output}", "{params.xml}")'
+        CROSS_SECTION=$(cat {input.cross_section_file})
+        root -l -b -q '{input.script}("{input.events}", "{output}", "{params.xml}", '$CROSS_SECTION', {params.luminosity})'
         """
 
 rule lowq2_rates_test:

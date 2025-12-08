@@ -7,6 +7,7 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "TCanvas.h"
+#include "TFile.h"
 #include "TStyle.h"
 
 void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/detector_benchmarks_anl/sim_output/lowq2_reconstruction/analysis/Low-Q2_retrained_Particles_new.eicrecon.edm4hep.root",

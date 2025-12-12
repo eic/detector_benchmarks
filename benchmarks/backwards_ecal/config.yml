@@ -37,7 +37,7 @@ bench:backwards_ecal_campaigns:
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/backwards_ecal/24.10.1
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/backwards_ecal/25.10.4
 
 collect_results:backwards_ecal:
   extends: .det_benchmark

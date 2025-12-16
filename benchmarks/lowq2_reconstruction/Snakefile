@@ -9,7 +9,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 # ToDo: Do a proper investigation into how the feature to target mapping isn't unique
 rule filter_hepmc_for_training:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         script=workflow.source_path("filterHEPMC3.py"),        
     output:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
@@ -23,7 +23,7 @@ rule filter_hepmc_for_training:
 # Run pythia6 Low-Q2 events through the simulation
 rule lowq2_training_sim:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         events=SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
         geometry_lib=find_epic_libraries(),
     output:

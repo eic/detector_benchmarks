@@ -4,7 +4,7 @@ import shutil
 
 rule backgrounds_sim:
     input:
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root",

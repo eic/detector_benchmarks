@@ -14,12 +14,13 @@
 #include "shared_functions.h"
 #include "TCanvas.h"
 #include "TStyle.h"
-
+#include "TF1.h"
+#include "TEllipse.h"
 
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/beamlineTest.edm4hep.root",
+int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS3.edm4hep.root",
                         TString outFile         = "output.root",
                         std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beamspotCanvasName = "beamspot_canvas.png",
@@ -79,6 +80,13 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
                 }
                 return radii;
                 }, {"pipeParameters"})
+                .Define("isConeSegment",[](const ROOT::VecOps::RVec<volParams>& params) {
+                ROOT::VecOps::RVec<bool> cones;
+                for (const auto& param : params) {
+                    cones.push_back(param.isConeSegment);
+                }
+                return cones;
+                }, {"pipeParameters"})
                 .Define("xdet",[](const ROOT::VecOps::RVec<volParams>& params) {
                 ROOT::VecOps::RVec<double> xPos;
                 for (const auto& param : params) {
@@ -129,7 +137,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
     }    
 
     // Calculate the maximum pipe radius for plotting
-    auto maxPipeRadius = 1.2*d1.Max("pipeRadius").GetValue();
+    auto maxPipeRadius = 2*d1.Max("pipeRadius").GetValue();
 
     std::cout << "Executing Analysis and creating histograms" << std::endl;
 
@@ -170,6 +178,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
     std::map<TString,double> pipeXPos;
     std::map<TString,double> pipeZPos;
     std::map<TString,double> pipeRotation;
+    std::map<TString,bool> pipeIsConeSegment;
 
     // Queue up all actions
     auto xmin_ptr  = d1.Min("xpos");
@@ -201,6 +210,7 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
                           .Define("xmomf","xmom[pipeID=="+std::to_string(i)+"]")
                           .Define("ymomf","ymom[pipeID=="+std::to_string(i)+"]")
                           .Define("pipeRadiusf","pipeRadius[pipeID=="+std::to_string(i)+"]")
+                          .Define("isConeSegmentf","isConeSegment[pipeID=="+std::to_string(i)+"]")
                           .Define("xdetf","xdet[pipeID=="+std::to_string(i)+"]")
                           .Define("zdetf","zdet[pipeID=="+std::to_string(i)+"]")
                           .Define("rotationf","rotation[pipeID=="+std::to_string(i)+"]");
@@ -273,33 +283,54 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         pipeXPos[name]     = filterDF.Max("xdetf").GetValue();
         pipeZPos[name]     = filterDF.Max("zdetf").GetValue();
         pipeRotation[name] = filterDF.Max("rotationf").GetValue();
+        pipeIsConeSegment[name] = filterDF.Max("isConeSegmentf").GetValue();
 
         //Fit gaussian to the x, y, px and py distributions
         auto xhist = hHistsxy[name]->ProjectionX();
         auto yhist = hHistsxy[name]->ProjectionY();
         auto pxhist = hHistsxpx[name]->ProjectionY();
         auto pyhist = hHistsypy[name]->ProjectionY();
-        xhist->Fit("gaus","Q");
-        yhist->Fit("gaus","Q");
-        pxhist->Fit("gaus","Q");
-        pyhist->Fit("gaus","Q");
-        //Get the fit parameters and errors
-        xMeanFit[name] = xhist->GetFunction("gaus")->GetParameter(1);
-        yMeanFit[name] = yhist->GetFunction("gaus")->GetParameter(1);
-        xMeanFitErr[name] = xhist->GetFunction("gaus")->GetParError(1);
-        yMeanFitErr[name] = yhist->GetFunction("gaus")->GetParError(1);
-        xStdDevFit[name] = xhist->GetFunction("gaus")->GetParameter(2);
-        yStdDevFit[name] = yhist->GetFunction("gaus")->GetParameter(2);
-        xStdDevFitErr[name] = xhist->GetFunction("gaus")->GetParError(2);
-        yStdDevFitErr[name] = yhist->GetFunction("gaus")->GetParError(2);
-        pxMeanFit[name] = pxhist->GetFunction("gaus")->GetParameter(1);
-        pyMeanFit[name] = pyhist->GetFunction("gaus")->GetParameter(1);
-        pxMeanFitErr[name] = pxhist->GetFunction("gaus")->GetParError(1);
-        pyMeanFitErr[name] = pyhist->GetFunction("gaus")->GetParError(1);
-        pxStdDevFit[name] = pxhist->GetFunction("gaus")->GetParameter(2);
-        pyStdDevFit[name] = pyhist->GetFunction("gaus")->GetParameter(2);
-        pxStdDevFitErr[name] = pxhist->GetFunction("gaus")->GetParError(2);
-        pyStdDevFitErr[name] = pyhist->GetFunction("gaus")->GetParError(2);
+
+        if(hHistsxy[name]->GetEntries() > 0){
+            xhist->Fit("gaus","Q");
+            yhist->Fit("gaus","Q");
+            pxhist->Fit("gaus","Q");
+            pyhist->Fit("gaus","Q");
+            //Get the fit parameters and errors
+            xMeanFit[name] = xhist->GetFunction("gaus")->GetParameter(1);
+            yMeanFit[name] = yhist->GetFunction("gaus")->GetParameter(1);
+            xMeanFitErr[name] = xhist->GetFunction("gaus")->GetParError(1);
+            yMeanFitErr[name] = yhist->GetFunction("gaus")->GetParError(1);
+            xStdDevFit[name] = xhist->GetFunction("gaus")->GetParameter(2);
+            yStdDevFit[name] = yhist->GetFunction("gaus")->GetParameter(2);
+            xStdDevFitErr[name] = xhist->GetFunction("gaus")->GetParError(2);
+            yStdDevFitErr[name] = yhist->GetFunction("gaus")->GetParError(2);
+            pxMeanFit[name] = pxhist->GetFunction("gaus")->GetParameter(1);
+            pyMeanFit[name] = pyhist->GetFunction("gaus")->GetParameter(1);
+            pxMeanFitErr[name] = pxhist->GetFunction("gaus")->GetParError(1);
+            pyMeanFitErr[name] = pyhist->GetFunction("gaus")->GetParError(1);
+            pxStdDevFit[name] = pxhist->GetFunction("gaus")->GetParameter(2);
+            pyStdDevFit[name] = pyhist->GetFunction("gaus")->GetParameter(2);
+            pxStdDevFitErr[name] = pxhist->GetFunction("gaus")->GetParError(2);
+            pyStdDevFitErr[name] = pyhist->GetFunction("gaus")->GetParError(2);
+        } else {
+            xMeanFit[name] = 0;
+            yMeanFit[name] = 0;
+            xMeanFitErr[name] = 0;
+            yMeanFitErr[name] = 0;
+            xStdDevFit[name] = 0;
+            yStdDevFit[name] = 0;
+            xStdDevFitErr[name] = 0;
+            yStdDevFitErr[name] = 0;
+            pxMeanFit[name] = 0;
+            pyMeanFit[name] = 0;
+            pxMeanFitErr[name] = 0;
+            pyMeanFitErr[name] = 0;
+            pxStdDevFit[name] = 0;
+            pyStdDevFit[name] = 0;
+            pxStdDevFitErr[name] = 0;
+            pyStdDevFitErr[name] = 0;
+        }
      
     }
 
@@ -316,6 +347,8 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
             std::cout << "Warning: Only " << h->GetEntries()/nEntries << " of particles contributing to histogram " <<  name
                       << " , which is below the accepted threshold of " << acceptableEntries/nEntries << std::endl;
             pass = 1;
+        } else{
+            std::cout << "Histogram " << name << " has " << h->GetEntries() << " entries." << std::endl;
         }
 
         // Get the pipe radius for this histogram
@@ -323,12 +356,15 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
         cXY->cd(i++);
 
         h->Draw("col");
-        //Draw cicle
-        TEllipse *circle = new TEllipse(0,0,pipeRadius);
-        circle->SetLineColor(kRed);
-        circle->SetLineWidth(2);
-        circle->SetFillStyle(0);
-        circle->Draw("same");
+        
+        // Only draw circle overlay if the shape is a cone segment
+        if (pipeIsConeSegment[name] && pipeRadius > 0) {
+            TEllipse *circle = new TEllipse(0,0,pipeRadius);
+            circle->SetLineColor(kRed);
+            circle->SetLineWidth(2);
+            circle->SetFillStyle(0);
+            circle->Draw("same");
+        }
 
         // Add zoomed version in the top-right corner
         TPad *pad = new TPad("zoomPad", "Zoomed View", 0.65, 0.65, 1.0, 1.0);
@@ -507,7 +543,6 @@ int beamlineAnalysis(   TString inFile          = "/scratch/EIC/G4out/beamline/b
 
     std::cout << "Analysis complete. Results saved to " << outFile << std::endl;
     return pass;
-
     // std::cout << "Saving events to file" << std::endl;
 
     // ROOT::RDF::RSnapshotOptions opts;

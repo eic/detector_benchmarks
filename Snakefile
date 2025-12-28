@@ -5,6 +5,19 @@ import os
 from snakemake.logging import logger
 
 
+rule compile_analysis:
+    input:
+        "{path}/{filename}.cxx",
+    output:
+        "{path}/{filename}_cxx.d",
+        "{path}/{filename}_cxx.so",
+        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+    shell:
+        """
+root -l -b -q -e '.L {input}+'
+"""
+
+
 @functools.cache
 def get_spack_package_hash(package_name):
     import json
@@ -35,7 +48,10 @@ include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/beamline/Snakefile"
 include: "benchmarks/calo_pid/Snakefile"
+include: "benchmarks/campaign/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
+include: "benchmarks/far_forward_dvcs/Snakefile"
+include: "benchmarks/lowq2_reconstruction/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
 include: "benchmarks/tracking_performances_dis/Snakefile"
@@ -91,14 +107,14 @@ exit 1
 
 rule warmup_run:
     output:
-        "warmup/{DETECTOR_CONFIG}.edm4hep.root",
-    message: "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
+        "warmup.edm4hep.root",
+    message: "Ensuring that calibrations/fieldmaps are available"
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
   --runType batch \
   --numberOfEvents 1 \
-  --compactFile "$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml" \
+  --compactFile "$DETECTOR_PATH/epic_ip6.xml" \
   --outputFile "{output}" \
   --enableGun
 """

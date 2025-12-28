@@ -14,6 +14,7 @@ sim:backwards_ecal:
           "10GeV",
           "20GeV",
         ]
+  timeout: 4 hours
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB listing/backwards_ecal/local/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg.lst
@@ -36,7 +37,7 @@ bench:backwards_ecal_campaigns:
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/backwards_ecal/24.10.1
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/backwards_ecal/25.10.4
 
 collect_results:backwards_ecal:
   extends: .det_benchmark

@@ -1,17 +1,5 @@
 import os
 
-rule compile_analysis:
-    input:
-        "{path}/{filename}.cxx",
-    output:
-        "{path}/{filename}_cxx.d",
-        "{path}/{filename}_cxx.so",
-        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
-    shell:
-        """
-root -l -b -q -e '.L {input}+'
-"""
-
 rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
@@ -22,7 +10,7 @@ rule trk_dis_compile:
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
     input:
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
@@ -40,7 +28,7 @@ rule trk_dis_sim:
     cache: True
     shell:
         """
-ddsim \
+npsim \
   --runType batch \
   --part.minimalKineticEnergy 1000*GeV  \
   --random.seed {params.SEED} \
@@ -55,8 +43,8 @@ ddsim \
 # Process the files produced in the previous step through EICRecon
 rule trk_dis_reco:
     input:
-        "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        sim="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
     output:
         "sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     params:
@@ -71,7 +59,7 @@ rule trk_dis_reco:
         """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,CentralCKFTrackAssociations,CentralCKFTruthSeededTrackAssociations,CentralTrackVertices
 """
 

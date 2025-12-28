@@ -14,12 +14,12 @@
 #include "shared_functions.h"
 #include "TCanvas.h"
 #include "TStyle.h"
-
+#include "TEllipse.h"
 
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamline/acceptanceTest.edm4hep.root",
+int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS2.edm4hep.root",
                         TString outFile            = "output.root",
                         std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beampipeCanvasName = "acceptance_in_beampipe.png",
@@ -129,7 +129,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     }    
 
     // Calculate the maximum pipe radius for plotting
-    auto maxPipeRadius = 1.2*d1.Max("pipeRadius").GetValue();
+    auto maxPipeRadius = 2*d1.Max("pipeRadius").GetValue();
 
     std::cout << "Executing Analysis and creating histograms" << std::endl;
 
@@ -162,7 +162,7 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
         auto extraFilterDF = filterDF.Filter("All(pipeID<"+std::to_string(i+1)+")&&Any(pipeID=="+std::to_string(i)+")" );
         TString EThetaName = "Energy vs Theta ID"+str_i+";Energy [GeV]; Theta [rad]";
         TString nameETheta = name+";Energy [GeV]; Theta [rad]";
-        hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,4,18,thetaBins,0,0.011},"energy","theta");
+        hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,2,18,thetaBins,0,0.011},"energy","theta");
 
         //Parameters of the pipe
         pipeRadii[name]    = filterDF.Max("pipeRadiusf");        
@@ -205,9 +205,12 @@ int acceptanceAnalysis( TString inFile             = "/scratch/EIC/G4out/beamlin
     i=1;
     for(auto [name,h] : hHistsETheta){
         cEThetaAcc->cd(i++);
-        h->Divide(totalETheta.GetPtr());
-        h->Draw("colz");
-        filterAcceptanceIntegral[name] = h->Integral()/ (eBins*thetaBins); // Normalize by the number of bins
+        // Clone the histogram before dividing to avoid modifying the original
+        TH2D* hAcc = (TH2D*)h->Clone(Form("%s_acceptance", name.Data()));
+        hAcc->Divide(totalETheta.GetPtr());
+        hAcc->SetMaximum(1);
+        hAcc->Draw("colz");
+        filterAcceptanceIntegral[name] = hAcc->Integral()/ (eBins*thetaBins); // Normalize by the number of bins
     }
 
     TH1F* hPipeEntries = CreateFittedHistogram("hNumberOfHits",

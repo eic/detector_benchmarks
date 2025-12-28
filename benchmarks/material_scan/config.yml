@@ -2,7 +2,7 @@ bench:material_scan:
   extends: .det_benchmark
   stage: benchmarks
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 epic_craterlake/results/material_scan_details.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/material_scan/epic_craterlake/material_scan_details.pdf
 
 collect_results:material_scan:
   extends: .det_benchmark

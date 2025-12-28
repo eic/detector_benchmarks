@@ -9,13 +9,13 @@ rule material_scan:
     input:
         script="material_scan.py",
     output:
-        "{DETECTOR_CONFIG}/results/material_scan.png",
-        "{DETECTOR_CONFIG}/results/material_scan_agg.csv",
-        "{DETECTOR_CONFIG}/results/material_scan_details.pdf",
+        "results/material_scan/{DETECTOR_CONFIG}/material_scan.png",
+        "results/material_scan/{DETECTOR_CONFIG}/material_scan_agg.csv",
+        "results/material_scan/{DETECTOR_CONFIG}/material_scan_details.pdf",
     log:
-        "{DETECTOR_CONFIG}/results/material_scan.log",
+        "results/material_scan/{DETECTOR_CONFIG}/material_scan.log",
     shadow: "full" # avoid putting calibrations/fieldmaps to results
     shell: """
-cd {wildcards.DETECTOR_CONFIG}/results
-python ../../{input.script} $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml
+cd results/material_scan/{wildcards.DETECTOR_CONFIG}
+python ../../../{input.script} $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml
 """

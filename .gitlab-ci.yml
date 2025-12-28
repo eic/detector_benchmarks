@@ -1,10 +1,11 @@
-image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}:${BENCHMARKS_TAG}
+image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}${BENCHMARKS_SIGIL}${BENCHMARKS_TAG}
 
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
-  GITHUB_SHA: ''
+  GITHUB_PR: ''
   GITHUB_REPOSITORY: ''
+  GITHUB_SHA: ''
   SNAKEMAKE_FLAGS: '--cache'
 
 workflow:
@@ -96,6 +97,7 @@ common:setup:
     - mkdir -p results
     - mkdir -p config
     - print_env.sh
+    - eic-info
     - |
       flock --nonblock /scratch/garbage-collect.lock \
         ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
@@ -125,7 +127,10 @@ include:
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
+  - local: 'benchmarks/campaign/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
+  - local: 'benchmarks/far_forward_dvcs/config.yml'
+  - local: 'benchmarks/lowq2_reconstruction/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
@@ -139,7 +144,6 @@ include:
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/pid/config.yml'
   - local: 'benchmarks/rich/config.yml'
-  - local: 'benchmarks/timing/config.yml'
   - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
@@ -164,8 +168,11 @@ deploy_results:
     - "collect_results:barrel_ecal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"
+    - "collect_results:campaign"
     - "collect_results:ecal_gaps"
+    - "collect_results:far_forward_dvcs"
     - "collect_results:lfhcal"
+    - "collect_results:lowq2_reconstruction"
     - "collect_results:material_scan"
     - "collect_results:pid"
     - "collect_results:rich"

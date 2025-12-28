@@ -4,7 +4,8 @@ import shutil
 
 rule backgrounds_sim:
     input:
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root",
     log:
@@ -12,10 +13,13 @@ rule backgrounds_sim:
     params:
         N_EVENTS=100,
         hepmc=lambda wildcards: get_remote_path(f"{wildcards.PATH}.hepmc3.tree.root"),
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec ddsim \
+exec npsim \
   --runType batch \
   --part.minimalKineticEnergy 100*GeV  \
   --filter.tracker edep0 \

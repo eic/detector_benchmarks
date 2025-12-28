@@ -131,7 +131,11 @@ for p in arrays_sim:
     sigma=np.sqrt(y[slc])+0.5*(y[slc]==0)
     p0=(100, p, 3)
 
-    coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+    except RuntimeError as e:
+        print(e, bcs[slc], y[slc])
+        continue
     #res=np.abs(coeff[2]/coeff[1])
     if p==50:
         xx=np.linspace(15*p/20,22*p/20, 100)

@@ -1,6 +1,7 @@
 sim:nhcal_basic_distribution:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   parallel:
     matrix:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
@@ -11,6 +12,7 @@ sim:nhcal_basic_distribution:
 sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
   stage: simulate
+  timeout: 4 hours
   parallel:
     matrix:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0"]

@@ -4,9 +4,11 @@
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 #include "DD4hep/VolumeManager.h"
+#include "DD4hep/DetElement.h"
 #include "TFile.h"
 
 using RVecHits = ROOT::VecOps::RVec<edm4hep::SimTrackerHitData>;
+using namespace dd4hep;
 
 //-----------------------------------------------------------------------------------------
 // Grab Component functor
@@ -108,6 +110,7 @@ struct volParams{
   double yPos;
   double zPos;
   double rotation;
+  bool isConeSegment;
 };
 
 // Functor to get the volume element parameters from the CellID
@@ -127,13 +130,20 @@ struct getVolumeParametersFromCellID {
       const Double_t*   rotationMatrix = transform.GetRotationMatrix(); // Compute rotation angle around the Y-axis
       double rotationAngleY = std::atan2(rotationMatrix[2], rotationMatrix[8]); // atan2(r13, r33)
       auto volume = detelement.volume();
-      dd4hep::ConeSegment cone = volume.solid();
+      dd4hep::Solid solid = volume.solid();
+      bool isCone = solid.isValid() && std::string(solid->IsA()->GetName()) == "TGeoConeSeg";
+      double radius = 0.0;
+      if (isCone) {
+        dd4hep::ConeSegment cone = solid;
+        radius = cone.rMax1();
+      }
       volParams params{
-        cone.rMax1(),
+        radius,
         translation[0],
         translation[1],
         translation[2],
-        rotationAngleY
+        rotationAngleY,
+        isCone
       };
       result.push_back(params);
     }
@@ -175,4 +185,13 @@ TH1F* CreateFittedHistogram(const std::string& histName,
   hist->SetMarkerColor(kRed);
 
   return hist;
+}
+
+void printHierarchy(const DetElement& de, int level = 0) {
+  std::string indent(level * 2, ' ');
+  std::cout << indent << "- " << de.name() << " (ID: " << de.id() << ")\n";
+
+  for (const auto& [childName, child] : de.children()) {
+    printHierarchy(child, level + 1);
+  }
 }

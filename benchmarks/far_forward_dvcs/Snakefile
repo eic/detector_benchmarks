@@ -1,0 +1,90 @@
+rule far_forward_dvcs_compile:
+    input:
+        "benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
+
+# Process the generated HepMC files through the simulation
+rule far_forward_dvcs_sim:
+    input:
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
+    params:
+        N_EVENTS=1000,
+        EBEAM=lambda wildcards: wildcards.EBEAM,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        PBEAM=lambda wildcards: wildcards.PBEAM,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
+npsim \
+  --runType batch \
+  --part.minimalKineticEnergy 1000*GeV  \
+  --random.seed {params.SEED} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --inputFiles root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/EXCLUSIVE/DVCS_ABCONV/{params.EBEAM}x{params.PBEAM}/DVCS.{params.INDEX}.ab.hiAcc.{params.EBEAM}x{params.PBEAM}.hepmc3.tree.root \
+  --outputFile {output}
+"""
+
+rule foo:
+    input:
+        'sim_output/far_forward_dvcs/epic_craterlake_10x100/DVCS.1.ab.hiAcc.10x100.edm4hep.root'
+
+# Process the files produced in the previous step through EICRecon
+rule far_forward_dvcs_reco:
+    input:
+        sim="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EBEAM=lambda wildcards: wildcards.EBEAM,
+        PBEAM=lambda wildcards: wildcards.PBEAM,
+        INDEX=lambda wildcards: wildcards.INDEX,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=B0ECalClusters,B0TrackerHits,B0TrackerRecHits,EcalEndcapPTruthClusters,ForwardOffMRecParticles,ForwardRomanPotRecParticles,MCParticles,MCParticlesHeadOnFrameNoBeamFX,ReconstructedChargedParticles,ReconstructedTruthSeededChargedParticles,ZDCEcalClusters
+"""
+
+#Process the merged file through the plotting script
+rule far_forward_dvcs_plots:
+    input:
+        workflow.source_path("analysis/render.hpp"),
+        workflow.source_path("analysis/detectorResolution.hpp"),
+        script="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon.cxx",
+        script_compiled="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
+        reco="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.1.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
+    output:
+        dir=directory("results/far_forward_dvcs/{DETECTOR_CONFIG}/{EBEAM}x{PBEAM}"),
+        list=temp("results/far_forward_dvcs/{DETECTOR_CONFIG}/{EBEAM}x{PBEAM}.lst"),
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+    shell:
+        """
+mkdir -p "{output.dir}"
+echo "{input.reco}" > "{output.list}"
+root -l -b -q '{input.script}+("{output.list}", "{output.dir}")'
+"""
+
+#Examples of invocation
+rule far_forward_dvcs_run_locally:
+    input:
+        "results/far_forward_dvcs/epic_craterlake_10x100/10x100/",
+        "results/far_forward_dvcs/epic_craterlake_5x41/5x41/",
+    message:
+        "See output in {input[0]} {input[1]}"

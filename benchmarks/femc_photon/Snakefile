@@ -24,7 +24,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "gamma", {p
 rule femc_photon_simulate:
     input:
         GEN_FILE="sim_output/femc_photon/photon_{P}GeV.hepmc",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root",
@@ -50,7 +50,7 @@ exec npsim \
 rule femc_photon_recon:
     input:
         SIM_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_sim_photon_{P}GeV.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/femc_photon/{DETECTOR_CONFIG}_rec_photon_{P}GeV.edm4eic.root",
     params:

@@ -16,7 +16,7 @@ sim:nhcal_basic_distribution_full:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0"]
         INDEX_RANGE: ["0 4","5 9"]
       - ENERGY: ["5.0"]
-        INDEX_RANGE: ["0 3", "4 6", "7 9"]
+        INDEX_RANGE: ["0 2", "3 5", "6 7", "8 9"]
 
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_full.${INDEX}.edm4hep.root; done)
@@ -30,12 +30,9 @@ bench:nhcal_basic_distribution_analysis:
     matrix:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
   script:
-    - |
-      for ENERGY in 0.5 0.7 1.0 2.0 5.0; do
-        snakemake $SNAKEMAKE_FLAGS --cores 1 \
-          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png \
-          sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_backward_hcal_only.root
-      done
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png \
+        sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_backward_hcal_only.root
     - snakemake $SNAKEMAKE_FLAGS --cores 1 \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 
@@ -48,12 +45,9 @@ bench:nhcal_basic_distribution_analysis_full:
     matrix:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
   script:
-    - |
-      for ENERGY in 0.5 0.7 1.0 2.0 5.0; do
-        snakemake $SNAKEMAKE_FLAGS --cores 1 \
-          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_full_10files.png \
-          sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_full.root
-      done
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_full_10files.png \
+        sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_full.root
     - snakemake $SNAKEMAKE_FLAGS --cores 1 \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_full.png
 

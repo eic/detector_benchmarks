@@ -42,7 +42,7 @@ exec npsim \
 
 rule tracking_performance_recon:
     input:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -61,7 +61,7 @@ rule tracking_performance_recon:
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input} -Ppodio:output_file={output} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,CentralCKFTrajectories,CentralCKFTrackParameters,CentralCKFSeededTrackParameters,CentralCKFTruthSeededTrackParameters,CentralTrackVertices
 """
 

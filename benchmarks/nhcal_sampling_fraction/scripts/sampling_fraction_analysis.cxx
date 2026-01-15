@@ -59,7 +59,11 @@
 #include "edm4eic/CalorimeterHitObj.h"
 
 #include <edm4eic/vector_utils_legacy.h>
-#include <edm4hep/Vector3f.h>
+#include "edm4hep/Vector3d.h"
+#include "edm4hep/Vector3f.h"
+#include "edm4hep/MCParticleObj.h"
+#include "edm4hep/MutableMCParticle.h"
+
 
 using namespace std;
 using namespace ROOT;

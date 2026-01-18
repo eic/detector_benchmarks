@@ -23,7 +23,7 @@ def get_spack_package_hash(package_name):
     import json
     try:
         ver_info = json.loads(subprocess.check_output(["spack", "find", "--json", package_name]))
-        return ver_info[0]["package_hash"]
+        return ver_info[0]["hash"]
     except FileNotFoundError as e:
         logger.warning("Spack is not installed")
         return ""

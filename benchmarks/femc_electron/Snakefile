@@ -24,7 +24,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "e-", {para
 rule femc_electron_simulate:
     input:
         GEN_FILE="sim_output/femc_electron/e-_{P}GeV.hepmc",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
@@ -50,7 +50,7 @@ exec npsim \
 rule femc_electron_recon:
     input:
         SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root",
     params:

@@ -23,7 +23,7 @@ def get_spack_package_hash(package_name):
     import json
     try:
         ver_info = json.loads(subprocess.check_output(["spack", "find", "--json", package_name]))
-        return ver_info[0]["package_hash"]
+        return ver_info[0]["hash"]
     except FileNotFoundError as e:
         logger.warning("Spack is not installed")
         return ""
@@ -104,15 +104,14 @@ exit 1
 
 rule warmup_run:
     output:
-        "warmup/{DETECTOR_CONFIG}.edm4hep.root",
-    message: "Ensuring that calibrations/fieldmaps are available for {wildcards.DETECTOR_CONFIG}"
+        "warmup.edm4hep.root",
+    message: "Ensuring that calibrations/fieldmaps are available"
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
-  -v VERBOSE \
   --runType batch \
   --numberOfEvents 1 \
-  --compactFile "$DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml" \
+  --compactFile "$DETECTOR_PATH/epic_ip6.xml" \
   --outputFile "{output}" \
   --enableGun
 """

@@ -154,7 +154,7 @@ cat > {output} <<EOF
   "GITHUB_REPOSITORY": "${{GITHUB_REPOSITORY:-}}",
   "GITHUB_SHA": "${{GITHUB_SHA:-}}",
   "GITHUB_PR": "${{GITHUB_PR:-}}",
-  "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
+  "PIPELINE_NAME": $(echo "${{PIPELINE_NAME:-}}" | jq -Rs .)
 }}
 EOF
 # validate JSON

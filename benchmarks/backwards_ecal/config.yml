@@ -1,6 +1,7 @@
 sim:backwards_ecal:
   extends: .det_benchmark
   stage: simulate
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/257
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi-"]

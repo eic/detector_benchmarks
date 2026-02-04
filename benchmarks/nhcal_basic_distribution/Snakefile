@@ -40,9 +40,9 @@ exec npsim \
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
+            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
-            ENERGY=wildcards.ENERGY,
+            ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),
         ),
     wildcard_constraints:

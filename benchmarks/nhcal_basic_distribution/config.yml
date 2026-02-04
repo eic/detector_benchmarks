@@ -28,13 +28,15 @@ bench:nhcal_basic_distribution_analysis:
   stage: benchmarks
   needs:
     - "sim:nhcal_basic_distribution"
-  parallel:
-    matrix:
-      - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
   script:
-    - snakemake -n -p \
-        results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png \
-        sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_backward_hcal_only_10files.root
+    - echo "=== Checking if rule exists ==="
+    - snakemake --list-rules | grep nhcal_basic_distribution_analysis || echo "RULE NOT FOUND!"
+    - |
+      for ENERGY in 0.5 0.7 1.0 2.0 5.0; do
+        snakemake -n -p \
+          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png \
+          sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_backward_hcal_only_10files.root
+      done
     - snakemake -n -p \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 

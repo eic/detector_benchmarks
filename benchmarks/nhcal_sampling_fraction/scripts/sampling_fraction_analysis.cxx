@@ -1,3 +1,7 @@
+R__LOAD_LIBRARY(libpodio)
+R__LOAD_LIBRARY(libedm4hep)
+R__LOAD_LIBRARY(libedm4eic)
+
 #include <cmath>
 #include <fstream>
 #include <iostream>

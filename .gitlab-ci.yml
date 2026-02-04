@@ -30,6 +30,7 @@ default:
       - .local/include
       - .local/share
       - .snakemake/log
+      - logs
       - results
       - config
       - .env

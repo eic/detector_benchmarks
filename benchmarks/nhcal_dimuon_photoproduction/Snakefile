@@ -21,7 +21,6 @@ rule nhcal_dimuon_photoproduction_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     wildcard_constraints:
-        DETECTOR_CONFIG = r"[A-Za-z0-9_]+",
         INDEX = r"\d+",
     cache: True
     shell:
@@ -54,7 +53,7 @@ rule nhcal_dimuon_photoproduction_recon:
 rule nhcal_dimuon_photoproduction_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX:02d}.eicrecon.edm4hep.root",
+            "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             INDEX=range(int(wildcards.N)),
         )

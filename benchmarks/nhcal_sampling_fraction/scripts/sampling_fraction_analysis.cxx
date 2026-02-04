@@ -72,6 +72,10 @@ using namespace edm4hep;
 
 dd4hep::Detector* det = NULL;
 
+constexpr double ETA_MIN = -4.16, ETA_MAX = -1.16;
+
+inline bool inNHCal(double eta) {return (eta >= ETA_MIN && eta <= ETA_MAX);}
+
 inline string addPrefixAfterSlash(const string& path,
                                    const string& prefix) {
     const auto slash = path.find_last_of('/');
@@ -107,13 +111,20 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         return 1;
     }
 
-    constexpr int NBINS = 50; 
+    constexpr int NBINS = 80; 
 
     constexpr double E_MIN_GEV = 0.0;
     constexpr double E_MAX_GEV = 12.0;
     constexpr double SAMP_F_MIN = 0.0;
     constexpr double SAMP_F_MAX = 1.0;
     constexpr double SAMP_F_LOW = 0.2;
+
+    gStyle->SetTitleSize(0.04, "XYZ");
+    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetPadLeftMargin(0.20);
+    gStyle->SetPadRightMargin(0.15);
+    gStyle->SetPadBottomMargin(0.15);
+    gStyle->SetPadTopMargin(0.10);
 
     TH2D *h_sampF_e = new TH2D("h_sampF_e", "nHCal sampling fraction vs. energy (e-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{hit}]; counts", 
                                             NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_MAX);
@@ -161,7 +172,9 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         }
 
         edm4hep::MCParticle mcpart =  MCParticles_coll.at(0);
-        singlePart_Ekin = mcpart.getEnergy(); //-mcpart.getMass();
+        TLorentzVector v(mcpart.getMomentum().x, mcpart.getMomentum().y, mcpart.getMomentum().z, mcpart.getEnergy());
+        if(!inNHCal(v.Eta())) continue;
+        singlePart_Ekin = mcpart.getEnergy() - mcpart.getMass();
         int pdg = mcpart.getPDG();
 
         for (const auto& hit : SimCalorimeterHit_coll) 
@@ -182,7 +195,7 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
             h_sampF_pi_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }
         else if (pdg == 2112)        // neutron
-        {
+        {   
             h_sampF_n->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
             h_sampF_n_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }   
@@ -200,15 +213,15 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     TProfile* p_sampF_e = h_sampF_e->ProfileX();                
     p_sampF_e ->SetTitle("nHCal sampling fraction vs. energy (e-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{hit}]");
     TProfile* p_sampF_e_Ekin = h_sampF_e_Ekin->ProfileX();      
-    p_sampF_e_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (e-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{kin}]");
+    p_sampF_e_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (e-); E_{kin} [GeV]; f");
     TProfile* p_sampF_pi = h_sampF_pi->ProfileX();              
     p_sampF_pi ->SetTitle("nHCal sampling fraction vs. energy (#pi-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{hit}]");
     TProfile* p_sampF_pi_Ekin = h_sampF_pi_Ekin->ProfileX();    
-    p_sampF_pi_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (#pi-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{kin}]");
+    p_sampF_pi_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (#pi-); E_{kin} [GeV]; f");
     TProfile* p_sampF_n = h_sampF_n->ProfileX();                
     p_sampF_n ->SetTitle("nHCal sampling fraction vs. energy (neutron); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{hit}]");
     TProfile* p_sampF_n_Ekin = h_sampF_n_Ekin->ProfileX();      
-    p_sampF_n_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (neutron); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{kin}]");
+    p_sampF_n_Ekin ->SetTitle("nHCal sampling fraction vs. energy kin (neutron); E_{kin} [GeV]; f");
 
     TH1D *h_e = p_sampF_e->ProjectionX("h_e");
     TH1D *h_pi = p_sampF_pi->ProjectionX("h_pi");
@@ -253,7 +266,7 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     TH1D *h_pi_Ekin = p_sampF_pi_Ekin->ProjectionX("h_pi_Ekin");
 
     TH1D *h_e_over_pi_Ekin = (TH1D*)h_e_Ekin->Clone("h_e_over_pi_Ekin");
-    h_e_over_pi_Ekin->SetTitle("e/h ratio;E_{kin} [GeV];e/h");
+    h_e_over_pi_Ekin->SetTitle("e/#pi ratio;E_{kin} [GeV];e/#pi");
     h_e_over_pi_Ekin->Divide(h_e_Ekin, h_pi_Ekin, 1, 1); 
 
     TCanvas *c_h_Ekin = new TCanvas("canvas_h_Ekin", "c_h_Ekin", 1600, 800);
@@ -284,9 +297,8 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     c_p_Ekin->cd(4);
     h_e_over_pi_Ekin->Draw();
 
-    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_png, "prof_sampf_vs_Ekin").c_str());
-    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "prof_sampf_vs_Ekin").c_str());
-    
+    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_png, "prof_sampf_vs_Ekin1").c_str());
+    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "prof_sampf_vs_Ekin1").c_str());    
 
     return 0;
 }

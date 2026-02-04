@@ -61,6 +61,9 @@
 
 #include <edm4eic/vector_utils_legacy.h>
 #include <edm4hep/Vector3f.h>
+#include "edm4hep/Vector3d.h"
+#include "edm4hep/MCParticleObj.h"
+#include "edm4hep/MutableMCParticle.h"
 #include <root/TStyle.h>
 
 #include "NeutronThresholdUtil.h"
@@ -160,8 +163,8 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     constexpr double MIN_LAYER_ENERGY_GEV = 0, MAX_LAYER_ENERGY_GEV = 0.2;
     constexpr double MIN_KINETIC_GEV = 0, MAX_KINETIC_GEV = 6;
 
-    gStyle->SetTitleSize(0.045, "XYZ");
-    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetTitleSize(0.03, "XYZ");
+    gStyle->SetLabelSize(0.03, "XYZ");
     gStyle->SetPadLeftMargin(0.20);
     gStyle->SetPadRightMargin(0.15);
     gStyle->SetPadBottomMargin(0.15);
@@ -291,23 +294,27 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     outFile->Close();
     delete outFile;
 
-    TCanvas *c_evLayers = new TCanvas("c_evLayers", "c_evLayers", 1600, 800);
-    c_evLayers->Divide(2,2);
-    c_evLayers->cd(1);
+    TCanvas *c_evLayers1 = new TCanvas("c_evLayers1", "c_evLayers1", 1600, 800);
+    c_evLayers1->Divide(2,1);
+    c_evLayers1->cd(1);
     h_energyTotal->Draw();
-    c_evLayers->cd(2);
+    c_evLayers1->cd(2);
     h_layerEnergy->Draw("COLZ");
     p_layerEnergy->SetLineWidth(3); p_layerEnergy->SetLineColor(kRed); p_layerEnergy->SetMarkerColor(kRed);
     p_layerEnergy->Draw("SAME");
-    c_evLayers->cd(3);
+    TCanvas *c_evLayers2 = new TCanvas("c_evLayers2", "c_evLayers2", 1600, 800);
+    c_evLayers2->Divide(2,1);
+    c_evLayers2->cd(1);
     h_hitCount->Draw();
-    c_evLayers->cd(4);
+    c_evLayers2->cd(2);
     h_layerHits->Draw("COLZ");
     p_layerHits->SetLineWidth(3); p_layerHits->SetLineColor(kRed); p_layerHits->SetMarkerColor(kRed);
     p_layerHits->Draw("SAME");
 
-    c_evLayers->SaveAs(outname_png.c_str());
-    c_evLayers->SaveAs(outname_pdf.c_str());
+    c_evLayers1->SaveAs(outname_png.c_str());
+    c_evLayers1->SaveAs(outname_pdf.c_str());
+    c_evLayers2->SaveAs(addPrefixAfterSlash(outname_png, "2_").c_str());
+    c_evLayers2->SaveAs(addPrefixAfterSlash(outname_pdf, "2_").c_str());
 
     TCanvas *c_hit_posE = new TCanvas("c_hit_posE", "c_hit_posE", 1600, 800);
     c_hit_posE->Divide(2,2);
@@ -322,27 +329,28 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_png, "hit_posE_").c_str());
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_pdf, "hit_posE_").c_str());
 
-    TCanvas *c_neutronThresholds = new TCanvas("c_neutronThresholds", "c_neutronThresholds", 1600, 800);
-    c_neutronThresholds->Divide(3,2);
-    c_neutronThresholds->cd(1);
-    h_nHCal_hit_contrib_time->Draw();
-    c_neutronThresholds->cd(2);
-    h_nHCal_hit_contrib_energy->Draw();
-    c_neutronThresholds->cd(3);
-    h_nHCal_hit_contrib_energy_vs_time->Draw("COLZ");
-    c_neutronThresholds->cd(4);
-    h_nHCal_hit_contrib_energy_vs_telap->Draw("COLZ");
-    c_neutronThresholds->cd(5);
-    h_nHCal_hit_contrib_energy_vs_time_total->Draw("COLZ");
+    // TCanvas *c_neutronThresholds = new TCanvas("c_neutronThresholds", "c_neutronThresholds", 1600, 800);
+    // c_neutronThresholds->Divide(3,2);
+    // c_neutronThresholds->cd(1);
+    // h_nHCal_hit_contrib_time->Draw();
+    // c_neutronThresholds->cd(2);
+    // h_nHCal_hit_contrib_energy->Draw();
+    // c_neutronThresholds->cd(3);
+    // h_nHCal_hit_contrib_energy_vs_time->Draw("COLZ");
+    // c_neutronThresholds->cd(4);
+    // h_nHCal_hit_contrib_energy_vs_telap->Draw("COLZ");
+    // c_neutronThresholds->cd(5);
+    // h_nHCal_hit_contrib_energy_vs_time_total->Draw("COLZ");
     
-    c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_png, "neutronThresholds_").c_str());
-    c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_pdf, "neutronThresholds_").c_str());
+    //c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_png, "neutronThresholds_").c_str());
+    //c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_pdf, "neutronThresholds_").c_str());
     
 
     delete reader;
-    delete c_evLayers;
+    delete c_evLayers1;
+    delete c_evLayers2;
     delete c_hit_posE;
-    delete c_neutronThresholds;
+    // delete c_neutronThresholds;
     DeleteHistogamsNeutronThresholds();
 
     return 0;

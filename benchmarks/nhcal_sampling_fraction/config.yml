@@ -3,10 +3,10 @@ sim:nhcal_sampling_fraction:
   stage: simulate
   parallel:
     matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV","1GeV", "2GeV", "5GeV", "10GeV"]
+      - ENERGY: ["0.5", "0.7","1.0", "2.0", "5.0", "10.0"]
         PARTICLE: ["pi-", "neutron", "e-"]
   script:
-    - snakemake --cores 5 sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}/sim.edm4hep.root                 
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}GeV/sim.edm4hep.root                 
 
 bench:nhcal_sampling_fraction:
   extends: .det_benchmark
@@ -14,7 +14,7 @@ bench:nhcal_sampling_fraction:
   needs:
     - "sim:nhcal_sampling_fraction"
   script:
-    - snakemake --cores 1 results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf
 
 collect_results:nhcal_sampling_fraction:
   extends: .det_benchmark

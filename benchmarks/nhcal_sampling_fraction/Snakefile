@@ -7,6 +7,11 @@ rule nhcal_sampling_fraction_simulate:
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+        TOTAL_ENERGY=lambda wildcards: {
+            "neutron": {"0.5": "1.44", "0.7": "1.64", "1.0": "1.94", "2.0": "2.94", "5.0": "5.94", "10.0": "10.94"},
+            "pi-": {"0.5": "0.64", "0.7": "0.84", "1.0": "1.14", "2.0": "2.14", "5.0": "5.14", "10.0": "10.14"},
+            "e-": {"0.5": "0.50", "0.7": "0.70", "1.0": "1.00", "2.0": "2.00", "5.0": "5.00", "10.0": "10.00"}
+        }[wildcards.PARTICLE][wildcards.ENERGY],
     cache: True
     shell:
         """
@@ -21,7 +26,7 @@ exec npsim \
     --gun.thetaMin 120*degree \
     --gun.thetaMax 180*degree \
     --gun.distribution uniform \
-    --gun.energy "{wildcards.ENERGY}*GeV" \
+    --gun.energy "{params.TOTAL_ENERGY}*GeV" \
     --outputFile {output}
 """
 
@@ -30,7 +35,7 @@ rule nhcal_sampling_fraction_combine:
     input:
         lambda wildcards: expand(
             "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root", 
-            ENERGY=["0.5", "0.7", "1", "2", "5", "10"],
+            ENERGY=["0.5", "0.7", "1.0", "2.0", "5.0", "10.0"],
             PARTICLE=["pi-", "neutron", "e-"],
         ),
     wildcard_constraints:

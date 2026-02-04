@@ -297,10 +297,6 @@ inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
         dims.SetXYZ(2.0 * box->GetDX(),
                     2.0 * box->GetDY(),
                     2.0 * box->GetDZ());
-
-        //const double dz_cm = box->GetDZ();                     
-        //const double thickness_cm = 2.0 * dz_cm;
-        //return thickness_cm;
         return dims;
     } catch (const exception& e) {
         cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
@@ -437,8 +433,8 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     MakeLogBins(Xbins.data(), NBINS, X_MIN, X_MAX);
     MakeLogBins(Ebins.data(), NBINS, E_MIN_GEV, E_MAX_GEV);
 
-    gStyle->SetTitleSize(0.045, "XYZ");
-    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetTitleSize(0.06, "XYZ");
+    gStyle->SetLabelSize(0.06, "XYZ");
     gStyle->SetPadLeftMargin(0.15);
     gStyle->SetPadRightMargin(0.15);
     gStyle->SetPadBottomMargin(0.15);
@@ -706,7 +702,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         hEff_dr[idr]->Divide(hP_pass_dr[idr], hP_all_pion, 1, 1, "B");
     } 
 
-    hEff_dr[0]->SetLineColor(kBlue); hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(1.4); 
+    hEff_dr[0]->SetLineColor(kBlue); hEff_dr[0]->SetMinimum(0.0); hEff_dr[0]->SetMaximum(0.3); 
     hEff_dr[1]->SetLineColor(kRed);   
     hEff_dr[2]->SetLineColor(kGreen+2); 
 
@@ -730,7 +726,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         hEff_E[ie]->Divide(hP_pass_ECut[ie], hP_all_pion, 1, 1, "B");
     } 
 
-    hEff_E[0]->SetLineColor(kBlue); hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(1.4); 
+    hEff_E[0]->SetLineColor(kBlue); hEff_E[0]->SetMinimum(0.0); hEff_E[0]->SetMaximum(0.3); 
     hEff_E[1]->SetLineColor(kRed);   
     hEff_E[2]->SetLineColor(kGreen+2); 
 
@@ -754,7 +750,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         hEff_Layer[il]->Divide(hP_pass_LayerCut[il], hP_all_pion, 1, 1, "B");
     } 
 
-    hEff_Layer[0]->SetLineColor(kBlue); hEff_Layer[0]->SetMinimum(0.0); hEff_Layer[0]->SetMaximum(1.4); 
+    hEff_Layer[0]->SetLineColor(kBlue); hEff_Layer[0]->SetMinimum(0.0); hEff_Layer[0]->SetMaximum(0.3); 
     hEff_Layer[1]->SetLineColor(kRed);   
     hEff_Layer[2]->SetLineColor(kGreen+2); 
 

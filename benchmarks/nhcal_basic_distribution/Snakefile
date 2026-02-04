@@ -12,6 +12,13 @@ rule nhcal_basic_distribution_simulate:
         ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+        TOTAL_ENERGY=lambda wildcards: {
+            "0.5": "1.44", 
+            "0.7": "1.64", 
+            "1.0": "1.94", 
+            "2.0": "2.94", 
+            "5.0": "5.94"
+        }[wildcards.ENERGY],
     cache: True
     shell:
         """
@@ -25,7 +32,7 @@ exec npsim \
     --gun.thetaMin 120*degree \
     --gun.thetaMax 180*degree \
     --gun.distribution uniform \
-    --gun.energy "{params.ENERGY}*GeV" \
+    --gun.energy "{params.TOTAL_ENERGY}*GeV" \
     --outputFile {output}
 """
 
@@ -33,21 +40,20 @@ exec npsim \
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
+            "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
-            ENERGY=float(wildcards.ENERGY),
+            ENERGY=wildcards.ENERGY,
             INDEX=range(int(wildcards.N)),
         ),
     wildcard_constraints:
         N=r"\d+",
-        ENERGY=r"\d+(\.\d+)?"
+        ENERGY=r"\d+\.\d+"
     output:
         temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
     shell:
         """
             hadd -f {output} {input} 
         """
-
 
 rule nhcal_basic_distribution_analysis:
     input:

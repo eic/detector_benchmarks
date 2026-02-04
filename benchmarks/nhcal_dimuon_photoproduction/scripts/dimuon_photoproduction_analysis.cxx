@@ -81,6 +81,9 @@
 
 #include "edm4eic/vector_utils_legacy.h"
 #include "edm4hep/Vector3f.h"
+#include "edm4hep/Vector3d.h"
+#include "edm4hep/MCParticleObj.h"
+#include "edm4hep/MutableMCParticle.h"
 
 #include "edm4eic/Track.h"
 #include "edm4eic/TrackSegment.h"
@@ -104,7 +107,7 @@ using namespace edm4hep;
 
 dd4hep::Detector* det = NULL;
 
-constexpr double ETA_MIN = -4.14, ETA_MAX = -1.16;
+constexpr double ETA_MIN = -4.16, ETA_MAX = -1.16;
 
 inline bool inNHCal(double eta) {return (eta >= ETA_MIN && eta <= ETA_MAX);}
 
@@ -436,8 +439,8 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
     MakeLogBins(Xbins.data(), NBINS, X_MIN, X_MAX);
     MakeLogBins(Ebins.data(), NBINS, E_MIN_GEV, E_MAX_GEV);
 
-    gStyle->SetTitleSize(0.045, "XYZ");
-    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetTitleSize(0.06, "XYZ");
+    gStyle->SetLabelSize(0.06, "XYZ");
     gStyle->SetPadLeftMargin(0.15);
     gStyle->SetPadRightMargin(0.15);
     gStyle->SetPadBottomMargin(0.15);

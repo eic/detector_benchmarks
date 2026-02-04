@@ -114,13 +114,12 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
         int entries = p_energyRes->GetBinEntries(i);
         
         if (entries < 10 || mean <= 0) continue;
-        
+
         int n = g_resolution->GetN();
         g_resolution->SetPoint(n, Ekin, rms/mean);
         g_resolution->SetPointError(n, 0, rms/mean * sqrt(1.0/entries));
     }
 
-    // Fit σ/E = a/√E ⊕ b
     TF1 *fit = new TF1("fit", "[0]*pow(x, -0.5) + [1] + [2]*pow(x, 1)", 0.1, 6);
     fit->SetParameters(0.5, 0.05, 0.001);
     fit->SetParNames("a (stochastic)", "b (constant)", "c (noise)");
@@ -139,14 +138,17 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
     c->cd(2);
     g_resolution->SetTitle("Energy Resolution;E_{kin} [GeV];#sigma/E");
     g_resolution->SetMarkerStyle(20);
-    g_resolution->Draw("AP");
+    g_resolution->SetLineWidth(2); 
+    g_resolution->SetLineColor(kBlue); 
+    g_resolution->Draw("APE");
     fit->Draw("SAME");
     
     double par_a = fit->GetParameter(0);
     double par_b = fit->GetParameter(1);
     double par_c = fit->GetParameter(2);
     
-    TLegend *leg = new TLegend(0.45, 0.65, 0.80, 0.80);
+    TLegend *leg = new TLegend(0.35, 0.65, 0.80, 0.80);
+    leg->SetTextSize(0.025);
     leg->AddEntry(g_resolution, "Data", "p");
     leg->AddEntry(fit, Form("Fit: %.3f/#sqrt{E} + %.3f + %.3f#timesE", par_a, par_b, par_c), "l");
     leg->Draw();

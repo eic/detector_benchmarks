@@ -45,7 +45,6 @@
 #include "edm4hep/CalorimeterHitCollection.h"
 #include "edm4hep/CalorimeterHitData.h"
 #include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitObj.h"
 
 #include "edm4eic/ClusterCollection.h"
 #include "edm4eic/Cluster.h"
@@ -56,14 +55,10 @@
 #include "edm4eic/CalorimeterHitCollection.h"
 #include "edm4eic/CalorimeterHitData.h"
 #include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitObj.h"
 
 #include <edm4eic/vector_utils_legacy.h>
 #include "edm4hep/Vector3d.h"
 #include "edm4hep/Vector3f.h"
-#include "edm4hep/MCParticleObj.h"
-#include "edm4hep/MutableMCParticle.h"
-
 
 using namespace std;
 using namespace ROOT;
@@ -297,8 +292,8 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     c_p_Ekin->cd(4);
     h_e_over_pi_Ekin->Draw();
 
-    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_png, "prof_sampf_vs_Ekin1").c_str());
-    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "prof_sampf_vs_Ekin1").c_str());    
+    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_png, "prof_sampf_vs_Ekin").c_str());
+    c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "prof_sampf_vs_Ekin").c_str());    
 
     return 0;
 }

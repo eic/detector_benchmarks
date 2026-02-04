@@ -47,7 +47,7 @@ rule nhcal_basic_distribution_combine:
         ),
     wildcard_constraints:
         N=r"\d+",
-        ENERGY=r"\d+\.\d+"
+        ENERGY=r"\d+(\.\d+)?"
     output:
         temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
     shell:
@@ -62,6 +62,9 @@ rule nhcal_basic_distribution_analysis:
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
         root="sim_output/nhcal_basic_distribution/energy_resolution_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.root",
+    wildcard_constraints:
+        ENERGY=r"\d+(\.\d+)?",
+        N=r"\d+",
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 

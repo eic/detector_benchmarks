@@ -294,27 +294,23 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     outFile->Close();
     delete outFile;
 
-    TCanvas *c_evLayers1 = new TCanvas("c_evLayers1", "c_evLayers1", 1600, 800);
-    c_evLayers1->Divide(2,1);
+    TCanvas *c_evLayers = new TCanvas("c_evLayers", "c_evLayers", 1600, 800);
+    c_evLayers1->Divide(2,2);
     c_evLayers1->cd(1);
     h_energyTotal->Draw();
     c_evLayers1->cd(2);
     h_layerEnergy->Draw("COLZ");
     p_layerEnergy->SetLineWidth(3); p_layerEnergy->SetLineColor(kRed); p_layerEnergy->SetMarkerColor(kRed);
     p_layerEnergy->Draw("SAME");
-    TCanvas *c_evLayers2 = new TCanvas("c_evLayers2", "c_evLayers2", 1600, 800);
-    c_evLayers2->Divide(2,1);
-    c_evLayers2->cd(1);
+    c_evLayers->cd(3);
     h_hitCount->Draw();
-    c_evLayers2->cd(2);
+    c_evLayers->cd(4);
     h_layerHits->Draw("COLZ");
     p_layerHits->SetLineWidth(3); p_layerHits->SetLineColor(kRed); p_layerHits->SetMarkerColor(kRed);
     p_layerHits->Draw("SAME");
 
-    c_evLayers1->SaveAs(outname_png.c_str());
-    c_evLayers1->SaveAs(outname_pdf.c_str());
-    c_evLayers2->SaveAs(addPrefixAfterSlash(outname_png, "2_").c_str());
-    c_evLayers2->SaveAs(addPrefixAfterSlash(outname_pdf, "2_").c_str());
+    c_evLayers->SaveAs(outname_png.c_str());
+    c_evLayers->SaveAs(outname_pdf.c_str());
 
     TCanvas *c_hit_posE = new TCanvas("c_hit_posE", "c_hit_posE", 1600, 800);
     c_hit_posE->Divide(2,2);
@@ -347,8 +343,7 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     
 
     delete reader;
-    delete c_evLayers1;
-    delete c_evLayers2;
+    delete c_evLayers;
     delete c_hit_posE;
     // delete c_neutronThresholds;
     DeleteHistogamsNeutronThresholds();

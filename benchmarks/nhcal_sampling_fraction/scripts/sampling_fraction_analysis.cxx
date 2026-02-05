@@ -1,7 +1,3 @@
-R__LOAD_LIBRARY(libpodio)
-R__LOAD_LIBRARY(libedm4hep)
-R__LOAD_LIBRARY(libedm4eic)
-
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -18,11 +14,14 @@ R__LOAD_LIBRARY(libedm4eic)
 #include <TMath.h>
 #include <TVector3.h>
 #include <TCanvas.h>
-
 #include "TROOT.h"
 #include "TRandom.h"
 #include "TH3.h"
 
+#include "edm4hep/Vector3f.h"
+#include "edm4hep/Vector3d.h"
+#include "edm4hep/MCParticleObj.h"
+#include "edm4hep/MutableMCParticle.h"
 
 #include "DD4hep/Detector.h"
 #include "DDRec/CellIDPositionConverter.h"
@@ -30,39 +29,25 @@ R__LOAD_LIBRARY(libedm4eic)
 #include <podio/Frame.h>
 #include <podio/CollectionBase.h>
 #include "podio/ROOTReader.h"
-//#include <podio/ROOTFrameReader.h>
 #include "podio/CollectionIDTable.h"
 #include "podio/ObjectID.h"
 
 #include "edm4hep/MCParticleCollection.h"
-#include "edm4hep/MCParticleCollectionData.h"
 #include "edm4hep/MCParticle.h"
-#include "edm4hep/MCParticleData.h"
 
-#include "edm4hep/SimCalorimeterHitCollectionData.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
-#include "edm4hep/SimCalorimeterHitData.h"
 #include "edm4hep/SimCalorimeterHit.h"
 
-#include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitCollectionData.h"
 #include "edm4hep/CalorimeterHitCollection.h"
-#include "edm4hep/CalorimeterHitData.h"
 #include "edm4hep/CalorimeterHit.h"
 
 #include "edm4eic/ClusterCollection.h"
 #include "edm4eic/Cluster.h"
-#include "edm4eic/ClusterData.h"
 
-#include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitCollectionData.h"
 #include "edm4eic/CalorimeterHitCollection.h"
-#include "edm4eic/CalorimeterHitData.h"
 #include "edm4eic/CalorimeterHit.h"
 
 #include <edm4eic/vector_utils_legacy.h>
-#include "edm4hep/Vector3d.h"
-#include "edm4hep/Vector3f.h"
 
 using namespace std;
 using namespace ROOT;

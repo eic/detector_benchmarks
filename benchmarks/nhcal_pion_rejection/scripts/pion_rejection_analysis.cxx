@@ -21,7 +21,11 @@
 #include <unordered_map> 
 #include <unordered_set>
 #include <TLorentzVector.h>  
-#include <TStyle.h>   
+#include <TStyle.h>
+#include <TLine.h>
+#include <TLegend.h>
+#include <TGraphErrors.h>
+#include <TMultiGraph.h>   
 
 #include "TROOT.h"
 #include "TRandom.h"
@@ -499,8 +503,8 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
                 if (!assocCol.isValid() || assocCol.empty()) return;
-                auto simIDs = assocCol.simID();
-                auto recIDs = assocCol.recID();
+                auto simIDs = assocCol.getSimID();
+                auto recIDs = assocCol.getRecID();
                 const uint32_t mc_idx = mc.getObjectID().index;
                 for (size_t i=0; i<assocCol.size() && i<simIDs.size() && i<recIDs.size(); ++i) {
                     if (simIDs[i] == mc_idx) {

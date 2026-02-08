@@ -1,9 +1,3 @@
-#ifdef __CLING__
-R__LOAD_LIBRARY(libpodio)
-R__LOAD_LIBRARY(libedm4hep)
-R__LOAD_LIBRARY(libDDCore)
-#endif
-
 #include <cmath>
 #include <fstream>
 #include <iostream>

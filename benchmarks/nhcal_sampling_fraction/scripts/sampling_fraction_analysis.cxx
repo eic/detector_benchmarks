@@ -1,11 +1,7 @@
 #ifdef __CLING__
 R__LOAD_LIBRARY(libpodio)
 R__LOAD_LIBRARY(libedm4hep)
-R__LOAD_LIBRARY(libDD4hep)
-R__ADD_INCLUDE_PATH(/opt/local/include)
-#pragma cling load("libpodio")
-#pragma cling load("libedm4hep") 
-#pragma cling load("libDD4hep")
+R__LOAD_LIBRARY(libDDCore)
 #endif
 
 #include <cmath>

@@ -17,6 +17,8 @@
 #include "TROOT.h"
 #include "TRandom.h"
 #include "TH3.h"
+#include "TLorentzVector.h"  
+#include "TStyle.h"    
 
 #include "DD4hep/Detector.h"
 #include "DDRec/CellIDPositionConverter.h"

@@ -562,19 +562,19 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
         struct TaggedReco { edm4eic::ReconstructedParticle reco; int muTag; /*0=m1, 1=m2*/ };
         vector<TaggedReco> matchedRecos;
 
-        auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->void {
+        auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
-                if (!assocCol.isValid() || assocCol.empty()) {return;}
-                auto simIDs = assocCol.getSimID();
-                auto recIDs = assocCol.getRecID();
+                if (!assocCol.isValid() || assocCol.empty()) return;
+                
                 const uint32_t mc_idx = mc.getObjectID().index;
-                for (size_t i=0; i<assocCol.size() && i<simIDs.size() && i<recIDs.size(); ++i) {
-                    if (simIDs[i] == mc_idx) {
-                        uint32_t ridx = recIDs[i];
-                        if (!recParts.isValid() || ridx >= recParts.size()) {continue;}
+                
+                for (const auto& assoc : assocCol) {
+                    if (assoc.getSimID() == mc_idx) {
+                        uint32_t ridx = assoc.getRecID();
+                        if (!recParts.isValid() || ridx >= recParts.size()) continue;
                         auto reco = recParts.at(ridx);
                         if (reco.isAvailable()) {
-                            matchedRecos.push_back({reco, muTag});
+                            matchedRecos.push_back(reco);
                         }
                     }
                 }

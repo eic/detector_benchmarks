@@ -499,16 +499,15 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         }
 
         vector<edm4eic::ReconstructedParticle> matchedRecos;
-
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
                 if (!assocCol.isValid() || assocCol.empty()) return;
-                auto simIDs = assocCol.getSimID();
-                auto recIDs = assocCol.getRecID();
+                
                 const uint32_t mc_idx = mc.getObjectID().index;
-                for (size_t i=0; i<assocCol.size() && i<simIDs.size() && i<recIDs.size(); ++i) {
-                    if (simIDs[i] == mc_idx) {
-                        uint32_t ridx = recIDs[i];
+                
+                for (const auto& assoc : assocCol) {
+                    if (assoc.getSimID() == mc_idx) {
+                        uint32_t ridx = assoc.getRecID();
                         if (!recParts.isValid() || ridx >= recParts.size()) continue;
                         auto reco = recParts.at(ridx);
                         if (reco.isAvailable()) {

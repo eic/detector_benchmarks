@@ -45,9 +45,7 @@
 #include <edm4eic/vector_utils_legacy.h>
 
 using namespace std;
-using namespace ROOT;
-using namespace TMath;
-// using namespace edm4hep;
+using namespace edm4hep;
 
 dd4hep::Detector* det = NULL;
 

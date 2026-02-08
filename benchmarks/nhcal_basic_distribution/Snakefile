@@ -1,4 +1,4 @@
-def get_total_energy(kinetic_energy):
+def get_total_energy_neutron(kinetic_energy):
     ke = float(kinetic_energy)
     neutron_mass = 0.94
     return f"{ke + neutron_mass:.2f}"
@@ -14,10 +14,9 @@ rule nhcal_basic_distribution_simulate:
         SEED=lambda wildcards: "1" + wildcards.INDEX,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
-        ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-        TOTAL_ENERGY=lambda wildcards: get_total_energy(wildcards.ENERGY),
+        TOTAL_ENERGY=lambda wildcards: get_total_energy_neutron(wildcards.ENERGY),
     cache: True
     shell:
         """
@@ -34,7 +33,6 @@ exec npsim \
     --gun.energy "{params.TOTAL_ENERGY}*GeV" \
     --outputFile {output}
 """
-
 
 rule nhcal_basic_distribution_combine:
     input:

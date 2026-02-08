@@ -1,17 +1,24 @@
+def get_total_energy(particle, kinetic_energy):
+    """Convert kinetic energy to total energy by adding particle mass."""
+    masses = {
+        "neutron": 0.94, 
+        "pi-": 0.14,      
+        "e-": 0.0005      
+    }
+    ke = float(kinetic_energy)
+    mass = masses[particle]
+    return f"{ke + mass:.2f}"
+
 rule nhcal_sampling_fraction_simulate:
     output:
-        "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root",
+        "sim_output/nhcal_sampling_fraction/{PARTICLE}/Ekin{ENERGY}GeV/sim.edm4hep.root",
     params:
         N_EVENTS=5000,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-        TOTAL_ENERGY=lambda wildcards: {
-            "neutron": {"0.5": "1.44", "0.7": "1.64", "1.0": "1.94", "2.0": "2.94", "5.0": "5.94", "10.0": "10.94"},
-            "pi-": {"0.5": "0.64", "0.7": "0.84", "1.0": "1.14", "2.0": "2.14", "5.0": "5.14", "10.0": "10.14"},
-            "e-": {"0.5": "0.50", "0.7": "0.70", "1.0": "1.00", "2.0": "2.00", "5.0": "5.00", "10.0": "10.00"}
-        }[wildcards.PARTICLE][wildcards.ENERGY],
+        TOTAL_ENERGY=lambda wildcards: get_total_energy(wildcards.PARTICLE, wildcards.ENERGY),
     cache: True
     shell:
         """
@@ -34,7 +41,7 @@ exec npsim \
 rule nhcal_sampling_fraction_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_sampling_fraction/{PARTICLE}/E{ENERGY}GeV/sim.edm4hep.root", 
+            "sim_output/nhcal_sampling_fraction/{PARTICLE}/Ekin{ENERGY}GeV/sim.edm4hep.root", 
             ENERGY=["0.5", "0.7", "1.0", "2.0", "5.0", "10.0"],
             PARTICLE=["pi-", "neutron", "e-"],
         ),

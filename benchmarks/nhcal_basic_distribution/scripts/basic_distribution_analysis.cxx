@@ -60,10 +60,6 @@
 #include "edm4eic/CalorimeterHitObj.h"
 
 #include <edm4eic/vector_utils_legacy.h>
-#include <edm4hep/Vector3f.h>
-#include "edm4hep/Vector3d.h"
-#include "edm4hep/MCParticleObj.h"
-#include "edm4hep/MutableMCParticle.h"
 #include <root/TStyle.h>
 
 #include "NeutronThresholdUtil.h"
@@ -72,7 +68,6 @@
 using namespace std;
 using namespace ROOT;
 using namespace TMath;
-using namespace edm4hep;
 
 bool debug = false;
 dd4hep::Detector* det = NULL;
@@ -295,10 +290,10 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     delete outFile;
 
     TCanvas *c_evLayers = new TCanvas("c_evLayers", "c_evLayers", 1600, 800);
-    c_evLayers1->Divide(2,2);
-    c_evLayers1->cd(1);
+    c_evLayers->Divide(2,2);
+    c_evLayers->cd(1);
     h_energyTotal->Draw();
-    c_evLayers1->cd(2);
+    c_evLayers->cd(2);
     h_layerEnergy->Draw("COLZ");
     p_layerEnergy->SetLineWidth(3); p_layerEnergy->SetLineColor(kRed); p_layerEnergy->SetMarkerColor(kRed);
     p_layerEnergy->Draw("SAME");

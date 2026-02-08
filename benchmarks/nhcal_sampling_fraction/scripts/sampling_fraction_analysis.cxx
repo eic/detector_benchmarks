@@ -18,11 +18,6 @@
 #include "TRandom.h"
 #include "TH3.h"
 
-#include "edm4hep/Vector3f.h"
-#include "edm4hep/Vector3d.h"
-#include "edm4hep/MCParticleObj.h"
-#include "edm4hep/MutableMCParticle.h"
-
 #include "DD4hep/Detector.h"
 #include "DDRec/CellIDPositionConverter.h"
 
@@ -52,7 +47,7 @@
 using namespace std;
 using namespace ROOT;
 using namespace TMath;
-using namespace edm4hep;
+// using namespace edm4hep;
 
 dd4hep::Detector* det = NULL;
 

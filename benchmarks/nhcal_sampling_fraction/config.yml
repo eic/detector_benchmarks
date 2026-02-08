@@ -6,7 +6,7 @@ sim:nhcal_sampling_fraction:
       - ENERGY: ["0.5", "0.7","1.0", "2.0", "5.0", "10.0"]
         PARTICLE: ["pi-", "neutron", "e-"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/nhcal_sampling_fraction/${PARTICLE}/E${ENERGY}GeV/sim.edm4hep.root                 
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB sim_output/nhcal_sampling_fraction/${PARTICLE}/Ekin${ENERGY}GeV/sim.edm4hep.root                 
 
 bench:nhcal_sampling_fraction:
   extends: .det_benchmark

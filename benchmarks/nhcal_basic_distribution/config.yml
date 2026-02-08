@@ -32,11 +32,10 @@ bench:nhcal_basic_distribution_analysis:
     - |
       for ENERGY in 0.5 0.7 1.0 2.0 5.0; do
         snakemake -n -p \
-          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png \
-          sim_output/nhcal_basic_distribution/energy_resolution_E${ENERGY}GeV_epic_backward_hcal_only_10files.root
+          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png
       done
     - snakemake --list-rules | grep energy_resolution || echo "Missing rule!"
-    - snakemake -n -p --reason \
+    - snakemake -n -p -v \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 
 # bench:nhcal_basic_distribution_analysis_full:

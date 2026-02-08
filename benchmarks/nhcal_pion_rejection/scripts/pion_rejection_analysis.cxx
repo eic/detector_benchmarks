@@ -36,8 +36,6 @@
 #include <TGeoBBox.h>
 #include <TGeoMatrix.h>
 
-
-
 #include "podio/Frame.h"
 #include "podio/CollectionBase.h"
 #include "podio/ROOTReader.h"
@@ -45,51 +43,33 @@
 #include "podio/ObjectID.h"
 
 #include "edm4hep/MCParticleCollection.h"
-#include "edm4hep/MCParticleCollectionData.h"
 #include "edm4hep/MCParticle.h"
-#include "edm4hep/MCParticleData.h"
 
-#include "edm4hep/SimCalorimeterHitCollectionData.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
-#include "edm4hep/SimCalorimeterHitData.h"
 #include "edm4hep/SimCalorimeterHit.h"
 
 #include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitCollectionData.h"
 #include "edm4hep/CalorimeterHitCollection.h"
-#include "edm4hep/CalorimeterHitData.h"
-#include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitObj.h"
 
 #include "edm4eic/ClusterCollection.h"
 #include "edm4eic/Cluster.h"
 #include "edm4eic/ClusterData.h"
 
 #include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitCollectionData.h"
 #include "edm4eic/CalorimeterHitCollection.h"
-#include "edm4eic/CalorimeterHitData.h"
-#include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitObj.h"
 
 #include "edm4eic/InclusiveKinematicsCollection.h"
 #include "edm4eic/InclusiveKinematics.h"
 #include "edm4hep/utils/kinematics.h"
 #include "edm4hep/utils/vector_utils.h"
-
 #include "edm4eic/vector_utils_legacy.h"
-#include "edm4hep/Vector3d.h"
-#include "edm4hep/Vector3f.h"
-#include "edm4hep/MCParticleObj.h"
-#include "edm4hep/MutableMCParticle.h"
 
 #include "edm4eic/Track.h"
 #include "edm4eic/TrackSegment.h"
-#include "edm4eic/TrackSegmentCollectionData.h"
 #include "edm4eic/TrackPoint.h"
 #include "edm4eic/TrackParameters.h"
-
 #include "edm4eic/TrackSegmentCollection.h"
+
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "edm4eic/ReconstructedParticle.h"
 

@@ -1,3 +1,8 @@
+def get_total_energy(kinetic_energy):
+    ke = float(kinetic_energy)
+    neutron_mass = 0.94
+    return f"{ke + neutron_mass:.2f}"
+
 rule nhcal_basic_distribution_simulate:
     input:
         warmup="warmup.edm4hep.root",
@@ -12,13 +17,7 @@ rule nhcal_basic_distribution_simulate:
         ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
-        TOTAL_ENERGY=lambda wildcards: {
-            "0.5": "1.44", 
-            "0.7": "1.64", 
-            "1.0": "1.94", 
-            "2.0": "2.94", 
-            "5.0": "5.94"
-        }[wildcards.ENERGY],
+        TOTAL_ENERGY=lambda wildcards: get_total_energy(wildcards.ENERGY),
     cache: True
     shell:
         """

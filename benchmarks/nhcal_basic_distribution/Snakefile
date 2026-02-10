@@ -67,7 +67,7 @@ rule nhcal_basic_distribution_analysis:
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 
     shell:
         """
-            root -l -b -q '{input.script}("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+            root -l -b -q '{input.script}+("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
         """
     
 rule nhcal_basic_distribution_combine_energy_resolution:

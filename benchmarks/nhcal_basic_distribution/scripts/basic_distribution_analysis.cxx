@@ -14,6 +14,7 @@
 #include <TMath.h>
 #include <TVector3.h>
 #include <TCanvas.h>
+#include <TStyle.h> 
 
 #include "TROOT.h"
 #include "TRandom.h"

@@ -265,6 +265,9 @@ inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
     TVector3 dims(NaN, NaN, NaN);
     try {
         if (!dec) throw runtime_error("decoder==nullptr");
+        int actual_value = dec->get(cid, slice_idx);
+        cerr << "slice_idx=" << slice_idx << " actual=" << actual_value 
+            << " expected=" << plastic_slice_value << "\n";
         if (dec->get(cid, slice_idx) != plastic_slice_value)
             throw runtime_error("cell is not plastic");
 

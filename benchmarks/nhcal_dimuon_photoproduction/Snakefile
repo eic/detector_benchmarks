@@ -5,6 +5,7 @@ rule nhcal_dimuon_photoproduction_presimulate:
         outdir=lambda wc, output: os.path.dirname(output[0]),
     shell:
         """
+            make -C benchmarks/nhcal_dimuon_photoproduction/scripts
             benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} 
         """
 

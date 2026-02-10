@@ -68,7 +68,7 @@ def find_epic_libraries():
 # include: "benchmarks/femc_electron/Snakefile"
 # include: "benchmarks/femc_photon/Snakefile"
 # include: "benchmarks/femc_pi0/Snakefile"
-# include: "benchmarks/nhcal_acceptance/Snakefile"
+include: "benchmarks/nhcal_acceptance/Snakefile"
 include: "benchmarks/nhcal_basic_distribution/Snakefile"
 include: "benchmarks/nhcal_sampling_fraction/Snakefile"
 include: "benchmarks/nhcal_dimuon_photoproduction/Snakefile"

@@ -268,7 +268,13 @@ inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
         int actual_value = dec->get(cid, slice_idx);
         cerr << "slice_idx=" << slice_idx << " actual=" << actual_value 
             << " expected=" << plastic_slice_value << "\n";
-        if (dec->get(cid, slice_idx) != plastic_slice_value)
+        cerr << "types: actual=" << typeid(actual_value).name() 
+            << " expected=" << typeid(plastic_slice_value).name() << "\n";
+        cerr << "comparison: " << (actual_value != plastic_slice_value) << "\n";
+        cerr << "hex: actual=0x" << hex << actual_value 
+            << " expected=0x" << plastic_slice_value << dec << "\n";
+        cerr << "type: " << typeid(dec->get(cid, slice_idx)).name() << "\n";
+        if (actual_value != plastic_slice_value)
             throw runtime_error("cell is not plastic");
 
         auto de = det.volumeManager().lookupDetElement(cid);
@@ -288,7 +294,7 @@ inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
                     2.0 * box->GetDZ());
         return dims;
     } catch (const exception& e) {
-        cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
+        cerr << "[WARN] getPlasticThicknessCM: " << e.what() << " (cellID=" << cid << ")\n";
         return dims;
     }
 }

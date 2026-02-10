@@ -3,7 +3,7 @@ sim:nhcal_dimuon_photoproduction:
   stage: simulate
   parallel:
     matrix:
-      - INDEX_RANGE: ["0 1", "2 3", "4 5", "6 7", "8 9"]
+      - INDEX_RANGE: ["0", "1", "2", "3", "4"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_dimuon_photoproduction/sim_epic_full.${INDEX}.edm4hep.root; done)
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_dimuon_photoproduction/sim_epic_full.${INDEX}.eicrecon.edm4hep.root; done)

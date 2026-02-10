@@ -72,5 +72,5 @@ rule nhcal_pion_rejection_analysis:
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
     shell:
         """
-    root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+    root -l -b -q '{input.script}+O0("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
 """

@@ -31,7 +31,7 @@ CXX      =  g++
 CXXFLAGS = -O -W -Wall -m64 -std=c++20 $(FASTJETCXX)
 CPPFLAGS = -I$(PYTHIAPATH)/include -I$(ROOTSYS)/include/root -I$(LHAPDFPATH)/include
 
-LDFLAGS  = -L$(PYTHIAPATH)/lib -L$(ROOTLIB) -L$(LHAPDFPATH)/lib -lpythia8 -lHepMC3 -lLHAPDF -lstdc++ -lCore -lThread -lRIO -lNet -lHist -lMathCore -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lfreetype -lpthread -lm -ldl
+LDFLAGS  = -L$(PYTHIAPATH)/lib -L$(ROOTLIB) -L$(LHAPDFPATH)/lib -lpythia8 -lHepMC3 -lstdc++ -lCore -lThread -lRIO -lNet -lHist -lMathCore -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lfreetype -lpthread -lm -ldl
 
 $(PROGRAM):	$(PROGRAM).cpp DictOutput.cxx libPythiaEvent.so
 		$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(PROGRAM).cpp DictOutput.cxx $(LDFLAGS) $(FASTJETLIB) libPythiaEvent.so -o $(PROGRAM)

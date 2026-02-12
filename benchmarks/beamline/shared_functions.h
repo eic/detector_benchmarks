@@ -6,6 +6,9 @@
 #include "DD4hep/VolumeManager.h"
 #include "DD4hep/DetElement.h"
 #include "TFile.h"
+#include "TGeoShape.h"
+#include "TGeoBBox.h"
+#include "TPolyLine.h"
 
 using RVecHits = ROOT::VecOps::RVec<edm4hep::SimTrackerHitData>;
 using namespace dd4hep;
@@ -104,6 +107,84 @@ struct globalToLocal{
   dd4hep::VolumeManager volumeManager;
 };
 
+//-----------------------------------------------------------------------------------------
+// Helper function to extract shape outline points for arbitrary TGeo shapes
+//-----------------------------------------------------------------------------------------
+std::vector<std::pair<double, double>> extractShapeOutline(dd4hep::Solid solid, double z = 0.0, int nPoints = 100) {
+  std::vector<std::pair<double, double>> outline;
+  
+  if (!solid.isValid()) {
+    return outline;
+  }
+  
+  TGeoShape* geoShape = solid.ptr();
+  std::string shapeName = geoShape->IsA()->GetName();
+  
+  // For ConeSegment, return circular outline
+  if (shapeName == "TGeoConeSeg") {
+    dd4hep::ConeSegment cone = solid;
+    double rmax = cone.rMax1();
+    for (int i = 0; i <= nPoints; i++) {
+      double angle = 2.0 * M_PI * i / nPoints;
+      outline.push_back({rmax * std::cos(angle), rmax * std::sin(angle)});
+    }
+    return outline;
+  }
+  
+  // For other shapes, sample points on the boundary
+  // This is a general approach that works for intersection solids and other complex shapes
+  TGeoBBox* bbox = dynamic_cast<TGeoBBox*>(geoShape);
+  if (bbox) {
+    // Get bounding box dimensions
+    double dx = bbox->GetDX();
+    double dy = bbox->GetDY();
+    // For a box, trace the outline
+    outline.push_back({-dx, -dy});
+    outline.push_back({ dx, -dy});
+    outline.push_back({ dx,  dy});
+    outline.push_back({-dx,  dy});
+    outline.push_back({-dx, -dy});
+    return outline;
+  }
+  
+  // For composite shapes (like intersection solids), sample the boundary
+  // by testing points in a grid and finding those near the surface
+  double maxR = 10.0; // Maximum radius to check (in cm)
+  double step = 0.1;  // Step size for sampling
+  
+  // Sample points in polar coordinates to find the shape boundary
+  for (int i = 0; i <= nPoints; i++) {
+    double angle = 2.0 * M_PI * i / nPoints;
+    double cosAngle = std::cos(angle);
+    double sinAngle = std::sin(angle);
+    
+    // Binary search to find the boundary at this angle
+    double rMin = 0.0;
+    double rMax = maxR;
+    double r = rMax / 2.0;
+    
+    for (int iter = 0; iter < 20; iter++) { // 20 iterations for binary search
+      double x = r * cosAngle;
+      double y = r * sinAngle;
+      double point[3] = {x, y, z};
+      
+      if (geoShape->Contains(point)) {
+        rMin = r;
+      } else {
+        rMax = r;
+      }
+      r = (rMin + rMax) / 2.0;
+    }
+    
+    // If we found a valid boundary point
+    if (rMin > 0.01) { // Threshold to avoid noise
+      outline.push_back({rMin * cosAngle, rMin * sinAngle});
+    }
+  }
+  
+  return outline;
+}
+
 struct volParams{
   double radius;
   double xPos;
@@ -111,6 +192,7 @@ struct volParams{
   double zPos;
   double rotation;
   bool isConeSegment;
+  std::vector<std::pair<double, double>> shapeOutline; // (x, y) coordinates in local frame
 };
 
 // Functor to get the volume element parameters from the CellID
@@ -137,13 +219,17 @@ struct getVolumeParametersFromCellID {
         dd4hep::ConeSegment cone = solid;
         radius = cone.rMax1();
       }
+      // Extract shape outline for arbitrary shapes
+      std::vector<std::pair<double, double>> outline = extractShapeOutline(solid);
+      
       volParams params{
         radius,
         translation[0],
         translation[1],
         translation[2],
         rotationAngleY,
-        isCone
+        isCone,
+        outline
       };
       result.push_back(params);
     }
@@ -154,6 +240,32 @@ private:
   dd4hep::Detector& detector;
   dd4hep::VolumeManager volumeManager;
 };
+
+//-----------------------------------------------------------------------------------------
+// Helper function to draw shape outline on a canvas
+//-----------------------------------------------------------------------------------------
+void drawShapeOutline(const std::vector<std::pair<double, double>>& outline, 
+                      int lineColor = kRed, 
+                      int lineWidth = 2) {
+  if (outline.empty()) {
+    return;
+  }
+  
+  int nPoints = outline.size();
+  std::vector<double> x(nPoints);
+  std::vector<double> y(nPoints);
+  
+  for (int i = 0; i < nPoints; i++) {
+    x[i] = outline[i].first;
+    y[i] = outline[i].second;
+  }
+  
+  TPolyLine* poly = new TPolyLine(nPoints, x.data(), y.data());
+  poly->SetLineColor(lineColor);
+  poly->SetLineWidth(lineWidth);
+  poly->SetFillStyle(0);
+  poly->Draw("same");
+}
 
 TH1F* CreateFittedHistogram(const std::string& histName, 
   const std::string& histTitle, 

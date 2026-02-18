@@ -25,9 +25,18 @@ jobs:
     - name: Push to EICweb
       uses: eic/gitlab-sync@master
       with:
+        remote: eicweb
         url: https://eicweb.phy.anl.gov/EIC/benchmarks/detector_benchmarks.git/
         token: ${{ secrets.GITLAB_TOKEN }}
         username: ${{ secrets.GITLAB_USERNAME }}
+        ciskip: true
+    - name: Push to code.jlab.org
+      uses: eic/gitlab-sync@master
+      with:
+        remote: jlab
+        url: https://code.jlab.org/EIC/detector_benchmarks.git/
+        token: ${{ secrets.CODEJLAB_TOKEN }}
+        username: ${{ secrets.CODEJLAB_USERNAME }}
         ciskip: true
     - name: Trigger EICweb
       id: trigger_eicweb

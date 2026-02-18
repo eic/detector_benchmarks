@@ -25,9 +25,11 @@ rule campaign_run:
         N_EVENTS=100,
     shell:
         """
+curl -L -o bg_files.json "https://eicweb.phy.anl.gov/EIC/campaigns/datasets/-/raw/main/config_data/synrad_egasbrems_egascoulomb_egastouschek_hgas_18GeVx275GeV_vacuum_10000Ahr_machineruntime_50s.json"
 env \
   DETECTOR_VERSION={wildcards.DETECTOR_VERSION} \
   DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+  BG_FILES=bg_files.json \
   SLURM_TMPDIR=$PWD \
   {input.run_script} EVGEN/{wildcards.BASENAME} hepmc3.tree.root {params.N_EVENTS}
 """

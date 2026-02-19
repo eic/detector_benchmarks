@@ -1,0 +1,76 @@
+rule nhcal_pion_rejection_simulate:
+    output:
+        "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
+    params:
+        N_EVENTS=1000,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    wildcard_constraints:
+        INDEX = r"\d+",
+    cache: True
+    shell:
+        """
+exec npsim \
+    --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+    --numberOfEvents {params.N_EVENTS} \
+    --random.seed {params.SEED} \
+    --enableGun \
+    -v WARNING \
+    --gun.particle pi- \
+    --gun.thetaMin 120*degree \
+    --gun.thetaMax 180*degree \
+    --gun.distribution uniform \
+    --gun.momentumMin "1*GeV" \
+    --gun.momentumMax "18*GeV" \
+    --outputFile {output}
+"""
+
+rule nhcal_pion_rejection_recon:
+    input:
+        "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root"
+    output:
+        "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
+    params:
+        DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
+    cache: True
+    shell: 
+        """
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+          eicrecon {input} \
+          -Ppodio:output_file={output} \
+          
+"""
+
+rule nhcal_pion_rejection_combine:
+    input:
+        lambda wildcards: expand(
+            "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
+            DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
+            INDEX=range(int(wildcards.N)),
+        )
+    output:
+        temp("sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root"),
+    wildcard_constraints:
+        N = r"\d+",
+    shell:
+        """
+hadd -f {output} {input} 
+"""
+
+rule nhcal_pion_rejection_analysis:
+    input:
+        combined="sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        script="benchmarks/nhcal_pion_rejection/scripts/pion_rejection_analysis.cxx",
+    output:
+        png="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.png",
+        pdf="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.pdf",
+    params:
+        DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+    shell:
+        """
+    root -l -b -q '{input.script}+O("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+"""

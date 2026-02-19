@@ -1,0 +1,28 @@
+sim:nhcal_pion_rejection:
+  extends: .det_benchmark
+  stage: simulate
+  parallel:
+    matrix:
+      - INDEX_RANGE: ["0 1", "2 3", "4 5", "6 7", "8 9"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --retries 1 --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_pion_rejection/sim_epic_full.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --retries 1 --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_pion_rejection/sim_epic_full.${INDEX}.eicrecon.edm4hep.root; done)
+
+bench:nhcal_pion_rejection_analysis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - "sim:nhcal_pion_rejection"
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/nhcal_pion_rejection/analysis_epic_full_10files.pdf
+
+collect_results:nhcal_pion_rejection:
+  extends: .det_benchmark
+  stage: collect
+  needs: 
+    - "bench:nhcal_pion_rejection_analysis"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ 
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_pion_rejection/analysis_epic_full_10files.pdf
+    - mv results{_save,}/

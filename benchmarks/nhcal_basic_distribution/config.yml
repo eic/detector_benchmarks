@@ -4,60 +4,69 @@ sim:nhcal_basic_distribution:
   timeout: 4 hours
   parallel:
     matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
-        INDEX_RANGE: ["0 4","5 9"]
+      - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
+        INDEX_RANGE: ["0 3","4 6", "7 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
 
-sim:nhcal_basic_distribution_full:
-  extends: .det_benchmark
-  stage: simulate
-  timeout: 4 hours
-  parallel:
-    matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV"]
-        INDEX_RANGE: ["0 4","5 9"]
-      - ENERGY: ["5.0GeV"]
-        INDEX_RANGE: ["0 3", "4 6", "7 9"]
-  script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq -f '%02.0f' $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}/sim_epic_full.${INDEX}.edm4hep.root; done)
+# sim:nhcal_basic_distribution_full:
+#   extends: .det_benchmark
+#   stage: simulate
+#   timeout: 4 hours
+#   parallel:
+#     matrix:
+#       - ENERGY: ["0.5", "0.7", "1.0", "2.0"]
+#         INDEX_RANGE: ["0 4","5 9"]
+#       - ENERGY: ["5.0"]
+#         INDEX_RANGE: ["0 2", "3 5", "6 7", "8 9"]
+
+#   script:
+#     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_full.${INDEX}.edm4hep.root; done)
 
 bench:nhcal_basic_distribution_analysis:
   extends: .det_benchmark
   stage: benchmarks
   needs:
     - "sim:nhcal_basic_distribution"
-  parallel:
-    matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
+  variables:
+    ENERGIES: "0.5 0.7 1.0 2.0 5.0"
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_basic_distribution/analysis_epic_backward_hcal_only_E${ENERGY}_combined_10files.pdf
+    - |
+      for ENERGY in $ENERGIES; do
+        snakemake $SNAKEMAKE_FLAGS --cores 1 \
+          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png
+      done
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 
-bench:nhcal_basic_distribution_analysis_full:
-  extends: .det_benchmark
-  stage: benchmarks
-  needs:
-    - "sim:nhcal_basic_distribution_full"
-  parallel:
-    matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
-  script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/nhcal_basic_distribution/analysis_epic_full_E${ENERGY}_combined_10files.pdf
-
+# bench:nhcal_basic_distribution_analysis_full:
+#   extends: .det_benchmark
+#   stage: benchmarks
+#   needs:
+#     - "sim:nhcal_basic_distribution_full"
+#   variables:
+#     ENERGIES: "0.5 0.7 1.0 2.0 5.0"
+#   script:
+#     - |
+#       for ENERGY in $ENERGIES; do
+#         snakemake $SNAKEMAKE_FLAGS --cores 1 \
+#           results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_full_10files.png
+#       done
+#     - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+#         results/nhcal_basic_distribution/energy_resolution_analysis_epic_full.png
 
 collect_results:nhcal_basic_distribution:
   extends: .det_benchmark
   stage: collect
   needs: 
     - "bench:nhcal_basic_distribution_analysis"
-    - "bench:nhcal_basic_distribution_analysis_full"
+    # - "bench:nhcal_basic_distribution_analysis_full"
   parallel:
     matrix:
-      - ENERGY: ["0.5GeV", "0.7GeV", "1.0GeV", "2.0GeV", "5.0GeV"]
-        DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
+      - DETECTOR_CONFIG: ["epic_backward_hcal_only"]
   script:
     - ls -lrht
     - mv results{,_save}/ 
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_basic_distribution/analysis_${DETECTOR_CONFIG}_E${ENERGY}_combined_10files.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/nhcal_basic_distribution/energy_resolution_analysis_{DETECTOR_CONFIG}.png
     - mv results{_save,}/
         

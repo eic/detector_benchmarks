@@ -4,6 +4,10 @@ sim:calo_pid:
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi-"]
+        ANGLE: [
+          "45to135deg",
+          "130to177deg"
+        ]
         INDEX_RANGE: [
           "0 9",
           "10 19",
@@ -19,7 +23,7 @@ sim:calo_pid:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
-        $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/130to177deg/${PARTICLE}_100MeVto20GeV_130to177deg.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
+        $(seq --format="sim_output/calo_pid/epic_inner_detector/${PARTICLE}/100MeVto20GeV/${ANGLE}/${PARTICLE}_100MeVto20GeV_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
 
 bench:calo_pid:
   extends: .det_benchmark

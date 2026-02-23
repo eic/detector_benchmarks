@@ -1,0 +1,19 @@
+bench:secondary_vertexing_dis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    # Re-use simulations from the tracking benchmark
+    - ["sim:tracking_performances_dis"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/epic_craterlake/secondary_vertex_pythia8NCDIS_18x275_minQ2=1_SecondaryVerticesHelix.png
+
+collect_results:secondary_vertexing_dis:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:secondary_vertexing_dis"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/secondary_vertex_pythia8NCDIS_18x275_minQ2=1_SecondaryVerticesHelix.png
+    - mv results{_save,}/

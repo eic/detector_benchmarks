@@ -132,6 +132,7 @@ include:
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/far_forward_dvcs/config.yml'
   - local: 'benchmarks/lowq2_reconstruction/config.yml'
+  - local: 'benchmarks/secondary_vertexing_dis/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
@@ -174,6 +175,7 @@ deploy_results:
     - "collect_results:material_scan"
     - "collect_results:pid"
     - "collect_results:rich"
+    - "collect_results:secondary_vertexing_dis"
     - "collect_results:tracking_performance"
     - "collect_results:tracking_performance_campaigns"
     - "collect_results:zdc_sigma"

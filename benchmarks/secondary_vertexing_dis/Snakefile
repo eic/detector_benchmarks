@@ -1,0 +1,14 @@
+rule secondary_vertex_analysis:
+    input:
+        script=workflow.source_path("analysis/invariant_mass.py"),
+        reco=lambda wildcards: [f"sim_output/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{i}.edm4eic.root" for i in range(1, 6)],
+    output:
+        "results/{DETECTOR_CONFIG}/secondary_vertex_pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{VERTICES_COLLECTION}.png",
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+        MINQ2=r"\d+",
+    shell:
+        """
+python {input.script} --input {input.reco} --output {output} --vertices-collection {wildcards.VERTICES_COLLECTION}
+"""

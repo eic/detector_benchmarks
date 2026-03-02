@@ -1,0 +1,490 @@
+#+begin_src jupyter-python
+  import os
+  import math
+  from math import floor
+
+  import pandas as pd
+  import numpy as np
+
+  ## dangerous: silence annoying TF warnings , remove when running on new systems or debugging
+  os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # this MUST come before any tf call.
+  import tensorflow as tf
+  from tensorflow import keras
+  from tensorflow.keras import layers
+
+  import matplotlib.pyplot as plt
+  from collections import OrderedDict
+  import json
+  import re
+#+end_src
+
+#+begin_src jupyter-python
+  print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+#+end_src
+
+#+begin_src jupyter-python
+  # Simulate argparse in Kaggle
+  class Args:
+      def __init__(self):
+          self.angle = ['45to135deg']  # ✅ choose your angles
+          self.energy = '1GeV'
+          self.cap_train_sample = 0
+          self.epochs = 30
+          self.target_imbalance = 1.0
+          self.model = 'vgg-v2'
+          self.workdir = '/kaggle/working/output'  # 🔧 all outputs go here
+
+  args = Args()
+#+end_src
+
+#+begin_src jupyter-python
+  ## Global efficiencies we want to optimize for (electron efficiencies)
+  kTargetEfficiency = .95
+  ## other efficiency scenarios to cut the ML on
+  kAlternativeEfficiencies = np.arange(.5, 1., .05)
+
+  ## setting
+  #angle_settings=['eta0.0', 'eta0.5n', 'eta0.5p', 'eta1.0n', 'eta1.0p']
+  #angle_settings=['eta0.0', 'eta1.0p']
+  #angle_settings=['eta0.0']
+  angle_settings=args.angle
+  energy_setting= args.energy
+  ## MeV or GeV
+  energy_GeV = float(energy_setting[:-3]) * (1 if energy_setting[-3:] == 'GeV' else 1/1000.)
+  def eta_from_angle(angle_label):
+      match = re.match(r"(\d+)to(\d+)deg", angle_label)
+      if match:
+          theta1 = float(match.group(1))
+          theta2 = float(match.group(2))
+          mean_theta_deg = (theta1 + theta2) / 2.0
+          mean_theta_rad = np.deg2rad(mean_theta_deg)
+          eta = -np.log(np.tan(mean_theta_rad / 2))
+          return eta
+      else:
+          raise ValueError(f"Cannot parse eta from angle label: {angle_label}")
+
+  etas = {}
+  for setting in angle_settings:
+      if setting.startswith("eta"):
+          val = float(setting[3:-1])
+          sign = -1. if setting[-1] == 'n' else 1.
+          etas[setting] = val * sign
+      elif "deg" in setting:
+          etas[setting] = eta_from_angle(setting)
+      else:
+          etas[setting] = 0.0
+
+  print(f'E/p scan for {energy_setting}')
+  print(f'   - detected energy: {energy_GeV} GeV')
+  print(f'   - eta ranges: {angle_settings}')
+#+end_src
+
+#+begin_src jupyter-python
+  ## set ML configuration
+  kTrainSampleCap = args.cap_train_sample
+  kEpochs = args.epochs
+  kTestSize = .2
+  kValidateSize = .1
+  kTargetImbalance = args.target_imbalance
+  kPionWeightCap = 1.00
+  kElectronLabel = 1
+  kPionLabel = 0
+  kModel = args.model
+
+  print('ML configuration:')
+  print(f'   - Number of epochs: {kEpochs}')
+  if kTrainSampleCap > 0:
+      print(f'   - Training sample cap: {kTrainSampleCap}')
+  print(f'   - Validation fraction: {kValidateSize}')
+  print(f'   - Test fraction: {kTestSize}')
+  print(f'   - Target pi:E imbalance: {kTargetImbalance}')
+  print(f'   - Upper cap on pion weights: {kPionWeightCap}')
+  print(f'   - Model: {kModel}')
+#+end_src
+
+#+begin_src jupyter-python
+  def get_dimensions(df):
+      max_idx = df.index.max()
+      min_idx = df.index.min()
+      max_idx = np.array([v if type(v) != str else 0 for v in max_idx])
+      min_idx = np.array([v if type(v) != str else 0 for v in min_idx])
+      return {k: v for (k, v) in zip(('event', '_', 'layer', 'hit'), (max_idx - min_idx + 1))}
+
+  ## boiler-plate for in-memory datasets
+  def make_dataset(fields):
+      dataset = tf.data.Dataset.from_tensor_slices(fields)
+      ## do magic to avoid shard warnings of operating on DATA instead of FILE
+      options = tf.data.Options()
+      options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+      return dataset.with_options(options)
+#+end_src
+
+#+begin_src jupyter-python
+  ## Chaos CNN model
+  def build_old(input_shape, n_labels=2):
+      my_model = keras.Sequential([
+          keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu', input_shape=input_shape),
+          keras.layers.MaxPooling2D((2, 2), strides=2),
+          keras.layers.Dropout(0.25),
+          keras.layers.Conv2D(128, (2, 2), padding='same', activation='relu'),
+          keras.layers.MaxPooling2D((2, 2), strides=2),
+          keras.layers.Conv2D(64, (2, 2), padding='same', activation='relu'),
+          keras.layers.MaxPooling2D((2, 2), strides=2),
+          keras.layers.Dropout(0.25),
+
+          keras.layers.Flatten(),
+          keras.layers.Dense(128, activation='relu'),
+          #keras.layers.Dropout(0.25),
+          keras.layers.Dense(32, activation='relu'),
+          keras.layers.Dense(n_labels, activation='softmax')
+          ])
+      return my_model
+   
+  ## Slightly beefier VGG-style CNN
+  def build_vgg_v1(input_shape, n_labels=2):
+      my_model = keras.Sequential([
+          keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu',padding='same',input_shape=input_shape),
+          keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu',padding='same'),
+          keras.layers.MaxPooling2D(pool_size=(2, 2),strides=2),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.MaxPooling2D(pool_size=(2, 2),strides=2),
+          keras.layers.Flatten(),
+          keras.layers.Dense(1024, activation='relu'),
+          keras.layers.Dense(512, activation='relu'),
+          keras.layers.Dense(n_labels, activation='softmax')
+          ])
+
+      return my_model
+
+  def build_vgg_v2(input_shape, n_labels=2):
+      my_model = keras.Sequential([
+          keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu',padding='same',input_shape=input_shape),
+          keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu',padding='same'),
+          keras.layers.MaxPooling2D(pool_size=(2, 2),strides=2),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu'),
+          keras.layers.MaxPooling2D(pool_size=(2, 2),strides=2),
+          keras.layers.Flatten(),
+          keras.layers.Dense(1024, activation='relu'),
+          keras.layers.Dense(1024, activation='relu'),
+          keras.layers.Dense(n_labels, activation='softmax')
+          ])
+
+      return my_model
+#+end_src
+
+#+begin_src jupyter-python
+  def build_model(input_shape, n_labels=2):
+      if kModel == 'old':
+          print(f'Building old')
+          return build_old(input_shape, n_labels)
+      elif kModel == 'vgg-v1':
+          print(f'Building vgg-v1')
+          return build_vgg_v1(input_shape, n_labels)
+      elif kModel == 'vgg-v2':
+          print(f'Building vgg-v2')
+          return build_vgg_v2(input_shape, n_labels)
+      print('Building default')
+      return build_vgg_v2(input_shape, n_labels)
+#+end_src
+
+#+begin_src jupyter-python
+  angle_label=angle_settings[0]
+  print(angle_label)
+#+end_src
+
+#+begin_src jupyter-python
+  datadir = f'/kaggle/input/results-45to135deg-1gev-data'
+  plotdir = f'/kaggle/working/plots/{angle_label}'
+  output_directory = f'/kaggle/working/output/{angle_label}/{energy_setting}'
+#+end_src
+
+#+begin_src jupyter-python
+  print('\nprocessing angle setting:', angle_label)
+  print(f'  - eta: {etas[angle_label]}')
+
+  ## output directories
+  #output_directory = f'{args.workdir}/{angle_label}/{energy_setting}'
+  #plotdir = f'{output_directory}/plots'
+  #datadir = f'{output_directory}/data'
+  os.makedirs(plotdir, exist_ok=True)
+  os.makedirs(datadir, exist_ok=True)
+  print(f'   - output data directory: {datadir}')
+  print(f'   - output plot directory: {plotdir}')
+#+end_src
+
+#+begin_src jupyter-python
+  print('Loading datasets: ')
+  print(f'   - Loading {datadir}/hits.snappy.parquet')
+  df_data = pd.read_parquet(f'{datadir}/hits.snappy.parquet')
+  print(f'   - Loading {datadir}/labels.snappy.parquet')
+  df_mc = pd.read_parquet(f'{datadir}/labels.snappy.parquet')
+#+end_src
+
+#+begin_src jupyter-python
+  ## calculate weight to achieve target imbalance
+  n_electrons = np.sum(df_mc['PDG'] == 11)
+  n_pions = np.sum(df_mc['PDG'] == -211)
+  imbalance = n_pions/n_electrons
+  kSuggestedWeight = min(n_electrons/n_pions*kTargetImbalance, kPionWeightCap)
+  print(f'Data set has relative class imbalance of {n_electrons} : {n_pions} = {imbalance}')
+  print(f'  - target imbalance: {kTargetImbalance}')
+  print(f'  - pion weight upper limit: {kPionWeightCap:.2f}')
+  print(f'  - suggested pion weight {kSuggestedWeight:.2f}')
+#+end_src
+
+#+begin_src jupyter-python
+  ## Load E/P data again for aggregate statistics, and to calculate the target efficiency
+  print(f'Loading E/P data from {datadir}/EoverP_results.csv')
+  cutdf = pd.read_csv(f'{datadir}/EoverP_results.csv').sort_values('rejection', ascending=False)
+  results_EoverP = {key: cutdf[key][0] for key in cutdf.keys()}
+  results_EoverP['max_layer'] = int(results_EoverP['max_layer']) ## get rid of the int64 which causes trouble with json
+  kTargetEfficiencyML = kTargetEfficiency / results_EoverP['efficiency']
+  print(results_EoverP)
+  print(f'Deduced target efficiency for ML: {kTargetEfficiencyML:.3f}')
+#+end_src
+
+#+begin_src jupyter-python
+  print('Formatting data objects')
+  dim = get_dimensions(df_data)
+  xdata_both = df_data.values.reshape(dim['event'], 
+                                      dim['layer'], 
+                                      dim['hit'], 
+                                      len(df_data.columns)).astype(np.float32)
+
+  ldata = df_mc['PDG'].map(lambda pdg: kElectronLabel if (pdg == 11) else kPionLabel).values
+  wdata = df_mc['PDG'].map(lambda pdg: 1 if (pdg == 11) else kSuggestedWeight).values
+#+end_src
+
+#+begin_src jupyter-python
+  print('Shuffling data and separating samples')
+  ## shuffle data
+  index = np.arange(len(ldata))
+  np.random.shuffle(index)
+  tot_len = len(index)
+
+  n_valid = floor(tot_len * kValidateSize)
+  n_test = floor(tot_len * kTestSize)
+  n_train = tot_len - n_valid - n_test
+  if kTrainSampleCap > 0 and n_train > kTrainSampleCap:
+      print(f'Capping training sample size to {kTrainSampleCap}')
+      valid_over_train = n_valid / n_train
+      test_over_train = n_test / n_train
+      n_train = kTrainSampleCap
+      n_valid = floor(valid_over_train * n_train)
+      n_test = floor(test_over_train * n_train)
+      tot_len = n_train + n_valid + n_test
+  print(f'Sample sizes: {{n_train: {n_train}, n_valid: {n_valid}, n_test: {n_test}}}')
+#+end_src
+
+#+begin_src jupyter-python
+  id_valid = index[:n_valid]
+  id_test = index[n_valid:n_valid + n_test]
+  id_train = index[n_valid + n_test:tot_len]
+  xtrain, xvalid, xtest = xdata_both[id_train], xdata_both[id_valid], xdata_both[id_test]
+  ltrain, lvalid, ltest = ldata[id_train], ldata[id_valid], ldata[id_test]
+  wtrain, wvalid = wdata[id_train], wdata[id_valid]
+#+end_src
+
+#+begin_src jupyter-python
+  print('Start training, using GPU resources')
+  gpu = tf.config.list_logical_devices('GPU')
+  strategy = tf.distribute.MirroredStrategy(gpu) if len(gpu) == 1 else tf.distribute.MirroredStrategy([gpu[0]])
+  history = None
+  with strategy.scope():
+      train_dataset = make_dataset((xtrain, ltrain, wtrain))
+      valid_dataset = make_dataset((xvalid, lvalid, wvalid))
+
+      ## avoid warning that we are operating on DATA instead of FILE
+      options = tf.data.Options()
+      options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+      train_dataset = train_dataset.with_options(options)
+      valid_dataset = valid_dataset.with_options(options)
+      
+      model = build_model(input_shape=xtrain.shape[1:])
+      model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+                    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+                    weighted_metrics=['accuracy'])
+      history = model.fit(train_dataset.batch(2000), validation_data=valid_dataset.batch(1000), epochs=kEpochs)
+      os.makedirs(output_directory, exist_ok=True)
+#+end_src
+
+#+begin_src jupyter-python
+  import keras.backend as K
+  # Monkey-patch the missing function to avoid the crash
+  K.set_learning_phase = lambda flag: None
+
+  import tensorflow as tf
+  import tf2onnx
+
+  # Load your Keras model
+  #model = tf.keras.models.load_model("/epi_separation/results/45to135deg/1GeV/data/cnn_model_30epochs.h5")
+
+  # Define a function to capture the input signature
+  @tf.function(input_signature=[tf.TensorSpec(shape=[None, *model.input_shape[1:]], dtype=tf.float32)])
+  def model_fn(input_tensor):
+      return model(input_tensor)
+
+  # Convert to ONNX format
+  onnx_model, _ = tf2onnx.convert.from_function(
+      model_fn,
+      input_signature=[tf.TensorSpec(shape=[None, *model.input_shape[1:]], dtype=tf.float32)],  # This is important
+      opset=13,
+      output_path=f"{output_directory}/EcalBarrel_pi_rejection.onnx"
+  )
+
+  print("Model converted successfully to ONNX format!")
+#+end_src
+
+#+begin_src jupyter-python
+  print('Summarizing metrics')
+  fig, ax = plt.subplots(1, 2, figsize=(12,6))
+
+  ax[0].plot(history.history['loss'])
+  ax[0].plot(history.history['val_loss'])
+  ax[0].set_title('model loss')
+  ax[0].set_ylabel('loss')
+  ax[0].set_xlabel('epoch')
+  ax[0].legend(['train', 'validate'], loc='upper left')
+
+  ax[1].plot(history.history['accuracy'])
+  ax[1].plot(history.history['val_accuracy'])
+  ax[1].set_title('accuracy')
+  ax[1].set_ylabel('accuracy')
+  ax[1].set_xlabel('epoch')
+  ax[1].legend(['train', 'validate'], loc='upper left')
+  ax[1].set_ylim(0, 1.1)
+
+  fig.savefig(f'{plotdir}/ML_learning.pdf')
+#+end_src
+
+#+begin_src jupyter-python
+  print('Bencmarking test data')
+  # benchmark
+  test_dataset = make_dataset((xtest,))
+  prediction = model.predict(test_dataset.batch(1000))
+#+end_src
+
+#+begin_src jupyter-python
+  print('Calculate aggregate e-pi rejection metrics')
+
+  def calculate_metrics(target_efficiency=kTargetEfficiencyML, export_prediction=True):
+      ## find the target efficiency cut point and weight the electron results
+      ## to move the cross-over point into pions to fit this efficiency
+      ## this code is specific to two particles where (P_e + P_pi = 1)
+      efficiency_cut = np.percentile(prediction[ltest == kElectronLabel].T[kElectronLabel], 
+                                     (1 - target_efficiency)*100)
+      target_weight = (1 - efficiency_cut) / efficiency_cut
+
+      prediction_weights = np.ones(2)
+      prediction_weights[kElectronLabel] = target_weight
+      prediction_labels = np.argmax(prediction * prediction_weights, axis=1)
+
+
+      electron_predicted = [None, None]
+      probabilities = np.zeros(shape=(2,2))
+      for i in [kPionLabel, kElectronLabel]:
+          mask = (ltest == i)
+          probabilities[i] = np.bincount(prediction_labels[mask])/float(np.sum(mask))
+          electron_predicted[i] = prediction[mask].T[kElectronLabel]
+          
+      binomial_error = lambda eff, n:  np.sqrt(n * eff * (1 - eff)) / n
+      inverse_error = lambda val, err: err / val**2 
+
+      n_electron_test = np.sum(ltest == kElectronLabel)
+      n_pion_test = np.sum(ltest == kPionLabel)
+
+      results_ML = OrderedDict({'target_particle': 'e-',
+                                'target_weight': target_weight,
+                                'target_efficiency': target_efficiency,
+                                'target_cut': efficiency_cut,
+                                'n_electrons': int(n_electron_test),
+                                'n_pions': int(n_pion_test),
+                                'probabilities': probabilities.tolist(),
+                                'efficiency': probabilities[kElectronLabel, kElectronLabel],
+                                'efficiency_error': binomial_error(probabilities[kElectronLabel, kElectronLabel], n_electron_test),
+                                'rejection': 1 / probabilities[kPionLabel, kElectronLabel],
+                                'rejection_error': inverse_error(probabilities[kPionLabel, kElectronLabel], binomial_error(probabilities[kPionLabel, kElectronLabel], n_pion_test))})
+
+      ## calculate aggregate results from E/P + ML
+      results = OrderedDict({
+          'energy': energy_GeV,
+          'eta': etas[angle_label],
+          'angle': angle_label,
+          'efficiency': results_EoverP['efficiency'] * results_ML['efficiency'],
+          'efficiency_error': np.sqrt(results_EoverP['efficiency']**2 * results_ML['efficiency_error']**2 
+                                      + results_ML['efficiency']**2 * results_EoverP['efficiency_error']**2),
+          'rejection': results_EoverP['rejection'] * results_ML['rejection'],
+          'rejection_error': np.sqrt(results_EoverP['rejection']**2 * results_ML['rejection_error']**2 
+                                      + results_ML['rejection']**2 * results_EoverP['rejection_error']**2),
+          'prob_cut': efficiency_cut,
+          'EoverP': results_EoverP,
+          'ML': results_ML})
+      if export_prediction:
+          return results, electron_predicted
+      return results
+#+end_src
+
+#+begin_src jupyter-python
+  results, electron_predicted = calculate_metrics()
+  results_ML = results['ML']
+  test = electron_predicted
+  print(f'Calculating alternative target efficiency scenarios: {kAlternativeEfficiencies}')
+  results['scenarios'] = {}
+  for alternative_eff in kAlternativeEfficiencies:
+      target_eff_ml = alternative_eff / results_EoverP['efficiency']
+      tmp_res = calculate_metrics(target_efficiency=target_eff_ml, export_prediction=False)
+      results['scenarios'][alternative_eff] = tmp_res
+#+end_src
+
+#+begin_src jupyter-python
+  assert test is electron_predicted
+
+  with open(f'{output_directory}/results.json', 'w') as f:
+      f.write(json.dumps(results, indent=2))
+  print(f' - Found overal rejection {results["rejection"]:.2f} at {results["efficiency"]:.2f} efficiency')
+  print(f' - Results written to {datadir}/results.json')
+#+end_src
+
+#+begin_src jupyter-python
+  print('Plotting ML results')
+  # default color cycle of matplotlib
+  prop_cycle = plt.rcParams['axes.prop_cycle']
+  colors = prop_cycle.by_key()['color']
+  box_props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+
+  parts = {kElectronLabel: r'e^-', kPionLabel: r'\pi^-'}
+
+  fig, ax = plt.subplots(figsize=(12, 9), dpi=160)
+  effs = []
+  for i in parts.keys():
+      ax.hist(electron_predicted[i], bins=np.linspace(0, 1, 101), label='${}$'.format(parts[i]),
+                  color=colors[i], ec=colors[i], alpha=0.5)
+  ax.axvline(x=results['prob_cut'], lw=2, color='k', ls='--')
+  eff_text = '\n'.join([r'$\epsilon_{{ML}}^{{e^-}} = {:.2f}$%'.format(results_ML['efficiency'] * 100.),
+                            r'$R_{{ML}}^{{\pi^-}} = {:.1f}$'.format(results_ML['rejection']),
+                            r'$\epsilon_{{E/p}}^{{e^-}} = {:.2f}$%'.format(results_EoverP['efficiency'] * 100.),
+                            r'$R_{{E/p}}^{{\pi^-}} = {:.1f}$'.format(results_EoverP['rejection'])
+                           ])
+  data_to_axis = (ax.transAxes + ax.transData.inverted()).inverted()
+  ax.text(data_to_axis.transform((results['prob_cut'], 1))[0] + 0.01, 0.99, eff_text, fontsize=24,
+          transform=ax.transAxes, ha='left', va='top')
+  ax.set_yscale('log')
+  ax.set_ylabel('Counts', fontsize=24)
+  ax.set_xlabel(r'$P_{{{}}}$'.format(r'e^-'), fontsize=24)
+  ax.tick_params(direction='in', which='both', labelsize=24)
+  ax.legend(fontsize=24, ncol=4, loc='upper center', bbox_to_anchor=(0.5, 1.12),)
+  ax.text(0.05, .99, '\n'.join(
+      [r'{energy} at ${loc}$'.format(energy='1GeV', 
+                                     loc=f'eta = {etas[angle_label]}'),
+       r'$R_{{\pi}} = {rejection:.1f}$ at $\epsilon_{{e^-}} = {efficiency:.2f}$%'.format(
+           rejection=results_EoverP['rejection'] * results_ML['rejection'],
+           efficiency=results_EoverP['efficiency'] * results_ML['efficiency'] * 100.)]),
+      ha='left', va='top', fontsize=24, transform=ax.transAxes)
+  fig.savefig(f'{plotdir}/ML_rejection.pdf')
+
+  print('Done with this eta bin')
+#+end_src

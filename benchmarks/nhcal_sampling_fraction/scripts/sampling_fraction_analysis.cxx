@@ -1,3 +1,9 @@
+#pragma cling load("edm4hep")
+#pragma cling load("edm4hepDict")
+#pragma cling load("edm4hepUtils")
+#pragma cling load("edm4eic")
+#pragma cling load("edm4eicDict")
+
 #include <cmath>
 #include <fstream>
 #include <iostream>

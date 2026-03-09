@@ -38,3 +38,9 @@ $(PROGRAM):	$(PROGRAM).cpp DictOutput.cxx libPythiaEvent.so
 		
 DictOutput.cxx : PythiaEvent.h
 	rootcint -f $@ -c $(DICTHEADERS)
+
+libPythiaEvent.so :
+	$(CXX) -shared -o $@ $(CXXFLAGS) $(CPPFLAGS) $^ $(LDFLAGS)
+
+clean:
+	rm -f $(PROGRAM) core *.o *.so DictOutput.cxx

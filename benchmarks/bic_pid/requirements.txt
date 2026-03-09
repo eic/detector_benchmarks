@@ -1,0 +1,7 @@
+awkward >= 2.4.0
+catboost
+onnx
+scikit-learn
+uproot >= 5.2.0
+vector
+tf2onnx

@@ -1,0 +1,57 @@
+sim:bic_pid:
+  extends: .det_benchmark
+  stage: simulate
+  image: $(BENCHMARKS_REGISTRY)$/eic_ci$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        ANGLE: [
+          "45to135deg"
+        ]
+        ENERGY: [
+          "1GeV"
+        ]
+        INDEX_RANGE: [
+          "0 9",
+          "10 19",
+          "20 29",
+          "30 39",
+          "40 49",
+          "50 59",
+          "60 69",
+          "70 79",
+          "80 89",
+          "90 99",
+        ]
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
+        $(seq --format="sim_output/bic_pid/epic_inner_detector/${PARTICLE}/${ENERGY}/${ANGLE}/${PARTICLE}_${ENERGY}_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
+
+bench:bic_pid:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:bic_pid"]
+  image: $(BENCHMARKS_REGISTRY)$/eic_tf$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  variables:
+    CUDA_VISIBLE_DEVICES: ""
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - export PATH=$PYTHONUSERBASE/bin:$PATH
+    - python -m pip install --user snakemake
+    - python -m pip install --user -r benchmarks/bic_pid/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_inner_detector/bic_pid
+
+collect_results:bic_pid:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:bic_pid"
+  when: always
+  image: $(BENCHMARKS_REGISTRY)$/eic_ci$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_inner_detector/bic_pid
+    - mv results{_save,}/

@@ -63,8 +63,18 @@ rule nhcal_sampling_fraction_analysis:
         png="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.png",
     params:
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
-        DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml"
+        DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
+        binary="results/nhcal_sampling_fraction/sampling_fraction_analysis"
     shell:
         """
-    root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
-"""
+        g++ {input.script} \
+            $(root-config --cflags --libs) \
+            -I/opt/local/include \
+            -I/opt/local/include/python3.13 \
+            -L/opt/local/lib \
+            -L/opt/software/linux-x86_64_v2/dd4hep-1.34-seyysegqve2ztvnksz3kokjy4ugwip65/lib \
+            -lpodio -lpodioRootIO -ledm4hep -lDDCore -lDDRec \
+            -o {output.pdf}.bin && \
+        {output.pdf}.bin "{input.combined}" "{output.pdf}" "{output.png}" "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}" && \
+        rm {output.pdf}.bin
+        """

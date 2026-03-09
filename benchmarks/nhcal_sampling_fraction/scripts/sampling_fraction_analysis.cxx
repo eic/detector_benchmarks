@@ -1,9 +1,3 @@
-#pragma cling load("edm4hep")
-#pragma cling load("edm4hepDict")
-#pragma cling load("edm4hepUtils")
-#pragma cling load("edm4eic")
-#pragma cling load("edm4eicDict")
-
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -144,8 +138,8 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
 
         podio::Frame frame(std::move(frameData));
 
-        auto& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
-        auto& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
+        const edm4hep::MCParticleCollection& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
+        const edm4hep::SimCalorimeterHitCollection& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
 
         if (!SimCalorimeterHit_coll.isValid())    
         {
@@ -286,4 +280,12 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     c_p_Ekin->SaveAs(addPrefixAfterSlash(outname_pdf, "prof_sampf_vs_Ekin").c_str());    
 
     return 0;
+}
+
+int main(int argc, char** argv) {
+    if (argc < 5) {
+        cerr << "Usage: " << argv[0] << " <input.root> <out.pdf> <out.png> <compact.xml>" << endl;
+        return 1;
+    }
+    return sampling_fraction_analysis(argv[1], argv[2], argv[3], argv[4]);
 }

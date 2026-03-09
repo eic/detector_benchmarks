@@ -197,9 +197,9 @@
 #+end_src
 
 #+begin_src jupyter-python
-  datadir = f'/kaggle/input/results-45to135deg-1gev-data'
-  plotdir = f'/kaggle/working/plots/{angle_label}'
-  output_directory = f'/kaggle/working/output/{angle_label}/{energy_setting}'
+  #datadir = f'/kaggle/input/results-45to135deg-1gev-data'
+  #plotdir = f'/kaggle/working/plots/{angle_label}'
+  #output_directory = f'/kaggle/working/output/{angle_label}/{energy_setting}'
 #+end_src
 
 #+begin_src jupyter-python
@@ -207,9 +207,9 @@
   print(f'  - eta: {etas[angle_label]}')
 
   ## output directories
-  #output_directory = f'{args.workdir}/{angle_label}/{energy_setting}'
-  #plotdir = f'{output_directory}/plots'
-  #datadir = f'{output_directory}/data'
+  output_directory = f'{args.workdir}/{angle_label}/{energy_setting}'
+  plotdir = f'{output_directory}/plots'
+  datadir = f'{output_directory}/data'
   os.makedirs(plotdir, exist_ok=True)
   os.makedirs(datadir, exist_ok=True)
   print(f'   - output data directory: {datadir}')
@@ -362,7 +362,7 @@
 #+end_src
 
 #+begin_src jupyter-python
-  print('Bencmarking test data')
+  print('Benchmarking test data')
   # benchmark
   test_dataset = make_dataset((xtest,))
   prediction = model.predict(test_dataset.batch(1000))
@@ -445,8 +445,8 @@
 
   with open(f'{output_directory}/results.json', 'w') as f:
       f.write(json.dumps(results, indent=2))
-  print(f' - Found overal rejection {results["rejection"]:.2f} at {results["efficiency"]:.2f} efficiency')
-  print(f' - Results written to {datadir}/results.json')
+  print(f' - Found overall rejection {results["rejection"]:.2f} at {results["efficiency"]:.2f} efficiency')
+  print(f' - Results written to {output_directory}/results.json')
 #+end_src
 
 #+begin_src jupyter-python

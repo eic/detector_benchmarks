@@ -288,5 +288,6 @@ rule tracking_performance_campaigns:
             "results/tracking_performances/{CAMPAIGN}",
             CAMPAIGN=[
                 "25.10.4",
+                "26.03.0"
             ],
         )

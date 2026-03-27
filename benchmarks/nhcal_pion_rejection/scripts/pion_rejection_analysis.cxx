@@ -255,70 +255,6 @@ inline void drawEffPanel(TH1D* h_all,
     leg->Draw();
 }
 
-// inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
-//                                     const dd4hep::DDSegmentation::BitFieldCoder* dec,
-//                                     dd4hep::DDSegmentation::CellID cid,
-//                                     int slice_idx,
-//                                     int plastic_slice_value = 3)
-// {
-//     const double NaN = numeric_limits<double>::quiet_NaN();
-//     TVector3 dims(NaN, NaN, NaN);
-//     try {
-//         if (!dec) throw runtime_error("decoder==nullptr");
-//         if (dec->get(cid, slice_idx) != plastic_slice_value)
-//             throw runtime_error("cell is not plastic");
-//         {
-//             auto de_check = det.volumeManager().lookupDetElement(cid);
-//             if (!de_check.isValid()) return dims;
-//         }
-
-//         auto de = det.volumeManager().lookupDetElement(cid);
-//         if (!de.isValid()) throw runtime_error("lookupDetElement failed");
-
-//         auto pv = de.placement();
-//         if (!pv.isValid()) throw runtime_error("DetElement has no placement");
-
-//         auto vol = pv.volume();
-//         if (!vol.isValid()) throw runtime_error("Invalid Volume");
-
-//         auto* box = dynamic_cast<TGeoBBox*>(vol.solid().ptr());
-//         if (!box) throw runtime_error("Solid is not TGeoBBox");
-
-//         dims.SetXYZ(2.0 * box->GetDX(),
-//                     2.0 * box->GetDY(),
-//                     2.0 * box->GetDZ());
-//         return dims;
-//     } catch (const exception& e) {
-//         cerr << "[WARN] getPlasticDimensionsCM: " << e.what() << " (cellID=" << cid << ")\n";
-//         return dims;
-//     }
-// }
-
-// inline double getPlasticCenterZ_cm(
-//     const dd4hep::DDSegmentation::BitFieldCoder* decoder,
-//     const dd4hep::rec::CellIDPositionConverter& cellid_converter,
-//     dd4hep::Detector& det,
-//     dd4hep::DDSegmentation::CellID cid,
-//     int slice_index,
-//     int plastic_slice_value = 3)
-// {
-//     if (!decoder) return std::numeric_limits<double>::quiet_NaN();
-//     if (decoder->get(cid, slice_index) != plastic_slice_value)
-//         return std::numeric_limits<double>::quiet_NaN();
-//     try {
-//         auto de = det.volumeManager().lookupDetElement(cid);
-//         if (!de.isValid()) return std::numeric_limits<double>::quiet_NaN();
-//     } catch (...) {
-//         return std::numeric_limits<double>::quiet_NaN();
-//     }
-    
-//     try {
-//         return cellid_converter.position(cid).z();
-//     } catch (...) {
-//         return std::numeric_limits<double>::quiet_NaN();
-//     }
-// }
-
 inline double hypot2(double a, double b){ return sqrt(a*a + b*b); }
 inline int sgnD(double v){ return (v>0) - (v<0); }
 
@@ -364,7 +300,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     det = &(dd4hep::Detector::getInstance());
     det->fromCompact(compact_file.Data());
 
-    double thickness_plastic_cm = 2.4   ;
+    double thickness_plastic_cm = 2.4;
     try {
         thickness_plastic_cm = det->constantAsDouble("HcalEndcapNPolystyreneThickness");
     } catch (...) {
@@ -495,8 +431,6 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         const auto& projSegs = *projSegsPtr;
         const auto& hcalRec  = *hcalRecPtr;
         const auto& assocCol = *assocColPtr;
-
-        if (!mcCol.isValid()) continue;
 
         vector<edm4hep::MCParticle> vPions;
         vector<TLorentzVector> vLorentzPions;
@@ -632,7 +566,6 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
                     if (dr < best_dr_in_layer) {
                         best_dr_in_layer = dr;
                         best_E_in_layer  = hit.getEnergy();
-                        best_cid_in_layer = hit.getCellID();
                     }
                 }
 

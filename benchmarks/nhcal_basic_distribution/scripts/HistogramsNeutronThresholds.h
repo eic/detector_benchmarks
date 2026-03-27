@@ -34,10 +34,9 @@ void CreateHistogamsNeutronThresholds()
 {
 
 	// HcalEndcapNHit
-	h_nHCal_hit_contrib_energy = new TH1D("h_nHCal_hit_contrib_time", "Backwards HCal Hit Contribution Time; t; counts", 50, 0, 1000);
-	h_nHCal_hit_contrib_time = new TH1D("h_nHCal_hit_contrib_energy", "Backwards HCal Hit Contribution Energy; Energy [GeV]; counts", 50, 0, 0.00000002);
-
-	h_nHCal_hit_contrib_energy_vs_time = new TH2D("h_nHCal_hit_contrib_2D_E_vs_t", "Backwards HCal Hit Contribution Energy vs. time; Energy [GeV]; time [ns]; counts", 50, 0, 0.00000002, 50, 0, 1000);
+	h_nHCal_hit_contrib_time   = new TH1D("h_nHCal_hit_contrib_time",   "Backwards HCal Hit Contribution Time; t [ns]; counts",         50, 0, 1000);
+	h_nHCal_hit_contrib_energy = new TH1D("h_nHCal_hit_contrib_energy", "Backwards HCal Hit Contribution Energy; Energy [GeV]; counts", 50, 0, 0.00000002);
+	h_nHCal_hit_contrib_energy_vs_time = new TH2D("h_nHCal_hit_contrib_energy_vs_time", "Backwards HCal Hit Contribution Energy vs. time; Energy [GeV]; time [ns]; counts", 50, 0, 0.00000002, 50, 0, 1000);
 	h_nHCal_hit_contrib_energy_vs_telap = new TH2D("h_nHCal_hit_contrib_energy_vs_telap", "Backwards HCal Hit Contribution Energy vs. Time; Energy threshold [GeV]; t max; counts", 50, 0, 0.0005, 50, 0, 1100);
 	h_nHCal_hit_contrib_energy_vs_time_total = new TH2D("h_nHCal_hit_contrib_energy_vs_time_total", "Backwards HCal Hit Contribution Energy vs. Time; Energy threshold [GeV]; t max; counts", 50, 0, 0.0005, 50, 0, 1100);
 

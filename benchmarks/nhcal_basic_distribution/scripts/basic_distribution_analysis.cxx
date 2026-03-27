@@ -88,44 +88,6 @@ string changeExtension(const string& path, const string& new_ext)
     return path + new_ext;
 }
 
-inline TVector3 getPlasticDimensionsCM(dd4hep::Detector& det,
-                                    const dd4hep::DDSegmentation::BitFieldCoder* dec,
-                                    dd4hep::DDSegmentation::CellID cid,
-                                    int slice_idx,
-                                    int plastic_slice_value = 3)
-{
-    const double NaN = numeric_limits<double>::quiet_NaN();
-    TVector3 dims(NaN, NaN, NaN);
-    try {
-        if (!dec) throw runtime_error("decoder==nullptr");
-        if (dec->get(cid, slice_idx) != plastic_slice_value)
-            throw runtime_error("cell is not plastic");
-
-        auto de = det.volumeManager().lookupDetElement(cid);
-        if (!de.isValid()) throw runtime_error("lookupDetElement failed");
-
-        auto pv = de.placement();
-        if (!pv.isValid()) throw runtime_error("DetElement has no placement");
-
-        auto vol = pv.volume();
-        if (!vol.isValid()) throw runtime_error("Invalid Volume");
-
-        auto* box = dynamic_cast<TGeoBBox*>(vol.solid().ptr());
-        if (!box) throw runtime_error("Solid is not TGeoBBox");
-
-        dims.SetXYZ(2.0 * box->GetDX(),
-                    2.0 * box->GetDY(),
-                    2.0 * box->GetDZ());
-
-        //const double dz_cm = box->GetDZ();                     
-        //const double thickness_cm = 2.0 * dz_cm;
-        //return thickness_cm;
-        return dims;
-    } catch (const exception& e) {
-        cerr << "[WARN] getPlasticThicknessMM: " << e.what() << " (cellID=" << cid << ")\n";
-        return dims;
-    }
-}
 
 int basic_distribution_analysis(const string &filename, string outname_png, string outname_root, TString compact_file) 
 {
@@ -136,16 +98,12 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
 
     det = &(dd4hep::Detector::getInstance());
     det->fromCompact(compact_file.Data());
-    det->volumeManager();
-    det->apply("DD4hepVolumeManager", 0, 0);
 
-    dd4hep::rec::CellIDPositionConverter cellid_converter(*det);
-    auto idSpec = det->readout("HcalEndcapNHits").idSpec();
-    auto decoder = idSpec.decoder();
-    const int slice_index = decoder->index("slice");
-    if (slice_index < 0) {
-        cerr << "ERROR: 'slice' field not found in cell ID spec!" << endl;
-        return 1;
+    double thickness_plastic_cm = 2.4   ;
+    try {
+        thickness_plastic_cm = det->constantAsDouble("HcalEndcapNPolystyreneThickness");
+    } catch (...) {
+        cerr << "[WARN] Using default plastic thickness = " << thickness_plastic_cm << " cm\n";
     }
 
     constexpr double NBINS = 50;
@@ -215,13 +173,18 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
 
         podio::Frame frame(std::move(frameData));
 
-        auto& hits = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
-        auto& mcCol = frame.get<edm4hep::MCParticleCollection>("MCParticles");
-        if (!hits.isValid() && !mcCol.isValid())    
-        {
-            cerr << "HcalEndcapNHits or MCParticles collection is not valid!" << endl;
-        }
+        auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
+            return frame.get(name);
+        };
 
+        const auto* mcColPtr = dynamic_cast<const edm4hep::MCParticleCollection*>(getCol("MCParticles"));
+        const auto* hitsPtr  = dynamic_cast<const edm4hep::SimCalorimeterHitCollection*>(getCol("HcalEndcapNHits"));
+        
+        if (!mcColPtr || !hitsPtr) continue;
+
+        const auto& mcCol = *mcColPtr;
+        const auto& hits = *hitsPtr;
+        
         double Ekin = mcCol[0].getEnergy() - mcCol[0].getMass();
 
         double MCEta = -999;
@@ -238,19 +201,17 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
         if (MCEta < -1.5 && MCEta > -3.3) {
             auto hits_passed = NeutronThresholds::createHitsPassedMatrix();
             auto hits_passed_telap = NeutronThresholds::createHitsPassedMatrix();
-            double thickness_cm = 1.0;
 
             for (const auto& hit : hits) 
             {
-                thickness_cm = getPlasticDimensionsCM(*det, decoder, hit.getCellID(), slice_index, 3).z();
                 auto contrib = hit.getContributions();
                 NeutronThresholds::processContributions(contrib, hits_passed, hits_passed_telap,
-                                                       h_nHCal_hit_contrib_time, h_nHCal_hit_contrib_energy, thickness_cm,debug);
+                                                       h_nHCal_hit_contrib_time, h_nHCal_hit_contrib_energy, thickness_plastic_cm,debug);
             }
             
             NeutronThresholds::fillThresholdHistograms(hits_passed, hits_passed_telap,
                                                       h_nHCal_hit_contrib_energy_vs_time, h_nHCal_hit_contrib_energy_vs_telap,
-                                                      h_nHCal_hit_contrib_energy_vs_time_total, thickness_cm);
+                                                      h_nHCal_hit_contrib_energy_vs_time_total, thickness_plastic_cm);
         }
 
         for (const auto& hit : hits) 
@@ -287,6 +248,12 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     TFile *outFile = new TFile(outname_root.c_str(), "RECREATE");
     h_energyRes->Write();
     p_energyRes->Write();
+
+    h_nHCal_hit_contrib_time->Write();
+    h_nHCal_hit_contrib_energy->Write();
+    h_nHCal_hit_contrib_energy_vs_time->Write();
+    h_nHCal_hit_contrib_energy_vs_telap->Write();
+    h_nHCal_hit_contrib_energy_vs_time_total->Write();
     outFile->Close();
     delete outFile;
 
@@ -321,28 +288,9 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_png, "hit_posE_").c_str());
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_pdf, "hit_posE_").c_str());
 
-    // TCanvas *c_neutronThresholds = new TCanvas("c_neutronThresholds", "c_neutronThresholds", 1600, 800);
-    // c_neutronThresholds->Divide(3,2);
-    // c_neutronThresholds->cd(1);
-    // h_nHCal_hit_contrib_time->Draw();
-    // c_neutronThresholds->cd(2);
-    // h_nHCal_hit_contrib_energy->Draw();
-    // c_neutronThresholds->cd(3);
-    // h_nHCal_hit_contrib_energy_vs_time->Draw("COLZ");
-    // c_neutronThresholds->cd(4);
-    // h_nHCal_hit_contrib_energy_vs_telap->Draw("COLZ");
-    // c_neutronThresholds->cd(5);
-    // h_nHCal_hit_contrib_energy_vs_time_total->Draw("COLZ");
-    
-    //c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_png, "neutronThresholds_").c_str());
-    //c_neutronThresholds->SaveAs(addPrefixAfterSlash(outname_pdf, "neutronThresholds_").c_str());
-    
-
     delete reader;
     delete c_evLayers;
     delete c_hit_posE;
-    // delete c_neutronThresholds;
-    DeleteHistogamsNeutronThresholds();
 
     return 0;
 }

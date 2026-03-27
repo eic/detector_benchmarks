@@ -55,7 +55,7 @@ rule nhcal_basic_distribution_combine:
 rule nhcal_basic_distribution_analysis:
     input:
         combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
-        script="benchmarks/nhcal_basic_distribution/scripts/basic_distribution_analysis.cxx",
+        script="scripts/basic_distribution_analysis.cxx",
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
         root="sim_output/nhcal_basic_distribution/energy_resolution_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.root",
@@ -87,7 +87,7 @@ rule nhcal_basic_distribution_combine_energy_resolution:
 rule nhcal_basic_distribution_analysis_energy_resolution:
     input:
         root="sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root",
-        script="benchmarks/nhcal_basic_distribution/scripts/basic_distribution_energy_resolution.cxx",
+        script="scripts/basic_distribution_energy_resolution.cxx",
     output:
         png="results/nhcal_basic_distribution/energy_resolution_analysis_{DETECTOR_CONFIG}.png",
     shell:

@@ -4,70 +4,21 @@
 #include <string>
 #include <vector>
 
-#include "ROOT/RDataFrame.hxx"
 #include <TH1D.h>
 #include <TH2D.h>
-#include <TRandom3.h>
 #include <TFile.h>
-#include <TChain.h>
-#include <TTree.h>
 #include <TMath.h>
-#include <TVector3.h>
 #include <TCanvas.h>
+#include <TStyle.h>
+#include <TGraphErrors.h>
+#include <TF1.h>
+#include <TProfile.h>
+#include <TLegend.h>
 
 #include "TROOT.h"
-#include "TRandom.h"
-#include "TH3.h"
-
-
-#include "DD4hep/Detector.h"
-#include "DDRec/CellIDPositionConverter.h"
-
-#include <podio/Frame.h>
-#include <podio/CollectionBase.h>
-#include "podio/ROOTReader.h"
-//#include <podio/ROOTFrameReader.h>
-#include "podio/CollectionIDTable.h"
-#include "podio/ObjectID.h"
-
-#include "edm4hep/MCParticleCollection.h"
-#include "edm4hep/MCParticleCollectionData.h"
-#include "edm4hep/MCParticle.h"
-#include "edm4hep/MCParticleData.h"
-
-#include "edm4hep/SimCalorimeterHitCollectionData.h"
-#include "edm4hep/SimCalorimeterHitCollection.h"
-#include "edm4hep/SimCalorimeterHitData.h"
-#include "edm4hep/SimCalorimeterHit.h"
-
-#include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitCollectionData.h"
-#include "edm4hep/CalorimeterHitCollection.h"
-#include "edm4hep/CalorimeterHitData.h"
-#include "edm4hep/CalorimeterHit.h"
-#include "edm4hep/CalorimeterHitObj.h"
-
-#include "edm4eic/ClusterCollection.h"
-#include "edm4eic/Cluster.h"
-#include "edm4eic/ClusterData.h"
-
-#include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitCollectionData.h"
-#include "edm4eic/CalorimeterHitCollection.h"
-#include "edm4eic/CalorimeterHitData.h"
-#include "edm4eic/CalorimeterHit.h"
-#include "edm4eic/CalorimeterHitObj.h"
-
-
-#include <edm4eic/vector_utils_legacy.h>
-#include <edm4hep/Vector3f.h>
-#include <root/TStyle.h>
-#include <root/TGraphErrors.h>
 
 using namespace std;
-using namespace ROOT;
 using namespace TMath;
-using namespace edm4hep;
 
 string changeExtension(const string& path, const string& new_ext)
 {
@@ -97,8 +48,15 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
 
     TH2D *h_energyRes = (TH2D*)file->Get("h_energyRes");
     TProfile *p_energyRes = (TProfile*)file->Get("p_energyRes");
+    TH1D *h_nHCal_hit_contrib_time   = (TH1D*)file->Get("h_nHCal_hit_contrib_time");
+    TH1D *h_nHCal_hit_contrib_energy = (TH1D*)file->Get("h_nHCal_hit_contrib_energy");
+    TH2D *h_nHCal_hit_contrib_energy_vs_time       = (TH2D*)file->Get("h_nHCal_hit_contrib_energy_vs_time");
+    TH2D *h_nHCal_hit_contrib_energy_vs_telap      = (TH2D*)file->Get("h_nHCal_hit_contrib_energy_vs_telap");
+    TH2D *h_nHCal_hit_contrib_energy_vs_time_total = (TH2D*)file->Get("h_nHCal_hit_contrib_energy_vs_time_total");
 
-    if (!h_energyRes || !p_energyRes) 
+    if (!h_energyRes || !p_energyRes || !h_nHCal_hit_contrib_time || !h_nHCal_hit_contrib_energy ||
+    !h_nHCal_hit_contrib_energy_vs_time || !h_nHCal_hit_contrib_energy_vs_telap ||
+    !h_nHCal_hit_contrib_energy_vs_time_total) 
     {
         cerr << "Cannot retrieve histograms from file" << endl;
         file->Close();
@@ -155,6 +113,29 @@ int basic_distribution_energy_resolution(const string &filename, string outname_
 
     c->SaveAs(outname_png.c_str());
     c->SaveAs(outname_pdf.c_str());
+    
+    TCanvas *c_neutronThresholds = new TCanvas("c_neutronThresholds", "c_neutronThresholds", 1600, 800);
+    c_neutronThresholds->Divide(3, 2);
+    c_neutronThresholds->cd(1); h_nHCal_hit_contrib_time->Draw();
+    c_neutronThresholds->cd(2); h_nHCal_hit_contrib_energy->Draw();
+    c_neutronThresholds->cd(3); h_nHCal_hit_contrib_energy_vs_time->Draw("COLZ");
+    c_neutronThresholds->cd(4); h_nHCal_hit_contrib_energy_vs_telap->Draw("COLZ");
+    c_neutronThresholds->cd(5); h_nHCal_hit_contrib_energy_vs_time_total->Draw("COLZ");
+
+    auto replaceStr = [](string& s, const string& from, const string& to) {
+        size_t pos = s.find(from);
+        if (pos != string::npos) s.replace(pos, from.size(), to);
+    };
+
+    string neutron_png = outname_png;
+    string neutron_pdf = changeExtension(outname_png, ".pdf");
+
+    replaceStr(neutron_png, "energy_resolution_analysis", "neutronThresholds");
+    replaceStr(neutron_pdf, "energy_resolution_analysis", "neutronThresholds");
+
+    c_neutronThresholds->SaveAs(neutron_png.c_str());
+    c_neutronThresholds->SaveAs(neutron_pdf.c_str());
+    delete c_neutronThresholds;
 
     file->Close();
 

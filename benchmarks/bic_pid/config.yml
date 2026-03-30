@@ -1,7 +1,7 @@
 sim:bic_pid:
   extends: .det_benchmark
   stage: simulate
-  image: $(BENCHMARKS_REGISTRY)$/eic_ci$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi-"]
@@ -33,7 +33,7 @@ bench:bic_pid:
   stage: benchmarks
   needs:
     - ["sim:bic_pid"]
-  image: $(BENCHMARKS_REGISTRY)$/eic_tf$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  image: $BENCHMARKS_REGISTRY/eic_tf$BENCHMARKS_SIGIL$BENCHMARKS_TAG
   variables:
     CUDA_VISIBLE_DEVICES: ""
   script:
@@ -49,7 +49,7 @@ collect_results:bic_pid:
   needs:
     - "bench:bic_pid"
   when: always
-  image: $(BENCHMARKS_REGISTRY)$/eic_ci$(BENCHMARKS_SIGIL)$(BENCHMARKS_TAG)
+  image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it

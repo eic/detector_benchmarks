@@ -2,19 +2,26 @@ def format_energy_for_dd4hep(s):
     return s.rstrip("kMGeV") + "*" + s.lstrip("0123456789")
 
 
+def theta_min_from_phase_space(s):
+    return s.replace("deg", "").split("to")[0]
+
+
+def theta_max_from_phase_space(s):
+    return s.replace("deg", "").split("to")[1]
+
+
 rule bic_pid_sim:
     input:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root",
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
-        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root.log",
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
     wildcard_constraints:
         PARTICLE="(e-|pi-)",
         ENERGY="[0-9]+[kMG]eV",
-        THETA_MIN="[0-9]+",
-        THETA_MAX="[0-9]+",
+        PHASE_SPACE="[0-9]+to[0-9]+deg",
         INDEX=r"\d{4}",
     params:
         N_EVENTS=1000,
@@ -22,8 +29,8 @@ rule bic_pid_sim:
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         ENERGY=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY),
-        THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
-        THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
+        THETA_MIN=lambda wildcards: theta_min_from_phase_space(wildcards.PHASE_SPACE),
+        THETA_MAX=lambda wildcards: theta_max_from_phase_space(wildcards.PHASE_SPACE),
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
@@ -35,8 +42,8 @@ exec npsim \
   --enableGun \
   --gun.momentumMin "{params.ENERGY}" \
   --gun.momentumMax "{params.ENERGY}" \
-  --gun.thetaMin "{wildcards.THETA_MIN}*deg" \
-  --gun.thetaMax "{wildcards.THETA_MAX}*deg" \
+  --gun.thetaMin "{params.THETA_MIN}*deg" \
+  --gun.thetaMax "{params.THETA_MAX}*deg" \
   --gun.particle {wildcards.PARTICLE} \
   --gun.distribution eta \
   --random.seed {params.SEED} \
@@ -57,6 +64,9 @@ rule bic_pid_recon:
     log:
         "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
+        PARTICLE="(e-|pi-)",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="[0-9]+to[0-9]+deg",
         INDEX=r"\d{4}",
     params:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -72,7 +82,7 @@ exec eicrecon {input.sim} -Ppodio:output_file={output} \
 
 rule bic_pid_input_list:
     input:
-        electrons=expand(
+        files=expand(
             "sim_output/bic_pid/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
             ENERGY=["1GeV"],
             PHASE_SPACE=["45to135deg"],
@@ -82,7 +92,7 @@ rule bic_pid_input_list:
         "listing/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}.lst",
     run:
         with open(output[0], "wt") as fp:
-            fp.write("\n".join(input))
+            fp.write("\n".join(input.files))
 
 
 rule bic_pid:

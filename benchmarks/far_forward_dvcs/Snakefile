@@ -5,7 +5,7 @@ rule far_forward_dvcs_compile:
 # Process the generated HepMC files through the simulation
 rule far_forward_dvcs_sim:
     input:
-        warmup="warmup/{DETECTOR_CONFIG}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
@@ -42,7 +42,7 @@ rule foo:
 rule far_forward_dvcs_reco:
     input:
         sim="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
     params:

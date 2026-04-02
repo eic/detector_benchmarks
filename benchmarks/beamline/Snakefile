@@ -7,7 +7,7 @@ ANALYSISDIR=SIMOUTDIR+"analysis/"
 
 rule beamline_steering_sim:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         macro=workflow.source_path("beamlineGPS.mac"),
         geometry_lib=find_epic_libraries(),
     output:
@@ -31,7 +31,7 @@ rule beamline_steering_sim:
 
 rule beamline_steering_analysis:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         script=workflow.source_path("beamlineAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
@@ -59,7 +59,7 @@ rule beamline_steering_analysis:
 
 rule beamline_acceptance_sim:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         macro=workflow.source_path("acceptanceGPS.mac"),
         geometry_lib=find_epic_libraries(),
     output:
@@ -82,7 +82,7 @@ rule beamline_acceptance_sim:
 
 rule beamline_acceptance_analysis:
     input:
-        warmup="warmup/epic_ip6_extended.edm4hep.root",
+        warmup="warmup.edm4hep.root",
         script=workflow.source_path("acceptanceAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
         data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",

@@ -8,12 +8,12 @@ def get_n_events(wildcards):
 rule backwards_ecal_sim:
     input:
         steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
     log:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
     wildcard_constraints:
         PARTICLE="(e-|pi-)",
         ENERGY="[0-9]+[kMG]eV",
@@ -39,18 +39,18 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output}
+  --outputFile {output} | tee {log}
 """
 
 
 rule backwards_ecal_recon:
     input:
         sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
+        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
     wildcard_constraints:
         INDEX=r"\d{4}",
     params:
@@ -61,7 +61,7 @@ rule backwards_ecal_recon:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.sim} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters
+  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters | tee {log}
 """
 
 

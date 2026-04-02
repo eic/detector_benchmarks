@@ -16,7 +16,7 @@ root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {
 rule insert_muon_simulate:
     input:
         GEN_FILE="sim_output/insert_muon/mu-_{P}GeV.hepmc",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
@@ -45,7 +45,7 @@ exec npsim \
 rule insert_muon_recon:
     input:
         SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root",
     params:

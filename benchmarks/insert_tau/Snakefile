@@ -22,7 +22,7 @@ root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "tau-", {pa
 rule insert_tau_simulate:
     input:
         GEN_FILE="sim_output/insert_tau/tau-_{P}GeV.hepmc",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
@@ -51,7 +51,7 @@ exec npsim \
 rule insert_tau_recon:
     input:
         SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
-        warmup=ancient("warmup/{DETECTOR_CONFIG}.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",
     params:

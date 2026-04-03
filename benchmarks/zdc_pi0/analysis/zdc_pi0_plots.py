@@ -1,5 +1,8 @@
 import numpy as np, pandas as pd, matplotlib.pyplot as plt, matplotlib as mpl, awkward as ak, sys
 import mplhep as hep
+
+from scipy.optimize import curve_fit
+
 hep.style.use("CMS")
 
 plt.rcParams['figure.facecolor']='white'
@@ -45,13 +48,13 @@ for p in momenta:
         plt.sca(axs[0])
         y, x, _=plt.hist(Etot, bins=100, range=(p*.5, p*1.5), histtype='step')
         plt.ylabel("events")
-        plt.title(f"$p_{{\pi^0}}$={p} GeV")
+        plt.title(f"$p_{{\\pi^0}}$={p} GeV")
         plt.xlabel("$E^{\\pi^{0}}_{recon}$ [GeV]")
     else:
         y, x = np.histogram(Etot, bins=100, range=(p*.5, p*1.5))
         
     bc=(x[1:]+x[:-1])/2
-    from scipy.optimize import curve_fit
+    
     slc=abs(bc-p)<10
     fnc=gauss
     p0=[100, p, 10]

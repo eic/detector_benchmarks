@@ -1,0 +1,40 @@
+bench:panda:
+  #extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - pip install -r benchmarks/panda/requirements.txt
+    - source .venv/etc/panda/panda_setup.sh
+    - mkdir ~/.pathena
+    - echo "$PANDA_TOKEN" > ~/.pathena/.token
+    - '[[ ! -z "$PANDACACHE_URL" ]] || die "PANDACACHE_URL is not set"'
+    - '[[ ! -z "$PANDAMON_URL" ]] || die "PANDAMON_URL is not set"'
+    - '[[ ! -z "$PANDA_AUTH" ]] || die "PANDA_AUTH is not set"'
+    - '[[ ! -z "$PANDA_AUTH_VO" ]] || die "PANDA_AUTH_VO is not set"'
+    - '[[ ! -z "$PANDA_NICKNAME" ]] || die "PANDA_NICKNAME is not set"'
+    - '[[ ! -z "$PANDA_TOKEN" ]] || die "PANDA_TOKEN is not set"'
+    - '[[ ! -z "$PANDA_URL" ]] || die "PANDA_URL is not set"'
+    - '[[ ! -z "$PANDA_URL" ]] || die "PANDA_URL is not set"'
+    - '[[ ! -z "$PANDA_URL_SSL" ]] || die "PANDA_URL_SSL is not set"'
+    - '[[ ! -z "$PANDA_VO" ]] || die "PANDA_VO is not set"'
+    - |
+      prun \
+        --vo "${PANDA_VO}" \
+        --workingGroup "${PANDA_AUTH_VO}" \
+        --site "${PANDA_SITE}" \
+        --noBuild \
+        --exec "pwd; ls; echo Hello-world > myout.txt" \
+        --outDS "user.${PANDA_NICKNAME}.eicweb-${CI_PIPELINE_ID}-${CI_JOB_ID}" \
+        --nJobs 1 \
+        --output myout.txt | tee prun.log
+    - PANDA_TASK_ID="$(sed prun.log -ne 's/.*jediTaskID=\([[:digit:]]\+\).*/\1/p')"
+    - benchmarks/panda/pwait.py "${PANDA_TASK_ID}"
+
+collect_results:panda:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["bench:panda"]
+  script:
+    - ls -lrht

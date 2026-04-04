@@ -12,6 +12,9 @@ bench:lowq2_reconstruction:
   needs:
     - ["sim:lowq2_reconstruction","bench:beamline"]
   script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    # Validate that all dependencies can be installed, even if retraining doesn't run
+    - pip install --dry-run -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
 
 check:lowq2_reconstruction:
@@ -26,7 +29,7 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]    
+    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"] 
   rules:
     - when: on_failure
   script:

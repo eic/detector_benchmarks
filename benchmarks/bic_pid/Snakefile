@@ -1,0 +1,116 @@
+def format_energy_for_dd4hep(s):
+    return s.rstrip("kMGeV") + "*" + s.lstrip("0123456789")
+
+
+def theta_min_from_phase_space(s):
+    return s.replace("deg", "").split("to")[0]
+
+
+def theta_max_from_phase_space(s):
+    return s.replace("deg", "").split("to")[1]
+
+
+rule bic_pid_sim:
+    input:
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+    log:
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+    wildcard_constraints:
+        PARTICLE="(e-|pi-)",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="[0-9]+to[0-9]+deg",
+        INDEX=r"\d{4}",
+    params:
+        N_EVENTS=1000,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        ENERGY=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY),
+        THETA_MIN=lambda wildcards: theta_min_from_phase_space(wildcards.PHASE_SPACE),
+        THETA_MAX=lambda wildcards: theta_max_from_phase_space(wildcards.PHASE_SPACE),
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec npsim \
+  --runType batch \
+  --enableGun \
+  --gun.momentumMin "{params.ENERGY}" \
+  --gun.momentumMax "{params.ENERGY}" \
+  --gun.thetaMin "{params.THETA_MIN}*deg" \
+  --gun.thetaMax "{params.THETA_MAX}*deg" \
+  --gun.particle {wildcards.PARTICLE} \
+  --gun.distribution eta \
+  --random.seed {params.SEED} \
+  --filter.tracker edep0 \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --outputFile {output}
+"""
+
+
+rule bic_pid_recon:
+    input:
+        sim="sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
+    log:
+        "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root.log",
+    wildcard_constraints:
+        PARTICLE="(e-|pi-)",
+        ENERGY="[0-9]+[kMG]eV",
+        PHASE_SPACE="[0-9]+to[0-9]+deg",
+        INDEX=r"\d{4}",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    shell:
+        """
+DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+exec eicrecon {input.sim} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits
+"""
+
+
+rule bic_pid_input_list:
+    input:
+        files=expand(
+            "sim_output/bic_pid/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
+            ENERGY=["1GeV"],
+            PHASE_SPACE=["45to135deg"],
+            INDEX=range(100),
+        ),
+    output:
+        "listing/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input.files))
+
+
+rule bic_pid:
+    input:
+        electrons="listing/bic_pid/{DETECTOR_CONFIG}/e-.lst",
+        pions="listing/bic_pid/{DETECTOR_CONFIG}/pi-.lst",
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/bic_pid/bic_pid.py",
+    output:
+        directory("results/{DETECTOR_CONFIG}/bic_pid")
+    shell:
+        """
+env \
+MATPLOTLIBRC={input.matplotlibrc} \
+DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
+PLOT_TITLE={wildcards.DETECTOR_CONFIG} \
+INPUT_ELECTRONS="{input.electrons}" \
+INPUT_PIONS="{input.pions}" \
+OUTPUT_DIR={output} \
+python {input.script}
+"""

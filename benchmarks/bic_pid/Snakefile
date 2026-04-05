@@ -35,9 +35,9 @@ rule bic_pid_sim:
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
     shell:
-        """
-set -m # monitor mode to prevent lingering processes
-exec npsim \
+        r"""
+set -m 
+npsim \
   --runType batch \
   --enableGun \
   --gun.momentumMin "{params.ENERGY}" \
@@ -51,7 +51,7 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output}
+  --outputFile {output} > {log} 2>&1
 """
 
 

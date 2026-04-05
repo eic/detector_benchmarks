@@ -85,6 +85,8 @@ def get_remote_path(path):
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
 
+localrules: fetch_epic
+
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
@@ -94,9 +96,9 @@ rule fetch_epic:
     cache: True
     retries: 3
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_xrootd else """
-mc cp S3/eictest/{output.filepath} {output.filepath}
+mc cp S3/eictest/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_s3 else f"""
 echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
 exit 1

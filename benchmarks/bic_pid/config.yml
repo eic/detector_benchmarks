@@ -2,15 +2,13 @@ sim:bic_pid:
   extends: .det_benchmark
   stage: simulate
   image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
+  variables:
+    DETECTOR_CONFIG: epic_craterlake
   parallel:
     matrix:
       - PARTICLE: ["e-", "pi-"]
-        ANGLE: [
-          "45to135deg"
-        ]
-        ENERGY: [
-          "1GeV"
-        ]
+        ANGLE: ["45to135deg"]
+        ENERGY: ["1GeV"]
         INDEX_RANGE: [
           "0 9",
           "10 19",
@@ -24,7 +22,6 @@ sim:bic_pid:
           "90 99",
         ]
   script:
-    - export DETECTOR_CONFIG=epic_craterlake
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 1 \
         $(seq --format="sim_output/bic_pid/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/${ANGLE}/${PARTICLE}_${ENERGY}_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
@@ -37,8 +34,17 @@ bench:bic_pid:
   image: $BENCHMARKS_REGISTRY/eic_tf$BENCHMARKS_SIGIL$BENCHMARKS_TAG
   variables:
     CUDA_VISIBLE_DEVICES: ""
+    DETECTOR_CONFIG: epic_craterlake
+  before_script:
+    - source .local/bin/env.sh
+    - ls -lrtha
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - mkdir -p "${DETECTOR_CONFIG}"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    - ls -lrtha
   script:
-    - export DETECTOR_CONFIG=epic_craterlake
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - export PATH=$PYTHONUSERBASE/bin:$PATH
     - python -m pip install --user snakemake
@@ -52,8 +58,9 @@ collect_results:bic_pid:
     - "bench:bic_pid"
   when: always
   image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
+  variables:
+    DETECTOR_CONFIG: epic_craterlake
   script:
-    - export DETECTOR_CONFIG=epic_craterlake
     - ls -lrht
     - mv results{,_save}/
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/${DETECTOR_CONFIG}/bic_pid

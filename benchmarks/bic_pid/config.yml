@@ -45,10 +45,8 @@ bench:bic_pid:
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   script:
-    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
-    - export PATH=$PYTHONUSERBASE/bin:$PATH
-    - python -m pip install --user snakemake
-    - python -m pip install --user -r benchmarks/bic_pid/requirements.txt
+    - python -m pip install snakemake
+    - python -m pip install -r benchmarks/bic_pid/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
 
 collect_results:bic_pid:

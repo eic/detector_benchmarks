@@ -191,7 +191,7 @@ for p in momenta:
         plt.sca(axs[0])
         y, x, _=plt.hist(mrecon, bins=100, range=(0, 0.2), histtype='step')
         plt.ylabel("events")
-        plt.title(f"$p_{{\pi^0}}$={p} GeV")
+        plt.title(f"$p_{{\\pi^0}}$={p} GeV")
         plt.xlabel("$m^{\\pi^{0}}_{recon}$ [GeV]")
     else:
         #y, x, _=plt.hist(mrecon, bins=100, range=(0, 0.2), histtype='step')#y, x =np.histogram(mrecon, bins=100, range=(0, 0.2))

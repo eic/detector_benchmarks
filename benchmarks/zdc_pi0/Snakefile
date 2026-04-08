@@ -61,7 +61,7 @@ env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 rule zdc_pi0_analysis:
     input:
         expand("sim_output/zdc_pi0/{DETECTOR_CONFIG}_rec_zdc_pi0_{P}GeV_{INDEX}.edm4eic.root",
-            P=[60, 80, 100, 130, 160],
+            P=[20, 40, 60, 80, 100, 130, 160],
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),

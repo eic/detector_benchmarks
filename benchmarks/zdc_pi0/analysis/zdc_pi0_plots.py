@@ -22,7 +22,7 @@ def gauss(x, A,mu, sigma):
     
 import uproot as ur
 arrays_sim={}
-momenta=60, 80, 100, 130, 160,
+momenta=20, 40, 60, 80, 100, 130, 160,
 for p in momenta:
     arrays_sim[p] = ur.concatenate({
         f'sim_output/zdc_pi0/{config}_rec_zdc_pi0_{p}GeV_{index}.edm4eic.root': 'events'

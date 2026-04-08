@@ -44,7 +44,7 @@ for p in momenta:
     if len(Etot)<25:
         continue
     #print(p, res, mrecon)
-    if p==100:
+    if p==60:
         plt.sca(axs[0])
         y, x, _=plt.hist(Etot, bins=100, range=(p*.5, p*1.5), histtype='step')
         plt.ylabel("events")
@@ -61,7 +61,7 @@ for p in momenta:
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==100:
+    if p==60:
         xx=np.linspace(p*0.5,p*1.5, 100)
         plt.plot(xx, fnc(xx,*coeff))
     pvals.append(p)
@@ -120,7 +120,7 @@ for p in momenta:
     
     Etot=np.sum(E, axis=-1)
     #print(p, res, mrecon)
-    if p==100:
+    if p==60:
         plt.sca(axs[0])
         y, x, _=plt.hist(1000*(theta_recon-theta_truth), bins=100, range=(-0.5, 0.5), histtype='step')
         plt.ylabel("events")
@@ -137,7 +137,7 @@ for p in momenta:
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==100:
+    if p==60:
         xx=np.linspace(-0.5,0.5, 100)
         plt.plot(xx, fnc(xx,*coeff))
     pvals.append(p)
@@ -187,7 +187,7 @@ for p in momenta:
         continue
     
     #print(p, res, mrecon)
-    if p==100:
+    if p==60:
         plt.sca(axs[0])
         y, x, _=plt.hist(mrecon, bins=100, range=(0, 0.2), histtype='step')
         plt.ylabel("events")
@@ -201,11 +201,11 @@ for p in momenta:
     from scipy.optimize import curve_fit
     slc=abs(bc-.135)<.1
     fnc=gauss
-    p0=[100, .135, 0.2]
+    p0=[60, .135, 0.2]
     #print(list(y), list(x))
     coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                  sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==100:
+    if p==60:
         xx=np.linspace(0,0.2)
         plt.plot(xx, fnc(xx,*coeff))
     pvals.append(p)

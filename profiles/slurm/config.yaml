@@ -1,0 +1,20 @@
+# Snakemake Slurm profile for JLab ifarm
+# Usage: snakemake --profile profiles/slurm all_plots
+
+executor: slurm
+singularity-prefix: "eic-shell"
+
+default-resources:
+  slurm_partition: "production"
+  runtime: 240
+  mem_mb: 4000
+  slurm_account: null  # Set to "eic" if required
+
+jobs: 50
+latency-wait: 60
+keep-going: True
+printshellcmds: True
+
+# Group entire benchmark pipelines into single jobs
+group-components:
+  group: 1

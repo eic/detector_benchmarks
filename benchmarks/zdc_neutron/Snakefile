@@ -6,6 +6,7 @@ rule zdc_neutron_hepmc:
         hepmcfile="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.hepmc",
     params:
         num_events=1000,
+    group: "zdc_neutron_pipeline"
     shell:
         """
 root -l -b -q '{input.script}({params.num_events}, 0, "{output.hepmcfile}")'
@@ -23,6 +24,7 @@ rule zdc_neutron_sim:
         num_events=100,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+    group: "zdc_neutron_pipeline"
     cache: True
     shell:
         """
@@ -46,6 +48,7 @@ rule zdc_neutron_reco:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
     params:
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    group: "zdc_neutron_pipeline"
     cache: True
     shell:
         """
@@ -66,6 +69,7 @@ rule zdc_neutron_analyses:
     output:
         geant_analysis_out = "results/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons_geant.pdf",
         recon_analysis_out = "results/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons_recon.pdf",
+    group: "zdc_neutron_pipeline"
     shell:
         """
 root -l -b -q '{input.geant_script}("{input.data_geant}","{output.geant_analysis_out}")'

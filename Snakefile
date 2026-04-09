@@ -72,6 +72,9 @@ include: "benchmarks/femc_pi0/Snakefile"
 include: "benchmarks/nhcal_acceptance/Snakefile"
 include: "benchmarks/nhcal_basic_distribution/Snakefile"
 
+# Include aggregate plot rules
+include: "rules/all_plots.smk"
+
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
 

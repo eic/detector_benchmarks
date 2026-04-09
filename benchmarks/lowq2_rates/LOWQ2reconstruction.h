@@ -1,5 +1,16 @@
 #pragma once
 
+// edm4hep includes
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/MCParticleCollectionData.h"
+#include "edm4hep/MCParticle.h"
+#include "edm4hep/MCParticleData.h"
+#include "edm4hep/MCParticleObj.h"
+#include "edm4hep/Vector3f.h"
+#include "edm4hep/Vector3d.h"
+#include "edm4hep/utils/vector_utils.h"
+#include "edm4hep/utils/kinematics.h"
+
 // Define alias
 using RNode       = ROOT::RDF::RNode;
 using H1ResultPtr = ROOT::RDF::RResultPtr<TH1D>;

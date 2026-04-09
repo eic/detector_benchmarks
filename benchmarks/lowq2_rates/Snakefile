@@ -134,7 +134,7 @@ rule plot_rates:
     shell:
         """
         CROSS_SECTION=$(cat {input.cross_section_file})
-        root -l -b -q '{input.script}("{input.events}", "{output}", "{params.xml}", '$CROSS_SECTION', {params.luminosity})'
+        root -l -b -q '{input.script}+("{input.events}", "{output}", "{params.xml}", '$CROSS_SECTION', {params.luminosity})'
         """
 
 rule lowq2_rates_test:

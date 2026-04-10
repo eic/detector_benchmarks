@@ -12,6 +12,9 @@ bench:lowq2_reconstruction:
   needs:
     - ["sim:lowq2_reconstruction","bench:beamline"]
   script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    # Validate that all dependencies can be installed, even if retraining doesn't run
+    - pip install --dry-run -r benchmarks/lowq2_reconstruction/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB lowq2_reconstruction_local
 
 check:lowq2_reconstruction:
@@ -26,11 +29,9 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]    
+    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"] 
   rules:
-    - if: '$BENCHMARKS_TAG =~ /nightly/'
-      when: on_failure
-    - when: never
+    - when: on_failure
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/lowq2_reconstruction/requirements.txt
@@ -40,9 +41,7 @@ check:lowq2_reconstruction_retrained:
   needs: ["bench:lowq2_reconstruction_retrained"]
   stage: benchmarks
   rules:
-    - if: '$BENCHMARKS_TAG =~ /nightly/'
-      when: on_success
-    - when: never  
+    - when: on_success
   script: |
     if grep '"fail": 1' results/lowq2_reconstruction/retrained_local/Low-Q2_retrained_Resolution_Results_local.json; then
       exit 1
@@ -65,9 +64,7 @@ collect_results:lowq2_reconstruction_retrained:
   needs:
     - "bench:lowq2_reconstruction_retrained"
   rules:
-    - if: '$BENCHMARKS_TAG =~ /nightly/'
-      when: on_success
-    - when: never
+    - when: on_success
   script:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
@@ -80,7 +77,7 @@ upload_onnx:lowq2_reconstruction:
   needs:
     - "check:lowq2_reconstruction_retrained"
   rules:
-    - if: '$BENCHMARKS_TAG =~ /nightly/ && $GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
+    - if: '$GITHUB_PR != "" && $GITHUB_REPOSITORY == "eic/epic"'
       when: on_success
     - if: '$GITHUB_REPOSITORY != "eic/epic"'
       when: never

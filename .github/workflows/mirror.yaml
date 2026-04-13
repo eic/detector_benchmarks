@@ -12,7 +12,7 @@ concurrency:
 jobs:
   build:
     name: Mirror and Trigger EICweb
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       actions: write
       contents: read

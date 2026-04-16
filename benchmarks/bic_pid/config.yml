@@ -43,7 +43,6 @@ bench:bic_pid:
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
-    - touch warmup.edm4hep.root
     - ls -lrtha
   script:
     - python -m pip install snakemake

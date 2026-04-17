@@ -51,6 +51,17 @@ python3 {params.script} \
 """
 
 
+rule campaign_perf_campaigns:
+    input:
+        expand(
+            "results/campaign_performance_metrics/{CAMPAIGN}",
+            CAMPAIGN=[
+                "26.03.0",
+                "26.03.1",
+            ],
+        )
+
+
 def campaign_perf_collected_jsons(wildcards):
     """
     After the checkpoint resolves, read the datasets file to determine

@@ -45,12 +45,12 @@ for p in momenta:
     Etot=arrays_sim[p]["ReconstructedFarForwardZDCNeutrals.energy"][selection]
     if p==100:
         plt.sca(axs[0])
-        y, x, _=plt.hist(ak.flatten(Etot), bins=100, range=(p*.75, p*1.25), histtype='step')
+        y, x, _=plt.hist(ak.flatten(Etot), bins=100, range=(p*.7, p*1.3), histtype='step')
         plt.ylabel("events")
         plt.title(f"$p_{{n}}$={p} GeV")
         plt.xlabel("$E^{n}_{recon}$ [GeV]")
     else:
-        y, x = np.histogram(ak.flatten(Etot), bins=100, range=(p*.75, p*1.25))
+        y, x = np.histogram(ak.flatten(Etot), bins=100, range=(p*.7, p*1.3))
         
     bc=(x[1:]+x[:-1])/2
     from scipy.optimize import curve_fit
@@ -157,7 +157,7 @@ plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E
 plt.ylabel("$\\sigma[\\theta_{n}]$ [mrad]")
 plt.xlabel("$p_{n}$ [GeV]")
 
-plt.ylim(0, 0.1)
+plt.ylim(0, 0.3)
 plt.legend()
 plt.tight_layout()
 plt.savefig(outdir+"neutron_theta_res.pdf")

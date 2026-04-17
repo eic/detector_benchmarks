@@ -54,7 +54,7 @@ for p in momenta:
         
     bc=(x[1:]+x[:-1])/2
     from scipy.optimize import curve_fit
-    slc=abs(bc-p)<10
+    slc=abs(bc-p)/p<.3
     fnc=gauss
     p0=[100, p, 10]
     try:

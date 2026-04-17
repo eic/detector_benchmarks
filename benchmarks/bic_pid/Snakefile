@@ -1,3 +1,6 @@
+from glob import glob
+import os
+
 def format_energy_for_dd4hep(s):
     return s.rstrip("kMGeV") + "*" + s.lstrip("0123456789")
 
@@ -81,18 +84,28 @@ exec eicrecon {input.sim} -Ppodio:output_file={output} \
 
 
 rule bic_pid_input_list:
-    input:
-        files=expand(
-            "sim_output/bic_pid/{{DETECTOR_CONFIG}}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
-            ENERGY=["1GeV"],
-            PHASE_SPACE=["45to135deg"],
-            INDEX=range(100),
-        ),
     output:
         "listing/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}.lst",
+    params:
+        energy="1GeV",
+        phase_space="45to135deg",
     run:
+        pattern = (
+            f"sim_output/bic_pid/{wildcards.DETECTOR_CONFIG}/{wildcards.PARTICLE}/"
+            f"{params.energy}/{params.phase_space}/"
+            f"{wildcards.PARTICLE}_{params.energy}_{params.phase_space}.*.eicrecon.edm4eic.root"
+        )
+        files = sorted(glob(pattern))
+
+        if len(files) != 100:
+            raise ValueError(
+                f"Expected 100 files for {wildcards.PARTICLE}, found {len(files)}.\n"
+                f"Pattern used: {pattern}"
+            )
+
+        os.makedirs(os.path.dirname(output[0]), exist_ok=True)
         with open(output[0], "wt") as fp:
-            fp.write("\n".join(input.files))
+            fp.write("\n".join(files))
 
 
 rule bic_pid:

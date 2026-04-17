@@ -15,7 +15,7 @@ def theta_max_from_phase_space(s):
 
 rule bic_pid_sim:
     input:
-        warmup=ancient("warmup.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
         "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
@@ -61,7 +61,7 @@ npsim \
 rule bic_pid_recon:
     input:
         sim="sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
-        warmup=ancient("warmup.edm4hep.root"),
+        warmup="warmup.edm4hep.root",
     output:
         "sim_output/bic_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
     log:

@@ -25,13 +25,6 @@ sim:bic_pid:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 1 \
         $(seq --format="sim_output/bic_pid/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/${ANGLE}/${PARTICLE}_${ENERGY}_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
-    - mkdir -p transferred_sim_output
-    - cp -aL sim_output/bic_pid transferred_sim_output/
-  artifacts:
-    when: always
-    paths:
-      - transferred_sim_output/
-      - .snakemake/log/
 
 
 bench:bic_pid:
@@ -46,13 +39,12 @@ bench:bic_pid:
   before_script:
     - source .local/bin/env.sh
     - ls -lrtha
-    - mkdir -p sim_output
-    - cp -a transferred_sim_output/bic_pid sim_output/
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - mkdir -p "${DETECTOR_CONFIG}"
-    - ln -s ../results "${DETECTOR_CONFIG}/results"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
-    - touch warmup.edm4hep.root
-    - find sim_output/bic_pid | head -50
+    - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
     - ls -lrtha
   script:
     - python -m pip install snakemake

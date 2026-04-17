@@ -79,14 +79,14 @@ plt.xlabel("$p_{n}$ [GeV]")
 
 xx=np.linspace(15, 275, 100)
 
-fnc=lambda E,a: a/np.sqrt(E)
+fnc=lambda E,a,b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals
 try:
-    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.01),
                                      sigma=dresvals, maxfev=10000)
 
     xx=np.linspace(15, 275, 100)
-    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}$')
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}\\oplus {coeff[1]*100:.0f}\\%$')
 except RuntimeError as e:
     print("fit failed", e)
 plt.legend()

@@ -25,13 +25,21 @@ sim:bic_pid:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores 1 \
         $(seq --format="sim_output/bic_pid/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/${ANGLE}/${PARTICLE}_${ENERGY}_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
+    - mkdir -p transferred_sim_output
+    - cp -aL sim_output/bic_pid transferred_sim_output/
+  artifacts:
+    when: always
+    paths:
+      - transferred_sim_output/
+      - .snakemake/log/
 
 
 bench:bic_pid:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["sim:bic_pid"]
+    - "common:setup"
+    - "sim:bic_pid"
   image: $BENCHMARKS_REGISTRY/eic_tf$BENCHMARKS_SIGIL$BENCHMARKS_TAG
   variables:
     CUDA_VISIBLE_DEVICES: ""
@@ -39,10 +47,11 @@ bench:bic_pid:
   before_script:
     - source .local/bin/env.sh
     - ls -lrtha
-    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - mkdir -p sim_output
+    - cp -a transferred_sim_output/bic_pid sim_output/
     - mkdir -p "${DETECTOR_CONFIG}"
-    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
-    - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - ln -s ../sim_output "${DETECTOR_CONFIG}/sim_output"
+    - ln -s ../results "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
     - ls -lrtha
@@ -56,6 +65,7 @@ collect_results:bic_pid:
   extends: .det_benchmark
   stage: collect
   needs:
+    - "common:setup"
     - "bench:bic_pid"
   when: always
   image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG

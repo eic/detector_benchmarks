@@ -50,7 +50,7 @@ bench:bic_pid:
     - python -m pip install snakemake
     - python -m pip install -r benchmarks/bic_pid/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
-    
+
 
 collect_results:bic_pid:
   extends: .det_benchmark

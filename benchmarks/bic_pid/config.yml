@@ -61,10 +61,7 @@ script:
   - python -m pip install snakemake
   - python -m pip uninstall -y tensorflow tensorflow-cpu tf-keras || true
   - python -m pip install --no-cache-dir --force-reinstall -r benchmarks/bic_pid/requirements.txt
-  - python - <<'PY'
-import tensorflow as tf
-print("TF OK:", tf.__version__)
-PY
+  - python -c "import tensorflow as tf; print('TF OK:', tf.__version__)"
   - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
 
 

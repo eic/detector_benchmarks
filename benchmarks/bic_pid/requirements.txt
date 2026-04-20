@@ -1,7 +1,7 @@
-awkward >= 2.4.0
-catboost
-onnx
-scikit-learn
-uproot >= 5.2.0
-vector
+pandas
+numpy
+matplotlib
+tensorflow==2.18.0
 tf2onnx
+onnx
+pyarrow

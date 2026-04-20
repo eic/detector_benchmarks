@@ -5,4 +5,5 @@ scikit-learn
 uproot>=5.2.0
 vector
 tf2onnx
-tensorflow==2.20.0
+protobuf==5.28.3
+python-dateutil==2.9.0.post0

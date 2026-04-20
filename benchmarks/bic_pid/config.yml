@@ -57,14 +57,15 @@ bench:bic_pid:
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - find sim_output/bic_pid | head -50 || true
     - ls -lrtha
-  script:
-    - python -m pip install --upgrade pip
-    - python -m pip uninstall -y tensorflow tensorflow-cpu tf-keras keras || true
-    - python -m pip install "tensorflow==2.18.0"
-    - python -m pip install snakemake
-    - python -m pip install -r benchmarks/bic_pid/requirements.txt
-    - python -c "import tensorflow as tf; print('TF OK:', tf.__version__)"
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+script:
+  - python -m pip install snakemake
+  - python -m pip uninstall -y tensorflow tensorflow-cpu tf-keras || true
+  - python -m pip install --no-cache-dir --force-reinstall -r benchmarks/bic_pid/requirements.txt
+  - python - <<'PY'
+import tensorflow as tf
+print("TF OK:", tf.__version__)
+PY
+  - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
 
 
 collect_results:bic_pid:

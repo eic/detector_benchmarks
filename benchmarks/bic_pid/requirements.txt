@@ -1,7 +1,8 @@
-pandas
-numpy
-matplotlib
-tensorflow==2.18.0
-tf2onnx
+awkward>=2.4.0
+catboost
 onnx
-pyarrow
+scikit-learn
+uproot>=5.2.0
+vector
+tf2onnx
+tensorflow==2.20.0

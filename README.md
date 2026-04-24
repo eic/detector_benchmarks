@@ -33,3 +33,12 @@ The `config.yml` will require an include from the `./.gitlab-ci.yml`.
 
  - Create a script that returns exit status 0 for success.
  - Any non-zero value will be considered failure.
+
+## Uploading outputs to Rucio
+
+Benchmark outputs are uploaded to Rucio as part of each producing rule when
+`config.rucio.host` is set (see `snakemake.yml`).  Invoke with:
+
+```bash
+snakemake --profile profiles/rucio --cores 4 <target>
+```

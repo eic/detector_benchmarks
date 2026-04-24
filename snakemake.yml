@@ -1,1 +1,23 @@
 remote_provider: XRootD
+
+# XRootD server used for reading input files (remote_provider: xrootd or rucio).
+# Uncomment the BNL block to read from BNL instead of JLab.
+xrootd:
+  server: root://dtn-eic.jlab.org
+  base_path: /volatile/eic
+# BNL alternative:
+# xrootd:
+#   server: root://epicxrd1.sdcc.bnl.gov:1094  # authenticated; use port 1095 for no-auth
+#   base_path: /path/at/bnl                     # TODO: confirm the BNL base path
+
+# Rucio server used for uploading benchmark outputs.
+# Uncomment the BNL block to upload to BNL instead of JLab.
+rucio:
+  host: https://rucio-server.jlab.org:443
+  rse: EIC-XRD
+  scope: epic
+# BNL alternative:
+# rucio:
+#   host: https://nprucio01.sdcc.bnl.gov:443
+#   rse: BNL-XRD
+#   scope: epic

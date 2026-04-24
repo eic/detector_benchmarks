@@ -1,0 +1,23 @@
+# Snakemake profile for uploading benchmark outputs to Rucio.
+#
+# Uses snakemake-storage-plugin-rucio.  Rucio connection details (host, auth)
+# are read from the standard Rucio client configuration (~/.rucio/rucio.cfg or
+# environment variables such as RUCIO_HOST, RUCIO_ACCOUNT, RUCIO_AUTH_TYPE).
+#
+# Usage:
+#   snakemake --profile profiles/rucio --cores 1 \
+#     epic_craterlake/publish/barrel_ecal_all.done
+#
+# Override job_id (defaults to CI_PIPELINE_ID env var, then "local"):
+#   snakemake --profile profiles/rucio --config job_id=12345 --cores 1 \
+#     epic_craterlake/publish/barrel_ecal_all.done
+#
+# Required environment variables (set before invoking snakemake):
+#   RUCIO_ACCOUNT   - your Rucio account name
+#
+# Authentication (choose one):
+#   X509_USER_PROXY - path to a valid VOMS proxy  (auth_type=x509_proxy), or
+#   RUCIO_AUTH_TYPE=userpass with RUCIO_USERNAME / RUCIO_PASSWORD
+
+# Upload to the JLab RSE by default; override with --storage-rucio-upload-rse BNL-XRD
+storage-rucio-upload-rse: EIC-XRD

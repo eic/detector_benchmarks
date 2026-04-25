@@ -7,7 +7,7 @@ sim:nhcal_basic_distribution:
       - ENERGY: ["0.5", "0.7", "1.0", "2.0", "5.0"]
         INDEX_RANGE: ["0 3","4 6", "7 9"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB --retries 1 $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_backward_hcal_only.${INDEX}.edm4hep.root; done)
 
 sim:nhcal_basic_distribution_full:
   extends: .det_benchmark
@@ -21,7 +21,7 @@ sim:nhcal_basic_distribution_full:
         INDEX_RANGE: ["0 2", "3 5", "6 7", "8 9"]
 
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_full.${INDEX}.edm4hep.root; done)
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB --retries 1 $(for INDEX in $(seq $INDEX_RANGE); do echo sim_output/nhcal_basic_distribution/E${ENERGY}GeV/sim_epic_full.${INDEX}.edm4hep.root; done)
 
 bench:nhcal_basic_distribution_analysis:
   extends: .det_benchmark
@@ -33,10 +33,10 @@ bench:nhcal_basic_distribution_analysis:
   script:
     - |
       for ENERGY in $ENERGIES; do
-        snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
           results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png
       done
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 
 bench:nhcal_basic_distribution_analysis_full:

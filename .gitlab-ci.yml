@@ -79,6 +79,17 @@ benchmarks:detector:pending:
     STATE: "pending"
   when: always
 
+common:htcondor_test1:
+  stage: config
+  tags:
+    - osg
+    - jacamar
+  script:
+    - |
+      echo "Test started"
+      sleep 60
+      echo "Test done"
+
 common:setup:
   stage: config
   before_script:

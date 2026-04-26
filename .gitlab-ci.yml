@@ -38,6 +38,9 @@ default:
     reports:
       dotenv: .env
     when: always
+  id_tokens:
+    CI_JOB_JWT:
+      aud: https://eicweb.phy.anl.gov
 
 stages:
   - status-pending

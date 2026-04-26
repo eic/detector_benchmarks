@@ -37,6 +37,16 @@ bench:bic_pid:
   variables:
     CUDA_VISIBLE_DEVICES: ""
     DETECTOR_CONFIG: epic_craterlake
+  before_script:
+    - source .local/bin/env.sh
+    - ls -lrtha
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - mkdir -p "${DETECTOR_CONFIG}"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
+    - ls -lrtha
   script:
     - python -m pip install snakemake
     - python -m pip install -r benchmarks/bic_pid/requirements.txt

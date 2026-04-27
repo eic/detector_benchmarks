@@ -10,8 +10,6 @@
 #include "edm4hep/SimCalorimeterHitCollection.h"
 
 #include "common_bench/benchmark.h"
-#include "common_bench/mt.h"
-#include "common_bench/util.h"
 
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"

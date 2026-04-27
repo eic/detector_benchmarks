@@ -18,10 +18,6 @@ R__LOAD_LIBRARY(libfmt.so)
 
 #include "edm4hep/SimTrackerHitCollection.h"
 
-#include "common_bench/particles.h"
-#include "common_bench/benchmark.h"
-#include "common_bench/mt.h"
-#include "common_bench/util.h"
 
 void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.edm4hep.root"){
 

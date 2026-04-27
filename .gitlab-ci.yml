@@ -85,7 +85,7 @@ common:setup:
   script:
     - |
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="master" 
+        export COMMON_BENCH_VERSION="main" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env

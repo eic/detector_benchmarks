@@ -4,6 +4,11 @@ on:
   delete:
   push:
   workflow_dispatch:
+    inputs:
+      COMMON_BENCH_VERSION:
+        description: 'common_bench branch/tag to use'
+        required: false
+        default: ''
 
 concurrency:
   group: mirror-${{ github.event_name }}
@@ -43,6 +48,7 @@ jobs:
           GITHUB_SHA=${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_PR=${{ github.event.pull_request.number }}
           PIPELINE_NAME=${{ github.repository }}: ${{ github.event.pull_request.title || github.ref_name }}
+          COMMON_BENCH_VERSION=${{ inputs.COMMON_BENCH_VERSION }}
     - name: Set pending EICweb status
       if: ${{ github.event_name != 'delete' }}
       env:

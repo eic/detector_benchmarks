@@ -1,9 +1,1 @@
-awkward>=2.4.0
-catboost
-onnx
-scikit-learn
-uproot>=5.2.0
-vector
-tf2onnx
-protobuf==5.28.3
-python-dateutil==2.9.0.post0
+tf2onnx==1.17.0

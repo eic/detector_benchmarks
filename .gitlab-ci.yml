@@ -128,7 +128,7 @@ common:setup:
 
 .det_benchmark:htcondor:
   needs:
-    - ["common:setup:osg"]
+    - ["common:setup"]
   before_script:
     - source .local/bin/env.sh
     - source /opt/detector/epic-main/bin/thisepic.sh

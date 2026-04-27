@@ -130,6 +130,7 @@ common:setup:
   needs:
     - ["common:setup"]
   before_script:
+    - set -x
     - source .local/bin/env.sh
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 

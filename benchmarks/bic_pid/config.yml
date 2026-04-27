@@ -48,9 +48,12 @@ bench:bic_pid:
     - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
     - ls -lrtha
   script:
-    - python -m pip install snakemake
-    - python -m pip install -r benchmarks/bic_pid/requirements.txt
-    - python -c "import tensorflow as tf; print('TF OK:', tf.__version__)"
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - export PATH=$PYTHONUSERBASE/bin:$PATH
+    - python -m pip install --user snakemake
+    - python -m pip install --user -r benchmarks/bic_pid/requirements.txt
+    - python -m pip install --user --ignore-installed --no-deps "protobuf==5.28.3"
+    - python -c "import google.protobuf; print('protobuf', google.protobuf.__version__, google.protobuf.__file__); import tensorflow as tf; print('TF OK:', tf.__version__)"
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
 
 

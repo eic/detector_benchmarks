@@ -66,7 +66,7 @@ jobs:
           PIPELINE_NAME=${{ inputs.SOURCE_REPOSITORY || github.repository }}: ${{ inputs.SOURCE_TITLE || github.event.pull_request.title || github.ref_name }}
           COMMON_BENCH_VERSION=${{ inputs.COMMON_BENCH_VERSION }}
     - name: Set pending EICweb status
-      if: ${{ github.event_name != 'delete' && inputs.SOURCE_SHA == '' }}
+      if: ${{ github.event_name != 'delete' && !inputs.SOURCE_SHA }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DETECTOR_CONFIG: epic_craterlake

@@ -21,10 +21,6 @@ on:
         description: 'PR number in source repository'
         required: false
         default: ''
-      SOURCE_REF:
-        description: 'Source branch ref'
-        required: false
-        default: ''
       SOURCE_TITLE:
         description: 'Pipeline name / PR title'
         required: false

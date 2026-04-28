@@ -85,11 +85,11 @@ common:setup:
   script:
     - |
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="master" 
+        export COMMON_BENCH_VERSION="main" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+      git clone -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git setup 
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"

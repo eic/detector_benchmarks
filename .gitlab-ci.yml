@@ -90,6 +90,7 @@ common:setup:
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
       git clone -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
+      rm -rf .local/.git
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"

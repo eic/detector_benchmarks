@@ -97,7 +97,6 @@ common:setup:
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
-    - print_env.sh
     - eic-info
     - |
       flock --nonblock /scratch/garbage-collect.lock \

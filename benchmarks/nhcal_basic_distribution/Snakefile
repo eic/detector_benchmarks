@@ -78,7 +78,7 @@ rule nhcal_basic_distribution_combine_energy_resolution:
             N=["10"]    
         )
     output:
-        temp("sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root"),
+        "sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root",
     shell:
         """
             hadd -f {output} {input} 
@@ -94,4 +94,3 @@ rule nhcal_basic_distribution_analysis_energy_resolution:
         """
             root -l -b -q '{input.script}("{input.root}","{output.png}")'
         """
-

@@ -31,13 +31,10 @@ bench:nhcal_basic_distribution_analysis:
   variables:
     ENERGIES: "0.5 0.7 1.0 2.0 5.0"
   script:
-    - |
-      for ENERGY in $ENERGIES; do
-        snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
-          results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png
-      done
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
-        results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
+  - |
+    snakemake $SNAKEMAKE_FLAGS --cores 4 \
+      $(for ENERGY in $ENERGIES; do echo results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png; done) \
+      results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 
 bench:nhcal_basic_distribution_analysis_full:
   extends: .det_benchmark
@@ -49,10 +46,10 @@ bench:nhcal_basic_distribution_analysis_full:
   script:
     - |
       for ENERGY in $ENERGIES; do
-        snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
           results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_full_10files.png
       done
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 \
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --retries 1 \
         results/nhcal_basic_distribution/energy_resolution_analysis_epic_full.png
 
 collect_results:nhcal_basic_distribution:

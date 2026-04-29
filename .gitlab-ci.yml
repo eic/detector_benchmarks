@@ -89,11 +89,12 @@ common:setup:
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git setup 
+      git clone --depth 1 -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
+      rm -rf .local/.git
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-    - source setup/bin/env.sh && ./setup/bin/install_common.sh
+    - source .local/bin/env.sh
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config

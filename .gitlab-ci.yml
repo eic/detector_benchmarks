@@ -38,6 +38,9 @@ default:
     reports:
       dotenv: .env
     when: always
+  id_tokens:
+    CI_JOB_JWT:
+      aud: https://eicweb.phy.anl.gov
 
 stages:
   - status-pending
@@ -122,6 +125,38 @@ common:setup:
     max: 2
     when:
       - runner_system_failure
+
+.det_benchmark:htcondor:
+  needs:
+    - ["common:setup"]
+  before_script:
+    - set -x
+    - source .local/bin/env.sh
+    - source /opt/detector/epic-main/bin/thisepic.sh
+    - ls -lrtha 
+    - mkdir -p sim_output
+    # snakemake support
+    - mkdir -p "${DETECTOR_CONFIG}"
+    - mkdir -p "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    - ls -lrtha
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+sim:htcondor_test2:
+  extends: .det_benchmark:htcondor
+  stage: simulate
+  tags:
+    - osg
+    - jacamar
+  script:
+    - |
+      echo "Test started"
+      sleep 60
+      echo "Test done"
 
 include: 
   - local: 'benchmarks/backgrounds/config.yml'

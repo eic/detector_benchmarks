@@ -2,7 +2,35 @@ configfile: "snakemake.yml"
 
 import functools
 import os
+import re
 from snakemake.logging import logger
+
+
+_rucio_upload_enabled = bool(config.get("rucio", {}).get("host"))
+if not _rucio_upload_enabled:
+    logger.warning(
+        "Rucio host not configured (config.rucio.host); "
+        "benchmark outputs will not be uploaded to Rucio."
+    )
+
+_rucio_scope     = config.get("rucio", {}).get("scope", "epic")
+_rucio_job_id    = config.get("job_id", os.environ.get("CI_PIPELINE_ID", "local"))
+_RUCIO_DID_PREFIX = f"rucio://{_rucio_scope}/VALIDATION/benchmarks/detector/{_rucio_job_id}"
+
+
+def _rucio_output(path):
+    """Return a Rucio storage() output, or a local temp() placeholder when
+    Rucio is not configured (e.g. in local test runs).
+
+    When storage() is used, {output.rucio} in shell commands resolves to a
+    *local* staging path managed by Snakemake — a plain cp is all that is
+    needed.  Snakemake uploads the staged file to the remote Rucio server
+    after the job completes successfully.
+    """
+    if _rucio_upload_enabled:
+        return storage(path)
+    local = re.sub(r"^rucio://[^/]*/", ".rucio_staging/", path)
+    return temp(local)
 
 
 rule compile_analysis:
@@ -74,15 +102,24 @@ include: "benchmarks/nhcal_basic_distribution/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
+use_rucio = config["remote_provider"].lower() == "rucio"
+
+_xrootd_cfg = config.get("xrootd", {})
+_xrootd_server = _xrootd_cfg.get("server", "root://dtn-eic.jlab.org")
+_xrootd_base = _xrootd_cfg.get("base_path", "/volatile/eic").strip("/")
+# Full base URL used by get_remote_path() and the fetch_epic rule.
+_xrootd_base_url = f"{_xrootd_server}//{_xrootd_base}"
 
 
 def get_remote_path(path):
     if use_s3:
         return f"s3https://eics3.sdcc.bnl.gov:9000/eictest/{path}"
-    elif use_xrootd:
-        return f"root://dtn-eic.jlab.org//volatile/eic/{path}"
+    elif use_xrootd or use_rucio:
+        # EIC-XRD is an XRootD-backed RSE; the configured XRootD server is
+        # used for both xrootd and rucio remote_provider modes.
+        return f"{_xrootd_base_url}/{path}"
     else:
-        raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
+        raise RuntimeError(f'Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
 
 rule fetch_epic:
@@ -90,12 +127,13 @@ rule fetch_epic:
         filepath="EPIC/{PATH}"
     params:
         # wildcards are not included in hash for caching, we need to add them as params
-        PATH=lambda wildcards: wildcards.PATH
+        PATH=lambda wildcards: wildcards.PATH,
+        xrd_base=_xrootd_base_url,
     cache: True
     retries: 3
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/{output.filepath} {output.filepath}
-""" if use_xrootd else """
+xrdcp --debug 2 {params.xrd_base}/{output.filepath} {output.filepath}
+""" if use_xrootd or use_rucio else """
 mc cp S3/eictest/{output.filepath} {output.filepath}
 """ if use_s3 else f"""
 echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'

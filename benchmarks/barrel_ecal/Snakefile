@@ -1,5 +1,7 @@
 DETECTOR_PATH = os.environ["DETECTOR_PATH"]
 
+_RUCIO_BASE = f"{_RUCIO_DID_PREFIX}/barrel_ecal"
+
 
 rule emcal_barrel_particles_gen:
     input:
@@ -24,12 +26,13 @@ rule emcal_barrel_particles:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     output:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
+        local="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root",
+        rucio=_rucio_output(f"{_RUCIO_BASE}/sim_output/sim_emcal_barrel_{{PARTICLE}}_energies{{E_MIN}}_{{E_MAX}}.edm4hep.root"),
     cache: True
     shell:
         """
 set -m # monitor mode to prevent lingering processes
-exec npsim \
+npsim \
    --runType batch \
    -v WARNING \
    --part.minimalKineticEnergy 0.5*GeV  \
@@ -37,7 +40,8 @@ exec npsim \
    --numberOfEvents {params.JUGGLER_N_EVENTS} \
    --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
    --inputFiles {input.hepmc} \
-   --outputFile {output}
+   --outputFile {output.local}
+exec cp {output.local} {output.rucio}
 """
 
 
@@ -77,7 +81,8 @@ rule emcal_barrel_particles_analysis:
     wildcard_constraints:
         PARTICLE="(electron|photon|piplus|piminus)", # avoid clash with "pions"
     output:
-        "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_calibration.json",
+        calibration_json="{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_calibration.json",
+        rucio=_rucio_output(f"{_RUCIO_BASE}/results/emcal_barrel_{{PARTICLE}}_calibration.json"),
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Ethr.png",
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_Ethr.pdf",
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_nhits.png",
@@ -94,6 +99,8 @@ rule emcal_barrel_particles_analysis:
         """
 cd {wildcards.DETECTOR_CONFIG}
 root -l -b -q '{input.script}+("{wildcards.PARTICLE}", true)'
+cd - > /dev/null
+exec cp {output.calibration_json} {output.rucio}
 """
 
 
@@ -125,11 +132,14 @@ rule emcal_barrel_pi0_analysis:
             var_name=["Ethr", "nhits", "Esim", "dE_rel"],
             extension=["pdf", "png"],
         ),
-        "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json"
+        pi0_json="{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json",
+        rucio=_rucio_output(f"{_RUCIO_BASE}/results/Barrel_emcal_pi0.json"),
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
 root -l -b -q '{input.script}+("../{input.sim}")'
+cd - > /dev/null
+exec cp {output.pi0_json} {output.rucio}
 """
 
 
@@ -173,7 +183,8 @@ rule emcal_barrel_pion_rejection_analysis:
         piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root",
     output:
         "{DETECTOR_CONFIG}/results/emcal_barrel_pion_rej_RatioRej.png",
-        "{DETECTOR_CONFIG}/results/Barrel_emcal_pion_rej.json",
+        pion_rej_json="{DETECTOR_CONFIG}/results/Barrel_emcal_pion_rej.json",
+        rucio=_rucio_output(f"{_RUCIO_BASE}/results/Barrel_emcal_pion_rej.json"),
         expand(
             "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_{var_save}.png",
             var_save=["Esim", "EsimTot", "EDep6", "EDep6OverP", "pT", "eta", "EsimScFi", "EsimScFiOverP"],
@@ -197,4 +208,6 @@ rule emcal_barrel_pion_rejection_analysis:
         """
 cd {wildcards.DETECTOR_CONFIG}
 root -l -b -q '{input.script}+g("../{input.electron}", "../{input.piminus}")'
+cd - > /dev/null
+exec cp {output.pion_rej_json} {output.rucio}
 """

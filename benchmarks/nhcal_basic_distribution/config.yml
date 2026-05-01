@@ -32,7 +32,7 @@ bench:nhcal_basic_distribution_analysis:
     ENERGIES: "0.5 0.7 1.0 2.0 5.0"
   script:
   - |
-    snakemake $SNAKEMAKE_FLAGS --cores 4 \
+    snakemake $SNAKEMAKE_FLAGS --cores 1 \
       $(for ENERGY in $ENERGIES; do echo results/nhcal_basic_distribution/analysis_E${ENERGY}GeV_epic_backward_hcal_only_10files.png; done) \
       results/nhcal_basic_distribution/energy_resolution_analysis_epic_backward_hcal_only.png
 

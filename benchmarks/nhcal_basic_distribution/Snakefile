@@ -72,13 +72,14 @@ rule nhcal_basic_distribution_analysis:
     
 rule nhcal_basic_distribution_combine_energy_resolution:
     input:
-        expand(
-            "sim_output/nhcal_basic_distribution/energy_resolution_E{ENERGY}GeV_{{DETECTOR_CONFIG}}_{N}files.root",
-            ENERGY=["0.5", "0.7", "1.0", "2.0", "5.0"],
-            N=["10"]    
-        )
+        lambda wildcards: [
+            f"sim_output/nhcal_basic_distribution/energy_resolution_E{e}GeV_{wildcards.DETECTOR_CONFIG}_10files.root"
+            for e in ["0.5", "0.7", "1.0", "2.0", "5.0"]
+        ]
     output:
         "sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root",
+    wildcard_constraints:
+        DETECTOR_CONFIG=r"[\w]+",
     shell:
         """
             hadd -f {output} {input} 

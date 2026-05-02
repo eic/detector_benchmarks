@@ -32,10 +32,13 @@ int acceptance_analysis(TString filename, string outname_pdf, string outname_png
     int nPhiBins = 100;
     double etaMin = -5, etaMax = 0;
 
-    TH2D* hEtaPhiAll = new TH2D("hEtaPhiAll", "All #pi- (status==1); #eta[1]; #phi[rad]",
+    gStyle->SetTitleSize(0.05, "XYZ");
+    gStyle->SetLabelSize(0.05, "XYZ");
+
+    TH2D* hEtaPhiAll = new TH2D("hEtaPhiAll", "All #pi- (status==1); #eta; #phi[rad]",
                                 nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
-    TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "#pi- detected in nHCal; #eta[1]; #phi[rad]",
+    TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "#pi- detected in nHCal; #eta; #phi[rad]",
                                      nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
     while (reader.Next()) 

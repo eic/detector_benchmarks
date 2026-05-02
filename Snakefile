@@ -53,6 +53,7 @@ include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/far_forward_dvcs/Snakefile"
 include: "benchmarks/lowq2_reconstruction/Snakefile"
 include: "benchmarks/material_scan/Snakefile"
+include: "benchmarks/secondary_vertexing_dis/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
 include: "benchmarks/tracking_performances_dis/Snakefile"
 include: "benchmarks/lfhcal/Snakefile"
@@ -157,7 +158,7 @@ cat > {output} <<EOF
   "GITHUB_REPOSITORY": "${{GITHUB_REPOSITORY:-}}",
   "GITHUB_SHA": "${{GITHUB_SHA:-}}",
   "GITHUB_PR": "${{GITHUB_PR:-}}",
-  "PIPELINE_NAME": "${{PIPELINE_NAME:-}}"
+  "PIPELINE_NAME": $(echo "${{PIPELINE_NAME:-}}" | jq -Rs .)
 }}
 EOF
 # validate JSON

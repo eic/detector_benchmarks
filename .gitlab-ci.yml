@@ -85,19 +85,19 @@ common:setup:
   script:
     - |
       if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="master" 
+        export COMMON_BENCH_VERSION="main" 
       fi
       echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
       echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone -b "${COMMON_BENCH_VERSION}" https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench.git setup 
+      git clone --depth 1 -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
+      rm -rf .local/.git
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-    - source setup/bin/env.sh && ./setup/bin/install_common.sh
+    - source .local/bin/env.sh
     - mkdir_local_data_link sim_output
     - mkdir -p results
     - mkdir -p config
-    - print_env.sh
     - eic-info
     - |
       flock --nonblock /scratch/garbage-collect.lock \
@@ -132,6 +132,7 @@ include:
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/far_forward_dvcs/config.yml'
   - local: 'benchmarks/lowq2_reconstruction/config.yml'
+  - local: 'benchmarks/secondary_vertexing_dis/config.yml'
   - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
@@ -177,6 +178,7 @@ deploy_results:
     - "collect_results:material_scan"
     - "collect_results:pid"
     - "collect_results:rich"
+    - "collect_results:secondary_vertexing_dis"
     - "collect_results:tracking_performance"
     - "collect_results:tracking_performance_campaigns"
     - "collect_results:zdc_sigma"

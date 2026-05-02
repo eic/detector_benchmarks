@@ -214,9 +214,10 @@ for ix, energy in enumerate(energies):
     import scipy.stats
     def f(x, n, beta, m, loc, scale):
         return n * scipy.stats.crystalball.pdf(x, beta, m, loc, scale)
-    n0 = np.sum(hist.values()[10:])
+    sigma0 = 0.02
+    n0 = np.sum(hist.values()[10:]) * sigma0
     loc0 = hist.axes[0].centers[5:][np.argmax(hist.values()[5:])]
-    p0 = (n0, 2., 3., loc0, 0.05)
+    p0 = (n0, 2., 3., loc0, sigma0)
 
     try:
         import scipy.optimize

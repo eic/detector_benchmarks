@@ -57,7 +57,7 @@ collect_results:nhcal_basic_distribution:
     - "bench:nhcal_basic_distribution_analysis_full"
   parallel:
     matrix:
-      - DETECTOR_CONFIG: ["epic_backward_hcal_only"]
+      - DETECTOR_CONFIG: ["epic_backward_hcal_only", "epic_full"]
   script:
     - ls -lrht
     - mv results{,_save}/ 

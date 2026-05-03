@@ -48,6 +48,7 @@ bench:bic_pid:
     - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
     - ls -lrtha
   script:
+    - export TEMPORARILY_DISABLE_PROTOBUF_VERSION_CHECK=true
     - python -m pip install snakemake
     - python -c "import google.protobuf, tensorflow as tf, tf2onnx; print('protobuf', google.protobuf.__version__); print('TF OK:', tf.__version__); print('tf2onnx OK:', tf2onnx.__version__)"
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid

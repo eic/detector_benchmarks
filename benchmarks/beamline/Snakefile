@@ -76,6 +76,7 @@ rule beamline_acceptance_sim:
             --enableG4GPS \
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
+            --printLevel WARNING \
             --outputFile {output} \
             --physics.rangecut 100*m
         """

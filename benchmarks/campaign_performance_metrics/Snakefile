@@ -1,0 +1,98 @@
+import os
+
+CAMPAIGN_PERF_METRICS_DIR = "benchmarks/campaign_performance_metrics"
+
+CAMPAIGN_PERF_SAMPLE = int(os.environ.get("CAMPAIGN_PERF_SAMPLE", "5"))
+CAMPAIGN_PERF_SEED = int(os.environ.get("CAMPAIGN_PERF_SEED", "42"))
+
+
+checkpoint campaign_perf_discover:
+    """Discover SINGLES datasets for the campaign via Rucio."""
+    output:
+        datasets="sim_output/campaign_performance_metrics/{CAMPAIGN}/datasets.txt",
+    params:
+        script=f"{CAMPAIGN_PERF_METRICS_DIR}/discover_datasets.py",
+        CAMPAIGN=lambda wildcards: wildcards.CAMPAIGN,
+    shell:
+        """
+mkdir -p $(dirname {output.datasets})
+python3 {params.script} \
+    --campaign {params.CAMPAIGN} \
+    --output {output.datasets}
+"""
+
+
+rule campaign_perf_collect_dataset:
+    """Collect PRMON data for a single dataset (parallelized by INDEX)."""
+    input:
+        datasets="sim_output/campaign_performance_metrics/{CAMPAIGN}/datasets.txt",
+    output:
+        json="sim_output/campaign_performance_metrics/{CAMPAIGN}/collected/dataset_{INDEX}.json",
+    params:
+        script=f"{CAMPAIGN_PERF_METRICS_DIR}/collect_dataset.py",
+        sample=CAMPAIGN_PERF_SAMPLE,
+        seed=CAMPAIGN_PERF_SEED,
+        INDEX=lambda wildcards: wildcards.INDEX,
+    wildcard_constraints:
+        INDEX=r"\d+",
+    shell:
+        """
+mkdir -p $(dirname {output.json})
+DATASET=$(sed -n '{params.INDEX}p' {input.datasets})
+if [ -z "$DATASET" ]; then
+    echo '[ERROR] No dataset at line {params.INDEX} in {input.datasets}' >&2
+    exit 1
+fi
+python3 {params.script} \
+    --dataset "$DATASET" \
+    --sample {params.sample} \
+    --seed {params.seed} \
+    --output {output.json}
+"""
+
+
+rule campaign_perf_campaigns:
+    input:
+        expand(
+            "results/campaign_performance_metrics/{CAMPAIGN}",
+            CAMPAIGN=[
+                "26.03.0",
+                "26.03.1",
+            ],
+        )
+
+
+def campaign_perf_collected_jsons(wildcards):
+    """
+    After the checkpoint resolves, read the datasets file to determine
+    how many collection jobs are needed (one per line).
+    """
+    datasets_file = checkpoints.campaign_perf_discover.get(
+        CAMPAIGN=wildcards.CAMPAIGN,
+    ).output.datasets
+    with open(datasets_file) as f:
+        n_datasets = sum(1 for line in f if line.strip())
+    return expand(
+        "sim_output/campaign_performance_metrics/{CAMPAIGN}/collected/dataset_{INDEX}.json",
+        CAMPAIGN=wildcards.CAMPAIGN,
+        INDEX=range(1, n_datasets + 1),  # sed is 1-indexed
+    )
+
+
+rule campaign_perf_plot:
+    """Aggregate all per-dataset JSONs and produce histogram plots."""
+    input:
+        jsons=campaign_perf_collected_jsons,
+    output:
+        results_dir=directory("results/campaign_performance_metrics/{CAMPAIGN}"),
+    params:
+        script=f"{CAMPAIGN_PERF_METRICS_DIR}/plot_singles_aggregate.py",
+        CAMPAIGN=lambda wildcards: wildcards.CAMPAIGN,
+    shell:
+        """
+mkdir -p {output.results_dir}
+python3 {params.script} \
+    --campaign {params.CAMPAIGN} \
+    --output-dir {output.results_dir} \
+    {input.jsons}
+"""

@@ -42,8 +42,6 @@ do
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-print_env.sh
-
 ## To run the reconstruction, we need the following global variables:
 ## - DETECTOR:         the detector package we want to use for this benchmark
 ## - DETECTOR_VERSION: the detector package we want to use for this benchmark

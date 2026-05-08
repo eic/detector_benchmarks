@@ -96,6 +96,7 @@ common:setup:
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source .local/bin/env.sh
     - mkdir_local_data_link sim_output
+    - mkdir_local_data_link EPIC
     - mkdir -p results
     - mkdir -p config
     - eic-info
@@ -112,6 +113,7 @@ common:setup:
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
     # snakemake support
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"

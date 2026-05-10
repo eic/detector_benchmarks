@@ -1,5 +1,5 @@
 bench:campaign:
-  extends: .det_benchmark
+  extends: .det_benchmark:htcondor
   stage: benchmarks
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 campaign_benchmark

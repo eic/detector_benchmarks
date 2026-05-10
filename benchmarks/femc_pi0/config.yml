@@ -1,6 +1,16 @@
+.script:sim:femc_pi0:
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/femc_pi0/epic_craterlake_rec_pi0_${P}GeV.edm4eic.root
+
+.script:bench:femc_pi0:
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/epic_craterlake/femc_pi0
+
 sim:femc_pi0:
   extends: .det_benchmark
   stage: simulate
+  rules:
+    - if: $BENCHMARK_RUNNER != "htcondor"
   parallel:
     matrix:
       - P: 10
@@ -12,7 +22,7 @@ sim:femc_pi0:
       - P: 70
       - P: 80
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/femc_pi0/epic_craterlake_rec_pi0_${P}GeV.edm4eic.root
+    - !reference [.script:sim:femc_pi0, script]
   retry:
     max: 2
     when:
@@ -22,15 +32,30 @@ bench:femc_pi0:
   extends: .det_benchmark
   stage: benchmarks
   allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
+  rules:
+    - if: $BENCHMARK_RUNNER != "htcondor"
   needs: ["sim:femc_pi0"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/femc_pi0
+    - !reference [.script:bench:femc_pi0, script]
+
+sim_bench:femc_pi0:
+  extends: .det_benchmark:htcondor
+  stage: benchmarks
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
+  rules:
+    - if: $BENCHMARK_RUNNER == "htcondor"
+  script:
+    - !reference [.script:bench:femc_pi0, script]
 
 collect_results:femc_pi0:
   extends: .det_benchmark
   stage: collect
   allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/186 is resolved
-  needs: ["bench:femc_pi0"]
+  needs:
+    - job: "bench:femc_pi0"
+      optional: true
+    - job: "sim_bench:femc_pi0"
+      optional: true
   when: always
   script:
     - ls -al

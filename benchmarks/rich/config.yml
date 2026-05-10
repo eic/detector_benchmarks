@@ -1,5 +1,5 @@
 bench:drich_fixed_eta:
-  extends: .det_benchmark
+  extends: .det_benchmark:htcondor
   stage: benchmarks
   script:
     - cmake -S benchmarks/rich -B build -DCMAKE_INSTALL_PREFIX=.local
@@ -11,7 +11,7 @@ bench:drich_fixed_eta:
       done
 
 collect_results:rich:
-  extends: .det_benchmark
+  extends: .det_benchmark:htcondor
   stage: collect
   needs:
     - "bench:drich_fixed_eta"

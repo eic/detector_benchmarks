@@ -121,7 +121,7 @@ common:setup:
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - if [ ! -w "$SNAKEMAKE_OUTPUT_CACHE" ] ; then
           export SNAKEMAKE_OUTPUT_CACHE=${LOCAL_DATA_PATH}/snakemake-cache ;
-      endif
+      fi
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:
@@ -144,7 +144,7 @@ common:setup:
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - if [ ! -w "$SNAKEMAKE_OUTPUT_CACHE" ] ; then
           export SNAKEMAKE_OUTPUT_CACHE=${LOCAL_DATA_PATH}/snakemake-cache ;
-      endif
+      fi
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:

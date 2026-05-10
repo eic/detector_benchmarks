@@ -9,6 +9,10 @@ on:
         description: 'common_bench branch/tag to use'
         required: false
         default: ''
+      BENCHMARK_RUNNER:
+        description: 'Runner backend to use (htcondor or empty for local)'
+        required: false
+        default: 'htcondor'
       SOURCE_REPOSITORY:
         description: 'Repository to report status to (owner/repo)'
         required: false
@@ -65,6 +69,7 @@ jobs:
           GITHUB_PR=${{ inputs.SOURCE_PR || github.event.pull_request.number }}
           PIPELINE_NAME=${{ inputs.SOURCE_REPOSITORY || github.repository }}: ${{ inputs.SOURCE_TITLE || github.event.pull_request.title || github.ref_name }}
           COMMON_BENCH_VERSION=${{ inputs.COMMON_BENCH_VERSION }}
+          BENCHMARK_RUNNER=${{ inputs.BENCHMARK_RUNNER || 'htcondor' }}
     - name: Set pending EICweb status
       if: ${{ github.event_name != 'delete' && !inputs.SOURCE_SHA }}
       env:

@@ -142,6 +142,9 @@ common:setup:
     - mkdir -p "${DETECTOR_CONFIG}"
     - mkdir -p "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - if [ ! -w "$SNAKEMAKE_OUTPUT_CACHE" ] ; then
+          export SNAKEMAKE_OUTPUT_CACHE=${LOCAL_DATA_PATH}/snakemake-cache ;
+      endif
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:

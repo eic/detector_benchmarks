@@ -20,7 +20,7 @@ sim:bic_pid:
           "70 79",
           "80 89",
           "90 99",
-        ]
+        ] 
   script:
     - export DETECTOR_CONFIG=epic_craterlake
     - |

@@ -69,6 +69,7 @@ rule nhcal_sampling_fraction_analysis:
         """
         g++ {input.script} \
             $(root-config --cflags --libs) \
+            $(python-config --includes) \
             -I/opt/local/include \
             -L/opt/local/lib \
             -lpodio -lpodioRootIO -ledm4hep -lDDCore -lDDRec \

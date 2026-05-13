@@ -24,11 +24,9 @@ default:
   artifacts:
     expire_in: 72 hours 
     paths:
-      - .local/detector
       - .local/lib
       - .local/bin
       - .local/include
-      - .local/share
       - .snakemake/log
       - logs
       - results

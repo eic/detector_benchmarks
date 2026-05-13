@@ -1,7 +1,7 @@
 # Generate the single neutrons and put them into a HepMC file
 rule zdc_neutron_hepmc:
     input:
-        script = "benchmarks/zdc_neutron/gen_forward_neutrons.cxx",
+        script = workflow.source_path("gen_forward_neutrons.cxx"),
     output:
         hepmcfile="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.hepmc",
     params:
@@ -59,9 +59,9 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 # Run the analysis scripts
 rule zdc_neutron_analyses:
     input:
-        geant_script = "benchmarks/zdc_neutron/analysis/fwd_neutrons_geant.C",
+        geant_script = workflow.source_path("analysis/fwd_neutrons_geant.C"),
         data_geant = "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
-        recon_script = "benchmarks/zdc_neutron/analysis/fwd_neutrons_recon.C",
+        recon_script = workflow.source_path("analysis/fwd_neutrons_recon.C"),
         data_recon = "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
     output:
         geant_analysis_out = "results/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons_geant.pdf",

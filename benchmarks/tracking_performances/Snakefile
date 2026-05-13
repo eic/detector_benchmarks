@@ -67,8 +67,8 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 
 rule tracking_performance_hit_maps:
     input:
-        script_hitsmap="benchmarks/tracking_performances/draw_hits.C",
-        script_nhits_eta="benchmarks/tracking_performances/NhitsvsEta_ePIC.C",
+        script_hitsmap=workflow.source_path("draw_hits.C"),
+        script_nhits_eta=workflow.source_path("NhitsvsEta_ePIC.C"),
         sim=lambda wildcards: expand(
             "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
             DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG},
@@ -98,7 +98,7 @@ root -l -b -q {input.script_nhits_eta}'("{output.sim_hadd}", "{params.MOMENTUM}"
 
 rule tracking_performance_at_momentum:
     input:
-        script="benchmarks/tracking_performances/Tracking_Performances.C",
+        script=workflow.source_path("Tracking_Performances.C"),
         # TODO pass as a file list?
         sim=lambda wildcards: branch(
             wildcards.CAMPAIGN == "local",
@@ -165,10 +165,10 @@ rule tracking_performance_summary_at_eta:
         ),
         "{CAMPAIGN}/truthseed/pi-/dca/final_hist_dca_truthseed.root",
         "{CAMPAIGN}/realseed/pi-/dca/final_hist_dca_realseed.root",
-        script_mom="benchmarks/tracking_performances/doCompare_truth_real_widebins_mom.C",
-        script_pulls="benchmarks/tracking_performances/draw_Pulls.C",
-        script_dcaT="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaT.C",
-        script_dcaz="benchmarks/tracking_performances/doCompare_truth_real_widebins_dcaz.C",
+        script_mom=workflow.source_path("doCompare_truth_real_widebins_mom.C"),
+        script_pulls=workflow.source_path("draw_Pulls.C"),
+        script_dcaT=workflow.source_path("doCompare_truth_real_widebins_dcaT.C"),
+        script_dcaz=workflow.source_path("doCompare_truth_real_widebins_dcaz.C"),
     output:
         expand(
             "{{CAMPAIGN}}/Debug_Plots/{SEEDING}/pi-/mom/{SEEDING}_mom_resol_mom{MOMENTUM:.1f}_{{ETA_MIN}}_eta_{{ETA_MAX}}.png",

@@ -65,7 +65,7 @@ rule far_forward_dvcs_plots:
     input:
         workflow.source_path("analysis/render.hpp"),
         workflow.source_path("analysis/detectorResolution.hpp"),
-        script="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon.cxx",
+        script=workflow.source_path("analysis/analyze_DVCS_eicrecon.cxx"),
         script_compiled="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
         reco="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.1.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
     output:

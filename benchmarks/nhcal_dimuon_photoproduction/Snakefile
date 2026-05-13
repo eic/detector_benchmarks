@@ -73,7 +73,7 @@ rule nhcal_dimuon_photoproduction_combine:
 rule nhcal_dimuon_photoproduction_analysis:
     input:
         combined="sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
-        script="benchmarks/nhcal_dimuon_photoproduction/scripts/dimuon_photoproduction_analysis.cxx",
+        script=workflow.source_path("scripts/dimuon_photoproduction_analysis.cxx"),
     output:
         png="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.pdf",

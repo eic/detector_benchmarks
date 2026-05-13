@@ -66,9 +66,9 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 # Process the files -- either from the campaign or local running -- through the analysis script
 rule dis_analysis:
     input:
-        script_trk="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis.cxx",
+        script_trk=workflow.source_path("analysis/trk_dis_analysis.cxx"),
         script_trk_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-        script_vtx="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis.cxx",
+        script_vtx=workflow.source_path("analysis/vtx_dis_analysis.cxx"),
         script_vtx_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
         data="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     output:
@@ -157,7 +157,7 @@ hadd {output.hists_vtx} {input}
 #Process the merged file through the plotting script
 rule trk_dis_plots:
     input:
-        script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
+        script=workflow.source_path("analysis/trk_dis_plots.cxx"),
         script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:
@@ -175,7 +175,7 @@ root -l -b -q '{input.script}+("{input.config}")'
 
 rule vtx_dis_plots:
     input:
-        script="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots.cxx",
+        script=workflow.source_path("analysis/vtx_dis_plots.cxx"),
         script_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so",
         config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:

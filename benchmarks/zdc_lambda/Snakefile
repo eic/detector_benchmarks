@@ -1,6 +1,6 @@
 rule zdc_lambda_generate:
     input:
-        script="benchmarks/zdc_lambda/analysis/gen_lambda_decay.cxx",
+        script=workflow.source_path("analysis/gen_lambda_decay.cxx"),
     output:
         GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
     params:
@@ -64,7 +64,7 @@ rule zdc_lambda_analysis:
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),
-        script="benchmarks/zdc_lambda/analysis/lambda_plots.py",
+        script=workflow.source_path("analysis/lambda_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_lambda"),
     shell:

@@ -57,7 +57,7 @@ hadd -f {output} {input}
 rule nhcal_sampling_fraction_analysis:
     input:
         combined="sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
-        script="benchmarks/nhcal_sampling_fraction/scripts/sampling_fraction_analysis.cxx",
+        script=workflow.source_path("scripts/sampling_fraction_analysis.cxx"),
     output:
         pdf="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf",
         png="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.png",

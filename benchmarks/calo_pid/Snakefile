@@ -90,7 +90,7 @@ rule calo_pid:
         electrons="listing/calo_pid/{DETECTOR_CONFIG}/e-.lst",
         pions="listing/calo_pid/{DETECTOR_CONFIG}/pi-.lst",
         matplotlibrc=".matplotlibrc",
-        script="benchmarks/calo_pid/calo_pid.py",
+        script=workflow.source_path("calo_pid.py"),
     output:
         directory("results/{DETECTOR_CONFIG}/calo_pid")
     shell:

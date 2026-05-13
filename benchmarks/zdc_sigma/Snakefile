@@ -1,6 +1,6 @@
 rule zdc_sigma_generate:
     input:
-        script="benchmarks/zdc_sigma/analysis/gen_sigma_decay.cxx",
+        script=workflow.source_path("analysis/gen_sigma_decay.cxx"),
     output:
         GEN_FILE="sim_output/zdc_sigma/sigma_decay_{P}GeV.hepmc",
     params:
@@ -64,7 +64,7 @@ rule zdc_sigma_analysis:
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),
-        script="benchmarks/zdc_sigma/analysis/sigma_plots.py",
+        script=workflow.source_path("analysis/sigma_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_sigma"),
     shell:

@@ -165,6 +165,7 @@ include:
   
 deploy_results:
   allow_failure: true
+  extends: .det_benchmark
   stage: deploy
   needs:
     - "collect_results:backgrounds"

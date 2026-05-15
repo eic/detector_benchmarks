@@ -84,11 +84,11 @@ for i in range(6):
     plt.errorbar(x,hist,yerr=np.sqrt(hist),fmt='-o',label='Cluster')
     try:
         coeff, covar = curve_fit(gaussian,x[1:],hist[1:],p0=(max(hist[x>=np.std(abs(temp))]),np.mean(temp[temp!=0]),np.std(temp[temp!=0])),maxfev=10000)
+        #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
+        mu.append(coeff[1])
+        sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
-    #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
-    mu.append(coeff[1])
-    sigma.append(coeff[2])
     
     temp = np.array(df[f'ecal_rec_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
@@ -96,11 +96,11 @@ for i in range(6):
     plt.errorbar(x,hist,yerr=np.sqrt(hist),fmt='-o',label='Digitization')
     try:
         coeff, covar = curve_fit(gaussian,x[1:],hist[1:],p0=(max(hist[x>=np.std(abs(temp))]),np.mean(temp[temp!=0]),np.std(temp[temp!=0])),maxfev=10000)
+        #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
+        mu.append(coeff[1])
+        sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
-    #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
-    mu.append(coeff[1])
-    sigma.append(coeff[2])
     
     temp = np.array(df[f'ecal_sim_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
@@ -108,11 +108,11 @@ for i in range(6):
     plt.errorbar(x,hist,yerr=np.sqrt(hist),fmt='-o',label='Simulation')
     try:
         coeff, covar = curve_fit(gaussian,x[1:],hist[1:],p0=(max(hist[x>=np.std(abs(temp))]),np.mean(temp[temp!=0]),np.std(temp[temp!=0])),maxfev=10000)
+        #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
+        mu.append(coeff[1])
+        sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
-    #plt.plot(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),gaussian(np.linspace(coeff[1]-3*coeff[2],coeff[1]+3*coeff[2],50),*coeff))
-    mu.append(coeff[1])
-    sigma.append(coeff[2])
     
     plt.xlabel('Energy (MeV)')
     plt.legend()

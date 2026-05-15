@@ -169,37 +169,37 @@ for p in arrays_sim:
 
     try:
         coeff, var_matrix = curve_fit(fnc, list(bcs[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+        #res=np.abs(coeff[2]/coeff[1])
+        if p==50:
+            xx=np.linspace(15*p/20,22*p/20, 100)
+
+            plt.plot(xx, fnc(xx,*coeff), label=f"$\\sigma_E/E={abs(coeff[2])/coeff[1]*100:.1f}\%$")
+            plt.axvline(p, color='g', ls='--', alpha=0.7)
+            plt.legend()
+            #plt.xlim(0,60)
+        #plt.show()
+        pvals.append(p)
+        res.append(abs(coeff[2])/coeff[1])
+        dres.append(np.sqrt(var_matrix[2][2])/coeff[1])
+        scale.append(abs(coeff[1])/p)
+        dscale.append(np.sqrt(var_matrix[1][1])/p)
     except RuntimeError as e:
         print(e)
         print("x:", list(bcs[slc]), "y:", list(y[slc]))
-    #res=np.abs(coeff[2]/coeff[1])
-    if p==50:
-        xx=np.linspace(15*p/20,22*p/20, 100)
-
-        plt.plot(xx, fnc(xx,*coeff), label=f"$\\sigma_E/E={abs(coeff[2])/coeff[1]*100:.1f}\%$")
-        plt.axvline(p, color='g', ls='--', alpha=0.7)
-        plt.legend()
-        #plt.xlim(0,60)
-    #plt.show()
-    pvals.append(p)
-    res.append(abs(coeff[2])/coeff[1])
-    dres.append(np.sqrt(var_matrix[2][2])/coeff[1])
-    scale.append(abs(coeff[1])/p)
-    dscale.append(np.sqrt(var_matrix[1][1])/p)
 plt.sca(axs[1])
 plt.errorbar(pvals, 100*np.array(res), 100*np.array(dres), ls='', marker='o')
 fnc = lambda E, a, b: np.hypot(a,b/np.sqrt(E))
 p0=(.05, .12)
 try:
     coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0, sigma=dres, maxfev=10000)
+    xx=np.linspace(15, 85, 100)
+    plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
+    plt.legend()
+    plt.ylim(0)
+    plt.ylabel("E resolution [%]")
+    plt.xlabel("E truth [GeV]")
 except RuntimeError:
     print("fit failed")
-xx=np.linspace(15, 85, 100)
-plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
-plt.legend()
-plt.ylim(0)
-plt.ylabel("E resolution [%]")
-plt.xlabel("E truth [GeV]")
 plt.sca(axs[2])
 
 plt.errorbar(pvals, 100*np.array(scale), 100*np.array(dscale), ls='', marker='o')

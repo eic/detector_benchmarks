@@ -135,7 +135,10 @@ for emin, emax in zip(partitions[:-1], partitions[1:]):
     fnc=gauss
     sigma=np.sqrt(y[slc])+(y[slc]==0)
 
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+    except RuntimeError:
+        print("fit failed")
     res.append(abs(coeff[2]))
     dres.append(np.sqrt(var_matrix[2][2]))
     emid.append((emin+emax)/2)
@@ -147,7 +150,10 @@ plt.ylim(0)
 
 fnc=lambda E,B:B/E
 p0=[1,]
-coeff, var_matrix = curve_fit(fnc, emid, res, p0=p0, sigma=list(dres), maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, emid, res, p0=p0, sigma=list(dres), maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 xx=np.linspace(10, 100, 100)
 plt.plot(xx, 1000*fnc(xx, *coeff), label=f"fit: ${coeff[0]:.2f}/E$ mrad")
 plt.legend()

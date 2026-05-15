@@ -101,8 +101,11 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<0.3
 fnc=gauss
 p0=[100, 0, 0.05]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 x=np.linspace(-1, 1)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
@@ -165,8 +168,11 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<5
 fnc=gauss
 p0=[100, 0, 1]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 x=np.linspace(-5, 5)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 print(coeff[2], np.sqrt(var_matrix[2][2]))
@@ -232,8 +238,11 @@ from scipy.optimize import curve_fit
 slc=abs(bc-lambda_mass)<0.05
 fnc=gauss
 p0=[100, lambda_mass, 0.04]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 x=np.linspace(0.8, 1.3, 200)
 plt.plot(x, gauss(x, *coeff), color='tab:orange')
 print(coeff[2], np.sqrt(var_matrix[2][2]))

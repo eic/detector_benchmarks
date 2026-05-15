@@ -190,7 +190,10 @@ plt.sca(axs[1])
 plt.errorbar(pvals, 100*np.array(res), 100*np.array(dres), ls='', marker='o')
 fnc = lambda E, a, b: np.hypot(a,b/np.sqrt(E))
 p0=(.05, .12)
-coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0, sigma=dres, maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, res, p0=p0, sigma=dres, maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 xx=np.linspace(15, 85, 100)
 plt.plot(xx, 100*fnc(xx,*coeff), label=f'fit:{100*coeff[0]:.1f}%$\\oplus\\frac{{{100*coeff[1]:.0f}\\%}}{{\\sqrt{{E}}}}$')
 plt.legend()

@@ -147,8 +147,11 @@ plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
 
 fnc=lambda E,a, b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.1),
-                                 sigma=dresvals, maxfev=10000)
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.1),
+                                     sigma=dresvals, maxfev=10000)
+except RuntimeError:
+    print("fit failed")
 
 xx=np.linspace(15, 275, 100)
 

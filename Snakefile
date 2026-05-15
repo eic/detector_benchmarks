@@ -138,7 +138,7 @@ rule org2py:
         notebook=lambda wildcards: workflow.source_path(f"{wildcards.NOTEBOOK}.org"),
         converter=workflow.source_path("benchmarks/common/org2py.awk"),
     output:
-        "{NOTEBOOK}.py"
+        "{NOTEBOOK}.org2py.py"
     shell:
         """
 awk -f {input.converter} {input.notebook} > {output}

@@ -186,6 +186,7 @@ deploy_results:
     - "collect_results:zdc_lambda"
     - "collect_results:insert_neutron"
     - "collect_results:tracking_performances_dis"
+    - "collect_results:tracking_performances_dis:campaign"
     - "collect_results:zdc"
     - "collect_results:zdc_lyso"
     - "collect_results:zdc_neutron"

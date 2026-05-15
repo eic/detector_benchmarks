@@ -41,4 +41,56 @@ collect_results:tracking_performances_dis:
       gs -sDEVICE=pngalpha -dUseCropBox -r144 \
         -o 'results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/vertexing_performances_dis_%03d.png' \
         results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf
-        
+
+# Campaign jobs using pre-reconstructed files from BNL xrootd (epicxrd1.sdcc.bnl.gov)
+# Single place to update campaign: change the variables block below.
+# These are passed to snakemake via --config, so no Snakefile edit needed.
+.dis_campaign_config:
+  variables:
+    DIS_CAMPAIGN: "26.05.0"
+    DIS_BEAM: "9x130"
+    DIS_Q2_RANGE: "q2_10to100"
+    DIS_NFILES: "5"
+    DIS_SNAKEMAKE_CONFIG: "dis_campaign=${DIS_CAMPAIGN} dis_beam=${DIS_BEAM} dis_q2_range=${DIS_Q2_RANGE} dis_nfiles=${DIS_NFILES}"
+
+sim:tracking_performances_dis:campaign:
+  extends:
+    - .det_benchmark
+    - .dis_campaign_config
+  stage: simulate
+  timeout: 2 hours
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB --config $DIS_SNAKEMAKE_CONFIG trk_dis_campaign vtx_dis_campaign
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:tracking_performances_dis:campaign:
+  extends:
+    - .det_benchmark
+    - .dis_campaign_config
+  stage: benchmarks
+  needs:
+    - ["sim:tracking_performances_dis:campaign"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --config $DIS_SNAKEMAKE_CONFIG trk_dis_campaign vtx_dis_campaign
+    - find results/tracking_performances_dis/campaign_${DIS_CAMPAIGN}/ -mindepth 4 -maxdepth 4 -type d ! -name "combined*" | xargs rm -rfv
+    - find results/vertexing_performances_dis/campaign_${DIS_CAMPAIGN}/ -mindepth 4 -maxdepth 4 -type d ! -name "combined*" | xargs rm -rfv
+
+collect_results:tracking_performances_dis:campaign:
+  extends:
+    - .det_benchmark
+    - .dis_campaign_config
+  stage: collect
+  needs:
+    - "bench:tracking_performances_dis:campaign"
+  script:
+    - mv results{,_save}/
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --config $DIS_SNAKEMAKE_CONFIG --delete-all-output trk_dis_campaign vtx_dis_campaign
+    - mv results{_save,}/
+    - TRK_DIR="results/tracking_performances_dis/campaign_${DIS_CAMPAIGN}/epic_craterlake/${DIS_BEAM}/${DIS_Q2_RANGE}/combined_${DIS_NFILES}"
+    - VTX_DIR="results/vertexing_performances_dis/campaign_${DIS_CAMPAIGN}/epic_craterlake/${DIS_BEAM}/${DIS_Q2_RANGE}/combined_${DIS_NFILES}"
+    - gs -sDEVICE=pngalpha -dUseCropBox -r144 -o "${TRK_DIR}/tracking_performances_dis_%03d.png" "${TRK_DIR}/plots.pdf"
+    - gs -sDEVICE=pngalpha -dUseCropBox -r144 -o "${VTX_DIR}/vertexing_performances_dis_%03d.png" "${VTX_DIR}/plots.pdf"
+

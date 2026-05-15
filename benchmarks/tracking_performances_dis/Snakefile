@@ -1,5 +1,14 @@
 import os
 
+# Campaign configuration defaults — override via snakemake --config or CI variables
+# (CI yml passes these via snakemake --config dis_campaign=... etc.)
+DIS_CAMPAIGN_CONFIG = {
+    "campaign": config.get("dis_campaign", "26.05.0"),
+    "beam":     config.get("dis_beam",     "9x130"),
+    "q2_range": config.get("dis_q2_range", "q2_10to100"),
+    "nfiles":   int(config.get("dis_nfiles", 5)),
+}
+
 rule trk_dis_compile:
     input:
         "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
@@ -191,6 +200,174 @@ rule vtx_dis_plots:
 root -l -b -q '{input.script}+("{input.config}")'
 """
 
+# Campaign mode: stream pre-reconstructed files directly from BNL xrootd
+# ROOT TChain supports xrootd URLs natively — no local copy needed
+rule dis_campaign_analysis:
+    input:
+        script_trk="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis.cxx",
+        script_trk_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
+        script_vtx="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis.cxx",
+        script_vtx_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
+    output:
+        config_trk="results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/{STEM}/config.json",
+        hists_trk="results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/{STEM}/hists.root",
+        config_vtx="results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/{STEM}/config.json",
+        hists_vtx="results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/{STEM}/hists.root",
+    wildcard_constraints:
+        CAMPAIGN=r"[\d.]+",
+        BEAM=r"\d+x\d+",
+        Q2_RANGE=r"q2_\w+",
+        STEM=r"(?!combined_)\S+",
+    params:
+        EBEAM=lambda wildcards: wildcards.BEAM.split("x")[0],
+        PBEAM=lambda wildcards: wildcards.BEAM.split("x")[1],
+        MINQ2=lambda wildcards: wildcards.Q2_RANGE.split("_")[1].split("to")[0],
+        xrd_url="root://epicxrd1.sdcc.bnl.gov:1095//eic/EPIC/RECO/{CAMPAIGN}/epic_craterlake/DIS/pythia8.316-1.0/NC/noRad/ep/{BEAM}/{Q2_RANGE}/{STEM}.eicrecon.edm4eic.root",
+    shell:
+        """
+cat > {output.config_trk} <<EOF
+{{
+  "rec_file": "{params.xrd_url}",
+  "detector": "epic_craterlake",
+  "ebeam": {params.EBEAM},
+  "pbeam": {params.PBEAM},
+  "Min_Q2": {params.MINQ2},
+  "output_prefix": "$(dirname "{output.hists_trk}")/hists"
+}}
+EOF
+root -l -b -q '{input.script_trk}+("{output.config_trk}")'
+
+cat > {output.config_vtx} <<EOF
+{{
+  "rec_file": "{params.xrd_url}",
+  "detector": "epic_craterlake",
+  "ebeam": {params.EBEAM},
+  "pbeam": {params.PBEAM},
+  "Min_Q2": {params.MINQ2},
+  "output_prefix": "$(dirname "{output.hists_vtx}")/hists"
+}}
+EOF
+root -l -b -q '{input.script_vtx}+("{output.config_vtx}")'
+"""
+
+checkpoint dis_campaign_sim_list:
+    output:
+        "listing/tracking_performances_dis/{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}.lst",
+    params:
+        search_path=lambda wildcards: f"RECO/{wildcards.CAMPAIGN}/epic_craterlake/DIS/pythia8.316-1.0/NC/noRad/ep/{wildcards.BEAM}/{wildcards.Q2_RANGE}/",
+    wildcard_constraints:
+        CAMPAIGN=r"[\d.]+",
+        BEAM=r"\d+x\d+",
+        Q2_RANGE=r"q2_\w+",
+    shell:
+        """
+xrdfs root://epicxrd1.sdcc.bnl.gov:1095/ ls /eic/EPIC/{params.search_path} \
+  | grep '\.eicrecon\.edm4eic\.root$' \
+  | sed 's|.*/||; s|\.eicrecon\.edm4eic\.root$||' \
+  | sort \
+  > {output}
+if [ ! -s {output} ]; then
+  echo "Empty file listing for path /eic/EPIC/{params.search_path}"
+  exit 1
+fi
+"""
+
+def _dis_campaign_stems(wildcards):
+    listing = checkpoints.dis_campaign_sim_list.get(
+        CAMPAIGN=wildcards.CAMPAIGN,
+        BEAM=wildcards.BEAM,
+        Q2_RANGE=wildcards.Q2_RANGE,
+    ).output[0]
+    with open(listing) as f:
+        return [line.strip() for line in f if line.strip()]
+
+rule dis_campaign_combine:
+    input:
+        trk=lambda wildcards: [
+            f"results/tracking_performances_dis/campaign_{wildcards.CAMPAIGN}/epic_craterlake/{wildcards.BEAM}/{wildcards.Q2_RANGE}/{stem}/hists.root"
+            for stem in _dis_campaign_stems(wildcards)[:int(wildcards.NFILES)]
+        ],
+        vtx=lambda wildcards: [
+            f"results/vertexing_performances_dis/campaign_{wildcards.CAMPAIGN}/epic_craterlake/{wildcards.BEAM}/{wildcards.Q2_RANGE}/{stem}/hists.root"
+            for stem in _dis_campaign_stems(wildcards)[:int(wildcards.NFILES)]
+        ],
+    output:
+        config_trk="results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/config.json",
+        hists_trk="results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/hists.root",
+        config_vtx="results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/config.json",
+        hists_vtx="results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/hists.root",
+    wildcard_constraints:
+        CAMPAIGN=r"[\d.]+",
+        BEAM=r"\d+x\d+",
+        Q2_RANGE=r"q2_\w+",
+        NFILES=r"\d+",
+    params:
+        EBEAM=lambda wildcards: wildcards.BEAM.split("x")[0],
+        PBEAM=lambda wildcards: wildcards.BEAM.split("x")[1],
+        MINQ2=lambda wildcards: wildcards.Q2_RANGE.split("_")[1].split("to")[0],
+    shell:
+        """
+cat > {output.config_trk} <<EOF
+{{
+  "hists_file": "{output.hists_trk}",
+  "detector": "epic_craterlake",
+  "ebeam": {params.EBEAM},
+  "pbeam": {params.PBEAM},
+  "Min_Q2": {params.MINQ2},
+  "nfiles": {wildcards.NFILES},
+  "output_prefix": "$(dirname "{output.hists_trk}")/plots"
+}}
+EOF
+hadd {output.hists_trk} {input.trk}
+
+cat > {output.config_vtx} <<EOF
+{{
+  "hists_file": "{output.hists_vtx}",
+  "detector": "epic_craterlake",
+  "ebeam": {params.EBEAM},
+  "pbeam": {params.PBEAM},
+  "Min_Q2": {params.MINQ2},
+  "nfiles": {wildcards.NFILES},
+  "output_prefix": "$(dirname "{output.hists_vtx}")/plots"
+}}
+EOF
+hadd {output.hists_vtx} {input.vtx}
+"""
+
+rule trk_dis_campaign_plots:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
+        config="results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/config.json",
+    output:
+        "results/tracking_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/plots.pdf",
+    wildcard_constraints:
+        CAMPAIGN=r"[\d.]+",
+        BEAM=r"\d+x\d+",
+        Q2_RANGE=r"q2_\w+",
+        NFILES=r"\d+",
+    shell:
+        """
+root -l -b -q '{input.script}+("{input.config}")'
+"""
+
+rule vtx_dis_campaign_plots:
+    input:
+        script="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots.cxx",
+        script_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so",
+        config="results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/config.json",
+    output:
+        "results/vertexing_performances_dis/campaign_{CAMPAIGN}/epic_craterlake/{BEAM}/{Q2_RANGE}/combined_{NFILES}/plots.pdf",
+    wildcard_constraints:
+        CAMPAIGN=r"[\d.]+",
+        BEAM=r"\d+x\d+",
+        Q2_RANGE=r"q2_\w+",
+        NFILES=r"\d+",
+    shell:
+        """
+root -l -b -q '{input.script}+("{input.config}")'
+"""
+
 #Examples of invocation
 rule trk_dis_run_locally:
     input:
@@ -215,5 +392,24 @@ rule trk_dis_run_locally_trk_only:
 rule vtx_dis_run_locally_trk_only:
     input:
         "results/vertexing_performances_dis/epic_craterlake_tracking_only/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+    message:
+        "See output in {input[0]}"
+
+
+# Campaign invocation rules (pre-simulated files from BNL xrootd)
+# To switch campaigns, update DIS_CAMPAIGN_CONFIG at the top of this file.
+rule trk_dis_campaign:
+    input:
+        "results/tracking_performances_dis/campaign_{campaign}/epic_craterlake/{beam}/{q2_range}/combined_{nfiles}/plots.pdf".format(
+            **DIS_CAMPAIGN_CONFIG
+        ),
+    message:
+        "See output in {input[0]}"
+
+rule vtx_dis_campaign:
+    input:
+        "results/vertexing_performances_dis/campaign_{campaign}/epic_craterlake/{beam}/{q2_range}/combined_{nfiles}/plots.pdf".format(
+            **DIS_CAMPAIGN_CONFIG
+        ),
     message:
         "See output in {input[0]}"

@@ -135,7 +135,7 @@ rule matplotlibrc:
 
 rule org2py:
     input:
-        notebook=workflow.basedir + "/{NOTEBOOK}.org",
+        notebook=lambda wildcards: workflow.source_path(f"{wildcards.NOTEBOOK}.org"),
         converter=workflow.source_path("benchmarks/common/org2py.awk"),
     output:
         "{NOTEBOOK}.py"

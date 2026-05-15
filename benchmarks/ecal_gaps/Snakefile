@@ -64,7 +64,7 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 rule ecal_gaps:
     input:
         matplotlibrc=".matplotlibrc",
-        script=workflow.source_path("ecal_gaps.py"),
+        script="benchmarks/ecal_gaps/ecal_gaps.py",
         # TODO pass as a file list?
         _=expand(
             "sim_output/ecal_gaps/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",

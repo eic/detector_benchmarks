@@ -112,5 +112,3 @@ if [[ "${JUGGLER_N_EVENTS}" -lt "500" ]] ; then
     cp ${JUGGLER_SIM_FILE} results/.
   fi
 fi
-
-

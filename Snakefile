@@ -7,11 +7,11 @@ from snakemake.logging import logger
 
 rule compile_analysis:
     input:
-        "{path}/{filename}.cxx",
+        lambda wildcards: f"{wildcards.PATH}/{wildcards.FILENAME}.cxx",
     output:
-        "{path}/{filename}_cxx.d",
-        "{path}/{filename}_cxx.so",
-        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+        "{PATH}/{FILENAME}_cxx.d",
+        "{PATH}/{FILENAME}_cxx.so",
+        "{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
     shell:
         """
 root -l -b -q -e '.L {input}+'

@@ -162,7 +162,6 @@ include:
   - local: 'benchmarks/nhcal_pion_rejection/config.yml'
   
 deploy_results:
-  allow_failure: true
   extends: .det_benchmark
   stage: deploy
   needs:

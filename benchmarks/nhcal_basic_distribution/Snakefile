@@ -56,6 +56,8 @@ rule nhcal_basic_distribution_analysis:
     input:
         combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
         script=workflow.source_path("scripts/basic_distribution_analysis.cxx"),
+        workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
+        workflow.source_path("scripts/NeutronThresholdUtil.h"),
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
         root="sim_output/nhcal_basic_distribution/energy_resolution_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.root",

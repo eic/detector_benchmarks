@@ -89,6 +89,8 @@ for i in range(6):
         sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
+        mu.append(np.nan)
+        sigma.append(np.nan)
     
     temp = np.array(df[f'ecal_rec_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
@@ -101,6 +103,8 @@ for i in range(6):
         sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
+        mu.append(np.nan)
+        sigma.append(np.nan)
     
     temp = np.array(df[f'ecal_sim_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
@@ -113,6 +117,8 @@ for i in range(6):
         sigma.append(coeff[2])
     except RuntimeError:
         print("fit failed")
+        mu.append(np.nan)
+        sigma.append(np.nan)
     
     plt.xlabel('Energy (MeV)')
     plt.legend()

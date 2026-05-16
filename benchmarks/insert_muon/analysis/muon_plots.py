@@ -54,6 +54,7 @@ for p in 50,:
     fnc=Landau
     p0=[100, .5, .05]
     #print(list(y), list(x))
+    MIP=p0[1]/1000
     try:
         coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
                                      sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)

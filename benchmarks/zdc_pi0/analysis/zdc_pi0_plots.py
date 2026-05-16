@@ -159,19 +159,23 @@ plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
 
 fnc=lambda E,a: a/np.sqrt(E)
 #pvals, resvals, dresvals
+fit_succeeded = False
 try:
     coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
                                      sigma=dresvals, maxfev=10000)
     xx=np.linspace(55, 200, 100)
     plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E}}}}$ mrad')
-    plt.ylabel("$\\sigma[\\theta_{\\pi^0}]$ [mrad]")
-    plt.xlabel("$p_{\\pi^0}$ [GeV]")
-    plt.ylim(0, 0.1)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(outdir+"/pi0_theta_res.pdf")
+    fit_succeeded = True
 except RuntimeError:
     print("fit failed")
+
+plt.ylabel("$\\sigma[\\theta_{\\pi^0}]$ [mrad]")
+plt.xlabel("$p_{\\pi^0}$ [GeV]")
+plt.ylim(0, 0.1)
+if fit_succeeded:
+    plt.legend()
+plt.tight_layout()
+plt.savefig(outdir+"/pi0_theta_res.pdf")
 
 fig,axs=plt.subplots(1,2, figsize=(16, 8))
 pvals=[]
@@ -238,7 +242,8 @@ try:
     #plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times E$ MeV')
     plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $({coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times [E\\,in\\,GeV])$ MeV')
     plt.legend()
-    plt.tight_layout()
-    plt.savefig(outdir+"/pi0_mass_res.pdf")
 except RuntimeError:
     print("fit failed")
+
+plt.tight_layout()
+plt.savefig(outdir+"/pi0_mass_res.pdf")

@@ -154,7 +154,7 @@ try:
     coeff, var_matrix = curve_fit(fnc, emid, res, p0=p0, sigma=list(dres), maxfev=10000)
     xx=np.linspace(10, 100, 100)
     plt.plot(xx, 1000*fnc(xx, *coeff), label=f"fit: ${coeff[0]:.2f}/E$ mrad")
-    plt.legend()
-    plt.savefig(outdir+"/theta_res.pdf")
 except RuntimeError:
     print("fit failed")
+plt.legend()
+plt.savefig(outdir+"/theta_res.pdf")

@@ -50,22 +50,3 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
 	}
 
 }   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

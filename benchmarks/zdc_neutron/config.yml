@@ -35,4 +35,3 @@ collect_results:zdc_neutron:
       gs -sDEVICE=pngalpha -dUseCropBox -r144 \
         -o 'results/zdc_neutron/epic_craterlake/recon_plots_%03d.png' \
         results/zdc_neutron/epic_craterlake/fwd_neutrons_recon.pdf
-

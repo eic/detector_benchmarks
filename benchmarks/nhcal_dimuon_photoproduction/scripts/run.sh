@@ -29,4 +29,3 @@ OUTBASE="${OUTDIR}/DiMuon_ep_18x275GeV.${INDEX}"
 LOG="${OUTDIR}/DiMuon_ep_18x275GeV_${INDEX}.log"
 
 "${SCRIPT_DIR}/pythiaDiMuon" "${SCRIPT_DIR}/ep_DiMuon.cmnd" "$OUTBASE" | tee "$LOG"
-

@@ -54,4 +54,3 @@ void b0_tracker_hits(const char* fname = "./sim_output/sim_forward_protons.edm4h
   //}
 
 }
-

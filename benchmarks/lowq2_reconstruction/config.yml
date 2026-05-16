@@ -118,4 +118,3 @@ upload_onnx:lowq2_reconstruction:
       --repository $GITHUB_REPOSITORY \
       --artifactsURL "$ARTIFACTS_URL"
     - echo "Updating GitHub status for lowq2 reconstruction"
-

@@ -7,5 +7,3 @@ This benchmark generates events with a range of particle species at fixed energi
 
 ## Contacts
 [Peter Steinberg](steinberg@bnl.gov)
-
-

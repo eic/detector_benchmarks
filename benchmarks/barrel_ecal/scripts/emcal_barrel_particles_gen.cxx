@@ -78,4 +78,3 @@ void emcal_barrel_particles_gen(std::string out_fname, int n_events = 1e6, doubl
   hepmc_output.close();
   std::cout << "Events parsed and written: " << events_parsed << std::endl;
 }
-

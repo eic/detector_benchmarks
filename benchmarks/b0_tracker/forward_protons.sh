@@ -47,4 +47,3 @@ if [[ "$?" -ne "0" ]] ; then
   echo "ERROR running script: events"
   exit 1
 fi
-

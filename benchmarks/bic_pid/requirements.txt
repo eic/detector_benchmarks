@@ -4,3 +4,10 @@ numpy
 pandas
 matplotlib
 pyarrow
+uproot>=5.2.0
+awkward>=2.4.0
+dask
+dask-awkward
+hist
+dask-histogram
+boost-histogram

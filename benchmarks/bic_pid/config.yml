@@ -49,15 +49,19 @@ bench:bic_pid:
     - ls -lrtha
   script:
     - |
-      python -m venv .venv
+      command -v python3.10
+      python3.10 -V
+
+      python3.10 -m venv .venv
       source .venv/bin/activate
 
       python -m pip install --upgrade pip setuptools wheel
       python -m pip install snakemake
       python -m pip install -r benchmarks/bic_pid/requirements.txt
-      python -c "import tensorflow as tf, tf2onnx, pandas as pd, numpy as np, matplotlib, pyarrow; print('TF OK:', tf.__version__); print('tf2onnx OK:', tf2onnx.__version__)"
 
+      python -c "import sys, uproot, awkward as ak, dask, dask_awkward as dak, numpy as np, pandas as pd, tensorflow as tf, tf2onnx; print(sys.version); print('uproot', uproot.__version__); print('awkward', ak.__version__); print('dask', dask.__version__); print('dask_awkward', dak.__version__); print('numpy', np.__version__); print('pandas', pd.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__)"
       snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+
 
 collect_results:bic_pid:
   extends: .det_benchmark

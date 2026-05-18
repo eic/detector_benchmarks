@@ -57,7 +57,6 @@ bench:bic_pid:
     - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" python -c "import sys, uproot, awkward as ak, dask, dask_awkward as dak, numpy as np, pandas as pd, tensorflow as tf, tf2onnx; print(sys.version); print('uproot', uproot.__version__); print('awkward', ak.__version__); print('dask', dask.__version__); print('dask_awkward', dak.__version__); print('numpy', np.__version__); print('pandas', pd.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__)"
     - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
 
-
 collect_results:bic_pid:
   extends: .det_benchmark
   stage: collect

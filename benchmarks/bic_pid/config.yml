@@ -48,14 +48,23 @@ bench:bic_pid:
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
     - ls -lrtha
-  script:
-    - mkdir -p mm
-    - curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C mm
-    - mm/bin/micromamba create -y -p "$MAMBA_ROOT_PREFIX/envs/bicpid" -f benchmarks/bic_pid/environment.yml
-    - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" python -m pip install --upgrade pip
-    - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" python -m pip install snakemake tensorflow-cpu==2.20.0 tf2onnx==1.17.0
-    - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" python -c "import sys, uproot, awkward as ak, dask, dask_awkward as dak, numpy as np, pandas as pd, tensorflow as tf, tf2onnx; print(sys.version); print('uproot', uproot.__version__); print('awkward', ak.__version__); print('dask', dask.__version__); print('dask_awkward', dak.__version__); print('numpy', np.__version__); print('pandas', pd.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__)"
-    - mm/bin/micromamba run -p "$MAMBA_ROOT_PREFIX/envs/bicpid" snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+script:
+  - mkdir -p mm
+  - curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C mm
+  - mm/bin/micromamba create -y -p "$MAMBA_ROOT_PREFIX/envs/bicpid" -f benchmarks/bic_pid/environment.yml
+
+  - export BICPY="$MAMBA_ROOT_PREFIX/envs/bicpid/bin/python"
+  - export PYTHONNOUSERSITE=1
+  - unset PYTHONPATH
+
+  - "$BICPY" -V
+  - "$BICPY" -m pip install --upgrade pip
+  - "$BICPY" -m pip install snakemake tensorflow-cpu==2.20.0 tf2onnx==1.17.0
+
+  - "$BICPY" -c "import sys, uproot, awkward as ak, dask, dask_awkward as dak, numpy as np, pandas as pd, tensorflow as tf, tf2onnx; print(sys.version); print('uproot', uproot.__version__); print('awkward', ak.__version__); print('dask', dask.__version__); print('dask_awkward', dak.__version__); print('numpy', np.__version__); print('pandas', pd.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__)"
+
+  - "$BICPY" -m snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+
 
 collect_results:bic_pid:
   extends: .det_benchmark

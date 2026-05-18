@@ -29,7 +29,7 @@ bench:calo_pid:
   script:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/calo_pid/requirements.txt
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_inner_detector/calo_pid --allowed-rules calo_pid matplotlibrc
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_inner_detector/calo_pid --allowed-rules calo_pid_input_list calo_pid matplotlibrc org2py
 
 collect_results:calo_pid:
   extends: .det_benchmark

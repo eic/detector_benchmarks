@@ -69,5 +69,3 @@ private:
 
 
 #endif /* PythiaEvent_H */
-
-

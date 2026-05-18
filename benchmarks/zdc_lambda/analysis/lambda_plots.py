@@ -101,12 +101,15 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<0.3
 fnc=gauss
 p0=[100, 0, 0.05]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-1, 1)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
-plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
-plt.ylabel("events")
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-1, 1)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+    plt.xlabel("$\\theta^{*\\rm recon}_{\\Lambda}-\\theta^{*\\rm truth}_{\\Lambda}$ [mrad]")
+    plt.ylabel("events")
+except RuntimeError:
+    print("fit failed")
 
 plt.sca(axs[2])
 sigmas=[]
@@ -165,13 +168,16 @@ from scipy.optimize import curve_fit
 slc=abs(bc)<5
 fnc=gauss
 p0=[100, 0, 1]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(-5, 5)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
-print(coeff[2], np.sqrt(var_matrix[2][2]))
-plt.xlabel("$z^{*\\rm recon}_{\\rm vtx}-z^{*\\rm truth}_{\\rm vtx}$ [m]")
-plt.ylabel("events")
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(-5, 5)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+    print(coeff[2], np.sqrt(var_matrix[2][2]))
+    plt.xlabel("$z^{*\\rm recon}_{\\rm vtx}-z^{*\\rm truth}_{\\rm vtx}$ [m]")
+    plt.ylabel("events")
+except RuntimeError:
+    print("fit failed")
 
 plt.sca(axs[2])
 sigmas=[]
@@ -232,14 +238,17 @@ from scipy.optimize import curve_fit
 slc=abs(bc-lambda_mass)<0.05
 fnc=gauss
 p0=[100, lambda_mass, 0.04]
-coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
-                                 sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
-x=np.linspace(0.8, 1.3, 200)
-plt.plot(x, gauss(x, *coeff), color='tab:orange')
-print(coeff[2], np.sqrt(var_matrix[2][2]))
-plt.xlabel("$m^{\\rm recon}_{\\Lambda}$ [GeV]")
-plt.ylabel("events")
-plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
+try:
+    coeff, var_matrix = curve_fit(fnc, bc[slc], y[slc], p0=p0,
+                                     sigma=np.sqrt(y[slc])+(y[slc]==0), maxfev=10000)
+    x=np.linspace(0.8, 1.3, 200)
+    plt.plot(x, gauss(x, *coeff), color='tab:orange')
+    print(coeff[2], np.sqrt(var_matrix[2][2]))
+    plt.xlabel("$m^{\\rm recon}_{\\Lambda}$ [GeV]")
+    plt.ylabel("events")
+    plt.title(f"$E_{{\\Lambda}}=100-275$ GeV")
+except RuntimeError:
+    print("fit failed")
 
 plt.sca(axs[1])
 xvals=[]

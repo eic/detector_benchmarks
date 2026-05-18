@@ -219,4 +219,3 @@ void simple_info_plot_histograms(const char* fname = "sim_output/output_zdc_phot
     std::quick_exit(1);
   }
 }
-

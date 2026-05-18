@@ -21,6 +21,3 @@ results:b0_tracker:
     - ["bench:b0_tracker"]
   script:
     - echo "Collecting results for B0 Tracker"
-
-
-

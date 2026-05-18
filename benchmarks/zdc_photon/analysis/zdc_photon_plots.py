@@ -87,9 +87,9 @@ try:
 
     xx=np.linspace(15, 275, 100)
     plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]*100:.0f}\\%}}{{\\sqrt{{E}}}}$')
+    plt.legend()
 except RuntimeError as e:
     print("fit failed", e)
-plt.legend()
 plt.sca(axs[2])
 plt.errorbar(pvals, scalevals, dscalevals, ls='', marker='o')
 plt.ylim(0.8, 1.2)
@@ -147,17 +147,19 @@ plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
 
 fnc=lambda E,a, b: np.hypot(a/np.sqrt(E), b)
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.1),
-                                 sigma=dresvals, maxfev=10000)
-
-xx=np.linspace(15, 275, 100)
-
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E}}}}\\oplus {coeff[1]:.3f}$ mrad')
-
+fit_succeeded = False
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,.1),
+                                     sigma=dresvals, maxfev=10000)
+    xx=np.linspace(15, 275, 100)
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E}}}}\\oplus {coeff[1]:.3f}$ mrad')
+    fit_succeeded = True
+except RuntimeError:
+    print("fit failed")
 plt.ylabel("$\\sigma[\\theta_{\\gamma}]$ [mrad]")
 plt.xlabel("$p_{\\gamma}$ [GeV]")
-
 plt.ylim(0, 0.1)
-plt.legend()
+if fit_succeeded:
+    plt.legend()
 plt.tight_layout()
 plt.savefig(outdir+"photon_theta_res.pdf")

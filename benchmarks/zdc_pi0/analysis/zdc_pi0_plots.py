@@ -59,16 +59,19 @@ for p in momenta:
     fnc=gauss
     p0=[100, p, 10]
     #print(list(y), list(x))
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==60:
-        xx=np.linspace(p*0.5,p*1.5, 100)
-        plt.plot(xx, fnc(xx,*coeff))
-    pvals.append(p)
-    resvals.append(np.abs(coeff[2])/coeff[1])
-    dresvals.append(np.sqrt(var_matrix[2][2])/coeff[1])
-    scalevals.append(np.abs(coeff[1])/p)
-    dscalevals.append(np.sqrt(var_matrix[2][2])/p)
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+                                     sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
+        if p==60:
+            xx=np.linspace(p*0.5,p*1.5, 100)
+            plt.plot(xx, fnc(xx,*coeff))
+        pvals.append(p)
+        resvals.append(np.abs(coeff[2])/coeff[1])
+        dresvals.append(np.sqrt(var_matrix[2][2])/coeff[1])
+        scalevals.append(np.abs(coeff[1])/p)
+        dscalevals.append(np.sqrt(var_matrix[2][2])/p)
+    except RuntimeError:
+        print("fit failed")
     
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
@@ -78,12 +81,15 @@ plt.xlabel("$p_{\\pi^0}$ [GeV]")
 
 fnc=lambda E,a: a/np.sqrt(E)
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
-                                 sigma=dresvals, maxfev=10000)
-xx=np.linspace(55, 200, 100)
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}\\%}}{{\\sqrt{{E}}}}$')
-plt.legend()
-plt.ylim(0)
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
+                                     sigma=dresvals, maxfev=10000)
+    xx=np.linspace(55, 200, 100)
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}\\%}}{{\\sqrt{{E}}}}$')
+    plt.legend()
+    plt.ylim(0)
+except RuntimeError:
+    print("fit failed")
 plt.sca(axs[2])
 plt.errorbar(pvals, scalevals, dscalevals, ls='', marker='o')
 plt.ylim(0.8, 1.2)
@@ -135,14 +141,17 @@ for p in momenta:
     fnc=gauss
     p0=[100, 0, 0.1]
     #print(list(y), list(x))
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==60:
-        xx=np.linspace(-0.5,0.5, 100)
-        plt.plot(xx, fnc(xx,*coeff))
-    pvals.append(p)
-    resvals.append(np.abs(coeff[2]))
-    dresvals.append(np.sqrt(var_matrix[2][2]))
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+                                     sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
+        if p==60:
+            xx=np.linspace(-0.5,0.5, 100)
+            plt.plot(xx, fnc(xx,*coeff))
+        pvals.append(p)
+        resvals.append(np.abs(coeff[2]))
+        dresvals.append(np.sqrt(var_matrix[2][2]))
+    except RuntimeError:
+        print("fit failed")
     
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
@@ -150,18 +159,21 @@ plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
 
 fnc=lambda E,a: a/np.sqrt(E)
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
-                                 sigma=dresvals, maxfev=10000)
-
-xx=np.linspace(55, 200, 100)
-
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E}}}}$ mrad')
+fit_succeeded = False
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,),
+                                     sigma=dresvals, maxfev=10000)
+    xx=np.linspace(55, 200, 100)
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $\\frac{{{coeff[0]:.2f}}}{{\\sqrt{{E}}}}$ mrad')
+    fit_succeeded = True
+except RuntimeError:
+    print("fit failed")
 
 plt.ylabel("$\\sigma[\\theta_{\\pi^0}]$ [mrad]")
 plt.xlabel("$p_{\\pi^0}$ [GeV]")
-
 plt.ylim(0, 0.1)
-plt.legend()
+if fit_succeeded:
+    plt.legend()
 plt.tight_layout()
 plt.savefig(outdir+"/pi0_theta_res.pdf")
 
@@ -203,14 +215,17 @@ for p in momenta:
     fnc=gauss
     p0=[60, .135, 0.2]
     #print(list(y), list(x))
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    if p==60:
-        xx=np.linspace(0,0.2)
-        plt.plot(xx, fnc(xx,*coeff))
-    pvals.append(p)
-    resvals.append(np.abs(coeff[2]))
-    dresvals.append(np.sqrt(var_matrix[2][2]))
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+                                     sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
+        if p==60:
+            xx=np.linspace(0,0.2)
+            plt.plot(xx, fnc(xx,*coeff))
+        pvals.append(p)
+        resvals.append(np.abs(coeff[2]))
+        dresvals.append(np.sqrt(var_matrix[2][2]))
+    except RuntimeError:
+        print("fit failed")
     
 plt.sca(axs[1])
 plt.errorbar(pvals, resvals, dresvals, ls='', marker='o')
@@ -220,13 +235,15 @@ plt.xlabel("$p_{\\pi^0}$ [GeV]")
 
 fnc=lambda E,a,b: a+b*E
 #pvals, resvals, dresvals
-coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,1),
-                                 sigma=dresvals, maxfev=10000)
-xx=np.linspace(55, 200, 100)
-#plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times E$ MeV')
-plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $({coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times [E\\,in\\,GeV])$ MeV')
-plt.legend()
-
+try:
+    coeff, var_matrix = curve_fit(fnc, pvals, resvals, p0=(1,1),
+                                     sigma=dresvals, maxfev=10000)
+    xx=np.linspace(55, 200, 100)
+    #plt.plot(xx, fnc(xx, *coeff), label=f'fit:  ${coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times E$ MeV')
+    plt.plot(xx, fnc(xx, *coeff), label=f'fit:  $({coeff[0]*1000:.1f}+{coeff[1]*1000:.4f}\\times [E\\,in\\,GeV])$ MeV')
+    plt.legend()
+except RuntimeError:
+    print("fit failed")
 
 plt.tight_layout()
 plt.savefig(outdir+"/pi0_mass_res.pdf")

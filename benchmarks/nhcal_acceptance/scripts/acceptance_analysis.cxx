@@ -95,5 +95,3 @@ int acceptance_analysis(TString filename, string outname_pdf, string outname_png
 
     return 0;
 }
-
-

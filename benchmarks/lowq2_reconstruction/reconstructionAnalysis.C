@@ -367,4 +367,3 @@ void reconstructionAnalysis(TString inFile             = "/home/simong/EIC/detec
     // }
 
 }
-

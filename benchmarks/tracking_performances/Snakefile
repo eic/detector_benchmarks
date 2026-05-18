@@ -124,7 +124,7 @@ rule tracking_performance_at_momentum:
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
-        combined_root=temp("{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
+        combined_root=temp("tracking_performances/{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -134,8 +134,7 @@ elif [[ "{wildcards.SEEDING}" == "realseed" ]]; then
         TRUTH_SEEDING="false"
 fi
 hadd {output.combined_root} {input.sim}
-cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING')'
+root -l -b -q {input.script}'("{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING', "{wildcards.CAMPAIGN}")'
 """
 
 

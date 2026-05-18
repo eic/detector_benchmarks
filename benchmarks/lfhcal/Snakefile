@@ -88,8 +88,7 @@ rule lfhcal_at_momentum:
     shell:
         """
 hadd {output.combined_root} {input.sim}
-cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("../{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15)'
+root -l -b -q {input.script}'("{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "", "{wildcards.CAMPAIGN}")'
 """
 
 rule lfhcal_summary_at_eta:
@@ -121,8 +120,7 @@ if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
 else
         EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
-cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q {input.script}'("{wildcards.PARTICLE}", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'", "{wildcards.CAMPAIGN}")'
 """
 
 LFHCAL_ETA_BINS = [1.2,1.5,2,2.5,3,3.5]

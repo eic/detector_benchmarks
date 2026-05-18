@@ -103,4 +103,3 @@ rule zdc_lyso_local:
         "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
    message:
         "See output in {input[0]}"
-

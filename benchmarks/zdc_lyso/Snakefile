@@ -14,6 +14,7 @@ rule zdc_lyso_sim_hepmc:
         BEAM_ENERGY=lambda wildcards: wildcards.BEAM_ENERGY,
         THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
         THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{params.PARTICLE}", {params.THETA_MIN}, {params.THETA_MAX}, 0, 360, {params.BEAM_ENERGY})'
@@ -36,6 +37,7 @@ rule zdc_lyso_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -61,6 +63,7 @@ rule zdc_lyso_reco:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -78,6 +81,7 @@ rule zdc_lyso_analysis:
         script="benchmarks/zdc_lyso/analysis/analysis.py",
     output:
         "results/{DETECTOR_CONFIG}/zdc_lyso/plots.pdf",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 python {input.script}

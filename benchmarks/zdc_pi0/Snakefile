@@ -6,6 +6,7 @@ rule zdc_pi0_generate:
     params:
         N_EVENTS=1000,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p sim_output/zdc_pi0
@@ -29,6 +30,7 @@ rule zdc_pi0_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -52,6 +54,7 @@ rule zdc_pi0_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -68,6 +71,7 @@ rule zdc_pi0_analysis:
         script="benchmarks/zdc_pi0/analysis/zdc_pi0_plots.py",
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_pi0"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

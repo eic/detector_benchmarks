@@ -24,6 +24,7 @@ rule lfhcal_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 npsim \
@@ -52,6 +53,7 @@ rule lfhcal_recon:
     params:
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
   eicrecon {input.sim} -Ppodio:output_file={output} \
@@ -82,6 +84,7 @@ rule lfhcal_at_momentum:
     output:
         "{CAMPAIGN}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",
         combined_root=temp("{CAMPAIGN}/lfhcal_sim_{MOMENTUM}_{PARTICLE}.root"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 hadd {output.combined_root} {input.sim}
@@ -101,6 +104,7 @@ rule lfhcal_summary_at_eta:
     output:
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -135,6 +139,7 @@ rule lfhcal:
         )
     output:
         directory("results/lfhcal/{CAMPAIGN}/")
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir {output}

@@ -15,6 +15,7 @@ rule filter_hepmc_for_training:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
     params:
         events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         python {input.script} --outFile {output} --inFile {params.events}
@@ -32,6 +33,7 @@ rule lowq2_training_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             exec npsim \
@@ -57,6 +59,7 @@ rule lowq2_reconstruction_particles_eicrecon:
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_test_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -81,6 +84,7 @@ rule lowq2_reconstruction_tensors_eicrecon:
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile} -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -95,6 +99,7 @@ rule lowq2_steering_reconstruction_preparation:
         data=ANALYSISDIR+"Low-Q2_Training_Tensors_{CAMPAIGN}.eicrecon.edm4hep.root",
     output:
         rootfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}",18.0)'
@@ -109,6 +114,7 @@ rule lowq2_steering_reconstruction_training:
         data=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Data{CAMPAIGN}.root",
     output:
         onnxfile=ANALYSISDIR+"Low-Q2_Steering_Reconstruction_Test_{CAMPAIGN}.onnx",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         python {input.script} --dataFiles {input.data} --outModelFile {output.onnxfile} --epochs 1000
@@ -127,6 +133,7 @@ rule lowq2_steering_reconstruction_particles_trained_eicrecon:
     output:
         eicreconfile=ANALYSISDIR+"Low-Q2_retrained_Particles_{CAMPAIGN}.eicrecon.edm4hep.root",
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         eicrecon -Ppodio:output_file={output.eicreconfile}  -Pjana:nevents=500000 -PLOWQ2:TaggerTrackerTransportationPreML:beamE=18.0 -PLOWQ2:TaggerTrackerTransportationPostML:beamE=18.0 -Pdd4hep:xml_files={params.xml} \
@@ -148,6 +155,7 @@ rule lowq2_reconstruction_particles_test:
         energyThetaPhiCanvas=ANALYSISDIR+"{STAGE}_energy_theta_phi_resolution_{CAMPAIGN}.png",
         relationCanvas=ANALYSISDIR+"{STAGE}_relation_resolution_{CAMPAIGN}.png",
         resolutionGraphsCanvas=ANALYSISDIR+"{STAGE}_resolution_graphs_{CAMPAIGN}.png",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         root -l -b -q '{input.script}+("{input.data}", 18, "{output.rootfile}", "{output.momentumCanvas}", "{output.energyThetaPhiCanvas}", "{output.relationCanvas}", "{output.resolutionGraphsCanvas}")'
@@ -160,6 +168,7 @@ rule lowq2_reconstruction_particles_check:
         rootfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.root"
     output:
         jsonfile=ANALYSISDIR+"Low-Q2_{STAGE}_Resolution_Results_{CAMPAIGN}.json"
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         root -l -b -q '{input.script}+("{input.rootfile}", "{output.jsonfile}")'
@@ -186,6 +195,7 @@ rule lowq2_reconstruction:
         onnxfile=get_onnx_input,
     output:
         directory("results/lowq2_reconstruction/{STAGE}_{CAMPAIGN}/")
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             mkdir {output}        

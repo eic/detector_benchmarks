@@ -15,6 +15,7 @@ rule femc_electron_generate:
         th_max=28,
         th_min=2.0,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p sim_output/femc_electron
@@ -36,6 +37,7 @@ rule femc_electron_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -58,6 +60,7 @@ rule femc_electron_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -72,6 +75,7 @@ rule femc_electron_analysis:
         script="benchmarks/femc_electron/analysis/femc_electron_plots.py",
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/femc_electron"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

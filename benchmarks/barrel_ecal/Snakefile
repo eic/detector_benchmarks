@@ -9,6 +9,7 @@ rule emcal_barrel_particles_gen:
         JUGGLER_N_EVENTS = 100,
     output:
         "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}+("{output}", {params.JUGGLER_N_EVENTS}, {wildcards.E_MIN}, {wildcards.E_MAX}, "{wildcards.PARTICLE}")'
@@ -26,6 +27,7 @@ rule emcal_barrel_particles:
     output:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -49,6 +51,7 @@ rule emcal_barrel_particles_compat_normal:
         PARTICLE="[^_]+",
     output:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 ln {input} {output}
@@ -63,6 +66,7 @@ rule emcal_barrel_particles_compat_energy_scan:
         PARTICLE="[^_]+",
     output:
         "{DETECTOR_CONFIG}/sim_output/energy_scan/{E}/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 ln {input} {output}
@@ -90,6 +94,7 @@ rule emcal_barrel_particles_analysis:
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamImg.pdf",
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamScFi.png",
         "{DETECTOR_CONFIG}/results/emcal_barrel_{PARTICLE}_fsamScFi.pdf",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
@@ -107,6 +112,7 @@ rule emcal_barrel_pions_analysis:
             var_name=["Ethr", "nhits", "Esim", "fsam", "pid"],
             extension=["pdf", "png"],
         ),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
@@ -126,6 +132,7 @@ rule emcal_barrel_pi0_analysis:
             extension=["pdf", "png"],
         ),
         "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json"
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
@@ -158,6 +165,7 @@ rule emcal_barrel_particles_energy_scan_analysis:
             energy=ENERGY_SCAN_ENERGIES,
             plot=["Esim_layer", "Layer_nodep", "Layer_Esim_mean", "Ethr", "nhits", "Esim", "fsam"],
         ),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}
@@ -193,6 +201,7 @@ rule emcal_barrel_pion_rejection_analysis:
             ),
             extension=["pdf", "png"],
         ),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cd {wildcards.DETECTOR_CONFIG}

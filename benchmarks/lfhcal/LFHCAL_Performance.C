@@ -12,7 +12,7 @@
 
 #define mpi 0.139  // 1.864 GeV/c^2
 
-void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.0, TString name = "")
+void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.0, TString name = "", TString output_dir=".")
 {
 
   // style of the plot
@@ -144,13 +144,9 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
   
     }// event loop ends    
   
-   TFile *fout_mom = new TFile(Form("%s/mom/lfhcal_mom_%1.1f_%s_%s.root",particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
+   TFile *fout_mom = new TFile(Form("%s/%s/mom/lfhcal_mom_%1.1f_%s_%s.root",output_dir.Data(),particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
    fout_mom->cd();
    for (int ibin=0; ibin<nbins_eta; ++ibin) histp[ibin]->Write();
    fout_mom->Close();
 
 }
-
-
-
-

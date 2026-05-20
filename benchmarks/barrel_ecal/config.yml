@@ -104,4 +104,3 @@ collect_results:barrel_ecal:
   script:
     - ls -lrht
     - echo " FIX ME" 
-

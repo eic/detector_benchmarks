@@ -71,6 +71,9 @@ include: "benchmarks/femc_photon/Snakefile"
 include: "benchmarks/femc_pi0/Snakefile"
 include: "benchmarks/nhcal_acceptance/Snakefile"
 include: "benchmarks/nhcal_basic_distribution/Snakefile"
+include: "benchmarks/nhcal_sampling_fraction/Snakefile"
+include: "benchmarks/nhcal_dimuon_photoproduction/Snakefile"
+include: "benchmarks/nhcal_pion_rejection/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
@@ -85,6 +88,8 @@ def get_remote_path(path):
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
 
+localrules: fetch_epic
+
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
@@ -94,9 +99,9 @@ rule fetch_epic:
     cache: True
     retries: 3
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_xrootd else """
-mc cp S3/eictest/{output.filepath} {output.filepath}
+mc cp S3/eictest/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_s3 else f"""
 echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
 exit 1

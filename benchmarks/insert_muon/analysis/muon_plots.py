@@ -54,17 +54,21 @@ for p in 50,:
     fnc=Landau
     p0=[100, .5, .05]
     #print(list(y), list(x))
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
-                                 sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
-    print(coeff)
-    xx=np.linspace(0,.7, 100)
-    MIP=coeff[1]/1000
-    plt.plot(xx, fnc(xx,*coeff), label=f'Landau fit:\nMIP={coeff[1]*1e3:.0f}$\\pm${1e3*np.sqrt(var_matrix[1][1]):.0f} keV')
-    plt.xlabel("hit energy [MeV]")
-    plt.ylabel("hits")
-    plt.title(f"$E_{{\\mu^-}}=${p} GeV")
-    plt.legend(fontsize=20)
-    plt.savefig(outdir+"/MIP.pdf")
+    MIP=p0[1]/1000
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0,
+                                     sigma=list(np.sqrt(y[slc])+(y[slc]==0)), maxfev=10000)
+        print(coeff)
+        xx=np.linspace(0,.7, 100)
+        MIP=coeff[1]/1000
+        plt.plot(xx, fnc(xx,*coeff), label=f'Landau fit:\nMIP={coeff[1]*1e3:.0f}$\\pm${1e3*np.sqrt(var_matrix[1][1]):.0f} keV')
+        plt.xlabel("hit energy [MeV]")
+        plt.ylabel("hits")
+        plt.title(f"$E_{{\\mu^-}}=${p} GeV")
+        plt.legend(fontsize=20)
+        plt.savefig(outdir+"/MIP.pdf")
+    except RuntimeError:
+        print("fit failed")
 
     plt.figure(figsize=(10,7))
     array=arrays_sim[p]

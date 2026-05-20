@@ -69,4 +69,3 @@ collect_results:pid:
   #needs: 
   script:
     - ls -lrht
-

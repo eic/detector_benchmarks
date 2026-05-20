@@ -28,4 +28,3 @@ void SaveHistogramsFromList(TList &l, TString prefix) {
         }
     }
 }
-

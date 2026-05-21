@@ -18,6 +18,7 @@ rule nhcal_basic_distribution_simulate:
         NPSIM_HASH=get_spack_package_hash("npsim"),
         TOTAL_ENERGY=lambda wildcards: get_total_energy_neutron(wildcards.ENERGY),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -47,6 +48,7 @@ rule nhcal_basic_distribution_combine:
         ENERGY=r"\d+(\.\d+)?"
     output:
         temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             hadd -f {output} {input} 
@@ -67,6 +69,7 @@ rule nhcal_basic_distribution_analysis:
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}+("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
@@ -82,6 +85,7 @@ rule nhcal_basic_distribution_combine_energy_resolution:
         "sim_output/nhcal_basic_distribution/energy_resolution_combined_{DETECTOR_CONFIG}.root",
     wildcard_constraints:
         DETECTOR_CONFIG=r"[\w]+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             hadd -f {output} {input} 
@@ -93,6 +97,7 @@ rule nhcal_basic_distribution_analysis_energy_resolution:
         script=workflow.source_path("scripts/basic_distribution_energy_resolution.cxx"),
     output:
         png="results/nhcal_basic_distribution/energy_resolution_analysis_{DETECTOR_CONFIG}.png",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}("{input.root}","{output.png}")'

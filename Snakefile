@@ -5,6 +5,9 @@ import os
 from snakemake.logging import logger
 
 
+EIC_SINGULARITY_CONTAINER = os.getenv("EIC_SINGULARITY_CONTAINER", "/cvmfs/eic.opensciencegrid.org/singularity/eicweb/eic_xl:nightly")
+
+
 rule compile_analysis:
     input:
         lambda wildcards: f"{wildcards.PATH}/{wildcards.FILENAME}.cxx",
@@ -12,6 +15,7 @@ rule compile_analysis:
         "{PATH}/{FILENAME}_cxx.d",
         "{PATH}/{FILENAME}_cxx.so",
         "{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q -e '.L {input}+'
@@ -98,6 +102,7 @@ rule fetch_epic:
         PATH=lambda wildcards: wildcards.PATH
     cache: True
     retries: 3
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_xrootd else """
@@ -112,6 +117,7 @@ rule warmup_run:
     output:
         "warmup.edm4hep.root",
     message: "Ensuring that calibrations/fieldmaps are available"
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
@@ -138,7 +144,8 @@ rule org2py:
         notebook=lambda wildcards: workflow.source_path(f"{wildcards.NOTEBOOK}.org"),
         converter=workflow.source_path("benchmarks/common/org2py.awk"),
     output:
-        "{NOTEBOOK}.org2py.py"
+        "{NOTEBOOK}.org2py.py",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 awk -f {input.converter} {input.notebook} > {output}

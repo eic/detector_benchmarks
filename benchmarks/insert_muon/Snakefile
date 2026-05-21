@@ -8,6 +8,7 @@ rule insert_muon_generate:
         th_max=7.0,
         th_min=1.7,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
@@ -29,6 +30,7 @@ rule insert_muon_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 NEVENTS_SIM=1000
@@ -52,6 +54,7 @@ rule insert_muon_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 NEVENTS_REC=1000
@@ -69,6 +72,7 @@ rule insert_muon_analysis:
         script=workflow.source_path("analysis/muon_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/insert_muon"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

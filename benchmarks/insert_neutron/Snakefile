@@ -8,6 +8,7 @@ rule insert_neutron_generate:
         th_max=5.7,
         th_min=2.0,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p sim_output/insert_neutron
@@ -30,6 +31,7 @@ rule insert_neutron_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 NEVENTS_SIM=200
@@ -53,6 +55,7 @@ rule insert_neutron_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 NEVENTS_REC=200
@@ -70,6 +73,7 @@ rule insert_neutron_analysis:
         script=workflow.source_path("analysis/neutron_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/insert_neutron"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

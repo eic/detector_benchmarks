@@ -8,6 +8,7 @@ rule secondary_vertex_analysis:
         EBEAM=r"\d+",
         PBEAM=r"\d+",
         MINQ2=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 python {input.script} --input {input.reco} --output {output} --vertices-collection {wildcards.VERTICES_COLLECTION}

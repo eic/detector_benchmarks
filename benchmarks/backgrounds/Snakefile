@@ -16,6 +16,7 @@ rule backgrounds_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -46,6 +47,7 @@ rule backgrounds_ecal_backwards:
         scheduler=".logs/results/backgrounds/backwards_ecal/scheduler.log",
         worker=".logs/results/backgrounds/backwards_ecal/worker.log",
     threads: workflow.cores
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes

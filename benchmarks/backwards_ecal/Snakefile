@@ -27,6 +27,7 @@ rule backwards_ecal_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -57,6 +58,7 @@ rule backwards_ecal_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -84,6 +86,7 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
       | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
@@ -100,6 +103,7 @@ else:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
       | sed -e 's#^/volatile/eic/##' \
@@ -157,6 +161,7 @@ rule backwards_ecal:
         scheduler=".logs/results/backwards_ecal/{CAMPAIGN}/scheduler.log",
         worker=".logs/results/backwards_ecal/{CAMPAIGN}/worker.log",
     threads: workflow.cores
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then

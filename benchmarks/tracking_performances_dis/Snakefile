@@ -26,6 +26,7 @@ rule trk_dis_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 npsim \
@@ -55,6 +56,7 @@ rule trk_dis_reco:
         INDEX=lambda wildcards: wildcards.INDEX,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -82,6 +84,7 @@ rule dis_analysis:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         INDEX=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cat > {output.config_trk} <<EOF
@@ -125,6 +128,7 @@ rule dis_combine:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cat > {output.config_trk} <<EOF
@@ -168,6 +172,7 @@ rule trk_dis_plots:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}+("{input.config}")'
@@ -186,6 +191,7 @@ rule vtx_dis_plots:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}+("{input.config}")'

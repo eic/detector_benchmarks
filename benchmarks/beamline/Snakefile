@@ -16,6 +16,7 @@ rule beamline_steering_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             exec npsim \
@@ -45,6 +46,7 @@ rule beamline_steering_analysis:
         pipe_parameter_canvas=ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}", "{params.xml}",
@@ -68,6 +70,7 @@ rule beamline_acceptance_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             exec npsim \
@@ -95,6 +98,7 @@ rule beamline_acceptance_analysis:
         entries_canvas=ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png",
     params:
         xml=os.getenv("DETECTOR_PATH")+"/epic_ip6_extended.xml",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}+("{input.data}", "{output.rootfile}", "{params.xml}", "{output.beampipe_canvas}","{output.etheta_canvas}","{output.etheta_acceptance_canvas}",
@@ -120,6 +124,7 @@ rule beamline:
         ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png"
     output:
         directory("results/beamline/steering_{CAMPAIGN}/")
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             mkdir {output}        

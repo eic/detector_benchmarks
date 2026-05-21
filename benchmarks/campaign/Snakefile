@@ -23,6 +23,7 @@ rule campaign_run:
         DETECTOR_CONFIG="[^/]+",
     params:
         N_EVENTS=100,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 curl -L -o bg_files.json "https://eicweb.phy.anl.gov/EIC/campaigns/datasets/-/raw/main/config_data/synrad_egasbrems_egascoulomb_egastouschek_hgas_18GeVx275GeV_vacuum_10000Ahr_machineruntime_50s.json"
@@ -43,6 +44,7 @@ rule campaign_prmon_plot_memory:
     wildcard_constraints:
         EXTENSION="(png|pdf|svg)",
         MODE="(load|memory)",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 case "{wildcards.MODE}" in
@@ -73,6 +75,7 @@ rule campaign_benchmark:
         ),
     output:
         directory("results/campaign"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output}

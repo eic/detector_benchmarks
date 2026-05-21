@@ -24,6 +24,7 @@ rule tracking_performance_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -58,6 +59,7 @@ rule tracking_performance_recon:
         INDEX=lambda wildcards: wildcards.INDEX,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -87,6 +89,7 @@ rule tracking_performance_hit_maps:
         sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root"),
     params:
         MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 echo "Merging simulation files into: {output}"
 hadd -f {output.sim_hadd} {input.sim}
@@ -122,6 +125,7 @@ rule tracking_performance_at_momentum:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         combined_root=temp("tracking_performances/{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 if [[ "{wildcards.SEEDING}" == "truthseed" ]]; then
@@ -145,6 +149,7 @@ rule tracking_performance_hadd_final_hist_dca:
         ),
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/dca/final_hist_dca_{SEEDING}.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 hadd -f {output} {input}
@@ -198,6 +203,7 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
         "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         r"""
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -233,6 +239,7 @@ rule tracking_performance_debug_montage:
         ),
     output:
         "{CAMPAIGN}/Debug_Plots/pi-/mom/mom_resol_debug_{ETA_BIN}.png",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 montage -mode concatenate {input} {output} || true
@@ -269,6 +276,7 @@ rule tracking_performance:
         )
     output:
         directory("results/tracking_performances/{CAMPAIGN}/")
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir {output}

@@ -6,6 +6,7 @@ rule zdc_sigma_generate:
     params:
         N_EVENTS=1000,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
@@ -28,6 +29,7 @@ rule zdc_sigma_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -51,6 +53,7 @@ rule zdc_sigma_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -67,6 +70,7 @@ rule zdc_sigma_analysis:
         script="benchmarks/zdc_sigma/analysis/sigma_plots.py",
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_sigma"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

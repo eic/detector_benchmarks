@@ -11,6 +11,7 @@ rule nhcal_pion_rejection_simulate:
     wildcard_constraints:
         INDEX = r"\d+",
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -36,6 +37,7 @@ rule nhcal_pion_rejection_recon:
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: 
         """
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -55,6 +57,7 @@ rule nhcal_pion_rejection_combine:
         "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
     wildcard_constraints:
         N = r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 hadd -f {output} {input} 
@@ -70,6 +73,7 @@ rule nhcal_pion_rejection_analysis:
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
     root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'

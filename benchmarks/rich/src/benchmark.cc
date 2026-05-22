@@ -30,7 +30,7 @@ std::shared_ptr<spdlog::logger> m_log;
 
 // get a collection by name; logs an error and returns an empty collection if not available
 template<class C>
-const C& GetCollection(podio::Frame& frame, std::string name) {
+const C& GetCollection(podio::Frame& frame, const std::string& name) {
   // Since podio 1.7, Frame::get<C>() throws std::runtime_error if the
   // collection is absent or has a mismatched type (older versions returned a
   // static empty collection). Try-catch handles both behaviours correctly.

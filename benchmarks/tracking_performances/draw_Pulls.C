@@ -1,7 +1,7 @@
 // Macro to draw the pulls of the track parameters
 // Shyam Kumar; INFN Bari, shyam.kumar@ba.infn.it
 
-void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 1.0){
+void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 1.0, TString output_dir = "."){
 	
 	gStyle->SetPalette(kRainBow);
 	gStyle->SetTitleSize(0.045,"XY");	
@@ -24,7 +24,7 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
   TCanvas *can = new TCanvas("can","can",2000,1000);
   can->Divide(3,2);
 
-	fmom_real[i] = TFile::Open(Form("./realseed/pi-/mom/Performances_mom_%1.1f_mom_resol_realseed_%s.root",mom[i],particle.Data()));
+	fmom_real[i] = TFile::Open(Form("%s/realseed/pi-/mom/Performances_mom_%1.1f_mom_resol_realseed_%s.root",output_dir.Data(),mom[i],particle.Data()));
 	TH1D *hpull_invp = (TH1D*) fmom_real[i]->Get(Form("hpull_invp_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
 	TH1D *hpull_d0xy = (TH1D*) fmom_real[i]->Get(Form("hpull_d0xy_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
 	TH1D *hpull_d0z = (TH1D*) fmom_real[i]->Get(Form("hpull_d0z_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
@@ -45,8 +45,8 @@ void draw_Pulls(TString particle = "pi-", double etamin = -1.0, double etamax = 
 	
 	can->cd(5);
 	hpull_theta->Draw("hist");
-	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.png",particle.Data(),etamin,etamax,mom[i]));
-	can->SaveAs(Form("Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.root",particle.Data(),etamin,etamax,mom[i]));
+	can->SaveAs(Form("%s/Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.png",output_dir.Data(),particle.Data(),etamin,etamax,mom[i]));
+	can->SaveAs(Form("%s/Final_Results/%s/mom/hpulls_%1.1f_eta_%1.1f_pmax_%1.1f.root",output_dir.Data(),particle.Data(),etamin,etamax,mom[i]));
 	}
 
 }   

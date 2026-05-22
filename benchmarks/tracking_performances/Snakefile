@@ -220,11 +220,10 @@ if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
 else
         EXTRA_LEGEND="ePIC Simulation {wildcards.CAMPAIGN}"
 fi
-cd {wildcards.CAMPAIGN}
-root -l -b -q ../{input.script_mom}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'")'
-root -l -b -q ../{input.script_pulls}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX})'
-root -l -b -q ../{input.script_dcaT}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
-root -l -b -q ../{input.script_dcaz}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'")'
+root -l -b -q {input.script_mom}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, 1., true, "'"$EXTRA_LEGEND"'", "{wildcards.CAMPAIGN}")'
+root -l -b -q {input.script_pulls}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, "{wildcards.CAMPAIGN}")'
+root -l -b -q {input.script_dcaT}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'", "{wildcards.CAMPAIGN}")'
+root -l -b -q {input.script_dcaz}'("pi-", {wildcards.ETA_MIN}, {wildcards.ETA_MAX}, true, "'"$EXTRA_LEGEND"'", "{wildcards.CAMPAIGN}")'
 """
 
 

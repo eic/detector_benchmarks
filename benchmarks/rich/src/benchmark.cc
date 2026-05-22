@@ -31,10 +31,9 @@ std::shared_ptr<spdlog::logger> m_log;
 // get a collection by name; logs an error and returns an empty collection if not available
 template<class C>
 const C& GetCollection(podio::Frame& frame, std::string name) {
-#if podio_VERSION >= PODIO_VERSION(0, 99, 0)
   // Since podio 1.7, Frame::get<C>() throws std::runtime_error if the
   // collection is absent or has a mismatched type (older versions returned a
-  // static empty collection). Use try-catch to handle both behaviours.
+  // static empty collection). Try-catch handles both behaviours correctly.
   try {
     return frame.get<C>(name);
   } catch(const std::exception& e) {
@@ -42,12 +41,6 @@ const C& GetCollection(podio::Frame& frame, std::string name) {
     static C empty_coll;
     return empty_coll;
   }
-#else
-  const auto& coll = frame.get<C>(name);
-  if(!coll.isValid())
-    m_log->error("invalid collection '{}'", name);
-  return coll;
-#endif
 }
 
 // -------------------------------------------------------------

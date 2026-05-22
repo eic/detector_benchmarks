@@ -32,9 +32,9 @@ std::shared_ptr<spdlog::logger> m_log;
 template<class C>
 const C& GetCollection(podio::Frame& frame, std::string name) {
 #if podio_VERSION >= PODIO_VERSION(0, 99, 0)
-  // In podio >= 0.99.0, Frame::get<C>() throws std::runtime_error if the
-  // collection is absent or has a mismatched type, rather than returning an
-  // invalid collection.
+  // Since podio 1.7, Frame::get<C>() throws std::runtime_error if the
+  // collection is absent or has a mismatched type (older versions returned a
+  // static empty collection). Use try-catch to handle both behaviours.
   try {
     return frame.get<C>(name);
   } catch(const std::exception& e) {

@@ -28,13 +28,26 @@ using namespace benchmarks;
 // main logger
 std::shared_ptr<spdlog::logger> m_log;
 
-// get a collection, and check its validity
+// get a collection by name; logs an error and returns an empty collection if not available
 template<class C>
 const C& GetCollection(podio::Frame& frame, std::string name) {
+#if podio_VERSION >= PODIO_VERSION(0, 99, 0)
+  // In podio >= 0.99.0, Frame::get<C>() throws std::runtime_error if the
+  // collection is absent or has a mismatched type, rather than returning an
+  // invalid collection.
+  try {
+    return frame.get<C>(name);
+  } catch(const std::exception& e) {
+    m_log->error("cannot get collection '{}': {}", name, e.what());
+    static C empty_coll;
+    return empty_coll;
+  }
+#else
   const auto& coll = frame.get<C>(name);
   if(!coll.isValid())
     m_log->error("invalid collection '{}'", name);
   return coll;
+#endif
 }
 
 // -------------------------------------------------------------

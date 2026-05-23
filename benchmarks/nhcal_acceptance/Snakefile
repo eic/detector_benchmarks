@@ -53,7 +53,7 @@ hadd -f {output} {input}
 rule nhcal_acceptance_analysis:
     input:
         combined="sim_output/nhcal_acceptance/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
-        script="benchmarks/nhcal_acceptance/scripts/acceptance_analysis.cxx",
+        script=workflow.source_path("scripts/acceptance_analysis.cxx"),
     output:
         png=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
         pdf=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",

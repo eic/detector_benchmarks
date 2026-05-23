@@ -66,7 +66,7 @@ hadd -f {output} {input}
 rule nhcal_pion_rejection_analysis:
     input:
         combined="sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
-        script="benchmarks/nhcal_pion_rejection/scripts/pion_rejection_analysis.cxx",
+        script=workflow.source_path("scripts/pion_rejection_analysis.cxx"),
     output:
         png="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.pdf",

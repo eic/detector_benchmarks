@@ -62,7 +62,7 @@ env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 
 rule lfhcal_at_momentum:
     input:
-        script="benchmarks/lfhcal/LFHCAL_Performance.C",
+        script=workflow.source_path("LFHCAL_Performance.C"),
         # TODO pass as a file list?
         sim=lambda wildcards:
           expand(
@@ -99,7 +99,7 @@ rule lfhcal_summary_at_eta:
             ],
             MOMENTUM=[0.5, 1.0, 2.0, 5.0, 10.0, 20.0],
         ),
-        script="benchmarks/lfhcal/doCompare_widebins_mom.C",
+        script=workflow.source_path("doCompare_widebins_mom.C"),
     output:
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.png",
         "{CAMPAIGN}/Final_Results/{PARTICLE}/mom/lfhcal_mom_resol_{PARTICLE}_{ETA_MIN}_eta_{ETA_MAX}.root",

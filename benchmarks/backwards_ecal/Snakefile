@@ -154,7 +154,7 @@ rule backwards_ecal:
             PHASE_SPACE=["130to177deg"],
         ),
         matplotlibrc=".matplotlibrc",
-        script="benchmarks/backwards_ecal/backwards_ecal.py",
+        script="benchmarks/backwards_ecal/backwards_ecal.org2py.py",
     output:
         directory("results/backwards_ecal/{CAMPAIGN}/")
     log:

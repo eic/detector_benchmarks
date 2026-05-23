@@ -1,6 +1,6 @@
 rule zdc_photon_generate:
     input:
-        script="benchmarks/zdc_photon/analysis/gen_particles.cxx",
+        script=workflow.source_path("analysis/gen_particles.cxx"),
     output:
         GEN_FILE="sim_output/zdc_photon/zdc_photon_{P}GeV.hepmc",
     params:
@@ -70,7 +70,7 @@ rule zdc_photon_analysis:
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),
-        script="benchmarks/zdc_photon/analysis/zdc_photon_plots.py",
+        script=workflow.source_path("analysis/zdc_photon_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_photon"),
     singularity: EIC_SINGULARITY_CONTAINER,

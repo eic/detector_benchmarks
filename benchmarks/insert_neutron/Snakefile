@@ -1,6 +1,6 @@
 rule insert_neutron_generate:
     input:
-        script="benchmarks/insert_neutron/analysis/gen_particles.cxx",
+        script=workflow.source_path("analysis/gen_particles.cxx"),
     output:
         GEN_FILE="sim_output/insert_neutron/neutron_{P}GeV.hepmc",
     params:
@@ -70,7 +70,7 @@ rule insert_neutron_analysis:
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),
-        script="benchmarks/insert_neutron/analysis/neutron_plots.py",
+        script=workflow.source_path("analysis/neutron_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/insert_neutron"),
     singularity: EIC_SINGULARITY_CONTAINER,

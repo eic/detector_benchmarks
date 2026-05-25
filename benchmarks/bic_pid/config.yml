@@ -73,7 +73,11 @@ bench:bic_pid:
 
         "$BICPY" -c "import sys, numpy as np, awkward as ak, uproot, tensorflow as tf, tf2onnx, pulp; print(sys.version); print('numpy', np.__version__); print('awkward', ak.__version__); print('uproot', uproot.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__); print('PuLP version =', getattr(pulp, '__version__', 'unknown')); print('has list_solvers =', hasattr(pulp, 'list_solvers')); print('has listSolvers =', hasattr(pulp, 'listSolvers')); print('module =', pulp.__file__)"
 
+        export PATH="$MAMBA_ROOT_PREFIX/envs/bicpid/bin:$PATH"
+        hash -r
+
         "$BICPY" -m snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+
 
 collect_results:bic_pid:
   extends: .det_benchmark

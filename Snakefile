@@ -2,6 +2,7 @@ configfile: "snakemake.yml"
 
 import functools
 import os
+import subprocess
 from snakemake.logging import logger
 
 

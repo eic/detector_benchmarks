@@ -60,7 +60,7 @@ bench:bic_pid:
 
         "$BICPY" -V
         "$BICPY" -m pip install --upgrade pip
-        "$BICPY" -m pip install "tensorflow-cpu==2.13.0" "tf2onnx==1.17.0"
+        "$BICPY" -m pip install snakemake tensorflow-cpu==2.13.0 tf2onnx==1.17.0
 
         "$BICPY" -c "import sys, numpy as np, awkward as ak, uproot, tensorflow as tf, tf2onnx; print(sys.version); print('numpy', np.__version__); print('awkward', ak.__version__); print('uproot', uproot.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__)"
 

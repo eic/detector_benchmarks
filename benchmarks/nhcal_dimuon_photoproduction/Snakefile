@@ -3,6 +3,7 @@ rule nhcal_dimuon_photoproduction_presimulate:
         "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     params:
         outdir=lambda wc, output: os.path.dirname(output[0]),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             pwd
@@ -27,6 +28,7 @@ rule nhcal_dimuon_photoproduction_simulate:
     wildcard_constraints:
         INDEX = r"\d+",
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             exec npsim \
@@ -46,6 +48,7 @@ rule nhcal_dimuon_photoproduction_recon:
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: 
         """
             exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -65,6 +68,7 @@ rule nhcal_dimuon_photoproduction_combine:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
     wildcard_constraints:
         N = r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             hadd -f {output} {input} 
@@ -73,13 +77,14 @@ rule nhcal_dimuon_photoproduction_combine:
 rule nhcal_dimuon_photoproduction_analysis:
     input:
         combined="sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
-        script="benchmarks/nhcal_dimuon_photoproduction/scripts/dimuon_photoproduction_analysis.cxx",
+        script=workflow.source_path("scripts/dimuon_photoproduction_analysis.cxx"),
     output:
         png="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.pdf",
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'

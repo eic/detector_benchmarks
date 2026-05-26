@@ -20,6 +20,7 @@ rule nhcal_sampling_fraction_simulate:
         NPSIM_HASH=get_spack_package_hash("npsim"),
         TOTAL_ENERGY=lambda wildcards: get_total_energy(wildcards.PARTICLE, wildcards.ENERGY),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m
@@ -49,6 +50,7 @@ rule nhcal_sampling_fraction_combine:
         ENERGY=r"\d+"
     output:
         f"sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 hadd -f {output} {input} 
@@ -57,7 +59,7 @@ hadd -f {output} {input}
 rule nhcal_sampling_fraction_analysis:
     input:
         combined="sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
-        script="benchmarks/nhcal_sampling_fraction/scripts/sampling_fraction_analysis.cxx",
+        script=workflow.source_path("scripts/sampling_fraction_analysis.cxx"),
     output:
         pdf="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf",
         png="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.png",
@@ -65,6 +67,7 @@ rule nhcal_sampling_fraction_analysis:
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         binary="results/nhcal_sampling_fraction/sampling_fraction_analysis"
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
         g++ {input.script} \

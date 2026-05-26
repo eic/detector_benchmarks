@@ -16,6 +16,7 @@ rule backgrounds_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -36,7 +37,7 @@ DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
 rule backgrounds_ecal_backwards:
     input:
         matplotlibrc=".matplotlibrc",
-        script="benchmarks/backgrounds/ecal_backwards.py",
+        script="benchmarks/backgrounds/ecal_backwards.org2py.py",
         electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root",
         physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
         proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root",
@@ -46,6 +47,7 @@ rule backgrounds_ecal_backwards:
         scheduler=".logs/results/backgrounds/backwards_ecal/scheduler.log",
         worker=".logs/results/backgrounds/backwards_ecal/worker.log",
     threads: workflow.cores
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes

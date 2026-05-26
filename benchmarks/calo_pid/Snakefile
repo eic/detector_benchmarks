@@ -28,6 +28,7 @@ rule calo_pid_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -63,6 +64,7 @@ rule calo_pid_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 exec eicrecon {input.sim} -Ppodio:output_file={output} \
@@ -90,9 +92,10 @@ rule calo_pid:
         electrons="listing/calo_pid/{DETECTOR_CONFIG}/e-.lst",
         pions="listing/calo_pid/{DETECTOR_CONFIG}/pi-.lst",
         matplotlibrc=".matplotlibrc",
-        script="benchmarks/calo_pid/calo_pid.py",
+        script="benchmarks/calo_pid/calo_pid.org2py.py",
     output:
         directory("results/{DETECTOR_CONFIG}/calo_pid")
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env \

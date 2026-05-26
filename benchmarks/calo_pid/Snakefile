@@ -46,7 +46,8 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output}
+  --outputFile {output} \
+  --outputConfig.useRNTuple 1
 """
 
 

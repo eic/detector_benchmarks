@@ -31,6 +31,7 @@ rule backwards_ecal_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
+set -o pipefail
 exec npsim \
   --runType batch \
   --enableGun \

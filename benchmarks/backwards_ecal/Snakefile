@@ -42,7 +42,7 @@ exec npsim \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --outputFile {output} \
-  --outputConfig.useRNTuple 1 | tee {log}
+  --outputConfig.useRNTuple true | tee {log}
 """
 
 

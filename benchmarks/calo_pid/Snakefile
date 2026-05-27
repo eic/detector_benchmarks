@@ -6,9 +6,9 @@ rule calo_pid_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root",
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.rnt.root",
     log:
-        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.root.log",
+        "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY_MIN}to{ENERGY_MAX}/{THETA_MIN}to{THETA_MAX}deg/{PARTICLE}_{ENERGY}_{THETA_MIN}to{THETA_MAX}deg.{INDEX}.edm4hep.rnt.root.log",
     wildcard_constraints:
         PARTICLE="(e-|pi-)",
         ENERGY_MIN="[0-9]+[kMG]eV",
@@ -46,13 +46,14 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output}
+  --outputFile {output} \
+  --outputConfig.useRNTuple true
 """
 
 
 rule calo_pid_recon:
     input:
-        sim="sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/calo_pid/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",

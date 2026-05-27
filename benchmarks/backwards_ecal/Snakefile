@@ -11,9 +11,9 @@ rule backwards_ecal_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
     log:
-        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root.log",
     wildcard_constraints:
         PARTICLE="(e-|pi-)",
         ENERGY="[0-9]+[kMG]eV",
@@ -31,6 +31,7 @@ rule backwards_ecal_sim:
     shell:
         """
 set -m # monitor mode to prevent lingering processes
+set -o pipefail
 exec npsim \
   --runType batch \
   --enableGun \
@@ -40,13 +41,14 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output} | tee {log}
+  --outputFile {output} \
+  --outputConfig.useRNTuple true | tee {log}
 """
 
 
 rule backwards_ecal_recon:
     input:
-        sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",

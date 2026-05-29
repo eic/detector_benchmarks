@@ -15,6 +15,7 @@ rule compile_analysis:
         "{PATH}/{FILENAME}_cxx.d",
         "{PATH}/{FILENAME}_cxx.so",
         "{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
+    shadow: "full"
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """

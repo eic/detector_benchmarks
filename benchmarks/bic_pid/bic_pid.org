@@ -33,6 +33,13 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+
+mpl.rcParams["font.family"] = "DejaVu Sans Mono"
+mpl.rcParams["font.sans-serif"] = ["DejaVu Sans Mono"]
+mpl.rcParams["pdf.fonttype"] = 42
+mpl.rcParams["ps.fonttype"] = 42
 #+end_src
 
 * Parameters
@@ -1090,7 +1097,7 @@ ax[1].set_xlabel("epoch")
 ax[1].legend(["train", "validate"], loc="upper left")
 ax[1].set_ylim(0, 1.1)
 
-fig.savefig(f"{plotdir}/ML_learning.pdf")
+fig.savefig(f"{plotdir}/ML_learning.png", dpi=200, bbox_inches="tight")
 plt.close(fig)
 #+end_src
 

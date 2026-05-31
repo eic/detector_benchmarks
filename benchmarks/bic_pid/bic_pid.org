@@ -88,8 +88,6 @@ def setup_presentation_style():
         "xtick.labelsize": 11,
         "ytick.labelsize": 11,
         "pgf.rcfonts": False,
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Ubuntu"],
     })
 
 setup_presentation_style()

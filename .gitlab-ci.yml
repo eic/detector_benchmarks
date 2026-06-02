@@ -36,6 +36,9 @@ default:
     reports:
       dotenv: .env
     when: always
+  id_tokens:
+    CI_JOB_JWT:
+      aud: https://eicweb.phy.anl.gov
 
 stages:
   - status-pending
@@ -116,12 +119,21 @@ common:setup:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - if [ ! -w "$SNAKEMAKE_OUTPUT_CACHE" ] ; then
+          export SNAKEMAKE_OUTPUT_CACHE=${LOCAL_DATA_PATH}/snakemake-cache ;
+      fi
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     - ls -lrtha
   retry:
     max: 2
     when:
       - runner_system_failure
+
+.det_benchmark:htcondor:
+  extends: .det_benchmark
+  tags:
+    - osg
+    - jacamar
 
 include: 
   - local: 'benchmarks/backgrounds/config.yml'

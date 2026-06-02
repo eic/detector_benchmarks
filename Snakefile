@@ -12,13 +12,16 @@ rule compile_analysis:
     input:
         lambda wildcards: f"{wildcards.PATH}/{wildcards.FILENAME}.cxx",
     output:
-        "{PATH}/{FILENAME}_cxx.d",
-        "{PATH}/{FILENAME}_cxx.so",
-        "{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
+        "root_aclic/{PATH}/{FILENAME}.cxx",
+        "root_aclic/{PATH}/{FILENAME}_cxx.d",
+        "root_aclic/{PATH}/{FILENAME}_cxx.so",
+        "root_aclic/{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q -e '.L {input}+'
+mkdir -p root_aclic/{wildcards.PATH}
+cp {input} root_aclic/{wildcards.PATH}/
+root -l -b -q -e '.L root_aclic/{wildcards.PATH}/{wildcards.FILENAME}.cxx+'
 """
 
 

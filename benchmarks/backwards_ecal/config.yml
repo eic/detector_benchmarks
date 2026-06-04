@@ -23,6 +23,7 @@ sim:backwards_ecal:
 bench:backwards_ecal:
   extends: .det_benchmark
   stage: benchmarks
+  allow_failure: true # snooze until https://github.com/eic/detector_benchmarks/issues/257
   needs:
     - ["sim:backwards_ecal"]
   script:

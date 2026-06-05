@@ -18,6 +18,7 @@ bench:panda:
     - '[[ ! -z "$PANDA_URL" ]] || die "PANDA_URL is not set"'
     - '[[ ! -z "$PANDA_URL_SSL" ]] || die "PANDA_URL_SSL is not set"'
     - '[[ ! -z "$PANDA_VO" ]] || die "PANDA_VO is not set"'
+    - PANDA_DS="user.${PANDA_NICKNAME}.eicweb-${CI_PIPELINE_ID}-${CI_JOB_ID}"
     - |
       prun \
         --vo "${PANDA_VO}" \
@@ -25,11 +26,15 @@ bench:panda:
         --site "${PANDA_SITE}" \
         --noBuild \
         --exec "pwd; ls; echo Hello-world > myout.txt" \
-        --outDS "user.${PANDA_NICKNAME}.eicweb-${CI_PIPELINE_ID}-${CI_JOB_ID}" \
+        --outDS "${PANDA_DS}" \
         --nJobs 1 \
         --output myout.txt | tee prun.log
     - PANDA_TASK_ID="$(sed prun.log -ne 's/.*jediTaskID=\([[:digit:]]\+\).*/\1/p')"
     - benchmarks/panda/pwait.py "${PANDA_TASK_ID}"
+    - wget https://repo.opensciencegrid.org/cadist/1.141NEW/osg-certificates-1.141NEW.tar.gz
+    - tar zxf osg-certificates-1.141NEW.tar.gz
+    - export X509_CERT_DIR="${PWD}/certificates"
+    - rucio did list "${PANDA_DS}*"
 
 collect_results:panda:
   extends: .det_benchmark

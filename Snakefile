@@ -31,7 +31,7 @@ def get_spack_package_hash(package_name):
     except FileNotFoundError as e:
         logger.warning("Spack is not installed")
         return ""
-    except subprocess.CalledProcessError as e:
+    except (subprocess.CalledProcessError, PermissionError) as e:
         print(e)
         return ""
 

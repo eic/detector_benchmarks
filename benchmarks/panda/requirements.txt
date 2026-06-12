@@ -1,1 +1,5 @@
 panda-client
+snakemake
+snakemake-interface-common @ git+https://github.com/snakemake/snakemake-interface-common.git@62cf62e202dd6b0f8c193ef391b6e196182dcd66
+snakemake-storage-plugin-rucio @ git+https://github.com/veprbl/snakemake-storage-plugin-rucio.git@wip
+snakemake-executor-plugin-panda

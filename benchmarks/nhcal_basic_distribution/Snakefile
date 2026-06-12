@@ -47,7 +47,7 @@ rule nhcal_basic_distribution_combine:
         N=r"\d+",
         ENERGY=r"\d+(\.\d+)?"
     output:
-        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
+        "sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """

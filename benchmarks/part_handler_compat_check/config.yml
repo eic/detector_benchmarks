@@ -1,0 +1,61 @@
+sim:part_handler_compat_check:
+  extends: .det_benchmark
+  stage: simulate
+  before_script:
+    - source .local/bin/env.sh
+    - source /opt/detector/epic-26.03.0/bin/thisepic.sh
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
+  script:
+    # This should succeed: explicit Geant4TCUserParticleHandler avoids the tracking volume requirement
+    - >-
+      npsim
+      --part.userParticleHandler Geant4TCUserParticleHandler
+      --compactFile $DETECTOR_PATH/$DETECTOR_CONFIG.xml
+      --numberOfEvents 10
+      --enableGun
+      --gun.thetaMin 'pi/2'
+      --gun.thetaMax 'pi/2'
+      --gun.distribution uniform
+      --gun.phiMin '0*deg'
+      --gun.phiMax '0*deg'
+      --gun.energy '1*GeV'
+      --gun.particle 'e-'
+      --outputFile sim.edm4hep.root
+    # This should fail with a specific error about missing tracking_volume
+    - |
+      set +e
+      npsim \
+        --compactFile $DETECTOR_PATH/$DETECTOR_CONFIG.xml \
+        --numberOfEvents 10 \
+        --enableGun \
+        --gun.thetaMin 'pi/2' \
+        --gun.thetaMax 'pi/2' \
+        --gun.distribution uniform \
+        --gun.phiMin '0*deg' \
+        --gun.phiMax '0*deg' \
+        --gun.energy '1*GeV' \
+        --gun.particle 'e-' \
+        --outputFile sim_should_fail.edm4hep.root \
+        2>&1 | tee npsim_fail.log
+      EXIT_CODE=${PIPESTATUS[0]}
+      set -e
+      echo "npsim exit code: $EXIT_CODE"
+      if [[ "$EXIT_CODE" -eq "0" ]]; then
+        echo "ERROR: npsim should have failed but succeeded"
+        exit 1
+      fi
+      if ! grep -q "Geant4TVEicParticleHandler requested but no tracking_volume defined" npsim_fail.log; then
+        echo "ERROR: npsim failed but not with the expected error message about tracking_volume"
+        cat npsim_fail.log
+        exit 1
+      fi
+      echo "OK: npsim failed with the expected error message"
+
+collect_results:part_handler_compat_check:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["sim:part_handler_compat_check"]
+  script:
+    - echo "part_handler_compat_check passed"

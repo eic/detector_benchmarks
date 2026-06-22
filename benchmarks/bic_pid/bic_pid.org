@@ -1,0 +1,1259 @@
+#+PROPERTY: header-args:jupyter-python :session /jpy:localhost#8888:benchmark :async yes :results drawer :exports both
+
+#+TITLE: ePIC BIC e/\pi separation benchmark
+#+AUTHOR: Tomas Sosa
+#+OPTIONS: d:t
+
+#+LATEX_CLASS_OPTIONS: [9pt,letter]
+#+BIND: org-latex-image-default-width ""
+#+BIND: org-latex-image-default-option "scale=0.3"
+#+BIND: org-latex-images-centered nil
+#+BIND: org-latex-minted-options (("breaklines") ("bgcolor" "black!5") ("frame" "single"))
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+#+LATEX: \sloppy
+
+#+begin_src jupyter-python :results silent
+import os
+import math
+from math import floor
+from pathlib import Path
+from collections import OrderedDict
+import json
+import re
+
+import pandas as pd
+import numpy as np
+
+# Must be set before importing TensorFlow
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+#+end_src
+
+* Parameters
+
+#+begin_src jupyter-python :results silent
+DETECTOR_CONFIG = os.environ.get("DETECTOR_CONFIG")
+PLOT_TITLE = os.environ.get("PLOT_TITLE", DETECTOR_CONFIG or "bic_pid")
+INPUT_ELECTRONS = os.environ.get("INPUT_ELECTRONS")
+INPUT_PIONS = os.environ.get("INPUT_PIONS")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "./")
+
+ANGLE = os.environ.get("ANGLE", "45to135deg")
+ENERGY = os.environ.get("ENERGY", "1GeV")
+EPOCHS = int(os.environ.get("EPOCHS", "30"))
+TARGET_IMBALANCE = float(os.environ.get("TARGET_IMBALANCE", "1.0"))
+MODEL_NAME = os.environ.get("MODEL", "vgg-v2")
+TRAIN_SAMPLE_CAP = int(os.environ.get("CAP_TRAIN_SAMPLE", "0"))
+
+output_root = Path(OUTPUT_DIR)
+output_root.mkdir(parents=True, exist_ok=True)
+#+end_src
+
+#+begin_src jupyter-python
+print("Num GPUs Available:", len(tf.config.list_physical_devices("GPU")))
+print("DETECTOR_CONFIG =", DETECTOR_CONFIG)
+print("PLOT_TITLE      =", PLOT_TITLE)
+print("INPUT_ELECTRONS =", INPUT_ELECTRONS)
+print("INPUT_PIONS     =", INPUT_PIONS)
+print("OUTPUT_DIR      =", OUTPUT_DIR)
+print("ANGLE           =", ANGLE)
+print("ENERGY          =", ENERGY)
+print("EPOCHS          =", EPOCHS)
+print("TARGET_IMBALANCE=", TARGET_IMBALANCE)
+print("MODEL_NAME      =", MODEL_NAME)
+print("TRAIN_SAMPLE_CAP=", TRAIN_SAMPLE_CAP)
+#+end_src
+
+* Plotting setup
+
+#+begin_src jupyter-python :results silent
+import matplotlib as mpl
+
+def setup_presentation_style():
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use("ggplot")
+    plt.rcParams.update({
+        "axes.labelsize": 12,
+        "axes.titlesize": 13,
+        "figure.titlesize": 13,
+        "figure.figsize": (8, 6),
+        "legend.fontsize": 11,
+        "xtick.labelsize": 11,
+        "ytick.labelsize": 11,
+        "pgf.rcfonts": False,
+    })
+
+setup_presentation_style()
+#+end_src
+
+* Analysis setup
+
+#+begin_src jupyter-python :results silent
+kTargetEfficiency = 0.95
+kAlternativeEfficiencies = np.arange(0.5, 1.0, 0.05)
+
+angle_settings = [ANGLE]
+energy_setting = ENERGY
+energy_GeV = float(energy_setting[:-3]) * (1.0 if energy_setting.endswith("GeV") else 1.0 / 1000.0)
+
+def eta_from_angle(angle_label):
+    match = re.match(r"(\d+)to(\d+)deg", angle_label)
+    if match:
+        theta1 = float(match.group(1))
+        theta2 = float(match.group(2))
+        mean_theta_deg = (theta1 + theta2) / 2.0
+        mean_theta_rad = np.deg2rad(mean_theta_deg)
+        eta = -np.log(np.tan(mean_theta_rad / 2.0))
+        return eta
+    raise ValueError(f"Cannot parse eta from angle label: {angle_label}")
+
+etas = {}
+for setting in angle_settings:
+    if setting.startswith("eta"):
+        val = float(setting[3:-1])
+        sign = -1.0 if setting[-1] == "n" else 1.0
+        etas[setting] = val * sign
+    elif "deg" in setting:
+        etas[setting] = eta_from_angle(setting)
+    else:
+        etas[setting] = 0.0
+#+end_src
+
+#+begin_src jupyter-python
+print(f"E/p scan for {energy_setting}")
+print(f"   - detected energy: {energy_GeV} GeV")
+print(f"   - eta ranges: {angle_settings}")
+#+end_src
+
+#+begin_src jupyter-python :results silent
+kTrainSampleCap = TRAIN_SAMPLE_CAP
+kEpochs = EPOCHS
+kTestSize = 0.2
+kValidateSize = 0.1
+kTargetImbalance = TARGET_IMBALANCE
+kPionWeightCap = 1.0
+kElectronLabel = 1
+kPionLabel = 0
+kModel = MODEL_NAME
+#+end_src
+
+#+begin_src jupyter-python
+print("ML configuration:")
+print(f"   - Number of epochs: {kEpochs}")
+if kTrainSampleCap > 0:
+    print(f"   - Training sample cap: {kTrainSampleCap}")
+print(f"   - Validation fraction: {kValidateSize}")
+print(f"   - Test fraction: {kTestSize}")
+print(f"   - Target pi:E imbalance: {kTargetImbalance}")
+print(f"   - Upper cap on pion weights: {kPionWeightCap:.2f}")
+print(f"   - Model: {kModel}")
+#+end_src
+
+* Helper functions
+
+#+begin_src jupyter-python :results silent
+def get_dimensions(df):
+    max_idx = df.index.max()
+    min_idx = df.index.min()
+    max_idx = np.array([v if type(v) != str else 0 for v in max_idx])
+    min_idx = np.array([v if type(v) != str else 0 for v in min_idx])
+    return {k: v for (k, v) in zip(("event", "_", "layer", "hit"), (max_idx - min_idx + 1))}
+
+def make_dataset(fields):
+    dataset = tf.data.Dataset.from_tensor_slices(fields)
+    options = tf.data.Options()
+    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+    return dataset.with_options(options)
+#+end_src
+
+* Podio helpers
+
+#+begin_src jupyter-python :results silent
+class PodioData:
+    def __init__(self, events, branch, cut=None, default_vector="momentum"):
+        self.events = events
+        self.data = events[branch]
+        self.branch = branch
+        self.cut = cut
+        self.default_vector = default_vector
+
+    def __getattr__(self, var):
+        return self.get(var)
+
+    def filter(self, new_cut):
+        if self.cut is not None:
+            new_cut = np.logical_and(new_cut, self.cut)
+        return PodioData(
+            self.events,
+            self.branch,
+            cut=new_cut,
+            default_vector=self.default_vector,
+        )
+
+    def get(self, var, subvars=None, extra_cut=None):
+        if subvars is None:
+            subvars = []
+
+        if len(subvars):
+            result = []
+            for v in subvars:
+                fullvar = f"{var}.{v}"
+                result.append(self.get(fullvar, extra_cut=extra_cut))
+            return result
+
+        result = self.data[f"{self.branch}.{var}"]
+
+        if self.cut is not None or extra_cut is not None:
+            if self.cut is not None and extra_cut is not None:
+                cut = np.logical_and(self.cut, extra_cut)
+            elif self.cut is not None:
+                cut = self.cut
+            else:
+                cut = extra_cut
+            return result[cut]
+
+        return result
+
+    def get_vector(self, var=None, dim=None, extra_cut=None):
+        if var is None:
+            var = self.default_vector
+        if dim is None:
+            dim = ["x", "y", "z"]
+        return [x for x in self.get(var, subvars=dim, extra_cut=extra_cut)]
+
+    def hypot(self, var=None, dim=None, extra_cut=None):
+        if dim is None:
+            dim = ["x", "y", "z"]
+        if not len(dim):
+            return 0.0
+        return hypot(self, var=var, dim=dim, extra_cut=extra_cut)
+
+    def azimuthal_angle(self, var=None, extra_cut=None):
+        return azimuthal_angle(self, var=var, extra_cut=extra_cut)
+
+    def polar_angle(self, var=None, extra_cut=None):
+        return polar_angle(self, var=var, extra_cut=extra_cut)
+
+    def eta(self, var=None, extra_cut=None):
+        return eta(self, var=var, extra_cut=extra_cut)
+
+    def momentum(self, extra_cut=None):
+        return self.hypot("momentum", extra_cut=extra_cut)
+
+    def transverse(self, var=None, extra_cut=None):
+        return self.hypot(var, dim=["x", "y"], extra_cut=extra_cut)
+
+
+def _get_components(vector, **kwargs):
+    if hasattr(vector, "get_vector"):
+        return vector.get_vector(**kwargs)
+    return vector
+
+
+def hypot(vector, **kwargs):
+    components = _get_components(vector, **kwargs)
+    res = components[0] ** 2
+    for i in range(1, len(components)):
+        res = res + components[i] ** 2
+    return np.sqrt(res)
+
+
+def azimuthal_angle(vector, **kwargs):
+    if "dim" not in kwargs:
+        kwargs["dim"] = ["x", "y"]
+    components = _get_components(vector, **kwargs)
+    x = components[0]
+    y = components[1]
+    return np.arctan2(y, x)
+
+
+def polar_angle(vector, **kwargs):
+    components = _get_components(vector, **kwargs)
+    r = hypot(components)
+    z = components[2]
+    return np.arccos(z / r)
+
+
+def eta(vector, **kwargs):
+    theta = polar_angle(vector, **kwargs)
+    return -np.log(np.tan(theta / 2.0))
+#+end_src
+
+* Array and window helpers
+
+#+begin_src jupyter-python :results silent
+import dask
+import awkward as ak
+import dask_awkward as dak
+import numpy as np
+from dask_awkward.lib.core import map_partitions
+
+## numpy-style clip array between min-max
+def _clip(a, a_min, a_max):
+    ret = a
+    if a_min is not None:
+        is_outside = (a < a_min)
+        ret = ret * np.logical_not(is_outside) + a_min * is_outside
+    if a_max is not None:
+        is_outside = (a > a_max)
+        ret = ret * np.logical_not(is_outside) + a_max * is_outside
+    return ret
+
+
+class _ClipFn:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def __call__(self, array):
+        return _clip(array, self.kwargs["a_min"], self.kwargs["a_max"])
+
+
+def clip(array, a_min, a_max):
+    fn = _ClipFn(a_min=a_min, a_max=a_max)
+    return map_partitions(fn, array, label="clip", output_divisions=1, meta=array._meta)
+
+
+class _ArgsortFn:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def __call__(self, array):
+        return ak.argsort(array, **self.kwargs)
+
+
+def argsort(array, axis=-1, ascending=True, stable=True, highlevel=True, behavior=None):
+    if axis == 0:
+        raise NotImplementedError("axis=0 not implemented here")
+    fn = _ArgsortFn(
+        axis=axis,
+        ascending=ascending,
+        stable=stable,
+        behavior=behavior,
+    )
+    return map_partitions(fn, array, label="argsort", output_divisions=1)
+
+
+class Window:
+    def __init__(self, name, interval, unit=None, tolerance=0.02):
+        self.name = name
+        self.interval = interval
+        self.step = (interval[0] / 2.0, interval[1] / 2.0)
+        self.unit = unit
+        self.tolerance = tolerance
+
+    def linear_norm(self, values):
+        norm = (values - self.interval[0]) / (self.interval[1] - self.interval[0])
+
+        count = dak.sum(dak.num(norm))
+        underflow = dak.sum(dak.num(norm[norm < 0]))
+        overflow = dak.sum(dak.num(norm[norm > 1]))
+        count, underflow, overflow = dask.compute(count, underflow, overflow)
+
+        if underflow / count > self.tolerance:
+            self.interval[0] += self.step[0]
+            print(
+                f"Warning: large UNDERFLOW count in normalization window {self.name}: "
+                f"{underflow/count*100:.2f}%, growing the window to {self.interval} and trying again"
+            )
+            return self.linear_norm(values)
+
+        if overflow / count > self.tolerance:
+            self.interval[1] += self.step[1]
+            print(
+                f"Warning: large OVERFLOW count in normalization window {self.name}: "
+                f"{overflow/count*100:.2f}%, growing the window to {self.interval} and trying again"
+            )
+            return self.linear_norm(values)
+
+        return clip(norm, 0, 1)
+#+end_src
+
+* Models
+
+#+begin_src jupyter-python :results silent
+def build_old(input_shape, n_labels=2):
+    my_model = keras.Sequential([
+        keras.layers.Conv2D(64, (3, 3), padding="same", activation="relu", input_shape=input_shape),
+        keras.layers.MaxPooling2D((2, 2), strides=2),
+        keras.layers.Dropout(0.25),
+        keras.layers.Conv2D(128, (2, 2), padding="same", activation="relu"),
+        keras.layers.MaxPooling2D((2, 2), strides=2),
+        keras.layers.Conv2D(64, (2, 2), padding="same", activation="relu"),
+        keras.layers.MaxPooling2D((2, 2), strides=2),
+        keras.layers.Dropout(0.25),
+        keras.layers.Flatten(),
+        keras.layers.Dense(128, activation="relu"),
+        keras.layers.Dense(32, activation="relu"),
+        keras.layers.Dense(n_labels, activation="softmax"),
+    ])
+    return my_model
+
+def build_vgg_v1(input_shape, n_labels=2):
+    my_model = keras.Sequential([
+        keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu", padding="same", input_shape=input_shape),
+        keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu", padding="same"),
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
+        keras.layers.Flatten(),
+        keras.layers.Dense(1024, activation="relu"),
+        keras.layers.Dense(512, activation="relu"),
+        keras.layers.Dense(n_labels, activation="softmax"),
+    ])
+    return my_model
+
+def build_vgg_v2(input_shape, n_labels=2):
+    my_model = keras.Sequential([
+        keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu", padding="same", input_shape=input_shape),
+        keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu", padding="same"),
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
+        keras.layers.Flatten(),
+        keras.layers.Dense(1024, activation="relu"),
+        keras.layers.Dense(1024, activation="relu"),
+        keras.layers.Dense(n_labels, activation="softmax"),
+    ])
+    return my_model
+
+def build_model(input_shape, n_labels=2):
+    if kModel == "old":
+        print("Building old")
+        return build_old(input_shape, n_labels)
+    elif kModel == "vgg-v1":
+        print("Building vgg-v1")
+        return build_vgg_v1(input_shape, n_labels)
+    elif kModel == "vgg-v2":
+        print("Building vgg-v2")
+        return build_vgg_v2(input_shape, n_labels)
+    print("Building default")
+    return build_vgg_v2(input_shape, n_labels)
+#+end_src
+
+* Output layout
+
+#+begin_src jupyter-python :results silent
+angle_label = angle_settings[0]
+
+output_directory = f"{OUTPUT_DIR}/{angle_label}/{energy_setting}"
+plotdir = f"{output_directory}/plots"
+datadir = f"{output_directory}/data"
+
+os.makedirs(plotdir, exist_ok=True)
+os.makedirs(datadir, exist_ok=True)
+#+end_src
+
+#+begin_src jupyter-python
+print("\nprocessing angle setting:", angle_label)
+print(f"  - eta: {etas[angle_label]}")
+print(f"  - output data directory: {datadir}")
+print(f"  - output plot directory: {plotdir}")
+#+end_src
+
+* E/p preprocessing
+
+#+begin_src jupyter-python :results silent
+import os
+
+import hist
+import dask_histogram as dh
+import boost_histogram as bh
+from matplotlib.ticker import MultipleLocator
+
+import uproot
+import awkward as ak
+import dask_awkward as dak
+import dask
+import pandas as pd
+
+## I/O bound so limit threads on large CPU linux nodes
+if "arm64" not in os.uname():
+    from multiprocessing.pool import ThreadPool
+    dask.config.set(pool=ThreadPool(6))
+
+kTargetEfficiencyEOverP = 0.97
+
+def read_input_list(path):
+    with open(path) as f:
+        return [line.strip() for line in f if line.strip()]
+
+electron_files = read_input_list(INPUT_ELECTRONS)
+pion_files = read_input_list(INPUT_PIONS)
+
+all_input_files = electron_files + pion_files
+#+end_src
+
+#+begin_src jupyter-python
+print("Loading ROOT files for E/p preprocessing:")
+for file in all_input_files[:10]:
+    print("  -", file)
+if len(all_input_files) > 10:
+    print(f"  ... and {len(all_input_files)-10} more files")
+#+end_src
+
+#+begin_src jupyter-python :results silent
+class ParticleData:
+    def __init__(self, h, efficiency=None, cut_idx=None):
+        if efficiency is None and cut_idx is None:
+            raise ValueError("Need either efficiency or cut index")
+        primary = cut_idx is None
+        self.count = h.sum()
+        self.norm_hist = hist.Hist(h / self.count)
+        if primary:
+            self.idx = self.find_ecut(efficiency)
+        else:
+            self.idx = cut_idx
+        self.e_cut = self.norm_hist.axes.centers[0][self.idx]
+        self.efficiency = np.sum(self.norm_hist.values()[self.idx:])
+        self.efficiency_error = np.sqrt(
+            self.count * self.efficiency * (1 - self.efficiency)
+        ) / self.count
+
+    def find_ecut(self, efficiency):
+        perc = np.cumsum(self.norm_hist.values())
+        idx = len(perc[perc < 1.0 - efficiency])
+        return idx
+
+
+class EcutSeparationData:
+    def __init__(self, max_layer, ehist, pihist, efficiency=kTargetEfficiencyEOverP):
+        self.max_layer = max_layer
+        self.electron = ParticleData(ehist, efficiency=efficiency)
+        self.pion = ParticleData(pihist, cut_idx=self.electron.idx)
+        self.count_e = self.electron.count
+        self.count_pi = self.pion.count
+        self.efficiency = self.electron.efficiency
+        self.efficiency_error = self.electron.efficiency_error
+        self.rejection = 1.0 / self.pion.efficiency
+        self.rejection_error = self.rejection**2 * self.pion.efficiency_error
+        self.e_cut = self.electron.e_cut
+
+
+class EcutSeparationResults:
+    def __init__(self):
+        self.raw = []
+        self.fields = [
+            "max_layer",
+            "count_e",
+            "count_pi",
+            "efficiency",
+            "efficiency_error",
+            "rejection",
+            "rejection_error",
+            "e_cut",
+        ]
+
+    def append(self, rejection):
+        for field in self.fields:
+            if not hasattr(self, field):
+                setattr(self, field, [])
+            getattr(self, field).append(getattr(rejection, field))
+        self.raw.append(rejection)
+
+    def to_pandas(self):
+        data = [getattr(self, field) for field in self.fields]
+        return pd.DataFrame({k: v for (k, v) in zip(self.fields, data)})
+#+end_src
+
+#+begin_src jupyter-python
+print("Building E/p preprocessing inputs")
+
+events = uproot.dask([f"{file}:events" for file in all_input_files])
+
+gen = PodioData(events, "MCParticles")
+scifi = PodioData(events, "EcalBarrelScFiRecHits")
+astropix = PodioData(events, "EcalBarrelImagingRecHits")
+
+hits_in_calo = ((dak.num(scifi.layer, axis=1) > 0) & (dak.num(astropix.layer, axis=1) > 0))
+is_electron = (gen.PDG[:, 0] == 11)
+is_pion = (gen.PDG[:, 0] == -211)
+
+gen_cut = gen.filter(hits_in_calo)
+scifi_e = scifi.filter(hits_in_calo & is_electron)
+scifi_pi = scifi.filter(hits_in_calo & is_pion)
+gen_e = gen_cut.filter(is_electron)
+gen_pi = gen_cut.filter(is_pion)
+#+end_src
+
+#+begin_src jupyter-python
+print("Making input diagnostic plots")
+
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+hists = dask.compute({
+    r"$P$ (GeV)": dh.histogram(gen_cut.momentum()[:, 0], bins=200, range=(0, 11), histogram=bh.Histogram),
+    r"$\eta$": dh.histogram(gen_cut.eta()[:, 0], bins=200, range=(-2, 2), histogram=bh.Histogram),
+    r"$\phi$ (deg.)": dh.histogram(gen_cut.azimuthal_angle()[:, 0] / 3.1415 * 180, bins=200, range=(-180, 180), histogram=bh.Histogram),
+})[0]
+
+hists = {key: hist.Hist(hists[key]) for key in hists}
+for i, key in enumerate(hists):
+    hists[key].plot1d(ax=ax[i], ls="-", color="darkblue")
+    ax[i].set_xlabel(key)
+
+fig.savefig(f"{plotdir}/diagnostic_input.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+#+end_src
+
+#+begin_src jupyter-python
+print("Computing E/p by layer")
+
+edep_e = scifi_e.energy
+layer_e = scifi_e.layer
+
+edep_pi = scifi_pi.energy
+layer_pi = scifi_pi.layer
+
+max_layer = dak.max(layer_pi).compute()
+print(f"Max ScFi layer = {max_layer}")
+
+mom_e = gen_e.momentum()[:, 0]
+ratio_e = [dak.sum(edep_e[layer_e <= x] / mom_e, axis=1) for x in range(1, max_layer + 1)]
+
+mom_pi = gen_pi.momentum()[:, 0]
+ratio_pi = [dak.sum(edep_pi[layer_pi <= x] / mom_pi, axis=1) for x in range(1, max_layer + 1)]
+#+end_src
+
+#+begin_src jupyter-python
+print("Building histograms for E/p scan")
+
+e_histo = []
+pi_histo = []
+
+for x in range(max_layer):
+    e_histo.append(
+        dh.histogram(ratio_e[x], bins=1000, range=(0, 1.5), histogram=bh.Histogram)
+    )
+    pi_histo.append(
+        dh.histogram(ratio_pi[x], bins=1000, range=(0, 1.5), histogram=bh.Histogram)
+    )
+
+res_e = dask.compute(*e_histo)
+res_pi = dask.compute(*pi_histo)
+#+end_src
+
+#+begin_src jupyter-python
+print("Plotting E/p scan")
+
+fig, ax = plt.subplots(int((max_layer + 2) / 3), 3, figsize=(12, 18))
+
+results_eop = EcutSeparationResults()
+
+for idx in range(len(res_e)):
+    current_layer = idx + 1
+    layer_result = EcutSeparationData(
+        current_layer, res_e[idx], res_pi[idx], efficiency=kTargetEfficiencyEOverP
+    )
+    results_eop.append(layer_result)
+
+    subax = ax[int(idx / 3), idx % 3]
+    stack = hist.Stack.from_dict({
+        "$e$": layer_result.electron.norm_hist,
+        "$\\pi^-$": layer_result.pion.norm_hist,
+    })
+    stack.plot(ax=subax, alpha=0.6, histtype="fill")
+    subax.axvline(x=layer_result.e_cut, color="k", ls="--", lw=2)
+    subax.set_xlabel("E/P")
+    subax.legend()
+    subax.text(
+        0.4, kTargetEfficiencyEOverP,
+        "\n".join([
+            rf"$layer \leq {current_layer}$",
+            rf"$\epsilon_e = {layer_result.efficiency:.2f} \pm {layer_result.efficiency_error:.2e}$",
+            rf"$R_\pi = {layer_result.rejection:.2f} \pm {layer_result.rejection_error:.2e}$",
+        ]),
+        transform=subax.transAxes,
+        fontsize=10,
+        va="top",
+        ha="center",
+    )
+
+fig.savefig(f"{plotdir}/EoverP_scan.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+#+end_src
+
+#+begin_src jupyter-python
+print(f"Saving E/p results to {datadir}/EoverP_results.csv")
+
+df_eop = results_eop.to_pandas()
+df_eop_sorted = df_eop.sort_values("rejection", ascending=False)
+df_eop_sorted.to_csv(f"{datadir}/EoverP_results.csv", index=False)
+#+end_src
+
+#+begin_src jupyter-python
+print("Making E/p optimization overview plot")
+
+prop_cycle = plt.rcParams["axes.prop_cycle"]
+colors = prop_cycle.by_key()["color"]
+box_props = dict(boxstyle="round", facecolor="white", alpha=0.5)
+
+fig, ax_cut = plt.subplots(figsize=(8, 8))
+ax_rejection = ax_cut.twinx()
+ax_rejection.set_yscale("log")
+
+ax_cut.plot(df_eop.max_layer, df_eop.e_cut, ls="-", color=colors[0])
+ax_rejection.errorbar(
+    df_eop.max_layer,
+    df_eop.rejection,
+    yerr=df_eop.rejection_error,
+    fmt="o",
+    capsize=3,
+    color=colors[1],
+    label="$R_\\pi$",
+)
+
+ax_cut.set_xlabel("Max ScFi Layer", fontsize=20)
+ax_cut.set_ylabel("E/p Cut Position", color=colors[0], fontsize=22)
+
+ax_rejection.grid(axis="both", which="both", ls=":")
+ax_rejection.xaxis.set_major_locator(MultipleLocator(5))
+ax_rejection.xaxis.set_minor_locator(MultipleLocator(1))
+ax_rejection.set_ylabel("Rejection Factor $R_\\pi$", color=colors[1], fontsize=20)
+
+ax_cut.set_title("Optimal $E/p$ cut versus max ScFi layer", fontsize=20)
+ax_cut.tick_params(labelsize=15)
+ax_rejection.tick_params(labelsize=15)
+ax_cut.text(
+    0.5,
+    0.03,
+    rf"$\epsilon_{{e}}\geq {kTargetEfficiencyEOverP*100.:.2f}\%$",
+    transform=ax_cut.transAxes,
+    fontsize=20,
+    va="bottom",
+    ha="center",
+    bbox=box_props,
+)
+
+fig.subplots_adjust(left=0.15, right=0.85)
+fig.savefig(f"{plotdir}/EoverP_optimization.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+
+print("Finished E/p preprocessing")
+#+end_src
+
+* Feature preprocessing
+
+#+begin_src jupyter-python :results silent
+pd.set_option("display.min_rows", 50)
+
+def data_features(data, n_hits=50, ltype="img", lval="0", loffset=0):
+    # raw hit r, eta, phi
+    r_h = data.hypot()
+    eta_h = data.eta()
+    phi_h = data.azimuthal_angle()
+
+    # raw hit normalized energy
+    e_tot = dak.sum(data.energy, axis=1)
+    e_norm = data.energy / e_tot
+
+    # logarithmic weighting based on hit energy
+    weights = clip(np.log(e_norm) + 5.6, 0, None)
+    tot_weight = dak.sum(weights, axis=1)
+    weights = weights / tot_weight
+
+    # calculate central xyz hit position based on the weight
+    x, y, z = data.get_vector("position")
+    xc = dak.sum(x * weights, axis=1)
+    yc = dak.sum(y * weights, axis=1)
+    zc = dak.sum(z * weights, axis=1)
+
+    # calculate central hit r, eta, phi
+    r_c = hypot([xc, yc, zc])
+    eta_c = eta([xc, yc, zc], r=r_c)
+    phi_c = azimuthal_angle([xc, yc, zc])
+
+    dphi = phi_h - phi_c
+    dphi_low = (dphi < -math.pi) * 2.0 * math.pi
+    dphi_high = (dphi > math.pi) * 2.0 * math.pi
+    dphi_corr = dphi + dphi_low - dphi_high
+    dsphi = np.sin(dphi_corr * 0.5)
+
+    # normalize and bind to window
+    r_norm = kWinR0.linear_norm(r_h)
+    eta_norm = kWinEta.linear_norm(eta_h - eta_c)
+    phi_norm = kWinPhi.linear_norm(dsphi)
+
+    norm_data = {
+        "eh": e_norm,
+        "r0": r_norm,
+        "eta": eta_norm,
+        "phi": phi_norm,
+    }
+
+    min_layer, max_layer = dask.compute(dak.min(data.layer), dak.max(data.layer))
+    n_events = len(e_norm)
+
+    # sort hits by descending hit energy
+    sort_idx = argsort(e_norm, ascending=False)
+
+    sorted_data = {
+        key: [
+            dak.pad_none(
+                norm_data[key][sort_idx][data.layer[sort_idx] == layer],
+                n_hits,
+                clip=True,
+            )
+            for layer in range(min_layer, max_layer + 1)
+        ]
+        for key in norm_data
+    }
+
+    computed_data = dask.compute(sorted_data)[0]
+
+    raw_df = ak.to_dataframe(
+        ak.Array({
+            key: ak.flatten(ak.concatenate(computed_data[key], axis=1))
+            for key in computed_data
+        })
+    ).astype(np.float32).fillna(0)
+
+    index = [
+        [ev for ev in range(1, n_events + 1)],
+        [ltype],
+        [layer for layer in range(min_layer + loffset, max_layer + loffset + 1)],
+        [hit for hit in range(1, n_hits + 1)],
+    ]
+    index = pd.MultiIndex.from_product(index, names=["event", "ltype", "layer", "hit"])
+
+    indexed_df = pd.DataFrame(
+        {key: raw_df[key].values for key in raw_df.keys()},
+        index=index,
+    )
+    indexed_df.loc[:, "lval"] = np.int32(lval)
+
+    return indexed_df
+#+end_src
+
+#+begin_src jupyter-python
+print("Preparing feature-generation inputs")
+
+# Rebuild PodioData objects with position as default vector for hit features
+gen = PodioData(events, "MCParticles")
+scifi = PodioData(events, "EcalBarrelScFiRecHits", default_vector="position")
+astropix = PodioData(events, "EcalBarrelImagingRecHits", default_vector="position")
+
+hits_in_calo = ((dak.num(scifi.layer, axis=1) > 0) & (dak.num(astropix.layer, axis=1) > 0))
+electron_or_pion = (gen.PDG[:, 0] == 11) | (gen.PDG[:, 0] == -211)
+
+print("Loading E/p cut results")
+cutdf = pd.read_csv(f"{datadir}/EoverP_results.csv").sort_values("rejection", ascending=False)
+results_EoverP = OrderedDict({key: cutdf[key].iloc[0] for key in cutdf.columns})
+print(results_EoverP)
+#+end_src
+
+#+begin_src jupyter-python
+print("Defining normalization windows")
+kWinEta = Window("eta", [-0.3, 0.3])
+kWinPhi = Window("phi", [-0.4, 0.4], unit="rad")
+kWinR0 = Window("R0", [500, 2000], unit="mm")
+#+end_src
+
+#+begin_src jupyter-python
+print("Applying E/p cut before feature generation")
+
+mom = gen.momentum()[:, 0]
+passes_eoverp_cut = (
+    dak.sum(scifi.energy[scifi.layer <= results_EoverP["max_layer"]] / mom, axis=1)
+    > results_EoverP["e_cut"]
+)
+
+gen_good = gen.filter(hits_in_calo & electron_or_pion & passes_eoverp_cut)
+scifi_good = scifi.filter(hits_in_calo & electron_or_pion & passes_eoverp_cut)
+astropix_good = astropix.filter(hits_in_calo & electron_or_pion & passes_eoverp_cut)
+#+end_src
+
+#+begin_src jupyter-python
+print("Creating feature data structures (this may take a while)")
+
+print(" --> creating Astropix feature table")
+df_astropix = data_features(astropix_good, n_hits=50, ltype="img", lval=0)
+
+print(" --> creating SciFi feature table")
+df_scifi = data_features(
+    scifi_good,
+    n_hits=50,
+    ltype="scfi",
+    lval=1,
+    loffset=dak.max(astropix_good.layer).compute(),
+)
+
+# keep the same behavior as the original script
+df_scifi.eta = np.float32(0.0)
+
+print(" --> merging feature tables")
+df_both = (
+    pd.concat([df_astropix.reset_index(), df_scifi.reset_index()], ignore_index=True)
+      .set_index(["event", "ltype", "layer", "hit"])
+      .sort_index()
+)
+
+print(f"Saving feature table to {datadir}/hits.snappy.parquet")
+df_both.to_parquet(f"{datadir}/hits.snappy.parquet", compression="snappy")
+#+end_src
+
+#+begin_src jupyter-python
+print("Formatting labels")
+
+padded_PDG = dak.map_partitions(ak.pad_none, gen_good.PDG, 1, axis=1)
+padded_mom = dak.map_partitions(ak.pad_none, gen_good.momentum(), 1, axis=1)
+padded_mass = dak.map_partitions(ak.pad_none, gen_good.mass, 1, axis=1)
+
+pdg0 = padded_PDG[:, 0]
+moment0 = padded_mom[:, 0]
+mass0 = padded_mass[:, 0]
+
+pdg0_filled = dak.map_partitions(ak.fill_none, pdg0, 0)
+moment0_filled = dak.map_partitions(ak.fill_none, moment0, 0.0)
+mass0_filled = dak.map_partitions(ak.fill_none, mass0, 0.0)
+
+mc_pdg, mc_p, mc_mass = dask.compute(pdg0_filled, moment0_filled, mass0_filled)
+
+df_mc = ak.to_dataframe(
+    ak.Array({
+        "PDG": mc_pdg,
+        "P": mc_p,
+        "mass": mc_mass,
+    })
+).fillna(0)
+
+print(f"Saving labels to {datadir}/labels.snappy.parquet")
+df_mc.to_parquet(f"{datadir}/labels.snappy.parquet", compression="snappy")
+#+end_src
+
+* Load datasets
+
+#+begin_src jupyter-python
+print("Loading datasets:")
+print(f"   - Loading {datadir}/hits.snappy.parquet")
+df_data = pd.read_parquet(f"{datadir}/hits.snappy.parquet")
+
+print(f"   - Loading {datadir}/labels.snappy.parquet")
+df_mc = pd.read_parquet(f"{datadir}/labels.snappy.parquet")
+#+end_src
+
+#+begin_src jupyter-python
+n_electrons = np.sum(df_mc["PDG"] == 11)
+n_pions = np.sum(df_mc["PDG"] == -211)
+imbalance = n_pions / n_electrons
+kSuggestedWeight = min(n_electrons / n_pions * kTargetImbalance, kPionWeightCap)
+
+print(f"Data set has relative class imbalance of {n_electrons} : {n_pions} = {imbalance}")
+print(f"  - target imbalance: {kTargetImbalance}")
+print(f"  - pion weight upper limit: {kPionWeightCap:.2f}")
+print(f"  - suggested pion weight {kSuggestedWeight:.2f}")
+#+end_src
+
+#+begin_src jupyter-python
+print(f"Loading E/P data from {datadir}/EoverP_results.csv")
+cutdf = pd.read_csv(f"{datadir}/EoverP_results.csv").sort_values("rejection", ascending=False)
+results_EoverP = {key: cutdf[key].iloc[0] for key in cutdf.columns}
+results_EoverP["max_layer"] = int(results_EoverP["max_layer"])
+kTargetEfficiencyML = kTargetEfficiency / results_EoverP["efficiency"]
+
+print(results_EoverP)
+print(f"Deduced target efficiency for ML: {kTargetEfficiencyML:.3f}")
+#+end_src
+
+* Format tensors
+
+#+begin_src jupyter-python
+print("Formatting data objects")
+dim = get_dimensions(df_data)
+
+xdata_both = df_data.values.reshape(
+    dim["event"],
+    dim["layer"],
+    dim["hit"],
+    len(df_data.columns)
+).astype(np.float32)
+
+ldata = df_mc["PDG"].map(lambda pdg: kElectronLabel if pdg == 11 else kPionLabel).values
+wdata = df_mc["PDG"].map(lambda pdg: 1 if pdg == 11 else kSuggestedWeight).values
+#+end_src
+
+#+begin_src jupyter-python
+print("Shuffling data and separating samples")
+index = np.arange(len(ldata))
+np.random.shuffle(index)
+tot_len = len(index)
+
+n_valid = floor(tot_len * kValidateSize)
+n_test = floor(tot_len * kTestSize)
+n_train = tot_len - n_valid - n_test
+
+if kTrainSampleCap > 0 and n_train > kTrainSampleCap:
+    print(f"Capping training sample size to {kTrainSampleCap}")
+    valid_over_train = n_valid / n_train
+    test_over_train = n_test / n_train
+    n_train = kTrainSampleCap
+    n_valid = floor(valid_over_train * n_train)
+    n_test = floor(test_over_train * n_train)
+    tot_len = n_train + n_valid + n_test
+
+print(f"Sample sizes: {{n_train: {n_train}, n_valid: {n_valid}, n_test: {n_test}}}")
+#+end_src
+
+#+begin_src jupyter-python :results silent
+id_valid = index[:n_valid]
+id_test = index[n_valid:n_valid + n_test]
+id_train = index[n_valid + n_test:tot_len]
+
+xtrain, xvalid, xtest = xdata_both[id_train], xdata_both[id_valid], xdata_both[id_test]
+ltrain, lvalid, ltest = ldata[id_train], ldata[id_valid], ldata[id_test]
+wtrain, wvalid = wdata[id_train], wdata[id_valid]
+#+end_src
+
+* Training
+
+#+begin_src jupyter-python
+print("Start training")
+gpus = tf.config.list_logical_devices("GPU")
+if gpus:
+    strategy = tf.distribute.MirroredStrategy(devices=[d.name for d in gpus])
+else:
+    strategy = tf.distribute.get_strategy()
+
+history = None
+with strategy.scope():
+    train_dataset = make_dataset((xtrain, ltrain, wtrain))
+    valid_dataset = make_dataset((xvalid, lvalid, wvalid))
+
+    options = tf.data.Options()
+    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+    train_dataset = train_dataset.with_options(options)
+    valid_dataset = valid_dataset.with_options(options)
+
+    model = build_model(input_shape=xtrain.shape[1:])
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+        metrics=["accuracy"],
+        weighted_metrics=["accuracy"],
+    )
+    history = model.fit(
+        train_dataset.batch(2000),
+        validation_data=valid_dataset.batch(1000),
+        epochs=kEpochs
+    )
+    os.makedirs(output_directory, exist_ok=True)
+#+end_src
+
+* Export ONNX
+
+#+begin_src jupyter-python
+import keras.backend as K
+K.set_learning_phase = lambda flag: None
+
+import tf2onnx
+
+@tf.function(input_signature=[tf.TensorSpec(shape=[None, *model.input_shape[1:]], dtype=tf.float32)])
+def model_fn(input_tensor):
+    return model(input_tensor)
+
+onnx_model, _ = tf2onnx.convert.from_function(
+    model_fn,
+    input_signature=[tf.TensorSpec(shape=[None, *model.input_shape[1:]], dtype=tf.float32)],
+    opset=13,
+    output_path=f"{output_directory}/EcalBarrel_pi_rejection.onnx"
+)
+
+print("Model converted successfully to ONNX format!")
+#+end_src
+
+* Learning curves
+
+#+begin_src jupyter-python
+print("Summarizing metrics")
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+
+ax[0].plot(history.history["loss"])
+ax[0].plot(history.history["val_loss"])
+ax[0].set_title("model loss")
+ax[0].set_ylabel("loss")
+ax[0].set_xlabel("epoch")
+ax[0].legend(["train", "validate"], loc="upper left")
+
+ax[1].plot(history.history["accuracy"])
+ax[1].plot(history.history["val_accuracy"])
+ax[1].set_title("accuracy")
+ax[1].set_ylabel("accuracy")
+ax[1].set_xlabel("epoch")
+ax[1].legend(["train", "validate"], loc="upper left")
+ax[1].set_ylim(0, 1.1)
+
+fig.savefig(f"{plotdir}/ML_learning.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+#+end_src
+
+* Evaluation
+
+#+begin_src jupyter-python
+print("Benchmarking test data")
+test_dataset = make_dataset((xtest,))
+prediction = model.predict(test_dataset.batch(1000))
+#+end_src
+
+#+begin_src jupyter-python
+print("Calculate aggregate e-pi rejection metrics")
+
+def calculate_metrics(target_efficiency=kTargetEfficiencyML, export_prediction=True):
+    efficiency_cut = np.percentile(
+        prediction[ltest == kElectronLabel].T[kElectronLabel],
+        (1 - target_efficiency) * 100
+    )
+    target_weight = (1 - efficiency_cut) / efficiency_cut
+
+    prediction_weights = np.ones(2)
+    prediction_weights[kElectronLabel] = target_weight
+    prediction_labels = np.argmax(prediction * prediction_weights, axis=1)
+
+    electron_predicted = [None, None]
+    probabilities = np.zeros(shape=(2, 2))
+    for i in [kPionLabel, kElectronLabel]:
+        mask = (ltest == i)
+        probabilities[i] = np.bincount(prediction_labels[mask], minlength=2) / float(np.sum(mask))
+        electron_predicted[i] = prediction[mask].T[kElectronLabel]
+
+    binomial_error = lambda eff, n: np.sqrt(n * eff * (1 - eff)) / n
+    inverse_error = lambda val, err: err / val**2
+
+    n_electron_test = np.sum(ltest == kElectronLabel)
+    n_pion_test = np.sum(ltest == kPionLabel)
+
+    results_ML = OrderedDict({
+        "target_particle": "e-",
+        "target_weight": float(target_weight),
+        "target_efficiency": float(target_efficiency),
+        "target_cut": float(efficiency_cut),
+        "n_electrons": int(n_electron_test),
+        "n_pions": int(n_pion_test),
+        "probabilities": probabilities.tolist(),
+        "efficiency": float(probabilities[kElectronLabel, kElectronLabel]),
+        "efficiency_error": float(binomial_error(probabilities[kElectronLabel, kElectronLabel], n_electron_test)),
+        "rejection": float(1 / probabilities[kPionLabel, kElectronLabel]),
+        "rejection_error": float(inverse_error(
+            probabilities[kPionLabel, kElectronLabel],
+            binomial_error(probabilities[kPionLabel, kElectronLabel], n_pion_test)
+        )),
+    })
+
+    results = OrderedDict({
+        "energy": float(energy_GeV),
+        "eta": float(etas[angle_label]),
+        "angle": angle_label,
+        "efficiency": float(results_EoverP["efficiency"] * results_ML["efficiency"]),
+        "efficiency_error": float(np.sqrt(
+            results_EoverP["efficiency"]**2 * results_ML["efficiency_error"]**2 +
+            results_ML["efficiency"]**2 * results_EoverP["efficiency_error"]**2
+        )),
+        "rejection": float(results_EoverP["rejection"] * results_ML["rejection"]),
+        "rejection_error": float(np.sqrt(
+            results_EoverP["rejection"]**2 * results_ML["rejection_error"]**2 +
+            results_ML["rejection"]**2 * results_EoverP["rejection_error"]**2
+        )),
+        "prob_cut": float(efficiency_cut),
+        "EoverP": results_EoverP,
+        "ML": results_ML,
+    })
+
+    if export_prediction:
+        return results, electron_predicted
+    return results
+#+end_src
+
+#+begin_src jupyter-python
+results, electron_predicted = calculate_metrics()
+results_ML = results["ML"]
+test = electron_predicted
+
+print(f"Calculating alternative target efficiency scenarios: {kAlternativeEfficiencies}")
+results["scenarios"] = {}
+for alternative_eff in kAlternativeEfficiencies:
+    target_eff_ml = alternative_eff / results_EoverP["efficiency"]
+    tmp_res = calculate_metrics(target_efficiency=target_eff_ml, export_prediction=False)
+    results["scenarios"][float(alternative_eff)] = tmp_res
+#+end_src
+
+#+begin_src jupyter-python
+assert test is electron_predicted
+
+with open(f"{output_directory}/results.json", "w") as f:
+    f.write(json.dumps(results, indent=2))
+
+print(f' - Found overall rejection {results["rejection"]:.2f} at {results["efficiency"]:.2f} efficiency')
+print(f" - Results written to {output_directory}/results.json")
+#+end_src
+
+* Rejection plot
+
+#+begin_src jupyter-python
+print("Plotting ML results")
+prop_cycle = plt.rcParams["axes.prop_cycle"]
+colors = prop_cycle.by_key()["color"]
+parts = {kElectronLabel: r"e^-", kPionLabel: r"\pi^-"}
+
+fig, ax = plt.subplots(figsize=(12, 9), dpi=160)
+for i in parts.keys():
+    ax.hist(
+        electron_predicted[i],
+        bins=np.linspace(0, 1, 101),
+        label=f'${parts[i]}$',
+        color=colors[i],
+        ec=colors[i],
+        alpha=0.5
+    )
+
+ax.axvline(x=results["prob_cut"], lw=2, color="k", ls="--")
+
+eff_text = "\n".join([
+    rf'$\epsilon_{{ML}}^{{e^-}} = {results_ML["efficiency"] * 100.:.2f}$%',
+    rf'$R_{{ML}}^{{\pi^-}} = {results_ML["rejection"]:.1f}$',
+    rf'$\epsilon_{{E/p}}^{{e^-}} = {results_EoverP["efficiency"] * 100.:.2f}$%',
+    rf'$R_{{E/p}}^{{\pi^-}} = {results_EoverP["rejection"]:.1f}$',
+])
+
+data_to_axis = (ax.transAxes + ax.transData.inverted()).inverted()
+ax.text(
+    data_to_axis.transform((results["prob_cut"], 1))[0] + 0.01,
+    0.99,
+    eff_text,
+    fontsize=24,
+    transform=ax.transAxes,
+    ha="left",
+    va="top"
+)
+
+ax.set_yscale("log")
+ax.set_ylabel("Counts", fontsize=24)
+ax.set_xlabel(r"$P_{e^-}$", fontsize=24)
+ax.tick_params(direction="in", which="both", labelsize=24)
+ax.legend(fontsize=24, ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
+
+ax.text(
+    0.05,
+    0.99,
+    "\n".join([
+        rf"{energy_setting} at $\eta = {etas[angle_label]:.3f}$",
+        rf'$R_{{\pi}} = {results["rejection"]:.1f}$ at $\epsilon_{{e^-}} = {results["efficiency"] * 100.:.2f}$%',
+    ]),
+    ha="left",
+    va="top",
+    fontsize=24,
+    transform=ax.transAxes
+)
+
+fig.savefig(f"{plotdir}/ML_rejection.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+
+print("Done with this eta bin")
+#+end_src

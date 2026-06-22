@@ -1,6 +1,6 @@
 rule far_forward_dvcs_compile:
     input:
-        "benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
+        "root_aclic/benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
 
 # Process the generated HepMC files through the simulation
 rule far_forward_dvcs_sim:
@@ -67,8 +67,7 @@ rule far_forward_dvcs_plots:
     input:
         workflow.source_path("analysis/render.hpp"),
         workflow.source_path("analysis/detectorResolution.hpp"),
-        script=workflow.source_path("analysis/analyze_DVCS_eicrecon.cxx"),
-        script_compiled="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
+        script="root_aclic/benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon.cxx",
         reco="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.1.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
     output:
         dir=directory("results/far_forward_dvcs/{DETECTOR_CONFIG}/{EBEAM}x{PBEAM}"),

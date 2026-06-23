@@ -18,7 +18,6 @@ sim:zdc_pi0:
 bench:zdc_pi0:
   extends: .det_benchmark
   stage: benchmarks
-  allow_failure: true # allow to fail until EICrecon 1.37 and epic 26.05
   needs: ["sim:zdc_pi0"]
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_zdc_sipm_on_tile_only/zdc_pi0
@@ -26,7 +25,6 @@ bench:zdc_pi0:
 collect_results:zdc_pi0:
   extends: .det_benchmark
   stage: collect
-  allow_failure: true # allow to fail until EICrecon 1.37 and epic 26.05
   needs: ["bench:zdc_pi0"]
   when: always
   script:

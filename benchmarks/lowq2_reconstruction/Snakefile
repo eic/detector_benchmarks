@@ -19,8 +19,8 @@ rule filter_hepmc_for_training:
     shell:
         """
         # Ensure ROOT 6.40.00-02 finds ROOT.modulemap
-        export ROOT_INCLUDE_PATH="$(root-config --incdir)${ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}"
-        export LD_LIBRARY_PATH="$(root-config --libdir)${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        export ROOT_INCLUDE_PATH="$(root-config --incdir)${{ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}}"
+        export LD_LIBRARY_PATH="$(root-config --libdir)${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}"
         python {input.script} --outFile {output} --inFile {params.events}
         """
 

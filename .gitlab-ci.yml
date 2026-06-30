@@ -7,6 +7,7 @@ variables:
   GITHUB_REPOSITORY: ''
   GITHUB_SHA: ''
   SNAKEMAKE_FLAGS: '--cache'
+  RM: ''
 
 workflow:
   name: '$PIPELINE_NAME'
@@ -38,215 +39,62 @@ default:
     when: always
 
 stages:
-  - status-pending
   - config
-  - initialize
-  - simulate
-  - calibrate
-  - benchmarks
-  - collect
-  - deploy
-  - status-report
-
-.status:
-  image: curlimages/curl:latest
-  rules:
-    - if: $GITHUB_SHA !~ /^$/ # when GITHUB_SHA non-empty
-  script:
-    - |
-      curl \
-        -X POST \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: token ${GITHUB_REPO_STATUS_TOKEN}" \
-        "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-        -d '{"state":"'"${STATE}"'",
-             "target_url":"'"${CI_PIPELINE_URL}"'",
-             "description":"'"$(TZ=America/New_York date)"'",
-             "context":"eicweb/detector_benchmarks ('"${BENCHMARKS_TAG}"', '"$DETECTOR_CONFIG"')"
-            }' ;
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-
-
-benchmarks:detector:pending:
-  stage: status-pending
-  extends: .status
-  variables:
-    STATE: "pending"
-  when: always
 
 common:setup:
   stage: config
   before_script:
   script:
-    - |
-      if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="main" 
+    -|
+      ps aux
+      exit 1
+      uptime
+      df -h
+      cat /proc/mounts
+      touch test
+      sleep 60
+      stat test
+      sleep 60
+      stat test
+      sleep 60
+      cat test
+      stat test
+      if [ -n "${RM}" ] ; then rm -rf $RM ; fi
+      exit 0
+      cat >filter_broken.py <<EOF
+      import sys
+      import ROOT
+      ROOT.gEnv.SetValue("TFile.Recover", 0)
+      for filename in sys.stdin:
+          filename = filename.rstrip()
+          bad = False;
+          try:
+              f = ROOT.TFile(filename)
+              bad = bad or f.IsZombie()
+          except OSError:
+              bad = True
+          if bad:
+              print(filename)
+      EOF
+      :>list
+      if [ -n "${REPAIR}" ]; then
+        echo "removing broken ROOT files from cache"
+        for file in $(find /scratch/snakemake-cache -type f); do
+          if file -b "$file" | grep -E '^ROOT file' >/dev/null; then
+            echo "$file" >> list
+          fi
+        done
+        echo "located $(cat list | wc -l) ROOT files"
+        cat list | python filter_broken.py | tee broken
+        cat broken | xargs --no-run-if-empty rm -v
       fi
-      echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
-      echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone --depth 1 -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
-      rm -rf .local/.git
-      echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
-      echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
-      echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-    - source .local/bin/env.sh
-    - mkdir_local_data_link sim_output
-    - mkdir_local_data_link EPIC
-    - mkdir -p results
-    - mkdir -p config
-    - eic-info
-    - |
-      flock --nonblock /scratch/garbage-collect.lock \
-        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
-        || true
-
-.det_benchmark:
-  needs:
-    - ["common:setup"]
-  before_script:
-    - source .local/bin/env.sh
-    - source /opt/detector/epic-main/bin/thisepic.sh
-    - ls -lrtha 
-    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
-    - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
-    # snakemake support
-    - mkdir "${DETECTOR_CONFIG}"
-    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
-    - ln -s "../results" "${DETECTOR_CONFIG}/results"
-    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
-    - ls -lrtha
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-
-include: 
-  - local: 'benchmarks/backgrounds/config.yml'
-  - local: 'benchmarks/backwards_ecal/config.yml'
-  - local: 'benchmarks/beamline/config.yml'
-  - local: 'benchmarks/calo_pid/config.yml'
-  - local: 'benchmarks/campaign/config.yml'
-  - local: 'benchmarks/ecal_gaps/config.yml'
-  - local: 'benchmarks/far_forward_dvcs/config.yml'
-  - local: 'benchmarks/lowq2_reconstruction/config.yml'
-  - local: 'benchmarks/secondary_vertexing_dis/config.yml'
-  - local: 'benchmarks/tracking_detectors/config.yml'
-  - local: 'benchmarks/tracking_performances/config.yml'
-  - local: 'benchmarks/tracking_performances_dis/config.yml'
-  - local: 'benchmarks/barrel_ecal/config.yml'
-  - local: 'benchmarks/lfhcal/config.yml'
-  - local: 'benchmarks/zdc/config.yml'
-  - local: 'benchmarks/zdc_lyso/config.yml'
-  - local: 'benchmarks/zdc_neutron/config.yml'
-  - local: 'benchmarks/zdc_photon/config.yml'
-  - local: 'benchmarks/zdc_pi0/config.yml'
-  - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/pid/config.yml'
-  - local: 'benchmarks/rich/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
-  - local: 'benchmarks/insert_muon/config.yml'
-  - local: 'benchmarks/insert_tau/config.yml'
-  - local: 'benchmarks/zdc_sigma/config.yml'
-  - local: 'benchmarks/zdc_lambda/config.yml'
-  - local: 'benchmarks/insert_neutron/config.yml'
-  - local: 'benchmarks/femc_electron/config.yml'
-  - local: 'benchmarks/femc_photon/config.yml'
-  - local: 'benchmarks/femc_pi0/config.yml'
-  - local: 'benchmarks/nhcal_acceptance/config.yml'
-  - local: 'benchmarks/nhcal_basic_distribution/config.yml'
-  - local: 'benchmarks/nhcal_sampling_fraction/config.yml'
-  - local: 'benchmarks/nhcal_dimuon_photoproduction/config.yml'
-  - local: 'benchmarks/nhcal_pion_rejection/config.yml'
-  
-deploy_results:
-  allow_failure: true
-  extends: .det_benchmark
-  stage: deploy
-  needs:
-    - "collect_results:backgrounds"
-    - "collect_results:backwards_ecal"
-    - "collect_results:barrel_ecal"
-    - "collect_results:beamline"
-    - "collect_results:calo_pid"
-    - "collect_results:campaign"
-    - "collect_results:ecal_gaps"
-    - "collect_results:far_forward_dvcs"
-    - "collect_results:lfhcal"
-    - "collect_results:lowq2_reconstruction"
-    - "collect_results:material_scan"
-    - "collect_results:pid"
-    - "collect_results:rich"
-    - "collect_results:secondary_vertexing_dis"
-    - "collect_results:tracking_performance"
-    - "collect_results:tracking_performance_campaigns"
-    - "collect_results:zdc_sigma"
-    - "collect_results:zdc_lambda"
-    - "collect_results:insert_neutron"
-    - "collect_results:tracking_performances_dis"
-    - "collect_results:zdc"
-    - "collect_results:zdc_lyso"
-    - "collect_results:zdc_neutron"
-    - "collect_results:insert_muon"
-    - "collect_results:insert_tau"
-    - "collect_results:zdc_photon"
-    - "collect_results:zdc_pi0"
-    - "collect_results:femc_electron"
-    - "collect_results:femc_photon"
-    - "collect_results:femc_pi0"
-    - "collect_results:nhcal_acceptance"
-    - "collect_results:nhcal_basic_distribution"
-    - "collect_results:nhcal_sampling_fraction"
-    - "collect_results:nhcal_dimuon_photoproduction"
-    - "collect_results:nhcal_pion_rejection"
-  script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
-    - find results -print | sort | tee summary.txt
-    - |
-      if [ ! -x "$(command -v pelican)" ] ; then
-        wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz ;
-        sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114 pelican_Linux_x86_64.tar.gz') ;
-        tar zxf pelican_Linux_x86_64.tar.gz ;
-        export PATH=${PWD}/pelican-7.13.0:${PATH} ;
-      fi
-    - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
-    - pelican object copy pipeline-$CI_PIPELINE_ID.tar $OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID.tar
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-
-benchmarks:detector:success:
-  stage: status-report
-  dependencies: []
-  extends: .status
-  variables:
-    STATE: "success"
-  after_script:
-    # Cleanup scratch space
-    - rm -rfv $LOCAL_DATA_PATH
-  when: on_success
-
-benchmarks:detector:failure:
-  stage: status-report
-  dependencies: []
-  extends: .status
-  variables:
-    STATE: "failure"
-  when: on_failure
-
-pages:
-  stage: deploy
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_SERVER_HOST != "eicweb.phy.anl.gov"'
-  cache:
-    paths:
-      - node_modules/
-  image: node:latest
-  script:
-    - mkdir public && cp doc/main.html public/index.html
-  artifacts:
-    paths:
-      - public
+      echo "removing broken symlinks"
+      find `realpath /scratch` -xtype l -print -delete
+      echo "listing most offending directories"
+      find `realpath /scratch` -type d -links 2 -print0 | (du -sL --files0-from=- || true) | sort -n > /tmp/df
+      #echo "listing cached entries by size"
+      #find `realpath /scratch` -type l -print0 | (du -sL --files0-from=- || true) | sort -n > /tmp/df
+      #find `realpath /scratch` -type f -print0 | du -s --files0-from=- || true | sort -n > /tmp/df
+      head /tmp/df
+      tail -n 1000 /tmp/df
+      df -h

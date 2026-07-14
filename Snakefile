@@ -112,7 +112,6 @@ echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]
 exit 1
 """
 
-
 rule warmup_run:
     output:
         "warmup.edm4hep.root",

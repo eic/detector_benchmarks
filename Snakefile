@@ -2,6 +2,7 @@ configfile: "snakemake.yml"
 
 import functools
 import os
+import subprocess
 from snakemake.logging import logger
 
 
@@ -52,6 +53,7 @@ include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/beamline/Snakefile"
 include: "benchmarks/calo_pid/Snakefile"
+include: "benchmarks/bic_pid/Snakefile"
 include: "benchmarks/campaign/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/far_forward_dvcs/Snakefile"

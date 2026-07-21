@@ -100,7 +100,7 @@ cat > {output.config_vtx} <<EOF
   "output_prefix": "$(dirname "{output.hists_vtx}")/hists"
 }}
 EOF
-root -l -b -q '{input.script_vtx}+("{output.config_vtx}")'
+root -l -b -q '{input.script_vtx}("{output.config_vtx}")'
 """
 
 #Merge all the files produced in the previous step

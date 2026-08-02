@@ -21,6 +21,11 @@ rule filter_hepmc_for_training:
         # Ensure ROOT 6.40.00-02 finds ROOT.modulemap
         export ROOT_INCLUDE_PATH="$(root-config --incdir)${{ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}}"
         export LD_LIBRARY_PATH="$(root-config --libdir)${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}"
+        # FIXME: Work around a ROOT upstream bug in progress; preloading libCore.so.6.40
+        # forces resolution to the non-patch-level soname so ROOT.modulemap is found correctly.
+        # With a single ROOT install in these containers, this should remain harmless after
+        # upgrades away from ROOT 6.40.
+        export LD_PRELOAD="${{LD_PRELOAD:+$LD_PRELOAD:}}/opt/local/lib/root/libCore.so.6.40"
         python {input.script} --outFile {output} --inFile {params.events}
         """
 

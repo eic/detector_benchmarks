@@ -338,9 +338,12 @@ def cluster_position_residual(events, coordinate):
         keepdims=True,
         mask_identity=True,
     )
-    reco_coordinate = ak.firsts(
+    # dask-awkward does not implement ak.firsts. The argmax index is kept as a
+    # length-one list, so reducing that list gives the selected coordinate.
+    reco_coordinate = ak.max(
         events[f"EcalEndcapNClusters.position.{coordinate}"][highest_reco_energy],
         axis=-1,
+        mask_identity=True,
     )
 
     endpoint_coordinate = events[f"MCParticles.endpoint.{coordinate}"][:, 0]

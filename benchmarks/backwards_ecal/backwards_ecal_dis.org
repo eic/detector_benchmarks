@@ -10,12 +10,23 @@ electron from =MCScatteredElectrons= and match the reconstructed cluster
 nearest to its endpoint on the EEEMCal surface.
 
 The analysis is deliberately independent of how the input sample was
-produced.  In particular, the same program can be run on signal-only and
-beam-background-overlay samples.  Comparison plots can then be made from the
-two saved =summary.json= and =distributions.npz= files without repeating the
-event processing.
+produced.  The benchmark workflow runs it on five reconstructed 10x100 GeV
+neutral-current DIS files with minimum $Q^2=1$ GeV$^2$.  It reuses the DIS
+simulation defined by =tracking_performances_dis= and performs an EEEMCal-
+specific reconstruction that writes the collections needed below.
 
-Generate the Python program and run it with, for example:
+The same program can later be run on signal-only and beam-background-overlay
+samples.  Comparison plots can then be made from the two saved =summary.json=
+and =distributions.npz= files without repeating the event processing.
+
+Run the wired benchmark with:
+
+#+begin_example
+snakemake backwards_ecal_dis_run_locally
+#+end_example
+
+To analyze another already-reconstructed sample manually, generate the Python
+program and provide a file list:
 
 #+begin_example
 snakemake benchmarks/backwards_ecal/backwards_ecal_dis.org2py.py

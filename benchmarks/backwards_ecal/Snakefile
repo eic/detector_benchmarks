@@ -69,6 +69,49 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 """
 
 
+rule backwards_ecal_dis_recon:
+    input:
+        # Reuse the centrally defined DIS simulation from the tracking benchmark.
+        sim="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        "sim_output/backwards_ecal_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+    log:
+        "logs/sim_output/backwards_ecal_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root.log",
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+        MINQ2=r"\d+",
+        INDEX=r"\d+",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+set -o pipefail
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,MCScatteredElectrons,EcalEndcapNClusters \
+  | tee {log}
+"""
+
+
+rule backwards_ecal_dis_local_sim_list:
+    input:
+        expand(
+            "sim_output/backwards_ecal_dis/{{DETECTOR_CONFIG}}/pythia8NCDIS_{{EBEAM}}x{{PBEAM}}_minQ2={{MINQ2}}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+            INDEX=range(1, 6),
+        ),
+    output:
+        "listing/backwards_ecal_dis/local/{DETECTOR_CONFIG}/{EBEAM}x{PBEAM}/minQ2={MINQ2}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input) + "\n")
+
+
 rule backwards_ecal_local_sim_list:
     input:
         expand(
@@ -192,3 +235,33 @@ INPUT_PATH_FORMAT=listing/backwards_ecal/{wildcards.CAMPAIGN}/""" + DETECTOR_CON
 OUTPUT_DIR={output} \
 python {input.script}
 """
+
+
+rule backwards_ecal_dis:
+    input:
+        file_list="listing/backwards_ecal_dis/{CAMPAIGN}/" + DETECTOR_CONFIG + "/{EBEAM}x{PBEAM}/minQ2={MINQ2}.lst",
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/backwards_ecal/backwards_ecal_dis.org2py.py",
+    output:
+        directory("results/backwards_ecal_dis/{CAMPAIGN}/{EBEAM}x{PBEAM}/minQ2={MINQ2}"),
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+        MINQ2=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+env \
+  MATPLOTLIBRC={input.matplotlibrc} \
+  INPUT_FILE_LIST={input.file_list} \
+  OUTPUT_DIR={output} \
+  SAMPLE_LABEL="ePIC DIS {wildcards.EBEAM}x{wildcards.PBEAM} GeV, min Q2={wildcards.MINQ2} GeV2" \
+  python {input.script}
+"""
+
+
+rule backwards_ecal_dis_run_locally:
+    input:
+        "results/backwards_ecal_dis/local/10x100/minQ2=1",
+    message:
+        "See output in {input[0]}"

@@ -1,0 +1,397 @@
+#+TITLE: ePIC EEEMCal benchmark in DIS events
+#+AUTHOR: detector_benchmarks contributors
+#+OPTIONS: d:t
+
+This analysis measures the response of the backward electromagnetic
+calorimeter to the scattered electron in full DIS events.  Unlike the
+single-particle benchmark, the highest-energy cluster in the event is not
+necessarily produced by the electron.  We therefore select the scattered
+electron from =MCScatteredElectrons= and match the reconstructed cluster
+nearest to its endpoint on the EEEMCal surface.
+
+The analysis is deliberately independent of how the input sample was
+produced.  In particular, the same program can be run on signal-only and
+beam-background-overlay samples.  Comparison plots can then be made from the
+two saved =summary.json= and =distributions.npz= files without repeating the
+event processing.
+
+Generate the Python program and run it with, for example:
+
+#+begin_example
+snakemake benchmarks/backwards_ecal/backwards_ecal_dis.org2py.py
+env \
+  INPUT_FILE_LIST=/path/to/dis_files.list \
+  OUTPUT_DIR=results/backwards_ecal_dis/my_sample \
+  SAMPLE_LABEL="DIS, 10x100 GeV" \
+  python benchmarks/backwards_ecal/backwards_ecal_dis.org2py.py
+#+end_example
+
+The file list must contain one EDM4eic ROOT file per line.  =MATCH_RADIUS_MM=
+and =ENERGY_BIN_EDGES= may be overridden in the environment.  The default
+50 mm matching radius is intentionally recorded in the output and should be
+reviewed using the matching-distance plot before it becomes a fixed benchmark
+requirement.
+
+* Setup
+
+#+begin_src jupyter-python
+import json
+import os
+from pathlib import Path
+
+import awkward as ak
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.optimize
+import scipy.stats
+import uproot
+
+
+INPUT_FILE_LIST = Path(os.environ["INPUT_FILE_LIST"])
+OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "results/backwards_ecal_dis/manual"))
+SAMPLE_LABEL = os.environ.get("SAMPLE_LABEL", "DIS")
+MATCH_RADIUS_MM = float(os.environ.get("MATCH_RADIUS_MM", "50"))
+ENERGY_BIN_EDGES = np.asarray([
+    float(value)
+    for value in os.environ.get(
+        "ENERGY_BIN_EDGES", "0.5,1,2,3,4,5,6,8,10,15,20"
+    ).split(",")
+])
+
+ETA_MIN = float(os.environ.get("ETA_MIN", "-3.0"))
+ETA_MAX = float(os.environ.get("ETA_MAX", "-1.8"))
+ENDPOINT_Z_MIN_MM = float(os.environ.get("ENDPOINT_Z_MIN_MM", "-1900"))
+ENDPOINT_Z_MAX_MM = float(os.environ.get("ENDPOINT_Z_MAX_MM", "-1700"))
+
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def read_file_list(path):
+    with path.open() as stream:
+        files = [
+            line.strip()
+            for line in stream
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+    if not files:
+        raise RuntimeError(f"No input files found in {path}")
+    return files
+
+
+files = read_file_list(INPUT_FILE_LIST)
+branches = [
+    "MCScatteredElectrons_objIdx.index",
+    "MCParticles.momentum.*",
+    "MCParticles.endpoint.*",
+    "EcalEndcapNClusters.energy",
+    "EcalEndcapNClusters.position.*",
+]
+#+end_src
+
+* Object selection
+
+The =MCScatteredElectrons= collection is a subset collection, represented in
+the ROOT file by indices into =MCParticles=.  We retain candidates in the
+backward acceptance and, if more than one remains, use the one with the most
+negative longitudinal momentum.  This reproduces the selection used in the
+original EEEMCal DIS study.
+
+The endpoint requirement ensures that the selected electron actually reaches
+the EEEMCal.  The closest reconstructed cluster is accepted only inside the
+configured matching radius.  Events without such a cluster remain in the
+efficiency denominator but not in the response or residual distributions.
+
+#+begin_src jupyter-python
+def reduce_length_one(array):
+    """Reduce a zero-or-one element jagged array without using ak.firsts."""
+    return ak.max(array, axis=-1, mask_identity=True)
+
+
+def select_scattered_electron(events):
+    indices = events["MCScatteredElectrons_objIdx.index"]
+    px = events["MCParticles.momentum.x"][indices]
+    py = events["MCParticles.momentum.y"][indices]
+    pz = events["MCParticles.momentum.z"][indices]
+
+    momentum = np.sqrt(px * px + py * py + pz * pz)
+    eta = np.arcsinh(pz / np.sqrt(px * px + py * py))
+    accepted = (eta > ETA_MIN) & (eta < ETA_MAX)
+    accepted_pz = ak.mask(pz, accepted)
+    best = ak.argmin(
+        accepted_pz, axis=-1, keepdims=True, mask_identity=True
+    )
+    selected_indices = indices[best]
+
+    def mc_value(name):
+        return reduce_length_one(events[name][selected_indices])
+
+    return {
+        "energy": reduce_length_one(momentum[best]),
+        "eta": reduce_length_one(eta[best]),
+        "endpoint_x": mc_value("MCParticles.endpoint.x"),
+        "endpoint_y": mc_value("MCParticles.endpoint.y"),
+        "endpoint_z": mc_value("MCParticles.endpoint.z"),
+    }
+
+
+def match_cluster(events, electron):
+    cluster_x = events["EcalEndcapNClusters.position.x"]
+    cluster_y = events["EcalEndcapNClusters.position.y"]
+    distance = np.sqrt(
+        (cluster_x - electron["endpoint_x"]) ** 2
+        + (cluster_y - electron["endpoint_y"]) ** 2
+    )
+    closest = ak.argmin(distance, axis=-1, keepdims=True, mask_identity=True)
+
+    return {
+        "energy": reduce_length_one(events["EcalEndcapNClusters.energy"][closest]),
+        "x": reduce_length_one(cluster_x[closest]),
+        "y": reduce_length_one(cluster_y[closest]),
+        "distance": reduce_length_one(distance[closest]),
+    }
+#+end_src
+
+* Event processing
+
+Only one scalar record per selected electron is retained, so processing is
+performed in chunks and does not require all EDM data to fit in memory.
+
+#+begin_src jupyter-python
+selected_chunks = []
+matched_chunks = []
+total_events = 0
+
+sources = {path: "events" for path in files}
+for events in uproot.iterate(
+    sources,
+    filter_name=branches,
+    step_size="100 MB",
+    library="ak",
+):
+    total_events += len(events)
+    electron = select_scattered_electron(events)
+    cluster = match_cluster(events, electron)
+
+    endpoint_accepted = (
+        (electron["endpoint_z"] > ENDPOINT_Z_MIN_MM)
+        & (electron["endpoint_z"] < ENDPOINT_Z_MAX_MM)
+    )
+    matched = endpoint_accepted & (cluster["distance"] < MATCH_RADIUS_MM)
+
+    selected_chunks.append({
+        key: ak.to_numpy(ak.drop_none(ak.mask(value, endpoint_accepted)))
+        for key, value in electron.items()
+    })
+    matched_chunks.append({
+        "truth_energy": ak.to_numpy(
+            ak.drop_none(ak.mask(electron["energy"], matched))
+        ),
+        "truth_eta": ak.to_numpy(
+            ak.drop_none(ak.mask(electron["eta"], matched))
+        ),
+        "response": ak.to_numpy(
+            ak.drop_none(ak.mask(cluster["energy"] / electron["energy"], matched))
+        ),
+        "dx": ak.to_numpy(
+            ak.drop_none(
+                ak.mask(cluster["x"] - electron["endpoint_x"], matched)
+            )
+        ),
+        "dy": ak.to_numpy(
+            ak.drop_none(
+                ak.mask(cluster["y"] - electron["endpoint_y"], matched)
+            )
+        ),
+        "distance": ak.to_numpy(
+            ak.drop_none(ak.mask(cluster["distance"], endpoint_accepted))
+        ),
+    })
+
+
+def concatenate(chunks, key):
+    arrays = [chunk[key] for chunk in chunks if len(chunk[key])]
+    return np.concatenate(arrays) if arrays else np.asarray([], dtype=float)
+
+
+truth_energy_selected = concatenate(selected_chunks, "energy")
+truth_eta_selected = concatenate(selected_chunks, "eta")
+truth_energy_matched = concatenate(matched_chunks, "truth_energy")
+truth_eta_matched = concatenate(matched_chunks, "truth_eta")
+response = concatenate(matched_chunks, "response")
+dx = concatenate(matched_chunks, "dx")
+dy = concatenate(matched_chunks, "dy")
+closest_distance = concatenate(matched_chunks, "distance")
+
+np.savez_compressed(
+    OUTPUT_DIR / "distributions.npz",
+    truth_energy_selected=truth_energy_selected,
+    truth_eta_selected=truth_eta_selected,
+    truth_energy_matched=truth_energy_matched,
+    truth_eta_matched=truth_eta_matched,
+    response=response,
+    dx=dx,
+    dy=dy,
+    closest_distance=closest_distance,
+    energy_bin_edges=ENERGY_BIN_EDGES,
+)
+#+end_src
+
+* Resolution summaries
+
+Energy resolution follows the single-particle benchmark convention: fit the
+=E/p= distribution with a Crystal Ball function and convert its FWHM to an
+equivalent Gaussian sigma.  Position resolution is the half-width of the
+central 68% interval, as in the position-resolution addition to that
+benchmark.  A bin with insufficient entries or a failed fit is reported as
+=null= in JSON rather than aborting the full analysis.
+
+#+begin_src jupyter-python
+def crystal_ball_resolution(values):
+    values = values[np.isfinite(values)]
+    if len(values) < 30:
+        return np.nan
+
+    counts, edges = np.histogram(values, bins=110, range=(0.0, 1.10))
+    centers = 0.5 * (edges[:-1] + edges[1:])
+
+    def model(x, normalization, beta, m, location, scale):
+        return normalization * scipy.stats.crystalball.pdf(
+            x, beta, m, loc=location, scale=scale
+        )
+
+    fit_slice = slice(5, None)
+    location0 = centers[fit_slice][np.argmax(counts[fit_slice])]
+    parameters0 = (max(np.sum(counts[10:]) * 0.02, 1.0), 2.0, 3.0, location0, 0.02)
+    try:
+        parameters, _ = scipy.optimize.curve_fit(
+            model,
+            centers[fit_slice],
+            counts[fit_slice],
+            p0=parameters0,
+            bounds=([0.0, 0.05, 1.01, 0.1, 0.001], [np.inf, 20.0, 100.0, 1.1, 0.5]),
+            maxfev=20000,
+        )
+        location = parameters[3]
+        grid = np.linspace(0.0, 1.1, 10000)
+        curve = model(grid, *parameters)
+        above_half_maximum = grid[curve >= 0.5 * np.max(curve)]
+        if location <= 0.0 or len(above_half_maximum) < 2:
+            return np.nan
+        fwhm = above_half_maximum[-1] - above_half_maximum[0]
+        return fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0))) / location
+    except (RuntimeError, ValueError):
+        return np.nan
+
+
+def central_68_half_width(values):
+    values = values[np.isfinite(values)]
+    if len(values) < 20:
+        return np.nan
+    low, high = np.quantile(values, [0.16, 0.84])
+    return 0.5 * (high - low)
+
+
+def optional_number(value):
+    return float(value) if np.isfinite(value) else None
+
+
+bin_centers = 0.5 * (ENERGY_BIN_EDGES[:-1] + ENERGY_BIN_EDGES[1:])
+energy_resolution = []
+position_resolution_x = []
+position_resolution_y = []
+matching_efficiency = []
+selected_counts = []
+matched_counts = []
+
+for low, high in zip(ENERGY_BIN_EDGES[:-1], ENERGY_BIN_EDGES[1:]):
+    selected_in_bin = (truth_energy_selected >= low) & (truth_energy_selected < high)
+    matched_in_bin = (truth_energy_matched >= low) & (truth_energy_matched < high)
+    denominator = int(np.count_nonzero(selected_in_bin))
+    numerator = int(np.count_nonzero(matched_in_bin))
+
+    selected_counts.append(denominator)
+    matched_counts.append(numerator)
+    matching_efficiency.append(numerator / denominator if denominator else np.nan)
+    energy_resolution.append(crystal_ball_resolution(response[matched_in_bin]))
+    position_resolution_x.append(central_68_half_width(dx[matched_in_bin]))
+    position_resolution_y.append(central_68_half_width(dy[matched_in_bin]))
+
+summary = {
+    "sample_label": SAMPLE_LABEL,
+    "input_file_list": str(INPUT_FILE_LIST),
+    "number_of_files": len(files),
+    "number_of_events": total_events,
+    "number_of_endpoint_selected_electrons": len(truth_energy_selected),
+    "number_of_matched_electrons": len(truth_energy_matched),
+    "selection": {
+        "eta": [ETA_MIN, ETA_MAX],
+        "endpoint_z_mm": [ENDPOINT_Z_MIN_MM, ENDPOINT_Z_MAX_MM],
+        "match_radius_mm": MATCH_RADIUS_MM,
+    },
+    "energy_bin_edges_GeV": ENERGY_BIN_EDGES.tolist(),
+    "selected_counts": selected_counts,
+    "matched_counts": matched_counts,
+    "matching_efficiency": [optional_number(x) for x in matching_efficiency],
+    "energy_resolution": [optional_number(x) for x in energy_resolution],
+    "position_resolution_x_mm": [optional_number(x) for x in position_resolution_x],
+    "position_resolution_y_mm": [optional_number(x) for x in position_resolution_y],
+}
+
+with (OUTPUT_DIR / "summary.json").open("w") as stream:
+    json.dump(summary, stream, indent=2)
+#+end_src
+
+* Plots
+
+#+begin_src jupyter-python
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.5))
+
+axes[0].hist(response, bins=110, range=(0.0, 1.1), histtype="step")
+axes[0].set_xlabel(r"$E_{cluster}/p_{truth}$")
+axes[0].set_ylabel("Events")
+
+axes[1].hist(dx, bins=200, range=(-50.0, 50.0), histtype="step", label="x")
+axes[1].hist(dy, bins=200, range=(-50.0, 50.0), histtype="step", label="y")
+axes[1].set_xlabel("Cluster - endpoint [mm]")
+axes[1].set_ylabel("Events")
+axes[1].legend()
+
+axes[2].hist(closest_distance, bins=200, range=(0.0, 200.0), histtype="step")
+axes[2].axvline(MATCH_RADIUS_MM, color="black", linestyle="--", label="match cut")
+axes[2].set_xlabel("Closest cluster distance [mm]")
+axes[2].set_ylabel("Endpoint-selected events")
+axes[2].legend()
+
+fig.suptitle(SAMPLE_LABEL)
+fig.tight_layout()
+fig.savefig(OUTPUT_DIR / "distributions.png", dpi=150)
+fig.savefig(OUTPUT_DIR / "distributions.pdf")
+plt.close(fig)
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.5))
+
+axes[0].plot(bin_centers, 100.0 * np.asarray(energy_resolution), marker="o")
+axes[0].set_xlabel("Truth electron energy [GeV]")
+axes[0].set_ylabel(r"$\sigma_E/E$ from FWHM [%]")
+
+axes[1].plot(bin_centers, position_resolution_x, marker="o", label="x")
+axes[1].plot(bin_centers, position_resolution_y, marker="o", label="y")
+axes[1].set_xlabel("Truth electron energy [GeV]")
+axes[1].set_ylabel("Central 68% half-width [mm]")
+axes[1].legend()
+
+axes[2].plot(bin_centers, matching_efficiency, marker="o")
+axes[2].set_xlabel("Truth electron energy [GeV]")
+axes[2].set_ylabel("Cluster matching efficiency")
+axes[2].set_ylim(0.0, 1.05)
+
+fig.suptitle(SAMPLE_LABEL)
+fig.tight_layout()
+fig.savefig(OUTPUT_DIR / "performance.png", dpi=150)
+fig.savefig(OUTPUT_DIR / "performance.pdf")
+plt.close(fig)
+
+print(json.dumps(summary, indent=2))
+#+end_src

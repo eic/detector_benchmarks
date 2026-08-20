@@ -56,12 +56,12 @@ def extract_collections(events):
     """
     Extract particle collections from events
     
-    TODO: Update collection names once confirmed by EICrecon session
-    Expected collections:
+    Collections (confirmed from EICrecon branch wdconinc-pandora-arbor-pfa-with-xml-override):
     - MCParticles (truth)
-    - PandoraPFAParticles (Pandora reconstruction)
-    - ArborPFAParticles (Arbor reconstruction)
-    - ReconstructedParticles or similar (baseline)
+    - PandoraPFAParticles (Pandora PFA reconstruction)
+    - ArborPFAParticles (Arbor PFA reconstruction)
+    
+    Note: PandoraArborComparison is a utility class and produces no output collections
     """
     data = {}
     
@@ -71,38 +71,17 @@ def extract_collections(events):
     else:
         raise KeyError("MCParticles collection not found in events")
     
-    # PandoraPFA (TODO: confirm exact collection name)
-    pfa_names = [
-        "PandoraPFAParticles",
-        "PandoraPFAReconstructedParticles",
-        "PandoraParticles"
-    ]
-    for name in pfa_names:
-        if name in events.fields:
-            data["pandora"] = events[name]
-            break
+    # PandoraPFA
+    if "PandoraPFAParticles" in events.fields:
+        data["pandora"] = events.PandoraPFAParticles
+    else:
+        print("WARNING: PandoraPFAParticles collection not found")
     
-    # ArborPFA (TODO: confirm exact collection name)
-    arbor_names = [
-        "ArborPFAParticles",
-        "ArborPFAReconstructedParticles",
-        "ArborParticles"
-    ]
-    for name in arbor_names:
-        if name in events.fields:
-            data["arbor"] = events[name]
-            break
-    
-    # Baseline (TODO: confirm exact collection name)
-    baseline_names = [
-        "ReconstructedParticles",
-        "ReconstructedChargedParticles",
-        "ParticleFlowParticles"
-    ]
-    for name in baseline_names:
-        if name in events.fields:
-            data["baseline"] = events[name]
-            break
+    # ArborPFA
+    if "ArborPFAParticles" in events.fields:
+        data["arbor"] = events.ArborPFAParticles
+    else:
+        print("WARNING: ArborPFAParticles collection not found")
     
     print(f"Found collections: {list(data.keys())}")
     return data
@@ -147,8 +126,8 @@ def plot_energy_resolution(data, particle_name, output_dir):
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle(f'Energy Resolution - {particle_name}', fontsize=14)
     
-    algorithms = ["pandora", "arbor", "baseline"]
-    colors = {"pandora": "blue", "arbor": "red", "baseline": "green"}
+    algorithms = ["pandora", "arbor"]
+    colors = {"pandora": "blue", "arbor": "red"}
     
     # TODO: Extract actual data and create plots
     # For now, create placeholder plots
@@ -293,9 +272,10 @@ def main():
         print(f"Results saved to: {output_dir}")
         print("\nNOTE: This is a placeholder implementation.")
         print("Production version requires:")
-        print("  1. Confirmed collection names from EICrecon")
-        print("  2. Proper truth matching using EDM4eic links")
+        print("  1. Actual data extraction from PandoraPFAParticles and ArborPFAParticles")
+        print("  2. Proper truth matching using EDM4eic association fields")
         print("  3. Complete metric calculations")
+        print("  4. EICrecon built from branch: wdconinc-pandora-arbor-pfa-with-xml-override")
         
     except Exception as e:
         print(f"\nERROR: Analysis failed: {e}")

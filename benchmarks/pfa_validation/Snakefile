@@ -96,17 +96,13 @@ rule pfa_validation_recon_single:
     params:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
-        # TODO: Update these collection names once confirmed by EICrecon session
-        # Placeholder collections - will be updated based on actual implementation
-        OUTPUT_COLLECTIONS="MCParticles,ReconstructedParticles,PandoraPFAParticles,ArborPFAParticles",
+        # PFA collections - plugins auto-load when collections are requested
+        OUTPUT_COLLECTIONS="MCParticles,PandoraPFAParticles,ArborPFAParticles",
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-# NOTE: This command assumes PFA algorithms are enabled by default in the branch
-# wdconinc-pandora-arbor-pfa-with-xml-override
-# TODO: Confirm exact parameters with EICrecon session
-
+# PFA algorithms auto-load when their collections are requested (no enable flags needed)
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.SIM_FILE} \
   -Ppodio:output_file={output.REC_FILE} \
@@ -212,7 +208,7 @@ rule pfa_validation_recon_multi:
     params:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
-        OUTPUT_COLLECTIONS="MCParticles,ReconstructedParticles,PandoraPFAParticles,ArborPFAParticles",
+        OUTPUT_COLLECTIONS="MCParticles,PandoraPFAParticles,ArborPFAParticles",
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

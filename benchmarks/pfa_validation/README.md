@@ -16,6 +16,22 @@ Comprehensive physics validation of the PFA algorithms through:
 
 ## Quick Start
 
+### Prerequisites
+
+**IMPORTANT:** This benchmark requires EICrecon branch `wdconinc-pandora-arbor-pfa-with-xml-override`:
+
+```bash
+# Build EICrecon from the PFA branch
+cd ~/git/EICrecon
+git fetch origin
+git checkout wdconinc-pandora-arbor-pfa-with-xml-override
+cmake -B build -S . -DCMAKE_INSTALL_PREFIX=install
+cmake --build build --target install -- -j8
+source install/bin/eicrecon-this.sh
+```
+
+### Running the Benchmark
+
 From the top-level detector_benchmarks directory:
 
 ```bash
@@ -101,7 +117,7 @@ The benchmark passes if:
 
 ## Dependencies
 
-- **EICrecon branch:** `wdconinc-pandora-arbor-pfa-with-xml-override`
+- **EICrecon branch:** `wdconinc-pandora-arbor-pfa-with-xml-override` (REQUIRED)
 - **Python packages:** uproot, awkward, matplotlib, numpy, scipy
 - **ROOT:** For event generation
 - **Simulation:** npsim/ddsim
@@ -112,7 +128,9 @@ The benchmark passes if:
 ### Workflow Pipeline
 1. **Event Generation:** ROOT macros generate HepMC files with specified kinematics
 2. **Simulation:** npsim processes HepMC → EDM4hep (detector simulation)
-3. **Reconstruction:** eicrecon processes EDM4hep → EDM4eic (with PFA algorithms enabled)
+3. **Reconstruction:** eicrecon processes EDM4hep → EDM4eic with PFA algorithms
+   - PFA plugins auto-load when collections are requested (no enable flags needed)
+   - Collections: `PandoraPFAParticles`, `ArborPFAParticles`, `MCParticles`
 4. **Analysis:** Python scripts extract collections, compute metrics, generate plots
 
 ### Analysis Scripts
@@ -141,8 +159,9 @@ The PFA algorithms have runtime-configurable parameters. To test different confi
 ### Common Issues
 
 **Issue:** Reconstruction crashes with "collection not found"
-- **Solution:** Verify correct EICrecon branch is checked out
-- Check output collection names match configuration
+- **Solution:** Verify EICrecon is built from `wdconinc-pandora-arbor-pfa-with-xml-override` branch
+- Check output collection names: `PandoraPFAParticles` and `ArborPFAParticles`
+- Verify with: `eicrecon-dump output.root | grep -E "Pandora|Arbor"`
 
 **Issue:** Empty validation plots
 - **Solution:** Check reconstruction logs for algorithm failures

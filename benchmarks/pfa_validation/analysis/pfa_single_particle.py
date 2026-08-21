@@ -62,24 +62,57 @@ def extract_collections(events):
     - ArborPFAParticles (Arbor PFA reconstruction)
     
     Note: PandoraArborComparison is a utility class and produces no output collections
+    Note: Uproot flattens field names, so "MCParticles" appears as "MCParticles.PDG", etc.
     """
+    import awkward as ak
     data = {}
     
-    # Truth particles
-    if "MCParticles" in events.fields:
-        data["truth"] = events.MCParticles
+    # Check if collections exist by looking for any field with that prefix
+    has_mcparticles = any(f.startswith("MCParticles.") for f in events.fields)
+    has_pandora = any(f.startswith("PandoraPFAParticles.") for f in events.fields)
+    has_arbor = any(f.startswith("ArborPFAParticles.") for f in events.fields)
+    
+    # Truth particles - reconstruct from flattened fields
+    if has_mcparticles:
+        data["truth"] = ak.zip({
+            "PDG": events["MCParticles.PDG"],
+            "generatorStatus": events["MCParticles.generatorStatus"],
+            "charge": events["MCParticles.charge"],
+            "momentum_x": events["MCParticles.momentum.x"],
+            "momentum_y": events["MCParticles.momentum.y"],
+            "momentum_z": events["MCParticles.momentum.z"],
+            "mass": events["MCParticles.mass"],
+        }, depth_limit=1)
     else:
         raise KeyError("MCParticles collection not found in events")
     
     # PandoraPFA
-    if "PandoraPFAParticles" in events.fields:
-        data["pandora"] = events.PandoraPFAParticles
+    if has_pandora:
+        data["pandora"] = ak.zip({
+            "PDG": events["PandoraPFAParticles.PDG"],
+            "type": events["PandoraPFAParticles.type"],
+            "energy": events["PandoraPFAParticles.energy"],
+            "momentum_x": events["PandoraPFAParticles.momentum.x"],
+            "momentum_y": events["PandoraPFAParticles.momentum.y"],
+            "momentum_z": events["PandoraPFAParticles.momentum.z"],
+            "charge": events["PandoraPFAParticles.charge"],
+            "mass": events["PandoraPFAParticles.mass"],
+        }, depth_limit=1)
     else:
         print("WARNING: PandoraPFAParticles collection not found")
     
     # ArborPFA
-    if "ArborPFAParticles" in events.fields:
-        data["arbor"] = events.ArborPFAParticles
+    if has_arbor:
+        data["arbor"] = ak.zip({
+            "PDG": events["ArborPFAParticles.PDG"],
+            "type": events["ArborPFAParticles.type"],
+            "energy": events["ArborPFAParticles.energy"],
+            "momentum_x": events["ArborPFAParticles.momentum.x"],
+            "momentum_y": events["ArborPFAParticles.momentum.y"],
+            "momentum_z": events["ArborPFAParticles.momentum.z"],
+            "charge": events["ArborPFAParticles.charge"],
+            "mass": events["ArborPFAParticles.mass"],
+        }, depth_limit=1)
     else:
         print("WARNING: ArborPFAParticles collection not found")
     

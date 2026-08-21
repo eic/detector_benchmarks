@@ -96,17 +96,18 @@ rule pfa_validation_recon_single:
     params:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
-        # PFA collections - plugins auto-load when collections are requested
+        # PFA collections - plugins must be explicitly loaded
         OUTPUT_COLLECTIONS="MCParticles,PandoraPFAParticles,ArborPFAParticles",
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-# PFA algorithms auto-load when their collections are requested (no enable flags needed)
+# PFA plugins must be explicitly loaded with -Pplugins=pandora,arbor
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.SIM_FILE} \
   -Ppodio:output_file={output.REC_FILE} \
   -Ppodio:output_collections={params.OUTPUT_COLLECTIONS} \
+  -Pplugins=pandora,arbor \
   2>&1 | tee {log}
 """
 
@@ -213,10 +214,12 @@ rule pfa_validation_recon_multi:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
+# PFA plugins must be explicitly loaded with -Pplugins=pandora,arbor
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.SIM_FILE} \
   -Ppodio:output_file={output.REC_FILE} \
   -Ppodio:output_collections={params.OUTPUT_COLLECTIONS} \
+  -Pplugins=pandora,arbor \
   2>&1 | tee {log}
 """
 

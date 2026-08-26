@@ -22,7 +22,7 @@ and =distributions.npz= files without repeating the event processing.
 Run the wired benchmark with:
 
 #+begin_example
-snakemake backwards_ecal_dis_run_locally
+snakemake -c1 backwards_ecal_dis_run_locally
 #+end_example
 
 To analyze another already-reconstructed sample manually, generate the Python

@@ -20,6 +20,19 @@ sim:backwards_ecal:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB listing/backwards_ecal/local/${DETECTOR_CONFIG}/${PARTICLE}/${MOMENTUM}/130to177deg.lst
 
+sim:backwards_ecal_dis:
+  extends: .det_benchmark
+  stage: simulate
+  timeout: 4 hours
+  script:
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
+        listing/backwards_ecal_dis/local/${DETECTOR_CONFIG}/10x100/minQ2=1.lst
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
 bench:backwards_ecal:
   extends: .det_benchmark
   stage: benchmarks
@@ -30,6 +43,16 @@ bench:backwards_ecal:
     - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
     - pip install -r benchmarks/backwards_ecal/requirements.txt
     - snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB results/backwards_ecal/local --allowed-rules backwards_ecal_local_sim_list backwards_ecal matplotlibrc org2py
+
+bench:backwards_ecal_dis:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:backwards_ecal_dis"]
+  script:
+    - export PYTHONUSERBASE=$LOCAL_DATA_PATH/deps
+    - pip install -r benchmarks/backwards_ecal/requirements.txt
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 backwards_ecal_dis_run_locally
 
 bench:backwards_ecal_campaigns:
   extends: .det_benchmark
@@ -51,4 +74,15 @@ collect_results:backwards_ecal:
     - ls -lrht
     - mv results{,_save}/ # move results directory out of the way to preserve it
     - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/backwards_ecal/local
+    - mv results{_save,}/
+
+collect_results:backwards_ecal_dis:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:backwards_ecal_dis"
+  script:
+    - ls -lrht
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output backwards_ecal_dis_run_locally
     - mv results{_save,}/

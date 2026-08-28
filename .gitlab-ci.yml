@@ -168,6 +168,7 @@ deploy_results:
   needs:
     - "collect_results:backgrounds"
     - "collect_results:backwards_ecal"
+    - "collect_results:backwards_ecal_dis"
     - "collect_results:barrel_ecal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"

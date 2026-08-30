@@ -48,7 +48,7 @@ namespace benchmarks {
   //---------------------------------------------------------------------------
   void RawHitAnalysis::AlgorithmProcess(
       const edm4eic::RawTrackerHitCollection& raw_hits,
-      const edm4eic::MCRecoTrackerHitAssociationCollection& assocs
+      const edm4eic::MCRecoTrackerHitLinkCollection& links
       )
   {
 
@@ -64,20 +64,13 @@ namespace benchmarks {
       m_tdc_vs_adc->Fill(adc,tdc);
     }
 
-    // loop over hits with associations (no noise)
-    for(const auto& assoc : assocs) {
-#if EDM4EIC_VERSION_MAJOR >= 6
-      auto hit = assoc.getSimHit();
-#else
-    for(const auto& hit : assoc.getSimHits()) {
-#endif
+    // loop over hits with links (no noise)
+    for(const auto& link : links) {
+      auto hit = link.getTo();
+      if(!hit.isAvailable()) continue;
       auto wavelength = Tools::GetPhotonWavelength(hit, m_log);
       if(wavelength>=0)
         m_phot_spectrum->Fill(wavelength);
-#if EDM4EIC_VERSION_MAJOR >= 6
-#else
-    }
-#endif
     }
   }
 

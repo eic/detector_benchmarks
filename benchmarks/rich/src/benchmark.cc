@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
       algo.process = [digi_algo] (podio::Frame& frame) {
         digi_algo->AlgorithmProcess(
             GetCollection<edm4eic::RawTrackerHitCollection>(frame,"DRICHRawHits"),
-            GetCollection<edm4eic::MCRecoTrackerHitAssociationCollection>(frame,"DRICHRawHitsAssociations")
+            GetCollection<edm4eic::MCRecoTrackerHitLinkCollection>(frame,"DRICHRawHitsLinks")
             );
       };
       algo.finish = [digi_algo] () { digi_algo->AlgorithmFinish(); };
@@ -250,9 +250,9 @@ int main(int argc, char** argv) {
       link_algo->AlgorithmInit(algo.log);
       algo.process = [link_algo] (podio::Frame& frame) {
         link_algo->AlgorithmProcess(
-            GetCollection<edm4eic::MCRecoParticleAssociationCollection>(
+            GetCollection<edm4eic::MCRecoParticleLinkCollection>(
               frame,
-              "ReconstructedChargedParticleAssociations"
+              "ReconstructedChargedParticleLinks"
               )
             );
       };

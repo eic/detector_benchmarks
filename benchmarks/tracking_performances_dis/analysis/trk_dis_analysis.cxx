@@ -26,14 +26,14 @@ void trk_dis_analysis(const std::string& config_name)
     std::ifstream  config_file{config_name};
     nlohmann::json config;
     config_file >> config;
-  
+
     const std::string rec_file      = config["rec_file"];
     const std::string detector      = config["detector"];
     const std::string output_prefix = config["output_prefix"];
     const int         ebeam         = config["ebeam"];
     const int         pbeam         = config["pbeam"];
     const int         Q2_min        = config["Min_Q2"];
-    
+
     fmt::print(fmt::emphasis::bold | fg(fmt::color::forest_green),
                 "Running DIS tracking analysis...\n");
     fmt::print(" - Detector package: {}\n", detector);
@@ -42,7 +42,7 @@ void trk_dis_analysis(const std::string& config_name)
     fmt::print(" - ebeam: {}\n", ebeam);
     fmt::print(" - pbeam: {}\n", pbeam);
     fmt::print(" - Minimum Q2: {}\n", Q2_min);
-    
+
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
     // Set output file for the histograms
@@ -51,7 +51,7 @@ void trk_dis_analysis(const std::string& config_name)
     TFile* ofile = new TFile(output_name_hists.c_str(), "RECREATE");
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
- 
+
     // Set up input file chain
     TChain *mychain = new TChain("events");
     mychain->Add(rec_file.c_str());
@@ -88,12 +88,12 @@ void trk_dis_analysis(const std::string& config_name)
     TTreeReaderArray<float> rec_ts_mass(tr, "ReconstructedTruthSeededChargedParticles.mass");
     TTreeReaderArray<int> rec_ts_pdg(tr, "ReconstructedTruthSeededChargedParticles.PDG");
     TTreeReaderArray<int> rec_ts_type(tr, "ReconstructedTruthSeededChargedParticles.type");
-	
-    // Hit-based track to MC Particle association weight
-    TTreeReaderArray<float> hit_assoc_weight(tr,"CentralCKFTrackAssociations.weight"); //Real-seeded tracking
-    TTreeReaderArray<float> hit_assoc_weight_ts(tr,"CentralCKFTruthSeededTrackAssociations.weight"); //Truth-seeded tracking
 
-    //-------------------------------------------------------------------------------------------------------------------------------------------- 
+    // Hit-based track to MC Particle link weight
+    TTreeReaderArray<float> hit_link_weight(tr,"CentralCKFTrackLinks.weight"); //Real-seeded tracking
+    TTreeReaderArray<float> hit_link_weight_ts(tr,"CentralCKFTruthSeededTrackLinks.weight"); //Truth-seeded tracking
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------
     // Define Histograms
 
     //Eta distribution of generated charged particles
@@ -166,7 +166,7 @@ void trk_dis_analysis(const std::string& config_name)
 
         //Loop over generated particles
         for(size_t igen=0;igen<gen_status.GetSize();igen++){
-	        
+
             auto charge = gen_charge[igen];
             auto status = gen_status[igen];
 
@@ -174,21 +174,21 @@ void trk_dis_analysis(const std::string& config_name)
             if(status==1 && fabs(charge) > 0.01 ){
                 gen_vec.SetXYZM(gen_px[igen],gen_py[igen],gen_pz[igen],gen_mass[igen]);
                 gen_vertex.SetXYZ(gen_vx[igen],gen_vy[igen],gen_vz[igen]);
-                
+
                 //Fill eta histogram
                 h1a->Fill(gen_vec.Eta());
                 if( gen_vec.Pt()>0.2 ) h1a1->Fill(gen_vec.Eta());
                 if( gen_vec.Pt()>0.5 ) h1a2->Fill(gen_vec.Eta());
             }
         } //End loop over generated particles
-        
+
         //Loop over reconstructed real-seeded charged particles (copy of tracks with PID info)
         size_t rec_mult = rec_type.GetSize();
 
         for(size_t irec=0;irec<rec_mult;irec++){
 
             rec_vec.SetXYZM(rec_px[irec],rec_py[irec],rec_pz[irec],rec_mass[irec]);
-            
+
             //Fill histograms
             h1b->Fill(rec_vec.Eta());
             if( rec_vec.Pt() > 0.2 ) h1b1->Fill(rec_vec.Eta());
@@ -202,7 +202,7 @@ void trk_dis_analysis(const std::string& config_name)
         for(size_t irec=0;irec<rec_ts_mult;irec++){
 
             rec_vec.SetXYZM(rec_ts_px[irec],rec_ts_py[irec],rec_ts_pz[irec],rec_ts_mass[irec]);
-            
+
             //Fill histograms
             h1c->Fill(rec_vec.Eta());
             if( rec_vec.Pt() > 0.2 ) h1c1->Fill(rec_vec.Eta());
@@ -210,21 +210,21 @@ void trk_dis_analysis(const std::string& config_name)
 
         } //End loop over reconstructed particles
 
-        // Loop over truth-seeded hit-based associations
-        for(size_t iassoc=0;iassoc<hit_assoc_weight.GetSize();iassoc++){
-            
-            auto assoc_weight = hit_assoc_weight[iassoc];
-            h2a->Fill(assoc_weight);
-        
-        } //End loop over hit associations
+        // Loop over hit-based links
+        for(size_t ilink=0; ilink<hit_link_weight.GetSize(); ilink++){
 
-        // Loop over truth-seeded hit-based associations
-        for(size_t iassoc=0;iassoc<hit_assoc_weight_ts.GetSize();iassoc++){
-            
-            auto assoc_weight = hit_assoc_weight_ts[iassoc];
-            h2b->Fill(assoc_weight);
-        
-        } //End loop over hit associations
+            auto link_weight = hit_link_weight[ilink];
+            h2a->Fill(link_weight);
+
+        } //End loop over hit links
+
+        // Loop over truth-seeded hit-based links
+        for(size_t ilink=0; ilink<hit_link_weight_ts.GetSize(); ilink++){
+
+            auto link_weight = hit_link_weight_ts[ilink];
+            h2b->Fill(link_weight);
+
+        } //End loop over hit links
 
     } //End loop over events
 

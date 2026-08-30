@@ -8,7 +8,7 @@
 #include <TH2D.h>
 #include <TGraphErrors.h>
 
-#include <edm4eic/MCRecoParticleAssociationCollection.h>
+#include <edm4eic/MCRecoParticleLinkCollection.h>
 #include <edm4hep/utils/kinematics.h>
 
 #include "Tools.h"
@@ -24,7 +24,7 @@ namespace benchmarks {
       // algorithm methods
       void AlgorithmInit(std::shared_ptr<spdlog::logger>& logger);
       void AlgorithmProcess(
-          const edm4eic::MCRecoParticleAssociationCollection& in_assocs
+          const edm4eic::MCRecoParticleLinkCollection& in_links
           );
       void AlgorithmFinish();
 

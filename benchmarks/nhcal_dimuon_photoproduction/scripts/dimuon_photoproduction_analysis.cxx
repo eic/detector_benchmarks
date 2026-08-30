@@ -79,10 +79,7 @@
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "edm4eic/ReconstructedParticle.h"
 
-#include "edm4eic/MCRecoCalorimeterHitAssociationCollection.h"
-#include "edm4eic/MCRecoCalorimeterHitAssociation.h"
-#include "edm4eic/MCRecoParticleAssociationCollection.h"
-#include "edm4eic/MCRecoParticleAssociation.h"
+#include "edm4eic/MCRecoParticleLinkCollection.h"
 
 using namespace std;
 using namespace ROOT;
@@ -451,16 +448,16 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
         const auto* recPartsPtr = dynamic_cast<const edm4eic::ReconstructedParticleCollection*>(getCol("ReconstructedParticles"));
         const auto* projSegsPtr = dynamic_cast<const edm4eic::TrackSegmentCollection*>(getCol("CalorimeterTrackProjections"));
         const auto* hcalRecPtr  = dynamic_cast<const edm4eic::CalorimeterHitCollection*>(getCol("HcalEndcapNRecHits"));
-        const auto* assocColPtr = dynamic_cast<const edm4eic::MCRecoParticleAssociationCollection*>(getCol("ReconstructedParticleAssociations"));
+        const auto* linkColPtr = dynamic_cast<const edm4eic::MCRecoParticleLinkCollection*>(getCol("ReconstructedParticleLinks"));
 
-        if (!kinColPtr || !mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !assocColPtr) continue;
+        if (!kinColPtr || !mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !linkColPtr) continue;
 
         const auto& kinCol   = *kinColPtr;
         const auto& mcCol    = *mcColPtr;
         const auto& recParts = *recPartsPtr;
         const auto& projSegs = *projSegsPtr;
         const auto& hcalRec  = *hcalRecPtr;
-        const auto& assocCol = *assocColPtr;
+        const auto& linkCol = *linkColPtr;
 
         const auto& kin = kinCol.at(0);
         double Q2 = kin.getQ2(), x = kin.getX(), y = kin.getY(), W = kin.getW();
@@ -505,24 +502,20 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
 
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->void {
             try {
-                if (!assocCol.isValid() || assocCol.empty()) return;
+                if (!linkCol.isValid() || linkCol.empty()) return;
                 
-                const uint32_t mc_idx = mc.getObjectID().index;
-                
-                for (const auto& assoc : assocCol) {
-                    if (assoc.getSimID() == mc_idx) {
-                        uint32_t ridx = assoc.getRecID();
-                        if (!recParts.isValid() || ridx >= recParts.size()) continue;
-                        auto reco = recParts.at(ridx);
-                        if (reco.isAvailable()) {
-                            matchedRecos.push_back({reco, muTag});
-                        }
+                for (const auto& link : linkCol) {
+                    auto simpart = link.getTo();
+                    if (!simpart.isAvailable() || simpart.getObjectID() != mc.getObjectID()) continue;
+                    auto reco = link.getFrom();
+                    if (reco.isAvailable()) {
+                        matchedRecos.push_back({reco, muTag});
                     }
                 }
             } catch (...) {}
         };
 
-        if (!assocCol.isValid() || assocCol.empty()) continue;
+        if (!linkCol.isValid() || linkCol.empty()) continue;
         if (m1.isAvailable() && abs(m1.getPDG())==13) find_associated_reco(m1, 0);
         if (m2.isAvailable() && abs(m2.getPDG())==13) find_associated_reco(m2, 1);
 

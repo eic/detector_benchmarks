@@ -10,7 +10,7 @@
 #include <TMath.h>
 
 #include <edm4eic/RawTrackerHitCollection.h>
-#include <edm4eic/MCRecoTrackerHitAssociationCollection.h>
+#include <edm4eic/MCRecoTrackerHitLinkCollection.h>
 
 #include "Tools.h"
 
@@ -27,7 +27,7 @@ namespace benchmarks {
       void AlgorithmInit(std::shared_ptr<spdlog::logger>& logger);
       void AlgorithmProcess(
           const edm4eic::RawTrackerHitCollection& raw_hits,
-          const edm4eic::MCRecoTrackerHitAssociationCollection& assocs
+          const edm4eic::MCRecoTrackerHitLinkCollection& links
           );
       void AlgorithmFinish();
 

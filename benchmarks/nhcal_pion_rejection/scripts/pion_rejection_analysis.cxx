@@ -79,10 +79,7 @@
 #include "edm4eic/ReconstructedParticleCollection.h"
 #include "edm4eic/ReconstructedParticle.h"
 
-#include "edm4eic/MCRecoCalorimeterHitAssociationCollection.h"
-#include "edm4eic/MCRecoCalorimeterHitAssociation.h"
-#include "edm4eic/MCRecoParticleAssociationCollection.h"
-#include "edm4eic/MCRecoParticleAssociation.h"
+#include "edm4eic/MCRecoParticleLinkCollection.h"
 
 using namespace std;
 using namespace ROOT;
@@ -422,15 +419,15 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         const auto* recPartsPtr = dynamic_cast<const edm4eic::ReconstructedParticleCollection*>(getCol("ReconstructedParticles"));
         const auto* projSegsPtr = dynamic_cast<const edm4eic::TrackSegmentCollection*>(getCol("CalorimeterTrackProjections"));
         const auto* hcalRecPtr  = dynamic_cast<const edm4eic::CalorimeterHitCollection*>(getCol("HcalEndcapNRecHits"));
-        const auto* assocColPtr = dynamic_cast<const edm4eic::MCRecoParticleAssociationCollection*>(getCol("ReconstructedParticleAssociations"));
+        const auto* linkColPtr = dynamic_cast<const edm4eic::MCRecoParticleLinkCollection*>(getCol("ReconstructedParticleLinks"));
 
-        if (!mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !assocColPtr) continue;
+        if (!mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !linkColPtr) continue;
 
         const auto& mcCol    = *mcColPtr;
         const auto& recParts = *recPartsPtr;
         const auto& projSegs = *projSegsPtr;
         const auto& hcalRec  = *hcalRecPtr;
-        const auto& assocCol = *assocColPtr;
+        const auto& linkCol = *linkColPtr;
 
         vector<edm4hep::MCParticle> vPions;
         vector<TLorentzVector> vLorentzPions;
@@ -446,24 +443,20 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         vector<edm4eic::ReconstructedParticle> matchedRecos;
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
-                if (!assocCol.isValid() || assocCol.empty()) return;
+                if (!linkCol.isValid() || linkCol.empty()) return;
                 
-                const uint32_t mc_idx = mc.getObjectID().index;
-                
-                for (const auto& assoc : assocCol) {
-                    if (assoc.getSimID() == mc_idx) {
-                        uint32_t ridx = assoc.getRecID();
-                        if (!recParts.isValid() || ridx >= recParts.size()) continue;
-                        auto reco = recParts.at(ridx);
-                        if (reco.isAvailable()) {
-                            matchedRecos.push_back(reco);
-                        }
+                for (const auto& link : linkCol) {
+                    auto simpart = link.getTo();
+                    if (!simpart.isAvailable() || simpart.getObjectID() != mc.getObjectID()) continue;
+                    auto reco = link.getFrom();
+                    if (reco.isAvailable()) {
+                        matchedRecos.push_back(reco);
                     }
                 }
             } catch (...) {}
         };
 
-        if (!assocCol.isValid() || assocCol.empty()) continue;
+        if (!linkCol.isValid() || linkCol.empty()) continue;
         for(const auto&  p: vPions) if (p.getPDG() == -211) find_associated_reco(p);
 
         if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;

@@ -22,7 +22,7 @@ void trk_dis_plots(const std::string& config_name)
     std::ifstream  config_file{config_name};
     nlohmann::json config;
     config_file >> config;
-  
+
     const std::string hists_file    = config["hists_file"];
     const std::string detector      = config["detector"];
     const std::string output_prefix = config["output_prefix"];
@@ -30,7 +30,7 @@ void trk_dis_plots(const std::string& config_name)
     const int         pbeam         = config["pbeam"];
     const int         Q2_min        = config["Min_Q2"];
     const int         nfiles        = config["nfiles"];
-    
+
     fmt::print(fmt::emphasis::bold | fg(fmt::color::forest_green),
                 "Plotting DIS tracking analysis...\n");
     fmt::print(" - Detector package: {}\n", detector);
@@ -215,7 +215,7 @@ void trk_dis_plots(const std::string& config_name)
     leg1g->AddEntry("h1rc2","Truth-seeded tracking","l");
     leg1g->Draw();
 
-    //Hit-based associations -- real-seeded tracks
+    //Hit-based links -- real-seeded tracks
     TCanvas *c2a = new TCanvas("c2a");
     c2a->SetLogy();
     h2a->Draw();
@@ -225,7 +225,7 @@ void trk_dis_plots(const std::string& config_name)
     leg2a->SetHeader(Form("Pythia8: %dx%d GeV, Q^{2} > %d GeV^{2}",ebeam,pbeam,Q2_min));
     leg2a->Draw();
 
-    //Hit-based associations -- truth-seeded tracks
+    //Hit-based links -- truth-seeded tracks
     TCanvas *c2b = new TCanvas("c2b");
     c2b->SetLogy();
     h2b->Draw();

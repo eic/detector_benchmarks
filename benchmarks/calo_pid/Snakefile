@@ -21,6 +21,7 @@ rule calo_pid_sim:
         SEED=lambda wildcards: "1" + wildcards.INDEX,
         DETECTOR_PATH=os.environ["DETECTOR_PATH"],
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
         ENERGY_MIN=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MIN),
         ENERGY_MAX=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MAX),
         THETA_MIN=lambda wildcards: wildcards.THETA_MIN,

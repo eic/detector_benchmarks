@@ -18,6 +18,7 @@ rule nhcal_sampling_fraction_simulate:
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
         TOTAL_ENERGY=lambda wildcards: get_total_energy(wildcards.PARTICLE, wildcards.ENERGY),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,

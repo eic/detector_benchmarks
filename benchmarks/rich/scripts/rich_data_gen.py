@@ -84,4 +84,3 @@ if __name__ == "__main__":
 
     print("Generated {} events".format(args.nev))
     output.close()
-

@@ -30,7 +30,7 @@ namespace benchmarks {
       const edm4eic::MCRecoParticleAssociationCollection& in_assocs
       )
   {
-    if(!in_assocs.isValid()) { m_log->error("invalid input collection 'in_assocs'"); return; }
+    if(!in_assocs.hasID()) { m_log->error("invalid input collection 'in_assocs'"); return; }
 
     // loop over input associations
     for(const auto& assoc : in_assocs) {

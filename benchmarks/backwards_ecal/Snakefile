@@ -11,9 +11,9 @@ rule backwards_ecal_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
     log:
-        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+        "logs/sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root.log",
     wildcard_constraints:
         PARTICLE="(e-|pi-)",
         ENERGY="[0-9]+[kMG]eV",
@@ -27,9 +27,11 @@ rule backwards_ecal_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
+set -o pipefail
 exec npsim \
   --runType batch \
   --enableGun \
@@ -39,13 +41,14 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output} | tee {log}
+  --outputFile {output} \
+  --outputConfig.useRNTuple true | tee {log}
 """
 
 
 rule backwards_ecal_recon:
     input:
-        sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        sim="sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/backwards_ecal/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -57,12 +60,56 @@ rule backwards_ecal_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.sim} -Ppodio:output_file={output} \
   -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters | tee {log}
 """
+
+
+rule backwards_ecal_dis_recon:
+    input:
+        # Reuse the centrally defined DIS simulation from the tracking benchmark.
+        sim="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        "sim_output/backwards_ecal_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+    log:
+        "logs/sim_output/backwards_ecal_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root.log",
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+        MINQ2=r"\d+",
+        INDEX=r"\d+",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+set -o pipefail
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.sim} -Ppodio:output_file={output} \
+  -Ppodio:output_collections=MCParticles,MCScatteredElectrons,EcalEndcapNClusters \
+  | tee {log}
+"""
+
+
+rule backwards_ecal_dis_local_sim_list:
+    input:
+        expand(
+            "sim_output/backwards_ecal_dis/{{DETECTOR_CONFIG}}/pythia8NCDIS_{{EBEAM}}x{{PBEAM}}_minQ2={{MINQ2}}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
+            INDEX=range(1, 6),
+        ),
+    output:
+        "listing/backwards_ecal_dis/local/{DETECTOR_CONFIG}/{EBEAM}x{PBEAM}/minQ2={MINQ2}.lst",
+    run:
+        with open(output[0], "wt") as fp:
+            fp.write("\n".join(input) + "\n")
 
 
 rule backwards_ecal_local_sim_list:
@@ -84,6 +131,7 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
       | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
@@ -100,6 +148,7 @@ else:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
         params:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+        singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
       | sed -e 's#^/volatile/eic/##' \
@@ -150,13 +199,14 @@ rule backwards_ecal:
             PHASE_SPACE=["130to177deg"],
         ),
         matplotlibrc=".matplotlibrc",
-        script="benchmarks/backwards_ecal/backwards_ecal.py",
+        script="benchmarks/backwards_ecal/backwards_ecal.org2py.py",
     output:
         directory("results/backwards_ecal/{CAMPAIGN}/")
     log:
         scheduler=".logs/results/backwards_ecal/{CAMPAIGN}/scheduler.log",
         worker=".logs/results/backwards_ecal/{CAMPAIGN}/worker.log",
     threads: workflow.cores
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
@@ -185,3 +235,33 @@ INPUT_PATH_FORMAT=listing/backwards_ecal/{wildcards.CAMPAIGN}/""" + DETECTOR_CON
 OUTPUT_DIR={output} \
 python {input.script}
 """
+
+
+rule backwards_ecal_dis:
+    input:
+        file_list="listing/backwards_ecal_dis/{CAMPAIGN}/" + DETECTOR_CONFIG + "/{EBEAM}x{PBEAM}/minQ2={MINQ2}.lst",
+        matplotlibrc=".matplotlibrc",
+        script="benchmarks/backwards_ecal/backwards_ecal_dis.org2py.py",
+    output:
+        directory("results/backwards_ecal_dis/{CAMPAIGN}/{EBEAM}x{PBEAM}/minQ2={MINQ2}"),
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+        MINQ2=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+env \
+  MATPLOTLIBRC={input.matplotlibrc} \
+  INPUT_FILE_LIST={input.file_list} \
+  OUTPUT_DIR={output} \
+  SAMPLE_LABEL="ePIC DIS {wildcards.EBEAM}x{wildcards.PBEAM} GeV, min Q2={wildcards.MINQ2} GeV2" \
+  python {input.script}
+"""
+
+
+rule backwards_ecal_dis_run_locally:
+    input:
+        "results/backwards_ecal_dis/local/10x100/minQ2=1",
+    message:
+        "See output in {input[0]}"

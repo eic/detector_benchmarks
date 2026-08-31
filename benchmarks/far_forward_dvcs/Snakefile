@@ -20,6 +20,7 @@ rule far_forward_dvcs_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 npsim \
@@ -52,6 +53,7 @@ rule far_forward_dvcs_reco:
         INDEX=lambda wildcards: wildcards.INDEX,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -65,7 +67,7 @@ rule far_forward_dvcs_plots:
     input:
         workflow.source_path("analysis/render.hpp"),
         workflow.source_path("analysis/detectorResolution.hpp"),
-        script="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon.cxx",
+        script=workflow.source_path("analysis/analyze_DVCS_eicrecon.cxx"),
         script_compiled="benchmarks/far_forward_dvcs/analysis/analyze_DVCS_eicrecon_cxx.so",
         reco="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.1.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",
     output:
@@ -74,6 +76,7 @@ rule far_forward_dvcs_plots:
     wildcard_constraints:
         EBEAM=r"\d+",
         PBEAM=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p "{output.dir}"

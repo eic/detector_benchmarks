@@ -135,11 +135,14 @@ for emin, emax in zip(partitions[:-1], partitions[1:]):
     fnc=gauss
     sigma=np.sqrt(y[slc])+(y[slc]==0)
 
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
-    res.append(abs(coeff[2]))
-    dres.append(np.sqrt(var_matrix[2][2]))
-    emid.append((emin+emax)/2)
-    ew.append((emax-emin)/2)
+    try:
+        coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+        res.append(abs(coeff[2]))
+        dres.append(np.sqrt(var_matrix[2][2]))
+        emid.append((emin+emax)/2)
+        ew.append((emax-emin)/2)
+    except RuntimeError:
+        print("fit failed")
 plt.errorbar(emid, 1000*np.array(res),1000*np.array(dres), ew, ls='', label=f'{eta_min}<$\\eta_{{hfs}}$<{eta_max}')
 plt.xlabel('$E_{hfs}$ [GeV]')
 plt.ylabel('$\\theta$ resolution [mrad]')
@@ -147,8 +150,11 @@ plt.ylim(0)
 
 fnc=lambda E,B:B/E
 p0=[1,]
-coeff, var_matrix = curve_fit(fnc, emid, res, p0=p0, sigma=list(dres), maxfev=10000)
-xx=np.linspace(10, 100, 100)
-plt.plot(xx, 1000*fnc(xx, *coeff), label=f"fit: ${coeff[0]:.2f}/E$ mrad")
+try:
+    coeff, var_matrix = curve_fit(fnc, emid, res, p0=p0, sigma=list(dres), maxfev=10000)
+    xx=np.linspace(10, 100, 100)
+    plt.plot(xx, 1000*fnc(xx, *coeff), label=f"fit: ${coeff[0]:.2f}/E$ mrad")
+except RuntimeError:
+    print("fit failed")
 plt.legend()
 plt.savefig(outdir+"/theta_res.pdf")

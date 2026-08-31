@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 //void draw_req_Mom(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString extra_legend = "") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, double range =0.3, Bool_t drawreq=1, TString extra_legend = "", TString output_dir=".") // name = p, pt for getting p or pt dependence fitted results
 {
   
   //=== style of the plot=========
@@ -62,7 +62,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
     cp->SetMargin(0.10, 0.05 ,0.1,0.07);
 
     //pi-/mom/lfhcal_mom_20.0_mom_resol_pi-.root
-    fmom[i] = TFile::Open(Form("./%s/mom/lfhcal_mom_%1.1f_mom_resol_%s.root",particle.Data(),mom[i],particle.Data()));
+    fmom[i] = TFile::Open(Form("%s/%s/mom/lfhcal_mom_%1.1f_mom_resol_%s.root",output_dir.Data(),particle.Data(),mom[i],particle.Data()));
     
     TH1D *hist = (TH1D*) fmom[i]->Get(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom[i],etamin,etamax));
     hist->Rebin(2);
@@ -103,7 +103,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
   }
   
   
-  TFile *fout = new TFile(Form("Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.root",particle.Data(),particle.Data(),etamin,etamax),"recreate");
+  TFile *fout = new TFile(Form("%s/Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.root",output_dir.Data(),particle.Data(),particle.Data(),etamin,etamax),"recreate");
   TGraphErrors *gr1 = new TGraphErrors(size,p,sigma_p,err_p,err_sigma_p);
   gr1->SetName("grseed");
   gr1->SetMarkerStyle(25);
@@ -122,7 +122,7 @@ void doCompare_widebins_mom(TString particle = "pi-",double etamin=-1.0, double 
   lmom->AddEntry(gr1,"Nominal");
   lmom->Draw("same");
   //draw_req_Mom(etamin,etamax,0.,mgMom->GetXaxis()->GetXmax());
-  c_mom->SaveAs(Form("Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.png",particle.Data(),particle.Data(),etamin,etamax));
+  c_mom->SaveAs(Form("%s/Final_Results/%s/mom/lfhcal_mom_resol_%s_%1.1f_eta_%1.1f.png",output_dir.Data(),particle.Data(),particle.Data(),etamin,etamax));
   
   // Write the numbers in output file for comparisons
   outfile << extra_legend << endl;

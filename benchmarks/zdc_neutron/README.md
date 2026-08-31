@@ -6,5 +6,3 @@ This benchmark generates single-neutron events. The neutrons are generated with 
 
 ## Contacts
 [Barak Schmookler](baraks@ucr.edu)
-
-

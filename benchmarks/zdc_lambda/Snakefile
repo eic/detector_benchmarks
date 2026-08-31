@@ -1,11 +1,12 @@
 rule zdc_lambda_generate:
     input:
-        script="benchmarks/zdc_lambda/analysis/gen_lambda_decay.cxx",
+        script=workflow.source_path("analysis/gen_lambda_decay.cxx"),
     output:
         GEN_FILE="sim_output/zdc_lambda/lambda_decay_{P}GeV.hepmc",
     params:
         N_EVENTS=1000,
         P=lambda wildcards: wildcards.P,
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
@@ -28,6 +29,7 @@ rule zdc_lambda_simulate:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 exec npsim \
@@ -51,6 +53,7 @@ rule zdc_lambda_recon:
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
@@ -64,9 +67,10 @@ rule zdc_lambda_analysis:
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),
         ),
-        script="benchmarks/zdc_lambda/analysis/lambda_plots.py",
+        script=workflow.source_path("analysis/lambda_plots.py"),
     output:
         results_dir=directory("results/{DETECTOR_CONFIG}/zdc_lambda"),
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p {output.results_dir}

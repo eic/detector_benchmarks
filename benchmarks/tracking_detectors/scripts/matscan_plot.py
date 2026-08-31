@@ -214,5 +214,3 @@ if __name__ == "__main__":
     plt.suptitle("total X0 [%]")
 
     plt.savefig(outdir+"/matscan_2d_z%g_r%g.png" %(zrange,rrange))
-
-

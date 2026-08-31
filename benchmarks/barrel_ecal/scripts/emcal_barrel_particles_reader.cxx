@@ -142,4 +142,3 @@ void emcal_barrel_particles_reader(std::string particle_name = "electron") {
   h_p->DrawClone();
   save_canvas(c6, "p", particle_name);
 }
-

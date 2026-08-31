@@ -10,7 +10,7 @@
 #define mpi 0.139  // 1.864 GeV/c^2
 
 void draw_req_DCA(double etamin, double etamax, double xmin=0., double xmax=0.);
-void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString extra_legend = "") // name = p, pt for getting p or pt dependence fitted results
+void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-1.0, double etamax=1.0, Bool_t drawreq=1, TString extra_legend = "", TString output_dir = ".") // name = p, pt for getting p or pt dependence fitted results
 {
 
 //=== style of the plot=========
@@ -55,8 +55,8 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
     lDCAZ->SetHeader(extra_legend.Data(), "C");
     lDCAZ->AddEntry((TObject*)0, Form("%s, %1.1f < #eta < %1.1f", symbolname.Data(), etamin, etamax), "C");
       
-    fDCA_truth = TFile::Open(Form("./truthseed/%s/dca/final_hist_dca_truthseed.root",particle.Data()));
-	  fDCA_real = TFile::Open(Form("./realseed/%s/dca/final_hist_dca_realseed.root",particle.Data()));
+    fDCA_truth = TFile::Open(Form("%s/truthseed/%s/dca/final_hist_dca_truthseed.root",output_dir.Data(),particle.Data()));
+	  fDCA_real = TFile::Open(Form("%s/realseed/%s/dca/final_hist_dca_realseed.root",output_dir.Data(),particle.Data()));
 	 
 	 // Truth seeding histograms
 	 TH3D *hist_d0z_truth = (TH3D*) fDCA_truth->Get("h_d0z_3d");
@@ -119,11 +119,11 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
    
    cp->cd();
    histd0z_truth_1d->Draw();
-   cp->SaveAs(Form("Debug_Plots/truth/%s/dca/truth_dcaz_resol_mom%1.1f_%1.1f_eta_%1.1f.png",particle.Data(),pt[iptbin],etamin,etamax));
+   cp->SaveAs(Form("%s/Debug_Plots/truth/%s/dca/truth_dcaz_resol_mom%1.1f_%1.1f_eta_%1.1f.png",output_dir.Data(),particle.Data(),pt[iptbin],etamin,etamax));
    cp->Clear();
    cp->cd();
    histd0z_real_1d->Draw();
-   cp->SaveAs(Form("Debug_Plots/real/%s/dca/real_dcaz_resol_mom%1.1f_%1.1f_eta_%1.1f.png",particle.Data(),pt[iptbin],etamin,etamax));
+   cp->SaveAs(Form("%s/Debug_Plots/real/%s/dca/real_dcaz_resol_mom%1.1f_%1.1f_eta_%1.1f.png",output_dir.Data(),particle.Data(),pt[iptbin],etamin,etamax));
    }   // ptbin
       
 	const int size_truth = momV_truth.size();
@@ -146,7 +146,7 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
 	err_pt_real[i] = 0.;
 	}
 
-     TFile *fout = new TFile(Form("Final_Results/%s/dca/dcaz_resol_%1.1f_eta_%1.1f.root",particle.Data(),etamin,etamax),"recreate");
+     TFile *fout = new TFile(Form("%s/Final_Results/%s/dca/dcaz_resol_%1.1f_eta_%1.1f.root",output_dir.Data(),particle.Data(),etamin,etamax),"recreate");
 	TGraphErrors *gr1 = new TGraphErrors(size_truth,pt_truth,sigma_dcaz_truth,err_pt_truth,err_sigma_dcaz_truth);
      gr1->SetName("gr_truthseed");
 	gr1->SetMarkerStyle(25);
@@ -176,7 +176,7 @@ void doCompare_truth_real_widebins_dcaz(TString particle = "pi-",double etamin=-
      lDCAZ->AddEntry(gr2,"Realistic Seeding");
      lDCAZ->Draw("same");
    //  draw_req_DCA(etamin,etamax,0.,mgDCAZ->GetXaxis()->GetXmax());
-     c_dcaz->SaveAs(Form("Final_Results/%s/dca/dcaz_resol_%1.1f_eta_%1.1f.png",particle.Data(),etamin,etamax));
+     c_dcaz->SaveAs(Form("%s/Final_Results/%s/dca/dcaz_resol_%1.1f_eta_%1.1f.png",output_dir.Data(),particle.Data(),etamin,etamax));
      
      fout->cd();
      mgDCAZ->SetName(Form("dcaz_resol_%1.1f_eta_%1.1f",etamin,etamax));

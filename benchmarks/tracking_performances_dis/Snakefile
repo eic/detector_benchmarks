@@ -1,12 +1,5 @@
 import os
 
-rule trk_dis_compile:
-    input:
-        "benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-        "benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
-        "benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
-        "benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so",
-
 # Process the generated HepMC files through the simulation
 rule trk_dis_sim:
     input:
@@ -26,6 +19,7 @@ rule trk_dis_sim:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 npsim \
@@ -55,6 +49,7 @@ rule trk_dis_reco:
         INDEX=lambda wildcards: wildcards.INDEX,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 set -m # monitor mode to prevent lingering processes
@@ -66,10 +61,8 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 # Process the files -- either from the campaign or local running -- through the analysis script
 rule dis_analysis:
     input:
-        script_trk="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis.cxx",
-        script_trk_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_analysis_cxx.so",
-        script_vtx="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis.cxx",
-        script_vtx_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_analysis_cxx.so",
+        script_trk=workflow.source_path("analysis/trk_dis_analysis.cxx"),
+        script_vtx=workflow.source_path("analysis/vtx_dis_analysis.cxx"),
         data="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",
     output:
         config_trk="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_{INDEX}/config.json",
@@ -82,6 +75,7 @@ rule dis_analysis:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         INDEX=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cat > {output.config_trk} <<EOF
@@ -94,7 +88,7 @@ cat > {output.config_trk} <<EOF
   "output_prefix": "$(dirname "{output.hists_trk}")/hists"
 }}
 EOF
-root -l -b -q '{input.script_trk}+("{output.config_trk}")'
+root -l -b -q '{input.script_trk}("{output.config_trk}")'
 
 cat > {output.config_vtx} <<EOF
 {{
@@ -106,7 +100,7 @@ cat > {output.config_vtx} <<EOF
   "output_prefix": "$(dirname "{output.hists_vtx}")/hists"
 }}
 EOF
-root -l -b -q '{input.script_vtx}+("{output.config_vtx}")'
+root -l -b -q '{input.script_vtx}("{output.config_vtx}")'
 """
 
 #Merge all the files produced in the previous step
@@ -125,6 +119,7 @@ rule dis_combine:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 cat > {output.config_trk} <<EOF
@@ -157,8 +152,7 @@ hadd {output.hists_vtx} {input}
 #Process the merged file through the plotting script
 rule trk_dis_plots:
     input:
-        script="benchmarks/tracking_performances_dis/analysis/trk_dis_plots.cxx",
-        script_compiled="benchmarks/tracking_performances_dis/analysis/trk_dis_plots_cxx.so",
+        script=workflow.source_path("analysis/trk_dis_plots.cxx"),
         config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:
         "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
@@ -168,15 +162,15 @@ rule trk_dis_plots:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}+("{input.config}")'
+root -l -b -q '{input.script}("{input.config}")'
 """
 
 rule vtx_dis_plots:
     input:
-        script="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots.cxx",
-        script_compiled="benchmarks/tracking_performances_dis/analysis/vtx_dis_plots_cxx.so",
+        script=workflow.source_path("analysis/vtx_dis_plots.cxx"),
         config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
     output:
         "results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
@@ -186,9 +180,10 @@ rule vtx_dis_plots:
         PBEAM=r"\d+",
         MINQ2=r"\d+",
         NUM_FILES=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}+("{input.config}")'
+root -l -b -q '{input.script}("{input.config}")'
 """
 
 #Examples of invocation

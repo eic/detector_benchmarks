@@ -263,4 +263,3 @@ void emcal_barrel_particles_analysis(std::string particle_name = "electron", boo
     o << std::setw(4) << j << std::endl;
   }
 }
-

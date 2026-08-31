@@ -11,7 +11,7 @@
 #include "TMath.h"
 #define mpi 0.139  // 1.864 GeV/c^2
 
-void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, bool truth_seeding=false)
+void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, bool truth_seeding=false, TString output_dir=".")
 {
 
   // style of the plot
@@ -162,7 +162,7 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
        
    }// event loop ends    
   
-   TFile *fout_mom = new TFile(Form("%s/%s/mom/Performances_mom_%1.1f_%s_%s.root",dir.Data(),particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
+   TFile *fout_mom = new TFile(Form("%s/%s/%s/mom/Performances_mom_%1.1f_%s_%s.root",output_dir.Data(),dir.Data(),particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
    fout_mom->cd();
    for (int ibin=0; ibin<nbins_eta; ++ibin){
    histp[ibin]->Write();
@@ -174,13 +174,9 @@ void Tracking_Performances(TString filename="tracking_output",TString particle="
    }
    fout_mom->Close();
 
-   TFile *fout_dca = new TFile(Form("%s/%s/dca/Performances_dca_%1.1f_%s_%s.root",dir.Data(),particle.Data(),mom,dist_dir_dca.Data(),particle.Data()),"recreate");
+   TFile *fout_dca = new TFile(Form("%s/%s/%s/dca/Performances_dca_%1.1f_%s_%s.root",output_dir.Data(),dir.Data(),particle.Data(),mom,dist_dir_dca.Data(),particle.Data()),"recreate");
    fout_dca->cd();
     h_d0xy_3d->Write();
     h_d0z_3d->Write();
     fout_dca->Close();
 }
-
-
-
-

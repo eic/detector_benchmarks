@@ -136,4 +136,3 @@ void test_matscan(const char* compact = "athena.xml",double zmax=130, double rma
   }	
   fclose (pFile);
 }
-

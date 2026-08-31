@@ -14,6 +14,7 @@
 #+LATEX: \sloppy
 
 #+begin_src jupyter-python :results silent
+import json
 import os
 from pathlib import Path
 
@@ -142,7 +143,7 @@ energies = [
 ]
 filter_name = [
     "MCParticles.*",
-    "EcalEndcapNClusters.energy",
+    "EcalEndcapNClusters.*",
 ]
 
 pi_eval = {}
@@ -310,6 +311,129 @@ plt.ylabel(r"$\sigma_{E} / E$ derived from FWHM, \%", loc="top")
 plt.savefig(output_dir / f"resolution.pdf", bbox_inches="tight")
 plt.savefig(output_dir / f"resolution.png", bbox_inches="tight")
 plt.show()
+#+end_src
+
+** Position resolution
+
+For each event, we select the highest-energy reconstructed cluster and compare
+its transverse position to the generated electron endpoint. We require the
+endpoint to lie in the EEEMCal region, $-1900 < z_{\mathrm{endpoint}} < -1700$
+mm, following the convention used in the EEEMCal performance study. The
+endpoint is stored directly on the simulated MC particle, so this definition
+does not depend on the truth-clustering algorithm.
+
+The residual distributions have non-Gaussian tails, so the summary resolution
+is the half-width of the central 68% interval rather than the RMS.  For a
+Gaussian distribution this is equivalent to one standard deviation, while
+remaining stable against a small number of badly reconstructed clusters.
+
+#+begin_src jupyter-python
+position_residual_hist = {}
+position_axis = bh.axis.Regular(200, -20., 20.)
+
+def cluster_position_residual(events, coordinate):
+    highest_reco_energy = ak.argmax(
+        events["EcalEndcapNClusters.energy"],
+        axis=-1,
+        keepdims=True,
+        mask_identity=True,
+    )
+    # dask-awkward does not implement ak.firsts. The argmax index is kept as a
+    # length-one list, so reducing that list gives the selected coordinate.
+    reco_coordinate = ak.max(
+        events[f"EcalEndcapNClusters.position.{coordinate}"][highest_reco_energy],
+        axis=-1,
+        mask_identity=True,
+    )
+
+    endpoint_coordinate = events[f"MCParticles.endpoint.{coordinate}"][:, 0]
+    endpoint_z = events["MCParticles.endpoint.z"][:, 0]
+    endpoint_in_eeemcal = (endpoint_z > -1900.) & (endpoint_z < -1700.)
+    residual = reco_coordinate - endpoint_coordinate
+    return ak.drop_none(
+        ak.mask(residual, endpoint_in_eeemcal),
+    )
+
+for energy in energies:
+    for coordinate in ["x", "y"]:
+        position_residual_hist[(coordinate, energy)] = dh.factory(
+            cluster_position_residual(e_eval[energy], coordinate),
+            axes=(position_axis,),
+        )
+
+position_residual_hist = client.gather(client.compute(position_residual_hist))
+#+end_src
+
+#+begin_src jupyter-python
+def binned_quantile(hist, quantile):
+    values = hist.values()
+    cumulative = np.cumsum(values)
+    if cumulative[-1] == 0:
+        return np.nan
+    return np.interp(
+        quantile * cumulative[-1],
+        cumulative,
+        hist.axes[0].centers,
+    )
+
+position_resolution = {"x": {}, "y": {}}
+fig, axs = plt.subplots(2, 4, sharex=True, sharey=True, figsize=(15, 6))
+axs = np.ravel(np.array(axs))
+
+for ix, energy in enumerate(energies):
+    plt.sca(axs[ix])
+    for coordinate in ["x", "y"]:
+        hist = position_residual_hist[(coordinate, energy)]
+        q16 = binned_quantile(hist, 0.16)
+        q84 = binned_quantile(hist, 0.84)
+        resolution = 0.5 * (q84 - q16)
+        position_resolution[coordinate][energy] = resolution
+        plt.stairs(
+            norm_by_sum(hist.values()),
+            hist.axes[0].edges,
+            label=rf"${coordinate}$, $\sigma_{{68}}={resolution:.2f}$ mm",
+        )
+    plt.title(f"{energy}")
+    plt.legend()
+    plt.xlabel("cluster - electron endpoint [mm]", loc="right")
+    plt.ylabel("Event fraction", loc="top")
+
+fig.savefig(output_dir / "position_resolution_plots.pdf", bbox_inches="tight")
+fig.savefig(output_dir / "position_resolution_plots.png", bbox_inches="tight")
+plt.show()
+plt.close(fig)
+
+plt.figure()
+for coordinate in ["x", "y"]:
+    plt.plot(
+        energy_values,
+        [position_resolution[coordinate][energy] for energy in energies],
+        marker=".",
+        label=rf"${coordinate}$, {PLOT_TITLE}",
+    )
+plt.xscale("log")
+plt.xlabel("Energy [GeV]", loc="right")
+plt.ylabel(r"Position resolution $\sigma_{68}$ [mm]", loc="top")
+plt.legend()
+plt.savefig(output_dir / "position_resolution.pdf", bbox_inches="tight")
+plt.savefig(output_dir / "position_resolution.png", bbox_inches="tight")
+plt.show()
+
+with open(output_dir / "position_resolution.json", "w") as fp:
+    json.dump(
+        {
+            "definition": "half-width of central 68% residual interval",
+            "units": "mm",
+            "energy_GeV": {
+                energy: float(value)
+                for energy, value in zip(energies, energy_values)
+            },
+            "sigma68_x": position_resolution["x"],
+            "sigma68_y": position_resolution["y"],
+        },
+        fp,
+        indent=2,
+    )
 #+end_src
 
 ** Pion rejection

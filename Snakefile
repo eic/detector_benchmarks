@@ -5,13 +5,17 @@ import os
 from snakemake.logging import logger
 
 
+EIC_SINGULARITY_CONTAINER = os.getenv("EIC_SINGULARITY_CONTAINER", "/cvmfs/eic.opensciencegrid.org/singularity/eicweb/eic_xl:nightly")
+
+
 rule compile_analysis:
     input:
-        "{path}/{filename}.cxx",
+        lambda wildcards: f"{wildcards.PATH}/{wildcards.FILENAME}.cxx",
     output:
-        "{path}/{filename}_cxx.d",
-        "{path}/{filename}_cxx.so",
-        "{path}/{filename}_cxx_ACLiC_dict_rdict.pcm",
+        "{PATH}/{FILENAME}_cxx.d",
+        "{PATH}/{FILENAME}_cxx.so",
+        "{PATH}/{FILENAME}_cxx_ACLiC_dict_rdict.pcm",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 root -l -b -q -e '.L {input}+'
@@ -71,6 +75,9 @@ include: "benchmarks/femc_photon/Snakefile"
 include: "benchmarks/femc_pi0/Snakefile"
 include: "benchmarks/nhcal_acceptance/Snakefile"
 include: "benchmarks/nhcal_basic_distribution/Snakefile"
+include: "benchmarks/nhcal_sampling_fraction/Snakefile"
+include: "benchmarks/nhcal_dimuon_photoproduction/Snakefile"
+include: "benchmarks/nhcal_pion_rejection/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"
@@ -85,6 +92,8 @@ def get_remote_path(path):
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
 
+localrules: fetch_epic
+
 rule fetch_epic:
     output:
         filepath="EPIC/{PATH}"
@@ -93,10 +102,11 @@ rule fetch_epic:
         PATH=lambda wildcards: wildcards.PATH
     cache: True
     retries: 3
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/{output.filepath} {output.filepath}
+xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_xrootd else """
-mc cp S3/eictest/{output.filepath} {output.filepath}
+mc cp S3/eictest/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_s3 else f"""
 echo 'Unexpected value for config["remote_provider"]: {config["remote_provider"]}'
 exit 1
@@ -107,6 +117,7 @@ rule warmup_run:
     output:
         "warmup.edm4hep.root",
     message: "Ensuring that calibrations/fieldmaps are available"
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
 set -m # monitor mode to prevent lingering processes
 exec ddsim \
@@ -130,10 +141,11 @@ rule matplotlibrc:
 
 rule org2py:
     input:
-        notebook=workflow.basedir + "/{NOTEBOOK}.org",
+        notebook=lambda wildcards: workflow.source_path(f"{wildcards.NOTEBOOK}.org"),
         converter=workflow.source_path("benchmarks/common/org2py.awk"),
     output:
-        "{NOTEBOOK}.py"
+        "{NOTEBOOK}.org2py.py",
+    singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 awk -f {input.converter} {input.notebook} > {output}

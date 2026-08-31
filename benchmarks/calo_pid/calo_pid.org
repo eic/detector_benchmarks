@@ -276,8 +276,7 @@ for energy_bin_ix, (energy_bin_low, energy_bin_high) in enumerate(zip(energy_bin
    plt.clf()
 
    fpr, tpr, _ = roc_curve(
-      eval_y[cond][:,1],
-      #eval_x[cond][:,1],
+      eval_y[cond][:,1].to_numpy(),
       clf.predict_proba(eval_x[cond].to_numpy())[:,1],
    )
    cond = fpr != 0 # avoid infinite rejection (region of large uncertainty)

@@ -202,7 +202,7 @@ output_collections = [
   "DRICHAerogelIrtCherenkovParticleID",
   "DRICHGasIrtCherenkovParticleID",
   "DRICHMergedIrtCherenkovParticleID",
-  "ReconstructedChargedParticleAssociationsWithDRICHPID",
+  "ReconstructedChargedParticleAssociations",
 ]
 recon_cmd = [
   'eicrecon',

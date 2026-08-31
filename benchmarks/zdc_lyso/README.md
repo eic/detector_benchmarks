@@ -7,5 +7,3 @@ This benchmark generates events with single low-energy (5 MeV - 1 GeV) photons. 
 ## Contacts
 [JiaJun Huang](jhuan328@ucr.edu)
 [Barak Schmookler](baraks@ucr.edu)
-
-

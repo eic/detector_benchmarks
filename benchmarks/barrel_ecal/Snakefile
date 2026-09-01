@@ -7,6 +7,9 @@ rule emcal_barrel_particles_gen:
         script=workflow.source_path("scripts/emcal_barrel_particles_gen.cxx"),
     params:
         JUGGLER_N_EVENTS = 100,
+        PARTICLE = lambda wildcards: wildcards.PARTICLE,
+        E_MIN = lambda wildcards: wildcards.E_MIN,
+        E_MAX = lambda wildcards: wildcards.E_MAX,
     output:
         "data/emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.hepmc",
     singularity: EIC_SINGULARITY_CONTAINER,
@@ -24,6 +27,10 @@ rule emcal_barrel_particles:
         JUGGLER_N_EVENTS = 100,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+        DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
+        PARTICLE = lambda wildcards: wildcards.PARTICLE,
+        E_MIN = lambda wildcards: wildcards.E_MIN,
+        E_MAX = lambda wildcards: wildcards.E_MAX,
     output:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
     cache: True

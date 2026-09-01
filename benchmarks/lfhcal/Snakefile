@@ -21,6 +21,8 @@ rule lfhcal_sim:
         INDEX=r"\d{4}",
     params:
         N_EVENTS=get_n_events,
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
@@ -31,7 +33,7 @@ npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
-  --random.seed 1{wildcards.INDEX} \
+  --random.seed {params.SEED} \
   --filter.tracker edep0 \
   -v INFO \
   --numberOfEvents {params.N_EVENTS} \
@@ -51,6 +53,7 @@ rule lfhcal_recon:
     wildcard_constraints:
         INDEX=r"\d{4}",
     params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,

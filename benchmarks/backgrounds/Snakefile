@@ -12,6 +12,7 @@ rule backgrounds_sim:
         "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root.log",
     params:
         N_EVENTS=100,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         hepmc=lambda wildcards: get_remote_path(f"{wildcards.PATH}.hepmc3.tree.root"),
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),

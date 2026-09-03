@@ -48,6 +48,7 @@ def find_epic_libraries():
 
 
 include: "benchmarks/backgrounds/Snakefile"
+include: "benchmarks/b0_tracker/Snakefile"
 include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/beamline/Snakefile"
@@ -60,6 +61,7 @@ include: "benchmarks/material_scan/Snakefile"
 include: "benchmarks/secondary_vertexing_dis/Snakefile"
 include: "benchmarks/tracking_performances/Snakefile"
 include: "benchmarks/tracking_performances_dis/Snakefile"
+include: "benchmarks/tracking_detectors/Snakefile"
 include: "benchmarks/lfhcal/Snakefile"
 include: "benchmarks/zdc_lyso/Snakefile"
 include: "benchmarks/zdc_neutron/Snakefile"

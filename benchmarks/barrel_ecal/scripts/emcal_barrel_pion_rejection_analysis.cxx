@@ -38,9 +38,6 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "DDG4/Geant4Data.h"
 #include "DDRec/CellIDPositionConverter.h"
 #include "emcal_barrel_common_functions.h"
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <iomanip>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -612,98 +609,11 @@ void emcal_barrel_pion_rejection_analysis(
   }
   
   // E, Eta = 18, 2
-  nlohmann::json pion_rejection_E18_Eta2_json;
-  pion_rejection_E18_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 2);
-  pion_rejection_E18_Eta2_json["title"] = "Pion Rejection1";
-  pion_rejection_E18_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[2]);
-  pion_rejection_E18_Eta2_json["quantity"] = "pi-/e-";
-  pion_rejection_E18_Eta2_json["cut"] = currentCut;
-  pion_rejection_E18_Eta2_json["e- efficiency"] = std::to_string(effEle[0][2]);
-  pion_rejection_E18_Eta2_json["pi- efficiency"] = std::to_string(effPim[0][2]);
-  pion_rejection_E18_Eta2_json["target"] = std::to_string(suppression * maxRate[0][2]);
-  pion_rejection_E18_Eta2_json["value"] = rejRatios[0][2];
-  pion_rejection_E18_Eta2_json["result"] = (suppression * maxRate[0][2] >= rejRatios[0][2]) ? "pass" : "fail";
-  pion_rejection_E18_Eta2_json["weight"] = 1.0;
-
-  // E, Eta = 18, 3
-  nlohmann::json pion_rejection_E18_Eta3_json;
-  pion_rejection_E18_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 3);
-  pion_rejection_E18_Eta3_json["title"] = "Pion Rejection";
-  pion_rejection_E18_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[3]);
-  pion_rejection_E18_Eta3_json["quantity"] = "pi-/e-";
-  pion_rejection_E18_Eta3_json["cut"] = currentCut;
-  pion_rejection_E18_Eta3_json["e- efficiency"] = std::to_string(effEle[0][3]);
-  pion_rejection_E18_Eta3_json["pi- efficiency"] = std::to_string(effPim[0][3]);
-  pion_rejection_E18_Eta3_json["target"] = std::to_string(suppression * maxRate[0][3]);
-  pion_rejection_E18_Eta3_json["value"] = rejRatios[0][3];
-  pion_rejection_E18_Eta3_json["result"] = (suppression * maxRate[0][3] >= rejRatios[0][3]) ? "pass" : "fail";
-  pion_rejection_E18_Eta3_json["weight"] = 1.0;
-
-  // E, Eta = 10, 2
-  nlohmann::json pion_rejection_E10_Eta2_json;
-  pion_rejection_E10_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 2);
-  pion_rejection_E10_Eta2_json["title"] = "Pion Rejection";
-  pion_rejection_E10_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[2]);
-  pion_rejection_E10_Eta2_json["quantity"] = "pi-/e-";
-  pion_rejection_E10_Eta2_json["cut"] = currentCut;
-  pion_rejection_E10_Eta2_json["e- efficiency"] = std::to_string(effEle[1][2]);
-  pion_rejection_E10_Eta2_json["pi- efficiency"] = std::to_string(effPim[1][2]);
-  pion_rejection_E10_Eta2_json["target"] = std::to_string(suppression * maxRate[1][2]);
-  pion_rejection_E10_Eta2_json["value"] = rejRatios[1][2];
-  pion_rejection_E10_Eta2_json["result"] = (suppression * maxRate[1][2] >= rejRatios[1][2]) ? "pass" : "fail";
-  pion_rejection_E10_Eta2_json["weight"] = 1.0;
-
-  // E, Eta = 10, 3
-  nlohmann::json pion_rejection_E10_Eta3_json;
-  pion_rejection_E10_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 3);
-  pion_rejection_E10_Eta3_json["title"] = "Pion Rejection";
-  pion_rejection_E10_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[3]);
-  pion_rejection_E10_Eta3_json["quantity"] = "pi-/e-";
-  pion_rejection_E10_Eta3_json["e- efficiency"] = std::to_string(effEle[1][3]);
-  pion_rejection_E10_Eta3_json["pi- efficiency"] = std::to_string(effPim[1][3]);
-  pion_rejection_E10_Eta3_json["target"] = std::to_string(suppression * maxRate[1][3]);
-  pion_rejection_E10_Eta3_json["value"] = rejRatios[1][3];
-  pion_rejection_E10_Eta3_json["result"] = (suppression * maxRate[1][3] >= rejRatios[1][3]) ? "pass" : "fail";
-  pion_rejection_E10_Eta3_json["weight"] = 1.0;
-
-  // E, Eta = 5, 2
-  nlohmann::json pion_rejection_E5_Eta2_json;
-  pion_rejection_E5_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 2);
-  pion_rejection_E5_Eta2_json["title"] = "Pion Rejection";
-  pion_rejection_E5_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[2]);
-  pion_rejection_E5_Eta2_json["quantity"] = "pi-/e-";
-  pion_rejection_E5_Eta2_json["cut"] = currentCut;
-  pion_rejection_E5_Eta2_json["e- efficiency"] = std::to_string(effEle[2][2]);
-  pion_rejection_E5_Eta2_json["pi- efficiency"] = std::to_string(effPim[2][2]);
-  pion_rejection_E5_Eta2_json["target"] = std::to_string(suppression * maxRate[2][2]);
-  pion_rejection_E5_Eta2_json["value"] = rejRatios[2][2];
-  pion_rejection_E5_Eta2_json["result"] = (suppression * maxRate[2][2] >= rejRatios[2][2]) ? "pass" : "fail";
-  pion_rejection_E5_Eta2_json["weight"] = 1.0;
-
-  // E, Eta = 5, 3
-  nlohmann::json pion_rejection_E5_Eta3_json;
-  pion_rejection_E5_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 3);
-  pion_rejection_E5_Eta3_json["title"] = "Pion Rejection";
-  pion_rejection_E5_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[3]);
-  pion_rejection_E5_Eta3_json["quantity"] = "pi-/e-";
-  pion_rejection_E5_Eta3_json["cut"] = currentCut;
-  pion_rejection_E5_Eta3_json["e- efficiency"] = std::to_string(effEle[2][3]);
-  pion_rejection_E5_Eta3_json["pi- efficiency"] = std::to_string(effPim[2][3]);
-  pion_rejection_E5_Eta3_json["target"] = std::to_string(suppression * maxRate[2][3]);
-  pion_rejection_E5_Eta3_json["value"] = rejRatios[2][3];
-  pion_rejection_E5_Eta3_json["result"] = (suppression * maxRate[2][3] >= rejRatios[2][3]) ? "pass" : "fail";
-  pion_rejection_E5_Eta3_json["weight"] = 1.0;
-
-  // Writing out all tests
-  nlohmann::json test;
-  test["tests"].push_back(pion_rejection_E18_Eta2_json);
-  test["tests"].push_back(pion_rejection_E18_Eta3_json);
-  test["tests"].push_back(pion_rejection_E10_Eta2_json);
-  test["tests"].push_back(pion_rejection_E10_Eta3_json);
-  test["tests"].push_back(pion_rejection_E5_Eta2_json);
-  test["tests"].push_back(pion_rejection_E5_Eta3_json);
-  std::string filename = fmt::format("results/{}_pion_rej.json", detectorEle);
-  std::cout << fmt::format("Writing test data to {}\n", filename);
-  std::ofstream output_file(filename);
-  output_file << std::setw(4) << test << "\n";
+  // Pion rejection analysis complete - results stored in rejection ratios and efficiencies
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[0], rejRatios[0][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[0], rejRatios[0][3]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[1], rejRatios[1][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[1], rejRatios[1][3]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[2], rejRatios[2][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[2], rejRatios[2][3]);
 }

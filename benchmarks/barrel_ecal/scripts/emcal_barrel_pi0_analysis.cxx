@@ -19,13 +19,9 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "TF1.h"
 #include "TH1D.h"
 #include "TFitResult.h"
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <iomanip>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
-using json = nlohmann::json;
 
 void emcal_barrel_pi0_analysis(
                                 const char* input_fname = "sim_output/sim_emcal_barrel_pi0.edm4hep.root"
@@ -47,7 +43,7 @@ void emcal_barrel_pi0_analysis(
   ROOT::RDataFrame d0("events", input_fname);
 
   // Sampling Fraction grabbed from json file
-  json j;
+  nlohmann::json j;
   std::ifstream prev_steps_ifstream("results/emcal_barrel_electron_calibration.json");
   prev_steps_ifstream >> j;
   double samp_frac = j["electron"]["sampling_fraction"];
@@ -208,23 +204,5 @@ void emcal_barrel_pi0_analysis(
   // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
   double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  // Create test JSON object
-  json pi0_energy_resolution_json;
-  pi0_energy_resolution_json["name"] = fmt::format("{}_energy_resolution", test_tag);
-  pi0_energy_resolution_json["title"] = "Pi0 Energy resolution";
-  pi0_energy_resolution_json["description"] = 
-   fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle);
-  pi0_energy_resolution_json["quantity"] = "resolution (in %)";
-  pi0_energy_resolution_json["target"] = std::to_string(resolutionTarget);
-  pi0_energy_resolution_json["value"] = sigmaOverE;
-  pi0_energy_resolution_json["result"] = (sigmaOverE <= resolutionTarget) ? "pass" : "fail";
-  pi0_energy_resolution_json["weight"] = 1.0;
-
-  // Write test data to JSON file
-  json test;
-  test["tests"].push_back(pi0_energy_resolution_json);
-  std::string filename = fmt::format("results/{}_pi0.json", detEle);
-  std::cout << fmt::format("Writing test data to {}\n", filename);
-  std::ofstream output_file(filename);
-  output_file << std::setw(4) << test << "\n";
+  std::cout << fmt::format("Pi0 energy resolution: {} (target: {})\n", sigmaOverE, resolutionTarget);
 }

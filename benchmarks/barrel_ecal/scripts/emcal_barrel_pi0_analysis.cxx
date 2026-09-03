@@ -19,6 +19,8 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "TF1.h"
 #include "TH1D.h"
 #include "TFitResult.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;

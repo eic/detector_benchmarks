@@ -81,13 +81,12 @@ common:setup:
   stage: config
   before_script:
   script:
-    - mkdir -p .local/bin .local/include
-    - cp -r bin/. .local/bin/
-    - cp -r include/. .local/include/
+    - source bin/env.sh
+    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
+    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
     - echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
     - echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-    - source .local/bin/env.sh
     - mkdir_local_data_link sim_output
     - mkdir_local_data_link EPIC
     - mkdir -p results
@@ -102,7 +101,9 @@ common:setup:
   needs:
     - ["common:setup"]
   before_script:
-    - source .local/bin/env.sh
+    - source bin/env.sh
+    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
+    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

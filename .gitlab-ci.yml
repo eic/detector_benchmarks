@@ -81,22 +81,19 @@ common:setup:
   stage: config
   before_script:
   script:
+    - source bin/env.sh
+    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
+    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - |
-      if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="main" 
-      fi
-      echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
-      echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone --depth 1 -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
-      rm -rf .local/.git
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
-    - source .local/bin/env.sh
-    - mkdir_local_data_link sim_output
-    - mkdir_local_data_link EPIC
-    - mkdir -p results
-    - mkdir -p config
+    - |
+      mkdir_local_data_link sim_output
+      mkdir_local_data_link EPIC
+    - |
+      mkdir -p results
+      mkdir -p config
     - eic-info
     - |
       flock --nonblock /scratch/garbage-collect.lock \
@@ -107,7 +104,9 @@ common:setup:
   needs:
     - ["common:setup"]
   before_script:
-    - source .local/bin/env.sh
+    - source bin/env.sh
+    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
+    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

@@ -9,8 +9,7 @@ Detector benchmarks are meant to provide a maintained set of performance plots f
 
 ## Documentation
 
- - See [tutorial](https://eic.github.io/tutorial-developing-benchmarks/)
- - See [common_bench](https://eicweb.phy.anl.gov/EIC/benchmarks/common_bench/).
+ - See [tutorial](https://eic.github.io/tutorial-developing-benchmarks/).
 
 ## Adding new benchmarks
 

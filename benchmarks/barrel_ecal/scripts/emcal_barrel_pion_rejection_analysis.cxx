@@ -11,8 +11,6 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 
-#include "common_bench/benchmark.h"
-
 #include <boost/range/combine.hpp>
 
 #include "DD4hep/IDDescriptor.h"
@@ -41,6 +39,8 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "DDRec/CellIDPositionConverter.h"
 #include "emcal_barrel_common_functions.h"
 #include <nlohmann/json.hpp>
+#include <fstream>
+#include <iomanip>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -612,94 +612,99 @@ void emcal_barrel_pion_rejection_analysis(
   }
   
   // E, Eta = 18, 2
-  common_bench::Test pion_rejection_E18_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 2)},
-     {"title", "Pion Rejection1"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[0][2])},
-     {"pi- efficiency", std::to_string(effPim[0][2])},
-     {"target", std::to_string(suppression * maxRate[0][2])}
-    }
-  };
-  suppression * maxRate[0][2] >= rejRatios[0][2] ? pion_rejection_E18_Eta2.pass(rejRatios[0][2]) : pion_rejection_E18_Eta2.fail(rejRatios[0][2]);   
+  // E, Eta = 18, 2
+  nlohmann::json pion_rejection_E18_Eta2_json;
+  pion_rejection_E18_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 2);
+  pion_rejection_E18_Eta2_json["title"] = "Pion Rejection1";
+  pion_rejection_E18_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[2]);
+  pion_rejection_E18_Eta2_json["quantity"] = "pi-/e-";
+  pion_rejection_E18_Eta2_json["cut"] = currentCut;
+  pion_rejection_E18_Eta2_json["e- efficiency"] = std::to_string(effEle[0][2]);
+  pion_rejection_E18_Eta2_json["pi- efficiency"] = std::to_string(effPim[0][2]);
+  pion_rejection_E18_Eta2_json["target"] = std::to_string(suppression * maxRate[0][2]);
+  pion_rejection_E18_Eta2_json["value"] = rejRatios[0][2];
+  pion_rejection_E18_Eta2_json["result"] = (suppression * maxRate[0][2] >= rejRatios[0][2]) ? "pass" : "fail";
+  pion_rejection_E18_Eta2_json["weight"] = 1.0;
 
   // E, Eta = 18, 3
-  common_bench::Test pion_rejection_E18_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[0][3])},
-     {"pi- efficiency", std::to_string(effPim[0][3])},
-     {"target", std::to_string(suppression * maxRate[0][3])}
-   }
-  };
-  suppression * maxRate[0][3] >= rejRatios[0][3] ? pion_rejection_E18_Eta3.pass(rejRatios[0][3]) : pion_rejection_E18_Eta3.fail(rejRatios[0][3]);
+  nlohmann::json pion_rejection_E18_Eta3_json;
+  pion_rejection_E18_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 3);
+  pion_rejection_E18_Eta3_json["title"] = "Pion Rejection";
+  pion_rejection_E18_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[3]);
+  pion_rejection_E18_Eta3_json["quantity"] = "pi-/e-";
+  pion_rejection_E18_Eta3_json["cut"] = currentCut;
+  pion_rejection_E18_Eta3_json["e- efficiency"] = std::to_string(effEle[0][3]);
+  pion_rejection_E18_Eta3_json["pi- efficiency"] = std::to_string(effPim[0][3]);
+  pion_rejection_E18_Eta3_json["target"] = std::to_string(suppression * maxRate[0][3]);
+  pion_rejection_E18_Eta3_json["value"] = rejRatios[0][3];
+  pion_rejection_E18_Eta3_json["result"] = (suppression * maxRate[0][3] >= rejRatios[0][3]) ? "pass" : "fail";
+  pion_rejection_E18_Eta3_json["weight"] = 1.0;
 
   // E, Eta = 10, 2
-  common_bench::Test pion_rejection_E10_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 2)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[1][2])},
-     {"pi- efficiency", std::to_string(effPim[1][2])},
-     {"target", std::to_string(suppression * maxRate[1][2])}
-    }
-  };
-  suppression * maxRate[1][2] >= rejRatios[1][2] ? pion_rejection_E10_Eta2.pass(rejRatios[1][2]) : pion_rejection_E10_Eta2.fail(rejRatios[1][2]);
+  nlohmann::json pion_rejection_E10_Eta2_json;
+  pion_rejection_E10_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 2);
+  pion_rejection_E10_Eta2_json["title"] = "Pion Rejection";
+  pion_rejection_E10_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[2]);
+  pion_rejection_E10_Eta2_json["quantity"] = "pi-/e-";
+  pion_rejection_E10_Eta2_json["cut"] = currentCut;
+  pion_rejection_E10_Eta2_json["e- efficiency"] = std::to_string(effEle[1][2]);
+  pion_rejection_E10_Eta2_json["pi- efficiency"] = std::to_string(effPim[1][2]);
+  pion_rejection_E10_Eta2_json["target"] = std::to_string(suppression * maxRate[1][2]);
+  pion_rejection_E10_Eta2_json["value"] = rejRatios[1][2];
+  pion_rejection_E10_Eta2_json["result"] = (suppression * maxRate[1][2] >= rejRatios[1][2]) ? "pass" : "fail";
+  pion_rejection_E10_Eta2_json["weight"] = 1.0;
 
   // E, Eta = 10, 3
-  common_bench::Test pion_rejection_E10_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"e- efficiency", std::to_string(effEle[1][3])},
-     {"pi- efficiency", std::to_string(effPim[1][3])},
-     {"target", std::to_string(suppression * maxRate[1][3])}
-    }
-  };
-  suppression * maxRate[1][3] >= rejRatios[1][3] ? pion_rejection_E10_Eta3.pass(rejRatios[1][3]) : pion_rejection_E10_Eta3.fail(rejRatios[1][3]);
+  nlohmann::json pion_rejection_E10_Eta3_json;
+  pion_rejection_E10_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 3);
+  pion_rejection_E10_Eta3_json["title"] = "Pion Rejection";
+  pion_rejection_E10_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[3]);
+  pion_rejection_E10_Eta3_json["quantity"] = "pi-/e-";
+  pion_rejection_E10_Eta3_json["e- efficiency"] = std::to_string(effEle[1][3]);
+  pion_rejection_E10_Eta3_json["pi- efficiency"] = std::to_string(effPim[1][3]);
+  pion_rejection_E10_Eta3_json["target"] = std::to_string(suppression * maxRate[1][3]);
+  pion_rejection_E10_Eta3_json["value"] = rejRatios[1][3];
+  pion_rejection_E10_Eta3_json["result"] = (suppression * maxRate[1][3] >= rejRatios[1][3]) ? "pass" : "fail";
+  pion_rejection_E10_Eta3_json["weight"] = 1.0;
 
   // E, Eta = 5, 2
-  common_bench::Test pion_rejection_E5_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 2)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[2][2])},
-     {"pi- efficiency", std::to_string(effPim[2][2])},
-     {"target", std::to_string(suppression * maxRate[2][2])}
-    }
-  };
-  suppression * maxRate[2][2] >= rejRatios[2][2] ? pion_rejection_E5_Eta2.pass(rejRatios[2][2]) : pion_rejection_E5_Eta2.fail(rejRatios[2][2]);
+  nlohmann::json pion_rejection_E5_Eta2_json;
+  pion_rejection_E5_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 2);
+  pion_rejection_E5_Eta2_json["title"] = "Pion Rejection";
+  pion_rejection_E5_Eta2_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[2]);
+  pion_rejection_E5_Eta2_json["quantity"] = "pi-/e-";
+  pion_rejection_E5_Eta2_json["cut"] = currentCut;
+  pion_rejection_E5_Eta2_json["e- efficiency"] = std::to_string(effEle[2][2]);
+  pion_rejection_E5_Eta2_json["pi- efficiency"] = std::to_string(effPim[2][2]);
+  pion_rejection_E5_Eta2_json["target"] = std::to_string(suppression * maxRate[2][2]);
+  pion_rejection_E5_Eta2_json["value"] = rejRatios[2][2];
+  pion_rejection_E5_Eta2_json["result"] = (suppression * maxRate[2][2] >= rejRatios[2][2]) ? "pass" : "fail";
+  pion_rejection_E5_Eta2_json["weight"] = 1.0;
 
   // E, Eta = 5, 3
-  common_bench::Test pion_rejection_E5_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[2][3])},
-     {"pi- efficiency", std::to_string(effPim[2][3])},
-     {"target", std::to_string(suppression * maxRate[2][3])}
-    }
-  };
-  suppression * maxRate[2][3] >= rejRatios[2][3] ? pion_rejection_E5_Eta3.pass(rejRatios[2][3]) : pion_rejection_E5_Eta3.fail(rejRatios[2][3]);
+  nlohmann::json pion_rejection_E5_Eta3_json;
+  pion_rejection_E5_Eta3_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 3);
+  pion_rejection_E5_Eta3_json["title"] = "Pion Rejection";
+  pion_rejection_E5_Eta3_json["description"] = fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[3]);
+  pion_rejection_E5_Eta3_json["quantity"] = "pi-/e-";
+  pion_rejection_E5_Eta3_json["cut"] = currentCut;
+  pion_rejection_E5_Eta3_json["e- efficiency"] = std::to_string(effEle[2][3]);
+  pion_rejection_E5_Eta3_json["pi- efficiency"] = std::to_string(effPim[2][3]);
+  pion_rejection_E5_Eta3_json["target"] = std::to_string(suppression * maxRate[2][3]);
+  pion_rejection_E5_Eta3_json["value"] = rejRatios[2][3];
+  pion_rejection_E5_Eta3_json["result"] = (suppression * maxRate[2][3] >= rejRatios[2][3]) ? "pass" : "fail";
+  pion_rejection_E5_Eta3_json["weight"] = 1.0;
 
   // Writing out all tests
-  common_bench::write_test({pion_rejection_E18_Eta2, 
-                         pion_rejection_E18_Eta3, 
-                         pion_rejection_E10_Eta2, 
-                         pion_rejection_E10_Eta3, 
-                         pion_rejection_E5_Eta2, 
-                         pion_rejection_E5_Eta3}, 
-                         fmt::format("results/{}_pion_rej.json", detectorEle));
+  nlohmann::json test;
+  test["tests"].push_back(pion_rejection_E18_Eta2_json);
+  test["tests"].push_back(pion_rejection_E18_Eta3_json);
+  test["tests"].push_back(pion_rejection_E10_Eta2_json);
+  test["tests"].push_back(pion_rejection_E10_Eta3_json);
+  test["tests"].push_back(pion_rejection_E5_Eta2_json);
+  test["tests"].push_back(pion_rejection_E5_Eta3_json);
+  std::string filename = fmt::format("results/{}_pion_rej.json", detectorEle);
+  std::cout << fmt::format("Writing test data to {}\n", filename);
+  std::ofstream output_file(filename);
+  output_file << std::setw(4) << test << "\n";
 }

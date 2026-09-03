@@ -9,8 +9,6 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 
-#include "common_bench/benchmark.h"
-
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
 
@@ -22,6 +20,8 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "TH1D.h"
 #include "TFitResult.h"
 #include <nlohmann/json.hpp>
+#include <fstream>
+#include <iomanip>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -208,16 +208,23 @@ void emcal_barrel_pi0_analysis(
   // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
   double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  common_bench::Test pi0_energy_resolution{
-   {{"name", fmt::format("{}_energy_resolution", test_tag)},
-   {"title", "Pi0 Energy resolution"},
-   {"description",
-    fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle)},
-   {"quantity", "resolution (in %)"},
-   {"target", std::to_string(resolutionTarget)}}
-  };
+  // Create test JSON object
+  json pi0_energy_resolution_json;
+  pi0_energy_resolution_json["name"] = fmt::format("{}_energy_resolution", test_tag);
+  pi0_energy_resolution_json["title"] = "Pi0 Energy resolution";
+  pi0_energy_resolution_json["description"] = 
+   fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle);
+  pi0_energy_resolution_json["quantity"] = "resolution (in %)";
+  pi0_energy_resolution_json["target"] = std::to_string(resolutionTarget);
+  pi0_energy_resolution_json["value"] = sigmaOverE;
+  pi0_energy_resolution_json["result"] = (sigmaOverE <= resolutionTarget) ? "pass" : "fail";
+  pi0_energy_resolution_json["weight"] = 1.0;
 
-  //// Pass/Fail
-  sigmaOverE <= resolutionTarget ? pi0_energy_resolution.pass(sigmaOverE) : pi0_energy_resolution.fail(sigmaOverE);
-  common_bench::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
+  // Write test data to JSON file
+  json test;
+  test["tests"].push_back(pi0_energy_resolution_json);
+  std::string filename = fmt::format("results/{}_pi0.json", detEle);
+  std::cout << fmt::format("Writing test data to {}\n", filename);
+  std::ofstream output_file(filename);
+  output_file << std::setw(4) << test << "\n";
 }

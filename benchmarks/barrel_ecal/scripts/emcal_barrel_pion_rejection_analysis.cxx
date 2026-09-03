@@ -612,7 +612,6 @@ void emcal_barrel_pion_rejection_analysis(
   }
   
   // E, Eta = 18, 2
-  // E, Eta = 18, 2
   nlohmann::json pion_rejection_E18_Eta2_json;
   pion_rejection_E18_Eta2_json["name"] = fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 2);
   pion_rejection_E18_Eta2_json["title"] = "Pion Rejection1";

@@ -2,7 +2,7 @@ sim:b0_tracker:
   stage: simulate
   extends: .det_benchmark
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/b0_tracker/{DETECTOR_CONFIG}/sim_forward_protons.edm4hep.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/b0_tracker/${DETECTOR_CONFIG}/sim_forward_protons.edm4hep.root
 
 bench:b0_tracker:
   stage: benchmarks
@@ -10,7 +10,7 @@ bench:b0_tracker:
   needs:
     - ["sim:b0_tracker"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/far_forward/b0/hits_eta.pdf
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/far_forward/b0/${DETECTOR_CONFIG}/hits_eta.pdf
 
 results:b0_tracker:
   extends: .det_benchmark

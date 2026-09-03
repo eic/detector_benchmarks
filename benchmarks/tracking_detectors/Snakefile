@@ -49,15 +49,15 @@ rule tracking_detectors_analysis:
         analysis_script = workflow.source_path("analysis/sim_track_hits.cxx"),
         data = "sim_output/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits.edm4hep.root",
     output:
-        "results/tracking_detectors/sim_track_hits_n_hits_vs_theta.png",
-        "results/tracking_detectors/sim_track_hits_n_hits_vs_theta.pdf",
-        "results/tracking_detectors/sim_track_hits_n_hits.png",
-        "results/tracking_detectors/sim_track_hits_n_hits.pdf",
-        "results/tracking_detectors/sim_track_hits_theta.png",
-        "results/tracking_detectors/sim_track_hits_theta.pdf",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_n_hits_vs_theta.png",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_n_hits_vs_theta.pdf",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_n_hits.png",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_n_hits.pdf",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_theta.png",
+        "results/tracking_detectors/{DETECTOR_CONFIG}/sim_track_hits_theta.pdf",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-mkdir -p results/tracking_detectors
-root -l -b -q '{input.analysis_script}+("+{input.data}")'
+mkdir -p results/tracking_detectors/{wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.analysis_script}+("{input.data}")'
 """

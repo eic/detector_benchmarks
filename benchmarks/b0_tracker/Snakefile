@@ -9,7 +9,7 @@ rule b0_tracker_hepmc:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}({params.num_events}, 0, "{output.hepmcfile}")'
+root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}")'
 """
 
 
@@ -49,11 +49,11 @@ rule b0_tracker_analysis:
         analysis_script = workflow.source_path("analysis/b0_tracker_hits.cxx"),
         data = "sim_output/b0_tracker/{DETECTOR_CONFIG}/sim_forward_protons.edm4hep.root",
     output:
-        "results/far_forward/b0/hits_eta.png",
-        "results/far_forward/b0/hits_eta.pdf",
+        "results/far_forward/b0/{DETECTOR_CONFIG}/hits_eta.png",
+        "results/far_forward/b0/{DETECTOR_CONFIG}/hits_eta.pdf",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-mkdir -p results/far_forward/b0
-root -l -b -q '{input.analysis_script}+("{input.data}")'
+mkdir -p results/far_forward/b0/{wildcards.DETECTOR_CONFIG}
+root -l -b -q '{input.analysis_script}("{input.data}")'
 """

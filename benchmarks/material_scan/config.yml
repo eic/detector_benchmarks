@@ -1,11 +1,11 @@
 bench:material_scan:
-  extends: .det_benchmark
+  extends: .det_benchmark:htcondor
   stage: benchmarks
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/material_scan/epic_craterlake/material_scan_details.pdf
 
 collect_results:material_scan:
-  extends: .det_benchmark
+  extends: .det_benchmark:htcondor
   stage: collect
   needs:
     - ["bench:material_scan"]

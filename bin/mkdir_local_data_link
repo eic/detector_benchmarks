@@ -1,0 +1,15 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+
+dirname="$1"
+if [[ -d "${LOCAL_DATA_PATH}/${dirname}" ]] ; then
+  echo "local data directory already exists"
+else 
+  mkdir -p "${LOCAL_DATA_PATH}/${dirname}"
+fi
+if [[ -d "${dirname}" ]] ; then
+  echo "link or directory exists in current directory "
+else 
+  ln -s "${LOCAL_DATA_PATH}/${dirname}" ${dirname}
+fi

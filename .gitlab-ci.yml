@@ -81,17 +81,12 @@ common:setup:
   stage: config
   before_script:
   script:
-    - |
-      if [[ "${COMMON_BENCH_VERSION}" == "" ]] ; then
-        export COMMON_BENCH_VERSION="main" 
-      fi
-      echo "COMMON_BENCH_VERSION = ${COMMON_BENCH_VERSION}" 
-      echo "COMMON_BENCH_VERSION=${COMMON_BENCH_VERSION}" >> .env
-      git clone --depth 1 -b "${COMMON_BENCH_VERSION}" https://github.com/eic/common_bench.git .local 
-      rm -rf .local/.git
-      echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
-      echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
-      echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
+    - mkdir -p .local/bin .local/include
+    - cp -r bin/. .local/bin/
+    - cp -r include/. .local/include/
+    - echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
+    - echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
+    - echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - source .local/bin/env.sh
     - mkdir_local_data_link sim_output
     - mkdir_local_data_link EPIC

@@ -27,20 +27,20 @@ namespace benchmarks {
   // AlgorithmProcess
   //---------------------------------------------------------------------------
   void ReconstructedParticleAnalysis::AlgorithmProcess(
-      const edm4eic::MCRecoParticleAssociationCollection& in_assocs
+      const edm4eic::MCRecoParticleLinkCollection& in_links
       )
   {
-    if(!in_assocs.hasID()) { m_log->error("invalid input collection 'in_assocs'"); return; }
+    if(!in_links.hasID()) { m_log->error("invalid input collection 'in_links'"); return; }
 
-    // loop over input associations
-    for(const auto& assoc : in_assocs) {
+    // loop over input links
+    for(const auto& link : in_links) {
 
       // get particles
       m_log->trace("{:-^50}"," Particle ");
-      auto& simpart = assoc.getSim();
-      auto& recpart = assoc.getRec();
-      if(!recpart.isAvailable()) { m_log->warn("reconstructed particle not available for this association"); continue; }
-      if(!simpart.isAvailable()) { m_log->warn("simulated particle not available for this association");     continue; }
+      auto simpart = link.getTo();
+      auto recpart = link.getFrom();
+      if(!recpart.isAvailable()) { m_log->warn("reconstructed particle not available for this link"); continue; }
+      if(!simpart.isAvailable()) { m_log->warn("simulated particle not available for this link");     continue; }
 
       // get PDG values
       auto simpart_pdg      = simpart.getPDG(); // from MC truth
@@ -67,7 +67,7 @@ namespace benchmarks {
           simpart_pdg == pid_pdg ? 1 : 0
           );
 
-    } // end loop over input associations
+    } // end loop over input links
 
   }
 

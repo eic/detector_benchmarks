@@ -196,13 +196,13 @@ output_collections = [
   "DRICHHits",
   "MCParticles",
   "DRICHRawHits",
-  "DRICHRawHitsAssociations",
+  "DRICHRawHitsLinks",
   "DRICHAerogelTracks",
   "DRICHGasTracks",
   "DRICHAerogelIrtCherenkovParticleID",
   "DRICHGasIrtCherenkovParticleID",
   "DRICHMergedIrtCherenkovParticleID",
-  "ReconstructedChargedParticleAssociations",
+  "ReconstructedChargedParticleLinks",
 ]
 recon_cmd = [
   'eicrecon',

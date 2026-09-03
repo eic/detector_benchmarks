@@ -14,7 +14,7 @@ namespace common_bench {
 
   using ParticleMap = std::map<int, ParticleData>;
 
-  const ParticleMap particleMap = {
+  static const ParticleMap particleMap = {
       {          11, {          11,  -1,   0.000510998928 }},  // e-
       {         -11, {         -11,   1,   0.000510998928 }},  // e+
       {          13, {          13,  -1,   0.105658357    }},  // mu-

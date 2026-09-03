@@ -6,8 +6,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <string_view>
+#include <vector>
 
 namespace common_bench {
 
@@ -76,7 +79,7 @@ private:
 /** Write out a collection of tests to a json file.
  *
  */
-void write_test(const std::vector<Test> &data, const std::string &fname) {
+inline void write_test(const std::vector<Test> &data, const std::string &fname) {
   nlohmann::json test;
   for (auto &entry : data) {
     test["tests"].push_back(entry.json);
@@ -88,7 +91,7 @@ void write_test(const std::vector<Test> &data, const std::string &fname) {
 
 /** Write a single test to json file.
  */
-void write_test(const Test &data, const std::string &fname) {
+inline void write_test(const Test &data, const std::string &fname) {
   std::vector<Test> vtd{data};
   write_test(vtd, fname);
 }

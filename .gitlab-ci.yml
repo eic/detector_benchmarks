@@ -37,6 +37,11 @@ default:
       dotenv: .env
     when: always
 
+.setup_env: &setup_env |
+  source bin/env.sh
+  export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
+  export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
+
 stages:
   - status-pending
   - config
@@ -81,9 +86,7 @@ common:setup:
   stage: config
   before_script:
   script:
-    - source bin/env.sh
-    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
+    - *setup_env
     - echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
     - echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
     - echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
@@ -101,9 +104,7 @@ common:setup:
   needs:
     - ["common:setup"]
   before_script:
-    - source bin/env.sh
-    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
+    - *setup_env
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

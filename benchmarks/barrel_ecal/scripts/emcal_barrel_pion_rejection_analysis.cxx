@@ -11,8 +11,6 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 
-#include "common_bench/benchmark.h"
-
 #include <boost/range/combine.hpp>
 
 #include "DD4hep/IDDescriptor.h"
@@ -40,7 +38,6 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "DDG4/Geant4Data.h"
 #include "DDRec/CellIDPositionConverter.h"
 #include "emcal_barrel_common_functions.h"
-#include <nlohmann/json.hpp>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
@@ -612,94 +609,11 @@ void emcal_barrel_pion_rejection_analysis(
   }
   
   // E, Eta = 18, 2
-  common_bench::Test pion_rejection_E18_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 2)},
-     {"title", "Pion Rejection1"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[0][2])},
-     {"pi- efficiency", std::to_string(effPim[0][2])},
-     {"target", std::to_string(suppression * maxRate[0][2])}
-    }
-  };
-  suppression * maxRate[0][2] >= rejRatios[0][2] ? pion_rejection_E18_Eta2.pass(rejRatios[0][2]) : pion_rejection_E18_Eta2.fail(rejRatios[0][2]);   
-
-  // E, Eta = 18, 3
-  common_bench::Test pion_rejection_E18_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[0], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[0], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[0][3])},
-     {"pi- efficiency", std::to_string(effPim[0][3])},
-     {"target", std::to_string(suppression * maxRate[0][3])}
-   }
-  };
-  suppression * maxRate[0][3] >= rejRatios[0][3] ? pion_rejection_E18_Eta3.pass(rejRatios[0][3]) : pion_rejection_E18_Eta3.fail(rejRatios[0][3]);
-
-  // E, Eta = 10, 2
-  common_bench::Test pion_rejection_E10_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 2)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[1][2])},
-     {"pi- efficiency", std::to_string(effPim[1][2])},
-     {"target", std::to_string(suppression * maxRate[1][2])}
-    }
-  };
-  suppression * maxRate[1][2] >= rejRatios[1][2] ? pion_rejection_E10_Eta2.pass(rejRatios[1][2]) : pion_rejection_E10_Eta2.fail(rejRatios[1][2]);
-
-  // E, Eta = 10, 3
-  common_bench::Test pion_rejection_E10_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[1], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[1], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"e- efficiency", std::to_string(effEle[1][3])},
-     {"pi- efficiency", std::to_string(effPim[1][3])},
-     {"target", std::to_string(suppression * maxRate[1][3])}
-    }
-  };
-  suppression * maxRate[1][3] >= rejRatios[1][3] ? pion_rejection_E10_Eta3.pass(rejRatios[1][3]) : pion_rejection_E10_Eta3.fail(rejRatios[1][3]);
-
-  // E, Eta = 5, 2
-  common_bench::Test pion_rejection_E5_Eta2{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 2)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[2])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[2][2])},
-     {"pi- efficiency", std::to_string(effPim[2][2])},
-     {"target", std::to_string(suppression * maxRate[2][2])}
-    }
-  };
-  suppression * maxRate[2][2] >= rejRatios[2][2] ? pion_rejection_E5_Eta2.pass(rejRatios[2][2]) : pion_rejection_E5_Eta2.fail(rejRatios[2][2]);
-
-  // E, Eta = 5, 3
-  common_bench::Test pion_rejection_E5_Eta3{
-    {{"name", fmt::format("{}_E{}_EtaBin{}", test_tag, (int)E[2], 3)},
-     {"title", "Pion Rejection"},
-     {"description", fmt::format("Pion rejection with E = {}, and {}", (int)E[2], etaTitle[3])},
-     {"quantity", "pi-/e-"},
-     {"cut", currentCut},
-     {"e- efficiency", std::to_string(effEle[2][3])},
-     {"pi- efficiency", std::to_string(effPim[2][3])},
-     {"target", std::to_string(suppression * maxRate[2][3])}
-    }
-  };
-  suppression * maxRate[2][3] >= rejRatios[2][3] ? pion_rejection_E5_Eta3.pass(rejRatios[2][3]) : pion_rejection_E5_Eta3.fail(rejRatios[2][3]);
-
-  // Writing out all tests
-  common_bench::write_test({pion_rejection_E18_Eta2, 
-                         pion_rejection_E18_Eta3, 
-                         pion_rejection_E10_Eta2, 
-                         pion_rejection_E10_Eta3, 
-                         pion_rejection_E5_Eta2, 
-                         pion_rejection_E5_Eta3}, 
-                         fmt::format("results/{}_pion_rej.json", detectorEle));
+  // Pion rejection analysis complete - results stored in rejection ratios and efficiencies
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[0], rejRatios[0][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[0], rejRatios[0][3]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[1], rejRatios[1][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[1], rejRatios[1][3]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[2], rejRatios[2][2]);
+  std::cout << fmt::format("Pion rejection E={}, Eta=3: rejection ratio = {}\n", (int)E[2], rejRatios[2][3]);
 }

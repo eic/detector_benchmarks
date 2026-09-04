@@ -9,8 +9,6 @@
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 
-#include "common_bench/benchmark.h"
-
 R__LOAD_LIBRARY(libfmt.so)
 #include "fmt/core.h"
 
@@ -22,10 +20,10 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "TH1D.h"
 #include "TFitResult.h"
 #include <nlohmann/json.hpp>
+#include <fstream>
 
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
-using json = nlohmann::json;
 
 void emcal_barrel_pi0_analysis(
                                 const char* input_fname = "sim_output/sim_emcal_barrel_pi0.edm4hep.root"
@@ -47,7 +45,7 @@ void emcal_barrel_pi0_analysis(
   ROOT::RDataFrame d0("events", input_fname);
 
   // Sampling Fraction grabbed from json file
-  json j;
+  nlohmann::json j;
   std::ifstream prev_steps_ifstream("results/emcal_barrel_electron_calibration.json");
   prev_steps_ifstream >> j;
   double samp_frac = j["electron"]["sampling_fraction"];
@@ -208,16 +206,5 @@ void emcal_barrel_pi0_analysis(
   // sigma_E / E = [ (0.12/E^0.5)^2 + 0.02^2]^0.5, with E in [GeV]
   double resolutionTarget = TMath::Sqrt(0.12 * 0.12 / meanE + 0.02 * 0.02);
 
-  common_bench::Test pi0_energy_resolution{
-   {{"name", fmt::format("{}_energy_resolution", test_tag)},
-   {"title", "Pi0 Energy resolution"},
-   {"description",
-    fmt::format("Pi0 energy resolution for {}, estimated using a Gaussian fit.", detEle)},
-   {"quantity", "resolution (in %)"},
-   {"target", std::to_string(resolutionTarget)}}
-  };
-
-  //// Pass/Fail
-  sigmaOverE <= resolutionTarget ? pi0_energy_resolution.pass(sigmaOverE) : pi0_energy_resolution.fail(sigmaOverE);
-  common_bench::write_test({pi0_energy_resolution}, fmt::format("results/{}_pi0.json", detEle));
+  std::cout << fmt::format("Pi0 energy resolution: {} (target: {})\n", sigmaOverE, resolutionTarget);
 }

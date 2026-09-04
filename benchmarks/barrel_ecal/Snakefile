@@ -138,7 +138,6 @@ rule emcal_barrel_pi0_analysis:
             var_name=["Ethr", "nhits", "Esim", "dE_rel"],
             extension=["pdf", "png"],
         ),
-        "{DETECTOR_CONFIG}/results/Barrel_emcal_pi0.json"
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -188,7 +187,6 @@ rule emcal_barrel_pion_rejection_analysis:
         piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root",
     output:
         "{DETECTOR_CONFIG}/results/emcal_barrel_pion_rej_RatioRej.png",
-        "{DETECTOR_CONFIG}/results/Barrel_emcal_pion_rej.json",
         expand(
             "{{DETECTOR_CONFIG}}/results/emcal_barrel_pion_rej_uncut_comb_{var_save}.png",
             var_save=["Esim", "EsimTot", "EDep6", "EDep6OverP", "pT", "eta", "EsimScFi", "EsimScFiOverP"],

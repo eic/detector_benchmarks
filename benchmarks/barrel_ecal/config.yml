@@ -65,8 +65,7 @@ bench:emcal_barrel_pi0:
   needs:
     - ["sim:emcal_barrel_pi0", "calib:emcal_barrel_electrons"]
   script:
-    - echo "JSON file(s) from analysis:" ; cat results/*.json
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 epic_craterlake/results/Barrel_emcal_pi0.json
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 $DETECTOR_CONFIG/results/emcal_barrel_pi0_Ethr.png
 
 bench:emcal_barrel_photons:
   extends: .det_benchmark
@@ -89,7 +88,7 @@ bench:emcal_barrel_pion_rejection:
     - ls -lhtR sim_output/
     - rootls -t $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root
     - rootls -t $DETECTOR_CONFIG/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.root
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 $DETECTOR_CONFIG/results/Barrel_emcal_pion_rej.json
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 $DETECTOR_CONFIG/results/emcal_barrel_pion_rej_RatioRej.png
 
 collect_results:barrel_ecal:
   extends: .det_benchmark

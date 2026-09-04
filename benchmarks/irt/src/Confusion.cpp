@@ -35,4 +35,3 @@ int Confusion::PDGToBin(int pdg) {
   default:   return -1;
   }
 }
-

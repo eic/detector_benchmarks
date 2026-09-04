@@ -1,0 +1,96 @@
+sim:bic_pid:
+  extends: .det_benchmark
+  stage: simulate
+  image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
+  variables:
+    DETECTOR_CONFIG: epic_craterlake
+  parallel:
+    matrix:
+      - PARTICLE: ["e-", "pi-"]
+        ANGLE: ["45to135deg"]
+        ENERGY: ["1GeV"]
+        INDEX_RANGE: [
+          "0 9",
+          "10 19",
+          "20 29",
+          "30 39",
+          "40 49",
+          "50 59",
+          "60 69",
+          "70 79",
+          "80 89",
+          "90 99",
+        ] 
+  script:
+    - export DETECTOR_CONFIG=epic_craterlake
+    - |
+      snakemake $SNAKEMAKE_FLAGS --cores 1 \
+        $(seq --format="sim_output/bic_pid/${DETECTOR_CONFIG}/${PARTICLE}/${ENERGY}/${ANGLE}/${PARTICLE}_${ENERGY}_${ANGLE}.%04.f.eicrecon.edm4eic.root" ${INDEX_RANGE})
+
+
+bench:bic_pid:
+  extends: .det_benchmark
+  stage: benchmarks
+  needs:
+    - ["sim:bic_pid"]
+  image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
+  variables:
+    CUDA_VISIBLE_DEVICES: ""
+    DETECTOR_CONFIG: epic_craterlake
+    MAMBA_ROOT_PREFIX: "$LOCAL_DATA_PATH/micromamba"
+  before_script:
+    - source .local/bin/env.sh
+    - ls -lrtha
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
+    - mkdir -p "${DETECTOR_CONFIG}"
+    - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
+    - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    - find sim_output/bic_pid/${DETECTOR_CONFIG} | head -50 || true
+    - ls -lrtha
+  script:
+    - |
+        mkdir -p mm
+        curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C mm
+
+        mm/bin/micromamba create -y \
+          -p "$MAMBA_ROOT_PREFIX/envs/bicpid" \
+          -f benchmarks/bic_pid/environment.yml
+
+        export BICPY="$MAMBA_ROOT_PREFIX/envs/bicpid/bin/python"
+        export PYTHONNOUSERSITE=1
+        unset PYTHONPATH
+
+        "$BICPY" -V
+        "$BICPY" -m pip install --upgrade pip
+
+        "$BICPY" -m pip install \
+          "snakemake==7.32.4" \
+          "tensorflow-cpu==2.13.0" \
+          "tf2onnx==1.17.0"
+
+        "$BICPY" -m pip install --force-reinstall --no-deps "pulp==2.7.0"
+
+        "$BICPY" -c "import sys, numpy as np, awkward as ak, uproot, tensorflow as tf, tf2onnx, pulp; print(sys.version); print('numpy', np.__version__); print('awkward', ak.__version__); print('uproot', uproot.__version__); print('TF', tf.__version__); print('tf2onnx', tf2onnx.__version__); print('PuLP version =', getattr(pulp, '__version__', 'unknown')); print('has list_solvers =', hasattr(pulp, 'list_solvers')); print('has listSolvers =', hasattr(pulp, 'listSolvers')); print('module =', pulp.__file__)"
+
+        export PATH="$MAMBA_ROOT_PREFIX/envs/bicpid/bin:$PATH"
+        hash -r
+
+        "$BICPY" -m snakemake $SNAKEMAKE_FLAGS --cores 1 results/${DETECTOR_CONFIG}/bic_pid
+
+
+collect_results:bic_pid:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - "bench:bic_pid"
+  when: always
+  image: $BENCHMARKS_REGISTRY/eic_ci$BENCHMARKS_SIGIL$BENCHMARKS_TAG
+  variables:
+    DETECTOR_CONFIG: epic_craterlake
+  script:
+    - export DETECTOR_CONFIG=epic_craterlake
+    - ls -lrht
+    - mv results{,_save}/
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/${DETECTOR_CONFIG}/bic_pid
+    - mv results{_save,}/

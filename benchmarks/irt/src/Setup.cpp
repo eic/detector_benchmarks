@@ -1,4 +1,5 @@
 #include "Setup.h"
+#include <stdexcept>
 Setup::Setup(){
   std::cout<<"IRT Setup Called\n"<<std::endl;
   ///PFRICH (mom & eta)
@@ -6,8 +7,9 @@ Setup::Setup(){
   m_PLowerPFRICH = 0.;
   m_PUpperPFRICH = 15.0;
   m_nBinsEtaPFRICH = 50;
-  m_ELowerPFRICH = -1.50;
-  m_EUpperPFRICH = -3.50;
+  // ROOT requires the lower edge to be smaller than the upper edge
+  m_ELowerPFRICH = -3.50;
+  m_EUpperPFRICH = -1.50;
   // (Angle and Hits)
   m_nBinsThetaPFRICH = 150;
   m_ThetaLowerPFRICH = 150;
@@ -34,6 +36,10 @@ Setup::Setup(){
   
 }
 void Setup::HistoInit(){
+  if(m_IrtRICH != "PFRICH" && m_IrtRICH != "DRICH"){
+    throw std::runtime_error("Unknown RICH detector \"" + m_IrtRICH
+			     + "\", expected one of: DRICH, PFRICH");
+  }
   if(m_IrtRICH == "PFRICH"){
     std::cout<<"PFRICH Histos for: "<<m_IrtRICH<<std::endl;
     //TH1::AddDirectory(false);
@@ -78,8 +84,7 @@ void Setup::HistoInit(){
 					       ));
     
     //std::unique_ptr<TFile> m_OutFile
-    m_OutRootFile = std::make_unique<TFile>((m_OutFile+"_"+m_IrtRICH+".edm4hep.root").c_str(),
-					    "RECREATE");
+    m_OutRootFile = std::make_unique<TFile>(m_OutFile.c_str(), "RECREATE");
     std::cout 
     << "File: " << m_OutRootFile->GetName()
     << " writable: " << m_OutRootFile->IsWritable()
@@ -155,13 +160,15 @@ void Setup::HistoInit(){
   
     
     //std::unique_ptr<TFile> m_OutFile
-    m_OutRootFile = std::make_unique<TFile>((m_OutFile+"_"+m_IrtRICH+".edm4hep.root").c_str(),
-					    "RECREATE");
+    m_OutRootFile = std::make_unique<TFile>(m_OutFile.c_str(), "RECREATE");
     std::cout 
       << "File: " << m_OutRootFile->GetName()
       << " writable: " << m_OutRootFile->IsWritable()
       << " zombie: " << m_OutRootFile->IsZombie()
       << std::endl;  
+  }
+  if(m_OutRootFile == nullptr || m_OutRootFile->IsZombie()){
+    throw std::runtime_error("Failed to open output file \"" + m_OutFile + "\" for writing");
   }
 }
 Setup::~Setup(){

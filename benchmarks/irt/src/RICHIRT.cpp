@@ -1,4 +1,5 @@
 #include "RICHIRT.h"
+#include <stdexcept>
 ///////////////////////////
 RICHIRT::RICHIRT(){
   std::cout<<"RICH IRT Called\n"<<std::endl;
@@ -60,8 +61,9 @@ void RICHIRT::Process(){
       ///// OneToMany : Radiator
       //std::cout<<m_Rad_Npe.size()<<"; "<<part.getRadiators().size()<<std::endl;
       if(m_Rad_Npe.size()!= part.getRadiators().size()){
-	std::cerr<<"Radiator size and Histo assignment miss-match. Aborting\n"<<std::endl;
-	return;
+	throw std::runtime_error("Radiator size (" + std::to_string(part.getRadiators().size())
+				 + ") and histogram assignment (" + std::to_string(m_Rad_Npe.size())
+				 + ") mismatch");
       }
       for (const auto& rad : part.getRadiators()) {
         auto id = rad.id();

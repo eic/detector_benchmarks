@@ -5,7 +5,7 @@ import uproot
 import pandas as pd
 from scipy.optimize import curve_fit
 from matplotlib.backends.backend_pdf import PdfPages
-import sys
+import os
 import awkward as ak
 
 plt.figure()
@@ -24,7 +24,7 @@ def rotateY(xdata, zdata, angle):
     
 Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 
-DETECTOR_CONFIG = sys.argv[1]
+DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
 
 df = pd.DataFrame({})
 for eng in Energy:

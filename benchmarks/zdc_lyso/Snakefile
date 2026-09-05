@@ -84,7 +84,7 @@ rule zdc_lyso_analysis:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-python {input.script} {wildcards.DETECTOR_CONFIG}
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} python {input.script}
 """
 
 

@@ -179,7 +179,7 @@ else:
 ruleorder: backwards_ecal_local_sim_list > backwards_ecal_campaign_sim_list
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+DETECTOR_CONFIG=config["DETECTOR_CONFIG"]
 
 rule backwards_ecal:
     input:

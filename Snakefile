@@ -4,6 +4,11 @@ import functools
 import os
 from snakemake.logging import logger
 
+shell.prefix("source bin/env.sh; export PATH=$PWD/bin:$PATH; export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; ")
+
+envvars:
+    "DETECTOR_PATH",
+
 
 EIC_SINGULARITY_CONTAINER = os.getenv("EIC_SINGULARITY_CONTAINER", "/cvmfs/eic.opensciencegrid.org/singularity/eicweb/eic_xl:nightly")
 

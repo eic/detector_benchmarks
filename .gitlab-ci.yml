@@ -83,7 +83,6 @@ common:setup:
   script:
     - source bin/env.sh
     - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - |
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
@@ -106,7 +105,6 @@ common:setup:
   before_script:
     - source bin/env.sh
     - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - source /opt/detector/epic-main/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

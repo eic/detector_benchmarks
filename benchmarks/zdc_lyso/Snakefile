@@ -100,6 +100,6 @@ rule zdc_lyso_hepmc:
 
 rule zdc_lyso_local:
    input:
-        "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
+        "results/" + config["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
    message:
         "See output in {input[0]}"

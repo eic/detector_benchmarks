@@ -83,7 +83,6 @@ common:setup:
   before_script:
   script:
     - source bin/env.sh
-    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
     - |
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
@@ -105,7 +104,6 @@ common:setup:
     - ["common:setup"]
   before_script:
     - source bin/env.sh
-    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
     - source ${DETECTOR_PREFIX}/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

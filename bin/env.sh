@@ -45,8 +45,6 @@ LOCAL_PREFIX=".local"
 mkdir -p "${LOCAL_PREFIX}"
 export LOCAL_PREFIX=`realpath ${LOCAL_PREFIX}`
 
-export ROOT_INCLUDE_PATH=${LOCAL_PREFIX}/include:${ROOT_INCLUDE_PATH}
-
 ## =============================================================================
 ## Setup PATH and LD_LIBRARY_PATH to include our prefixes
 echo "Adding LOCAL_PREFIX to PATH and LD_LIBRARY_PATH"

@@ -11,9 +11,6 @@ shell.prefix(
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
 )
 
-envvars:
-    "DETECTOR_PATH",
-
 
 EIC_SINGULARITY_CONTAINER = os.getenv("EIC_SINGULARITY_CONTAINER", "/cvmfs/eic.opensciencegrid.org/singularity/eicweb/eic_xl:nightly")
 

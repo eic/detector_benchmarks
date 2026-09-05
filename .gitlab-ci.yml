@@ -142,8 +142,6 @@ include:
   - local: 'benchmarks/zdc_photon/config.yml'
   - local: 'benchmarks/zdc_pi0/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/pid/config.yml'
-  - local: 'benchmarks/rich/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
   - local: 'benchmarks/zdc_sigma/config.yml'
@@ -175,8 +173,6 @@ deploy_results:
     - "collect_results:lfhcal"
     - "collect_results:lowq2_reconstruction"
     - "collect_results:material_scan"
-    - "collect_results:pid"
-    - "collect_results:rich"
     - "collect_results:secondary_vertexing_dis"
     - "collect_results:tracking_performance"
     - "collect_results:tracking_performance_campaigns"

@@ -32,7 +32,7 @@ rule zdc_lyso_sim:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
     params:
         num_events=1000,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -84,7 +84,7 @@ rule zdc_lyso_analysis:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-python {input.script}
+env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} python {input.script}
 """
 
 
@@ -100,6 +100,6 @@ rule zdc_lyso_hepmc:
 
 rule zdc_lyso_local:
    input:
-        "results/" + os.environ["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
+        "results/" + config["DETECTOR_CONFIG"] + "/zdc_lyso/plots.pdf",
    message:
         "See output in {input[0]}"

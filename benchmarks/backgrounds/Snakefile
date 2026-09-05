@@ -33,7 +33,7 @@ exec npsim \
 """
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
+DETECTOR_CONFIG=config["DETECTOR_CONFIG"]
 
 rule backgrounds_ecal_backwards:
     input:

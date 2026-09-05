@@ -1,1 +1,7 @@
 remote_provider: XRootD
+DETECTOR: epic
+DETECTOR_CONFIG: epic_craterlake
+DETECTOR_PREFIX: /opt/detector/epic-main
+BENCHMARK_N_EVENTS: 100
+BENCHMARK_N_THREADS: 10
+BENCHMARK_RNG_SEED: 1

@@ -22,7 +22,7 @@ rule backwards_ecal_sim:
     params:
         N_EVENTS=get_n_events,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -179,12 +179,10 @@ else:
 ruleorder: backwards_ecal_local_sim_list > backwards_ecal_campaign_sim_list
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
-
 rule backwards_ecal:
     input:
         expand(
-            "listing/backwards_ecal/{{CAMPAIGN}}/" + DETECTOR_CONFIG + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+            "listing/backwards_ecal/{{CAMPAIGN}}/" + config["DETECTOR_CONFIG"] + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
             PARTICLE=["pi-", "e-"],
             ENERGY=[
                 "100MeV",

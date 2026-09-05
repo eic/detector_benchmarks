@@ -12,7 +12,7 @@ rule nhcal_basic_distribution_simulate:
     params:
         N_EVENTS=10000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -67,7 +67,7 @@ rule nhcal_basic_distribution_analysis:
         ENERGY=r"\d+(\.\d+)?",
         N=r"\d+",
     params:
-        DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

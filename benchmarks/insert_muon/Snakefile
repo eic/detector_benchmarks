@@ -25,7 +25,7 @@ rule insert_muon_simulate:
         INDEX=lambda wildcards: wildcards.INDEX,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
         PHYSICS_LIST="FTFP_BERT",
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),

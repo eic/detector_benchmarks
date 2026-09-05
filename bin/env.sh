@@ -62,7 +62,6 @@ export JUGGLER_N_EVENTS=${BENCHMARK_N_EVENTS}
 if [ ! -n "${BENCHMARK_N_THREADS}" ]; then
   export BENCHMARK_N_THREADS=10
 fi
-export JUGGLER_N_THREADS=${BENCHMARK_N_THREADS}
 export ROOT_MAX_THREADS=${BENCHMARK_N_THREADS}
 
 ## Random seed for event generation, should typically not be changed for
@@ -70,7 +69,6 @@ export ROOT_MAX_THREADS=${BENCHMARK_N_THREADS}
 if [ ! -n "${BENCHMARK_RNG_SEED}" ]; then
   export BENCHMARK_RNG_SEED=1
 fi
-export JUGGLER_RNG_SEED=${BENCHMARK_RNG_SEED}
 
 ## Location of local data for pass data from job to job within pipeline.
 ## Not saved as artifacts.

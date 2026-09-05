@@ -6,12 +6,11 @@
 ## be overriden by the Gitlab continuous integration (CI)
 ##
 ##  - DETECTOR:                detector package to be used for the benchmark
-##  - DETECTOR_VERSION:        detector package to be used for the benchmark
 ##  - BENCHMARK_N_THREADS:     number of threads/processes to spawn in parallel
 ##  - BENCHMARK_RNG_SEED:      random seed for the RNG
 ##
-## Note: DETECTOR_CONFIG and BENCHMARK_N_EVENTS are managed by Snakemake
-##       via snakemake.yml and can be overridden with --config on the CLI.
+## Note: DETECTOR_CONFIG, DETECTOR_VERSION, and BENCHMARK_N_EVENTS are managed
+##       by Snakemake/thisepic.sh and not set here.
 ##
 ## It also defines the following additional variables for internally usage
 ##  - LOCAL_PREFIX:           prefix for packages installed during the benchmark
@@ -38,12 +37,6 @@ if [ ! -n  "${DETECTOR}" ] ; then
   echo "       Set the environment variable DETECTOR accordingly."
   #export DETECTOR="epic"
 fi
-
-# main is the new master
-if [ ! -n  "${DETECTOR_VERSION}" ] ; then 
-  export DETECTOR_VERSION="main"
-fi
-
 
 ## Maximum number of threads or processes a single pipeline should use
 ## (this is not enforced, but the different pipeline scripts should use

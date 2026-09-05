@@ -83,6 +83,7 @@ common:setup:
   before_script:
   script:
     - source bin/env.sh
+    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
     - |
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"

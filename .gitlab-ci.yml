@@ -90,8 +90,8 @@ common:setup:
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - |
-      mkdir_local_data_link sim_output
-      mkdir_local_data_link EPIC
+      bin/mkdir_local_data_link sim_output
+      bin/mkdir_local_data_link EPIC
     - |
       mkdir -p results
       mkdir -p config

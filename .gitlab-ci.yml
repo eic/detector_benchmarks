@@ -142,6 +142,7 @@ include:
   - local: 'benchmarks/zdc_pi0/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
+  - local: 'benchmarks/irt/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
   - local: 'benchmarks/zdc_sigma/config.yml'
   - local: 'benchmarks/zdc_lambda/config.yml'
@@ -183,6 +184,7 @@ deploy_results:
     - "collect_results:zdc_neutron"
     - "collect_results:insert_muon"
     - "collect_results:insert_tau"
+    - "collect_results:irt"
     - "collect_results:zdc_photon"
     - "collect_results:zdc_pi0"
     - "collect_results:femc_electron"

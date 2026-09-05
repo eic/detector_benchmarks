@@ -4,7 +4,7 @@ import functools
 import os
 from snakemake.logging import logger
 
-shell.prefix("source bin/env.sh; export PATH=$PWD/bin:$PATH; export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; ")
+shell.prefix(f"source bin/env.sh; export PATH=$PWD/bin:$PATH; export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; export DETECTOR_CONFIG={config['DETECTOR_CONFIG']}; ")
 
 envvars:
     "DETECTOR_PATH",

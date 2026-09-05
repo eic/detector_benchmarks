@@ -7,7 +7,6 @@ from snakemake.logging import logger
 shell.prefix(
     f"source bin/env.sh; "
     f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh; "
-    f"export PATH=$PWD/bin:$PATH; "
     f"export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; "
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
 )

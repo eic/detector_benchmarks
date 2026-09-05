@@ -9,10 +9,7 @@ shell.prefix(
     f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh; "
     f"export PATH=$PWD/bin:$PATH; "
     f"export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; "
-    f"export DETECTOR_CONFIG={config['DETECTOR_CONFIG']}; "
-    f"export BENCHMARK_N_THREADS={config['BENCHMARK_N_THREADS']}; "
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
-    f"export BENCHMARK_RNG_SEED={config['BENCHMARK_RNG_SEED']}; "
 )
 
 envvars:

@@ -4,7 +4,7 @@ import functools
 import os
 from snakemake.logging import logger
 
-shell.prefix(f"source bin/env.sh; source /opt/detector/epic-main/bin/thisepic.sh; export PATH=$PWD/bin:$PATH; export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; export DETECTOR_CONFIG={config['DETECTOR_CONFIG']}; ")
+shell.prefix(f"source bin/env.sh; source /opt/detector/epic-main/bin/thisepic.sh; export PATH=$PWD/bin:$PATH; export ROOT_INCLUDE_PATH=$PWD/include:$ROOT_INCLUDE_PATH; export DETECTOR_CONFIG={config['DETECTOR_CONFIG']}; export BENCHMARK_N_THREADS={config['BENCHMARK_N_THREADS']}; export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; export BENCHMARK_RNG_SEED={config['BENCHMARK_RNG_SEED']}; ")
 
 envvars:
     "DETECTOR_PATH",

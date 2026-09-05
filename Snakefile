@@ -4,10 +4,6 @@ import functools
 import os
 from snakemake.logging import logger
 
-# Set DETECTOR_PATH from config at parse time so it is available to Python
-# expressions in input:/params: blocks before any shell rule runs.
-os.environ.setdefault("DETECTOR_PATH", config["DETECTOR_PREFIX"] + "/share/epic")
-
 shell.prefix(
     f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh; "
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "

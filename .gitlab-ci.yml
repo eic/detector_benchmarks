@@ -3,6 +3,7 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}${BENCHMARKS_SIGIL}${BENCHM
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
+  DETECTOR_PREFIX: /opt/detector/epic-main
   GITHUB_PR: ''
   GITHUB_REPOSITORY: ''
   GITHUB_SHA: ''
@@ -105,7 +106,7 @@ common:setup:
   before_script:
     - source bin/env.sh
     - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - source /opt/detector/epic-main/bin/thisepic.sh
+    - source ${DETECTOR_PREFIX}/bin/thisepic.sh
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC

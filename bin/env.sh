@@ -4,11 +4,7 @@
 ## Environment setup for benchmark scripts
 ##
 ## This script defines the following environment variables:
-##  - LOCAL_PREFIX:           prefix for packages installed during the benchmark
 ##  - LOCAL_DATA_PATH:        local storage for pipeline jobs
-##  - ROOT_BUILD_DIR:         build dir for ROOT binaries
-##  - ROOT_INCLUDE_PATH:      C++ include path for ROOT
-##  - PATH and LD_LIBRARY_PATH: updated to include LOCAL_PREFIX directories
 ## =============================================================================
 
 echo "Setting up the Physics Benchmarks environment"
@@ -34,22 +30,6 @@ if [ ! -d "${LOCAL_DATA_PATH}" ]; then
   export LOCAL_DATA_PATH="$(pwd)/local_data"
   mkdir -p "${LOCAL_DATA_PATH}"
 fi
-
-## =============================================================================
-## Other utility variables that govern how some of the dependent packages
-## are built and installed. You should not have to change these.
-
-## local prefix to be used for local storage of packages
-## downloaded/installed during the benchmark process
-LOCAL_PREFIX=".local"
-mkdir -p "${LOCAL_PREFIX}"
-export LOCAL_PREFIX=`realpath ${LOCAL_PREFIX}`
-
-## =============================================================================
-## Setup PATH and LD_LIBRARY_PATH to include our prefixes
-echo "Adding LOCAL_PREFIX to PATH and LD_LIBRARY_PATH"
-export PATH=${LOCAL_PREFIX}/bin:${PATH}
-export LD_LIBRARY_PATH=${LOCAL_PREFIX}/lib:${LD_LIBRARY_PATH}
 
 # Local field maps
 mkdir -p ${LOCAL_DATA_PATH}/fieldmaps

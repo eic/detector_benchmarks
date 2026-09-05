@@ -45,9 +45,6 @@ LOCAL_PREFIX=".local"
 mkdir -p "${LOCAL_PREFIX}"
 export LOCAL_PREFIX=`realpath ${LOCAL_PREFIX}`
 
-## build dir for ROOT to put its binaries etc.
-export ROOT_BUILD_DIR=$LOCAL_PREFIX/root_build
-
 export ROOT_INCLUDE_PATH=${LOCAL_PREFIX}/include:${ROOT_INCLUDE_PATH}
 
 ## =============================================================================

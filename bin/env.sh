@@ -1,22 +1,14 @@
 #!/bin/bash
 
 ## =============================================================================
-## Global configuration variables for the benchmark scripts
-## The script defines the following environment variables that are meant to
-## be overriden by the Gitlab continuous integration (CI)
+## Environment setup for benchmark scripts
 ##
-##  - DETECTOR:                detector package to be used for the benchmark
-##
-## Note: DETECTOR_CONFIG, DETECTOR_VERSION, BENCHMARK_N_EVENTS,
-##       BENCHMARK_N_THREADS, and BENCHMARK_RNG_SEED are managed by
-##       Snakemake via snakemake.yml (overridable with --config) or
-##       set by thisepic.sh.
-##
-## It also defines the following additional variables for internally usage
+## This script defines the following environment variables:
 ##  - LOCAL_PREFIX:           prefix for packages installed during the benchmark
 ##  - LOCAL_DATA_PATH:        local storage for pipeline jobs
-##
-## Finally, it makes sure LOCAL_PREFIX is added to PATH and LD_LIBRARY_PATH
+##  - ROOT_BUILD_DIR:         build dir for ROOT binaries
+##  - ROOT_INCLUDE_PATH:      C++ include path for ROOT
+##  - PATH and LD_LIBRARY_PATH: updated to include LOCAL_PREFIX directories
 ## =============================================================================
 
 echo "Setting up the Physics Benchmarks environment"

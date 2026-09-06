@@ -36,7 +36,7 @@ rule backwards_ecal_sim:
         """
 set -m # monitor mode to prevent lingering processes
 set -o pipefail
-exec npsim \
+npsim \
   --runType batch \
   --enableGun \
   --gun.particle "{params.GUN_PARTICLE}" \

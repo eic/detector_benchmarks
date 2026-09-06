@@ -9,10 +9,14 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "TVector3.h"
+#include "TChain.h"
+#include <vector>
+#include <string>
+#include <sstream>
 
 #define mpi 0.139  // 1.864 GeV/c^2
 
-void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.0, TString name = "", TString output_dir=".")
+void LFHCAL_Performance(const char* file_list, const char* particle="pi-", double mom=0.1, Double_t pTcut = 0.0, const char* name = "", const char* output_dir=".")
 {
 
   // style of the plot
@@ -42,11 +46,29 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
    histp[i]->SetTitle(Form("%1.1f < #eta < %1.1f && p = %1.1f ",eta[i],eta[i+1],mom));
    histp[i]->SetName(Form("hist_mom_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
-   
-   TFile* file = TFile::Open(filename.Data());
-   if (!file) {printf("file not found !!!"); return;}
-   TTreeReader myReader("events", file); // name of tree and file
-   if (debug) cout<<"Filename: "<<file->GetName()<<"\t NEvents: "<<myReader.GetEntries()<<endl;
+    
+   // Create TChain from space-separated input files
+   TChain* chain = new TChain("events");
+    
+   // Parse space-separated filenames from input string
+   std::string file_str(file_list);
+   std::stringstream ss(file_str);
+   std::string filename;
+   int file_count = 0;
+    
+   while (ss >> filename) {
+     if (debug) cout << "Adding file to chain: " << filename << endl;
+     chain->Add(filename.c_str());
+     file_count++;
+   }
+    
+   if (file_count == 0) {
+     printf("No input files found in: %s\n", file_list);
+     return;
+   }
+    
+   TTreeReader myReader(chain); // name of tree and chain
+   if (debug) cout << "Total NEvents in chain: " << myReader.GetEntries() << endl;
   
    // MC and Reco information 
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
@@ -144,7 +166,7 @@ void LFHCAL_Performance(TString filename="tracking_output",TString particle="pi-
   
     }// event loop ends    
   
-   TFile *fout_mom = new TFile(Form("%s/%s/mom/lfhcal_mom_%1.1f_%s_%s.root",output_dir.Data(),particle.Data(),mom,dist_dir_mom.Data(),particle.Data()),"recreate");
+   TFile *fout_mom = new TFile(Form("%s/%s/mom/lfhcal_mom_%1.1f_%s_%s.root",output_dir,particle,mom,dist_dir_mom.Data(),particle),"recreate");
    fout_mom->cd();
    for (int ibin=0; ibin<nbins_eta; ++ibin) histp[ibin]->Write();
    fout_mom->Close();

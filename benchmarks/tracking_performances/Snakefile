@@ -86,17 +86,29 @@ rule tracking_performance_hit_maps:
         hitsrz_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.root",
         nhits_eta_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
         nhits_eta_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
-        sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root"),
     params:
         MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
-echo "Merging simulation files into: {output}"
-hadd -f {output.sim_hadd} {input.sim}
 OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
-echo "Generating hit maps and Nhits vs eta for: {output.sim_hadd}"
-root -l -b -q {input.script_hitsmap}'("{output.sim_hadd}", "'$OUTPUT_PREFIX'")'
-root -l -b -q {input.script_nhits_eta}'("{output.sim_hadd}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+mkdir -p $OUTPUT_PREFIX
+CONFIG_FILE="$OUTPUT_PREFIX/.config_sim_files.json"
+echo '{{' > $CONFIG_FILE
+echo '  "sim_files": [' >> $CONFIG_FILE
+FILES=({input.sim})
+for ((i=0; i<${{#FILES[@]}}; i++)); do
+  if ((i < ${{#FILES[@]}} - 1)); then
+    echo "    \"${{FILES[i]}}\"," >> $CONFIG_FILE
+  else
+    echo "    \"${{FILES[i]}}\"" >> $CONFIG_FILE
+  fi
+done
+echo '  ]' >> $CONFIG_FILE
+echo '}}' >> $CONFIG_FILE
+echo "Generating hit maps and Nhits vs eta for files: {input.sim}"
+root -l -b -q {input.script_hitsmap}'("'$CONFIG_FILE'", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("'$CONFIG_FILE'", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+rm -f $CONFIG_FILE
 """
 
 rule tracking_performance_at_momentum:
@@ -124,7 +136,8 @@ rule tracking_performance_at_momentum:
     output:
         "{CAMPAIGN}/{SEEDING}/pi-/mom/Performances_mom_{MOMENTUM}_mom_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
         "{CAMPAIGN}/{SEEDING}/pi-/dca/Performances_dca_{MOMENTUM}_dca_resol_{SEEDING_IGNORE}_{PARTICLE}.root",
-        combined_root=temp("tracking_performances/{CAMPAIGN}/sim_{SEEDING}_{MOMENTUM}_{SEEDING_IGNORE}_{PARTICLE}.root"),
+    params:
+        output_prefix=lambda wildcards: f"{wildcards.CAMPAIGN}/{wildcards.SEEDING}/{wildcards.PARTICLE}",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -133,8 +146,33 @@ if [[ "{wildcards.SEEDING}" == "truthseed" ]]; then
 elif [[ "{wildcards.SEEDING}" == "realseed" ]]; then
         TRUTH_SEEDING="false"
 fi
-hadd {output.combined_root} {input.sim}
-root -l -b -q {input.script}'("{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, '$TRUTH_SEEDING', "{wildcards.CAMPAIGN}")'
+
+# Create config JSON file for Tracking_Performances.C
+CONFIG_FILE="tracking_config_{wildcards.CAMPAIGN}_{wildcards.PARTICLE}_{wildcards.MOMENTUM}_{wildcards.SEEDING}.json"
+
+python3 << 'PYTHON_EOF'
+import json
+import sys
+
+sim_files = {input.sim!r}
+if isinstance(sim_files, str):
+    sim_files = [sim_files]
+
+config = {{
+    "sim_files": sim_files,
+    "particle": "{wildcards.PARTICLE}",
+    "momentum": {wildcards.MOMENTUM},
+    "output_prefix": "{params.output_prefix}",
+    "truth_seeding": {"true" if "{wildcards.SEEDING}" == "truthseed" else "false"},
+    "pTcut": 0.15
+}}
+
+with open("$CONFIG_FILE", "w") as f:
+    json.dump(config, f, indent=2)
+PYTHON_EOF
+
+root -l -b -q {input.script}'"'"'"$CONFIG_FILE"'"'"'
+rm -f "$CONFIG_FILE"
 """
 
 

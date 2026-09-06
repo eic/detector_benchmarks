@@ -1,6 +1,9 @@
 // Code to draw average number of hits vs eta at the generated level
 // Shyam Kumar; shyam055119@gmail.com; shyam.kumar@ba.infn.it
-void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefix=".")
+#include <TChain.h>
+#include <fstream>
+
+void NhitsvsEta_ePIC(TString config_json="", TString label="", TString output_prefix=".")
   {
   
    gStyle->SetPalette(1);
@@ -13,11 +16,39 @@ void NhitsvsEta_ePIC(TString filePath="", TString label="", TString output_prefi
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(0);
    
-     // MC Track Properties
-    TFile* file = new TFile(Form("%s",filePath.Data())); // Tree with tracks and hits
-    TTreeReader myReader("events", file); // name of tree and file
+     // MC Track Properties - Create TChain
+    TChain *chain = new TChain("events");
+    
+    // Handle both single file (legacy) and JSON config (new) formats
+    if (config_json.Contains(".json")) {
+      // Parse JSON config
+      std::ifstream config_file(config_json.Data());
+      std::string line;
+      bool in_sim_files = false;
+      while (std::getline(config_file, line)) {
+        if (line.find("\"sim_files\"") != std::string::npos) {
+          in_sim_files = true;
+        } else if (in_sim_files && line.find("]") != std::string::npos) {
+          in_sim_files = false;
+        } else if (in_sim_files && line.find("\"") != std::string::npos) {
+          // Extract filename from quoted string
+          size_t start = line.find("\"") + 1;
+          size_t end = line.rfind("\"");
+          if (start < end) {
+            TString filename = line.substr(start, end - start).c_str();
+            chain->Add(filename);
+          }
+        }
+      }
+      config_file.close();
+    } else {
+      // Legacy single file format
+      chain->Add(config_json);
+    }
+    
+    TTreeReader myReader(chain);
     // Find the last occurrence of '/'
-    Int_t lastSlashPos = filePath.Last('/');
+    Int_t lastSlashPos = config_json.Last('/');
 
    TTreeReaderArray<Float_t> charge(myReader, "MCParticles.charge"); 
    TTreeReaderArray<Double_t> vx_mc(myReader, "MCParticles.vertex.x"); 

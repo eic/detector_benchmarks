@@ -7,23 +7,51 @@
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TMath.h>
+#include <TChain.h>
+#include <fstream>
 
-void draw_hits(TString filename="", TString output_prefix=".")
+void draw_hits(TString config_json="", TString output_prefix=".")
 {
 
 //==========Style of the plot============
-   gStyle->SetPalette(1);
-   gStyle->SetOptTitle(0);
-   gStyle->SetTitleOffset(.85,"X");gStyle->SetTitleOffset(.85,"Y");
-   gStyle->SetTitleSize(.04,"X");gStyle->SetTitleSize(.04,"Y");
-   gStyle->SetLabelSize(.04,"X");gStyle->SetLabelSize(.04,"Y");
-   gStyle->SetHistLineWidth(2);
-   gStyle->SetOptFit(1);
-   gStyle->SetOptStat(0);
+  gStyle->SetPalette(1);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTitleOffset(.85,"X");gStyle->SetTitleOffset(.85,"Y");
+  gStyle->SetTitleSize(.04,"X");gStyle->SetTitleSize(.04,"Y");
+  gStyle->SetLabelSize(.04,"X");gStyle->SetLabelSize(.04,"Y");
+  gStyle->SetHistLineWidth(2);
+  gStyle->SetOptFit(1);
+  gStyle->SetOptStat(0);
 
-//=======Reading the root file DD4HEP===========
- TFile *f = TFile::Open(Form("%s",filename.Data()));
- TTree *sim = (TTree*)f->Get("events");
+//=======Reading input files and creating TChain===========
+ TChain *sim = new TChain("events");
+  
+ // Handle both single file (legacy) and JSON config (new) formats
+ if (config_json.Contains(".json")) {
+   // Parse JSON config
+   std::ifstream config_file(config_json.Data());
+   std::string line;
+   bool in_sim_files = false;
+   while (std::getline(config_file, line)) {
+     if (line.find("\"sim_files\"") != std::string::npos) {
+       in_sim_files = true;
+     } else if (in_sim_files && line.find("]") != std::string::npos) {
+       in_sim_files = false;
+     } else if (in_sim_files && line.find("\"") != std::string::npos) {
+       // Extract filename from quoted string
+       size_t start = line.find("\"") + 1;
+       size_t end = line.rfind("\"");
+       if (start < end) {
+         TString filename = line.substr(start, end - start).c_str();
+         sim->Add(filename);
+       }
+     }
+   }
+   config_file.close();
+ } else {
+   // Legacy single file format
+   sim->Add(config_json);
+ }
 
  // Timer Start
   TStopwatch timer;

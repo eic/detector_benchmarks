@@ -35,30 +35,16 @@ exec npsim \
     --outputFile {output}
 """
 
-rule nhcal_basic_distribution_combine:
+rule nhcal_basic_distribution_analysis:
     input:
-        lambda wildcards: expand(
+        workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
+        workflow.source_path("scripts/NeutronThresholdUtil.h"),
+        sim_files=lambda wildcards: expand(
             "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),
         ),
-    wildcard_constraints:
-        N=r"\d+",
-        ENERGY=r"\d+(\.\d+)?"
-    output:
-        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-            hadd -f {output} {input} 
-        """
-
-rule nhcal_basic_distribution_analysis:
-    input:
-        workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
-        workflow.source_path("scripts/NeutronThresholdUtil.h"),
-        combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
         script=workflow.source_path("scripts/basic_distribution_analysis.cxx"),
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
@@ -68,11 +54,20 @@ rule nhcal_basic_distribution_analysis:
         N=r"\d+",
     params:
         DETECTOR_PATH   = os.environ["DETECTOR_PATH"],
-        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 
+        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+        binary="results/nhcal_basic_distribution/basic_distribution_analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            root -l -b -q '{input.script}+("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+        g++ {input.script} \
+            $(root-config --cflags --libs) \
+            $(python-config --includes) \
+            -I/opt/local/include \
+            -L/opt/local/lib \
+            -lpodio -lpodioRootIO -ledm4hep -lDDCore -lDDRec \
+            -o {params.binary} && \
+        {params.binary} "{output.png}" "{output.root}" "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}" {input.sim_files} && \
+        rm {params.binary}
         """
     
 rule nhcal_basic_distribution_combine_energy_resolution:

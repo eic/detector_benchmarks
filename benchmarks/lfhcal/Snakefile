@@ -66,7 +66,6 @@ env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 rule lfhcal_at_momentum:
     input:
         script=workflow.source_path("LFHCAL_Performance.C"),
-        # TODO pass as a file list?
         sim=lambda wildcards:
           expand(
               "sim_output/lfhcal/{DETECTOR_CONFIG}/{{PARTICLE}}/{ENERGY}/{PHASE_SPACE}/{{PARTICLE}}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
@@ -86,12 +85,10 @@ rule lfhcal_at_momentum:
           )),
     output:
         "{CAMPAIGN}/{PARTICLE}/mom/lfhcal_mom_{MOMENTUM}_mom_resol_{PARTICLE}.root",
-        combined_root=temp("{CAMPAIGN}/lfhcal_sim_{MOMENTUM}_{PARTICLE}.root"),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-hadd {output.combined_root} {input.sim}
-root -l -b -q {input.script}'("{output.combined_root}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "", "{wildcards.CAMPAIGN}")'
+root -l -b -q 'LFHCAL_Performance.C("{input.sim}", "{wildcards.PARTICLE}", {wildcards.MOMENTUM}, 0.15, "", "{wildcards.CAMPAIGN}")'
 """
 
 rule lfhcal_summary_at_eta:

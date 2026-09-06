@@ -1,0 +1,50 @@
+VERIFICATION REPORT: Category B Entry 5 - hadd Elimination
+===========================================================
+
+MODIFIED FILES:
+✓ benchmarks/tracking_performances/Tracking_Performances.C
+✓ benchmarks/tracking_performances/Snakefile
+
+KEY CHANGES VERIFIED:
+
+1. Tracking_Performances.C
+   ✓ New includes added: json.hpp, fstream, vector
+   ✓ Function signature changed to accept config_file parameter
+   ✓ JSON config parsing implemented
+   ✓ TChain creation from file list implemented
+   ✓ Removed single-file TFile::Open() call
+   ✓ Tree access now via TChain instead of file
+
+2. Snakefile tracking_performance_at_momentum rule
+   ✓ Removed combined_root output definition
+   ✓ Removed hadd command from shell
+   ✓ Added params.output_prefix parameter
+   ✓ Added Python script to generate JSON config
+   ✓ Embedded JSON generation in shell script
+   ✓ Config file cleanup with rm command
+
+WORKFLOW COMPARISON:
+
+OLD WORKFLOW (hadd):
+  1. input.sim (3 files) → hadd merge → temp file → Tracking_Performances.C
+  2. Hard dependency on hadd tool
+  3. Temporary file on disk
+
+NEW WORKFLOW (TChain):
+  1. input.sim (3 files) → JSON config → Tracking_Performances.C
+  2. No external tool dependency for merging
+  3. No temporary files
+  4. TChain handles merging internally
+
+OUTPUT FORMAT:
+✓ Same performance files generated (mom and dca)
+✓ Same output structure (CAMPAIGN/SEEDING/particle/...)
+✓ Compatible with downstream analysis rules
+
+COMPATIBILITY:
+✓ Requires nlohmann/json.hpp in ROOT environment
+✓ Not backward compatible with old function signature
+✓ Output files format unchanged
+✓ Downstream rules unchanged
+
+STATUS: READY FOR TESTING

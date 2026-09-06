@@ -286,13 +286,14 @@ trackXYatZ(const TVector3& A, const TVector3& B, double zTarget){
 }
 
 
-int pion_rejection_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
+int pion_rejection_analysis(const vector<string>& filenames, string outname_pdf, string outname_png, TString compact_file) {
 
     gStyle->SetOptStat(0);
-    podio::ROOTReader reader;
-    reader.openFile(filename);
-    unsigned nEvents = reader.getEntries("events");
-    cout << "Number of events: " << nEvents << endl;
+    unsigned nEvents = 0;
+    for (const auto &filename : filenames) {
+        nEvents += podio::ROOTReader().openFile(filename).getEntries("events");
+    }
+    cout << "Total number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
     det->fromCompact(compact_file.Data());
@@ -406,179 +407,187 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         new TH1D(Form("hP_pass_Layer< %d layers", LAYER_CUTS[2]), Form("Accepted (Layer < %d layers); p_{MC} [GeV]; N",LAYER_CUTS[2]), P_NBINS, P_MIN_GEV, P_MAX_GEV),
     };
 
-    for (unsigned ev = 0; ev < nEvents; ev++) {
-        auto frameData = reader.readNextEntry(podio::Category::Event);
-        if (!frameData) continue;
-        podio::Frame frame(std::move(frameData));
-
-        auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
-            return frame.get(name);
-        };
-
-        const auto* mcColPtr    = dynamic_cast<const edm4hep::MCParticleCollection*>(getCol("MCParticles"));
-        const auto* recPartsPtr = dynamic_cast<const edm4eic::ReconstructedParticleCollection*>(getCol("ReconstructedParticles"));
-        const auto* projSegsPtr = dynamic_cast<const edm4eic::TrackSegmentCollection*>(getCol("CalorimeterTrackProjections"));
-        const auto* hcalRecPtr  = dynamic_cast<const edm4eic::CalorimeterHitCollection*>(getCol("HcalEndcapNRecHits"));
-        const auto* linkColPtr = dynamic_cast<const edm4eic::MCRecoParticleLinkCollection*>(getCol("ReconstructedParticleLinks"));
-
-        if (!mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !linkColPtr) continue;
-
-        const auto& mcCol    = *mcColPtr;
-        const auto& recParts = *recPartsPtr;
-        const auto& projSegs = *projSegsPtr;
-        const auto& hcalRec  = *hcalRecPtr;
-        const auto& linkCol = *linkColPtr;
-
-        vector<edm4hep::MCParticle> vPions;
-        vector<TLorentzVector> vLorentzPions;
-        for (const auto& p : mcCol) {
-            if (p.getPDG() != -211 || p.getGeneratorStatus() == 0) continue;
-            vPions.push_back(p); 
-            TLorentzVector v(p.getMomentum().x, p.getMomentum().y, p.getMomentum().z, p.getEnergy());
-            vLorentzPions.push_back(v); 
-            hEtaPt->Fill(v.Eta(), v.Pt());
-            if(inNHCal(v.Eta())) {hP_all_pion->Fill(v.P());}
-        }
-
-        vector<edm4eic::ReconstructedParticle> matchedRecos;
-        auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
-            try {
-                if (!linkCol.isValid() || linkCol.empty()) return;
-                
-                for (const auto& link : linkCol) {
-                    auto simpart = link.getTo();
-                    if (!simpart.isAvailable() || simpart.getObjectID() != mc.getObjectID()) continue;
-                    auto reco = link.getFrom();
-                    if (reco.isAvailable()) {
-                        matchedRecos.push_back(reco);
-                    }
-                }
-            } catch (...) {}
-        };
-
-        if (!linkCol.isValid() || linkCol.empty()) continue;
-        for(const auto&  p: vPions) if (p.getPDG() == -211) find_associated_reco(p);
-
-        if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+    for (const auto &filename : filenames) {
+        cout << "Processing file: " << filename << endl;
+        podio::ROOTReader *reader = new podio::ROOTReader();
+        reader->openFile(filename);
+        unsigned nEventsInFile = reader->getEntries("events");
         
-        set<int> uniqueCentersZ10;
-        map<double, double> layerData;
-        for (const auto& hit : hcalRec) {    
-            double z = hit.getPosition().z;
-            double zBin = round(z);
-            
-            int z10 = lround(z * 10.0);
-            uniqueCentersZ10.insert(z10);
-            
-            layerData[zBin] += hit.getEnergy(); 
-            hZ_hits->Fill(z);                
-            hE_z->Fill(z, hit.getEnergy()); 
-            hE->Fill(hit.getEnergy());
-        }
+        for (unsigned ev = 0; ev < nEventsInFile; ev++) {
+            auto frameData = reader->readNextEntry(podio::Category::Event);
+            if (!frameData) continue;
+            podio::Frame frame(std::move(frameData));
 
-        vector<double> layerCentersZ;
-        layerCentersZ.reserve(uniqueCentersZ10.size());
-        for (int z10 : uniqueCentersZ10) layerCentersZ.push_back(z10 / 10.0);
-        if(layerCentersZ.size() > LAYER_MAX) LAYER_MAX = layerCentersZ.size();
+            auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
+                return frame.get(name);
+            };
 
-        for(size_t n = 0; n < SIZE; n++) LAYER_CUTS[n] = static_cast<int>(LAYER_MAX*LAYER_PROC[n]);
-        LAYER_THRESH = LAYER_CUTS[0];
+            const auto* mcColPtr    = dynamic_cast<const edm4hep::MCParticleCollection*>(getCol("MCParticles"));
+            const auto* recPartsPtr = dynamic_cast<const edm4eic::ReconstructedParticleCollection*>(getCol("ReconstructedParticles"));
+            const auto* projSegsPtr = dynamic_cast<const edm4eic::TrackSegmentCollection*>(getCol("CalorimeterTrackProjections"));
+            const auto* hcalRecPtr  = dynamic_cast<const edm4eic::CalorimeterHitCollection*>(getCol("HcalEndcapNRecHits"));
+            const auto* linkColPtr = dynamic_cast<const edm4eic::MCRecoParticleLinkCollection*>(getCol("ReconstructedParticleLinks"));
 
-        for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
+            if (!mcColPtr || !recPartsPtr || !projSegsPtr || !hcalRecPtr || !linkColPtr) continue;
 
-        vector<edm4eic::Track> allTracks;
-        for (const auto& R : matchedRecos) {
-            for (const auto& tr : R.getTracks()) {
-                if (tr.isAvailable()) allTracks.push_back(tr);
+            const auto& mcCol    = *mcColPtr;
+            const auto& recParts = *recPartsPtr;
+            const auto& projSegs = *projSegsPtr;
+            const auto& hcalRec  = *hcalRecPtr;
+            const auto& linkCol = *linkColPtr;
+
+            vector<edm4hep::MCParticle> vPions;
+            vector<TLorentzVector> vLorentzPions;
+            for (const auto& p : mcCol) {
+                if (p.getPDG() != -211 || p.getGeneratorStatus() == 0) continue;
+                vPions.push_back(p); 
+                TLorentzVector v(p.getMomentum().x, p.getMomentum().y, p.getMomentum().z, p.getEnergy());
+                vLorentzPions.push_back(v); 
+                hEtaPt->Fill(v.Eta(), v.Pt());
+                if(inNHCal(v.Eta())) {hP_all_pion->Fill(v.P());}
             }
-        }
-        vector<edm4eic::TrackSegment> segsTagged;
-        for (const auto& seg : projSegs) {
-            auto linkedTr = seg.getTrack();
-            if (!linkedTr.isAvailable()) continue;
-            for (const auto& TT : allTracks) {
-                if (linkedTr.getObjectID() == TT.getObjectID()) {
-                    segsTagged.push_back(seg);
-                    break;
+
+            vector<edm4eic::ReconstructedParticle> matchedRecos;
+            auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
+                try {
+                    if (!linkCol.isValid() || linkCol.empty()) return;
+                    
+                    for (const auto& link : linkCol) {
+                        auto simpart = link.getTo();
+                        if (!simpart.isAvailable() || simpart.getObjectID() != mc.getObjectID()) continue;
+                        auto reco = link.getFrom();
+                        if (reco.isAvailable()) {
+                            matchedRecos.push_back(reco);
+                        }
+                    }
+                } catch (...) {}
+            };
+
+            if (!linkCol.isValid() || linkCol.empty()) continue;
+            for(const auto&  p: vPions) if (p.getPDG() == -211) find_associated_reco(p);
+
+            if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+            
+            set<int> uniqueCentersZ10;
+            map<double, double> layerData;
+            for (const auto& hit : hcalRec) {    
+                double z = hit.getPosition().z;
+                double zBin = round(z);
+                
+                int z10 = lround(z * 10.0);
+                uniqueCentersZ10.insert(z10);
+                
+                layerData[zBin] += hit.getEnergy(); 
+                hZ_hits->Fill(z);                
+                hE_z->Fill(z, hit.getEnergy()); 
+                hE->Fill(hit.getEnergy());
+            }
+
+            vector<double> layerCentersZ;
+            layerCentersZ.reserve(uniqueCentersZ10.size());
+            for (int z10 : uniqueCentersZ10) layerCentersZ.push_back(z10 / 10.0);
+            if(layerCentersZ.size() > LAYER_MAX) LAYER_MAX = layerCentersZ.size();
+
+            for(size_t n = 0; n < SIZE; n++) LAYER_CUTS[n] = static_cast<int>(LAYER_MAX*LAYER_PROC[n]);
+            LAYER_THRESH = LAYER_CUTS[0];
+
+            for (const auto& [zValue, sumEnergy] : layerData) {hEsum_z->Fill(zValue, sumEnergy); hEsum->Fill(sumEnergy);}
+
+            vector<edm4eic::Track> allTracks;
+            for (const auto& R : matchedRecos) {
+                for (const auto& tr : R.getTracks()) {
+                    if (tr.isAvailable()) allTracks.push_back(tr);
                 }
             }
-        }
-
-        for (size_t s = 0; s < segsTagged.size(); ++s) {
-
-            vector<double> segMinDistance(LAYER_MAX, std::numeric_limits<double>::infinity());
-            vector<double> segHitEnergy(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
-            vector<int> count_DrCuts(SIZE, 0);
-            vector<int> count_ECuts(SIZE, 0);
-
-            TVector3 A{}, B{};
-            bool haveA = false, haveB = false;
-
-            auto points = segsTagged[s].getPoints();
-
-            for (const auto& pt : points) {
-                if (pt.system != 113) continue;
-                hZ_proj->Fill(pt.position.z);
-                if (!haveA) {
-                    A.SetXYZ(pt.position.x, pt.position.y, pt.position.z);
-                    haveA = true;
-                } else if (!haveB) {
-                    B.SetXYZ(pt.position.x, pt.position.y, pt.position.z);
-                    haveB = true;
-                    break;
+            vector<edm4eic::TrackSegment> segsTagged;
+            for (const auto& seg : projSegs) {
+                auto linkedTr = seg.getTrack();
+                if (!linkedTr.isAvailable()) continue;
+                for (const auto& TT : allTracks) {
+                    if (linkedTr.getObjectID() == TT.getObjectID()) {
+                        segsTagged.push_back(seg);
+                        break;
+                    }
                 }
             }
 
-            if (!haveA || !haveB) {continue;}
+            for (size_t s = 0; s < segsTagged.size(); ++s) {
 
-            for (size_t i = 0; i < LAYER_MAX; ++i) {
-                double best_dr_in_layer = 1e10;
-                double best_E_in_layer;
-                double partLayerEnergySum = 0;
-                double ratio_HitPartLayerEnergy = 0;
-                dd4hep::DDSegmentation::CellID best_cid_in_layer;
+                vector<double> segMinDistance(LAYER_MAX, std::numeric_limits<double>::infinity());
+                vector<double> segHitEnergy(LAYER_MAX, std::numeric_limits<double>::quiet_NaN());
+                vector<int> count_DrCuts(SIZE, 0);
+                vector<int> count_ECuts(SIZE, 0);
 
-                double zc = layerCentersZ[i];
-                auto [X, Y] = trackXYatZ(A, B, zc);
+                TVector3 A{}, B{};
+                bool haveA = false, haveB = false;
 
-                for (const auto& hit : hcalRec) {
-                    const auto& hp = hit.getPosition();
+                auto points = segsTagged[s].getPoints();
 
-                    if (fabs(hp.z - zc) > 5.0 /*mm*/) continue;
-
-                    const double dx = X - hp.x;
-                    const double dy = Y - hp.y;
-                    const double dr = sqrt(dx*dx + dy*dy);
-                    if(dr < 30*10 /*mm*/) partLayerEnergySum += hit.getEnergy();
-
-                    hDxDyZ_layer->Fill(dx, dy, hp.z);
-                    hDxDy_all->Fill(dx, dy);
-                    hDrZ_layer->Fill(dr, hp.z);
-                    hDr_all->Fill(dr);
-
-                    if (dr < best_dr_in_layer) {
-                        best_dr_in_layer = dr;
-                        best_E_in_layer  = hit.getEnergy();
+                for (const auto& pt : points) {
+                    if (pt.system != 113) continue;
+                    hZ_proj->Fill(pt.position.z);
+                    if (!haveA) {
+                        A.SetXYZ(pt.position.x, pt.position.y, pt.position.z);
+                        haveA = true;
+                    } else if (!haveB) {
+                        B.SetXYZ(pt.position.x, pt.position.y, pt.position.z);
+                        haveB = true;
+                        break;
                     }
                 }
 
-                if (best_dr_in_layer < DR_THRESH_MM) {
-                    segMinDistance[i] = best_dr_in_layer;
-                    segHitEnergy[i]   = best_E_in_layer;
+                if (!haveA || !haveB) {continue;}
+
+                for (size_t i = 0; i < LAYER_MAX; ++i) {
+                    double best_dr_in_layer = 1e10;
+                    double best_E_in_layer;
+                    double partLayerEnergySum = 0;
+                    double ratio_HitPartLayerEnergy = 0;
+                    dd4hep::DDSegmentation::CellID best_cid_in_layer;
+
+                    double zc = layerCentersZ[i];
+                    auto [X, Y] = trackXYatZ(A, B, zc);
+
+                    for (const auto& hit : hcalRec) {
+                        const auto& hp = hit.getPosition();
+
+                        if (fabs(hp.z - zc) > 5.0 /*mm*/) continue;
+
+                        const double dx = X - hp.x;
+                        const double dy = Y - hp.y;
+                        const double dr = sqrt(dx*dx + dy*dy);
+                        if(dr < 30*10 /*mm*/) partLayerEnergySum += hit.getEnergy();
+
+                        hDxDyZ_layer->Fill(dx, dy, hp.z);
+                        hDxDy_all->Fill(dx, dy);
+                        hDrZ_layer->Fill(dr, hp.z);
+                        hDr_all->Fill(dr);
+
+                        if (dr < best_dr_in_layer) {
+                            best_dr_in_layer = dr;
+                            best_E_in_layer  = hit.getEnergy();
+                        }
+                    }
+
+                    if (best_dr_in_layer < DR_THRESH_MM) {
+                        segMinDistance[i] = best_dr_in_layer;
+                        segHitEnergy[i]   = best_E_in_layer;
+                    }
+                    ratio_HitPartLayerEnergy += segHitEnergy[i]/partLayerEnergySum;
+                    if (std::isnan(ratio_HitPartLayerEnergy) || fabs(ratio_HitPartLayerEnergy - 1) >= 0.2) continue; 
+                    for(size_t j = 0; j < SIZE; ++j){
+                        if (segMinDistance[i] < DR_CUTS_CM[j] * 10 /*mm*/){++count_DrCuts[j];}
+                        if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_plastic_cm * 100)){++count_ECuts[j];}
+                    }
                 }
-                ratio_HitPartLayerEnergy += segHitEnergy[i]/partLayerEnergySum;
-                if (std::isnan(ratio_HitPartLayerEnergy) || fabs(ratio_HitPartLayerEnergy - 1) >= 0.2) continue; 
-                for(size_t j = 0; j < SIZE; ++j){
-                    if (segMinDistance[i] < DR_CUTS_CM[j] * 10 /*mm*/){++count_DrCuts[j];}
-                    if (segHitEnergy[i] < (E_CUTS[j] * MIP_ENERGY_GEV * thickness_plastic_cm * 100)){++count_ECuts[j];}
+                for (int j = 0; j < SIZE; ++j){
+                    if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(vLorentzPions[s].P());
+                    if (count_ECuts[j] > LAYER_THRESH) hP_pass_ECut[j]->Fill(vLorentzPions[s].P());
+                    if (count_DrCuts[SIZE-1] > LAYER_CUTS[j]) hP_pass_LayerCut[j]->Fill(vLorentzPions[s].P());
                 }
-            }
-            for (int j = 0; j < SIZE; ++j){
-                if (count_DrCuts[j] > LAYER_THRESH) hP_pass_dr[j]->Fill(vLorentzPions[s].P());
-                if (count_ECuts[j] > LAYER_THRESH) hP_pass_ECut[j]->Fill(vLorentzPions[s].P());
-                if (count_DrCuts[SIZE-1] > LAYER_CUTS[j]) hP_pass_LayerCut[j]->Fill(vLorentzPions[s].P());
-            }
-        }   
+            }   
+        }
+        delete reader;
     }
 
     TCanvas* c = new TCanvas("c", "Pion analysis", 1600, 1000);
@@ -713,3 +722,22 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
 
     return 0;
 }
+
+int main(int argc, char* argv[]) {
+    if (argc < 4) {
+       cerr << "Usage: " << argv[0] << " <pdf_output> <png_output> <compact_file> <input_file1> [input_file2] ..." << endl;
+       return 1;
+    }
+    
+    string outname_pdf = argv[1];
+    string outname_png = argv[2];
+    TString compact_file = argv[3];
+    
+    vector<string> filenames;
+    for (int i = 4; i < argc; ++i) {
+       filenames.push_back(argv[i]);
+    }
+    
+    return pion_rejection_analysis(filenames, outname_pdf, outname_png, compact_file);
+}
+

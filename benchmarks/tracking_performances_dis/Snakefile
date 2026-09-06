@@ -103,59 +103,14 @@ EOF
 root -l -b -q '{input.script_vtx}("{output.config_vtx}")'
 """
 
-#Merge all the files produced in the previous step
-rule dis_combine:
-    input:
-        lambda wildcards: [f"results/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
-        lambda wildcards: [f"results/vertexing_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
-    output:
-        config_trk="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
-        hists_trk="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/hists.root",
-        config_vtx="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
-        hists_vtx="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/hists.root",
-    wildcard_constraints:
-        PREFIX= ".*",
-        EBEAM=r"\d+",
-        PBEAM=r"\d+",
-        MINQ2=r"\d+",
-        NUM_FILES=r"\d+",
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-cat > {output.config_trk} <<EOF
-{{
-  "hists_file": "{output.hists_trk}",
-  "detector": "{wildcards.DETECTOR_CONFIG}",
-  "ebeam": {wildcards.EBEAM},
-  "pbeam": {wildcards.PBEAM},
-  "Min_Q2": {wildcards.MINQ2},
-  "nfiles": {wildcards.NUM_FILES},
-  "output_prefix": "$(dirname "{output.hists_trk}")/plots"
-}}
-EOF
-hadd {output.hists_trk} {input}
-
-cat > {output.config_vtx} <<EOF
-{{
-  "hists_file": "{output.hists_vtx}",
-  "detector": "{wildcards.DETECTOR_CONFIG}",
-  "ebeam": {wildcards.EBEAM},
-  "pbeam": {wildcards.PBEAM},
-  "Min_Q2": {wildcards.MINQ2},
-  "nfiles": {wildcards.NUM_FILES},
-  "output_prefix": "$(dirname "{output.hists_vtx}")/plots"
-}}
-EOF
-hadd {output.hists_vtx} {input}
-"""
-
 #Process the merged file through the plotting script
 rule trk_dis_plots:
     input:
         script=workflow.source_path("analysis/trk_dis_plots.cxx"),
-        config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        hists=lambda wildcards: [f"results/tracking_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
     output:
-        "results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
+        config="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        pdf="results/tracking_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
     wildcard_constraints:
         PREFIX= ".*",
         EBEAM=r"\d+",
@@ -165,15 +120,31 @@ rule trk_dis_plots:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}("{input.config}")'
+python3 -c "
+import json
+hists_list = {input.hists}
+config = {{
+    'hists_files': hists_list,
+    'detector': '{wildcards.DETECTOR_CONFIG}',
+    'ebeam': {wildcards.EBEAM},
+    'pbeam': {wildcards.PBEAM},
+    'Min_Q2': {wildcards.MINQ2},
+    'nfiles': {wildcards.NUM_FILES},
+    'output_prefix': '$(dirname "{output.pdf}")/plots'
+}}
+with open('{output.config}', 'w') as f:
+    json.dump(config, f, indent=2)
+"
+root -l -b -q '{input.script}("{output.config}")'
 """
 
 rule vtx_dis_plots:
     input:
         script=workflow.source_path("analysis/vtx_dis_plots.cxx"),
-        config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        hists=lambda wildcards: [f"results/vertexing_performances_dis/{wildcards.DETECTOR_CONFIG}/{wildcards.PREFIX}pythia8NCDIS_{wildcards.EBEAM}x{wildcards.PBEAM}_minQ2={wildcards.MINQ2}_{ix}/hists.root" for ix in range(1,int(wildcards.NUM_FILES)+1)],
     output:
-        "results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
+        config="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/config.json",
+        pdf="results/vertexing_performances_dis/{DETECTOR_CONFIG}/{PREFIX}pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_combined_{NUM_FILES}/plots.pdf"
     wildcard_constraints:
         PREFIX= ".*",
         EBEAM=r"\d+",
@@ -183,7 +154,22 @@ rule vtx_dis_plots:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}("{input.config}")'
+python3 -c "
+import json
+hists_list = {input.hists}
+config = {{
+    'hists_files': hists_list,
+    'detector': '{wildcards.DETECTOR_CONFIG}',
+    'ebeam': {wildcards.EBEAM},
+    'pbeam': {wildcards.PBEAM},
+    'Min_Q2': {wildcards.MINQ2},
+    'nfiles': {wildcards.NUM_FILES},
+    'output_prefix': '$(dirname "{output.pdf}")/plots'
+}}
+with open('{output.config}', 'w') as f:
+    json.dump(config, f, indent=2)
+"
+root -l -b -q '{input.script}("{output.config}")'
 """
 
 #Examples of invocation

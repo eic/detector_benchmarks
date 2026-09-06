@@ -89,12 +89,13 @@ string changeExtension(const string& path, const string& new_ext)
 }
 
 
-int basic_distribution_analysis(const string &filename, string outname_png, string outname_root, TString compact_file) 
+int basic_distribution_analysis(const vector<string> &filenames, string outname_png, string outname_root, TString compact_file) 
 {
-    podio::ROOTReader *reader = new podio::ROOTReader();
-    reader->openFile(filename);
-    unsigned nEvents = reader->getEntries("events");
-    cout << "Number of events: " << nEvents << endl;
+    unsigned nEvents = 0;
+    for (const auto &filename : filenames) {
+        nEvents += podio::ROOTReader().openFile(filename).getEntries("events");
+    }
+    cout << "Total number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
     det->fromCompact(compact_file.Data());
@@ -162,88 +163,96 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
 
     CreateHistogamsNeutronThresholds();
     
-    for (unsigned ev = 0; ev < nEvents; ev++) 
-    {
-        auto frameData = reader->readNextEntry(podio::Category::Event);
-        if (!frameData) 
+    for (const auto &filename : filenames) {
+        cout << "Processing file: " << filename << endl;
+        podio::ROOTReader *reader = new podio::ROOTReader();
+        reader->openFile(filename);
+        unsigned nEventsInFile = reader->getEntries("events");
+        
+        for (unsigned ev = 0; ev < nEventsInFile; ev++) 
         {
-            cerr << "Invalid FrameData at event " << ev << endl;
-            continue;
-        }
+            auto frameData = reader->readNextEntry(podio::Category::Event);
+            if (!frameData) 
+            {
+                cerr << "Invalid FrameData at event " << ev << endl;
+                continue;
+            }
 
-        podio::Frame frame(std::move(frameData));
+            podio::Frame frame(std::move(frameData));
 
-        auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
-            return frame.get(name);
-        };
+            auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
+                return frame.get(name);
+            };
 
-        const auto* mcColPtr = dynamic_cast<const edm4hep::MCParticleCollection*>(getCol("MCParticles"));
-        const auto* hitsPtr  = dynamic_cast<const edm4hep::SimCalorimeterHitCollection*>(getCol("HcalEndcapNHits"));
-        
-        if (!mcColPtr || !hitsPtr) continue;
+            const auto* mcColPtr = dynamic_cast<const edm4hep::MCParticleCollection*>(getCol("MCParticles"));
+            const auto* hitsPtr  = dynamic_cast<const edm4hep::SimCalorimeterHitCollection*>(getCol("HcalEndcapNHits"));
+            
+            if (!mcColPtr || !hitsPtr) continue;
 
-        const auto& mcCol = *mcColPtr;
-        const auto& hits = *hitsPtr;
-        
-        double Ekin = mcCol[0].getEnergy() - mcCol[0].getMass();
+            const auto& mcCol = *mcColPtr;
+            const auto& hits = *hitsPtr;
+            
+            double Ekin = mcCol[0].getEnergy() - mcCol[0].getMass();
 
-        double MCEta = -999;
-        if (mcCol.size() > 0) {
-            auto mcpart = mcCol[0];
-            TVector3 mcMom(mcpart.getMomentum().x, mcpart.getMomentum().y, mcpart.getMomentum().z);
-            MCEta = mcMom.Eta();
-        }
+            double MCEta = -999;
+            if (mcCol.size() > 0) {
+                auto mcpart = mcCol[0];
+                TVector3 mcMom(mcpart.getMomentum().x, mcpart.getMomentum().y, mcpart.getMomentum().z);
+                MCEta = mcMom.Eta();
+            }
 
-        map<double, pair<int, double>> layerData;
-        double totalEnergy = 0;
-        int totalHits = 0;
+            map<double, pair<int, double>> layerData;
+            double totalEnergy = 0;
+            int totalHits = 0;
 
-        if (MCEta < -1.5 && MCEta > -3.3) {
-            auto hits_passed = NeutronThresholds::createHitsPassedMatrix();
-            auto hits_passed_telap = NeutronThresholds::createHitsPassedMatrix();
+            if (MCEta < -1.5 && MCEta > -3.3) {
+                auto hits_passed = NeutronThresholds::createHitsPassedMatrix();
+                auto hits_passed_telap = NeutronThresholds::createHitsPassedMatrix();
+
+                for (const auto& hit : hits) 
+                {
+                    auto contrib = hit.getContributions();
+                    NeutronThresholds::processContributions(contrib, hits_passed, hits_passed_telap,
+                                                           h_nHCal_hit_contrib_time, h_nHCal_hit_contrib_energy, thickness_plastic_cm,debug);
+                }
+                
+                NeutronThresholds::fillThresholdHistograms(hits_passed, hits_passed_telap,
+                                                          h_nHCal_hit_contrib_energy_vs_time, h_nHCal_hit_contrib_energy_vs_telap,
+                                                          h_nHCal_hit_contrib_energy_vs_time_total, thickness_plastic_cm);
+            }
 
             for (const auto& hit : hits) 
             {
-                auto contrib = hit.getContributions();
-                NeutronThresholds::processContributions(contrib, hits_passed, hits_passed_telap,
-                                                       h_nHCal_hit_contrib_time, h_nHCal_hit_contrib_energy, thickness_plastic_cm,debug);
+                totalHits++;
+                totalEnergy += hit.getEnergy();
+
+                auto pos = hit.getPosition();
+                double r = sqrt(pos.x * pos.x + pos.y * pos.y);
+                
+                h_XYPos->Fill(pos.x, pos.y);
+                h_ZRPos->Fill(pos.z, r);
+                h_XYEnergy->Fill(pos.x, pos.y, hit.getEnergy());
+
+                double zBin = round(pos.z);
+                layerData[zBin].first++;         
+                layerData[zBin].second += hit.getEnergy();
             }
-            
-            NeutronThresholds::fillThresholdHistograms(hits_passed, hits_passed_telap,
-                                                      h_nHCal_hit_contrib_energy_vs_time, h_nHCal_hit_contrib_energy_vs_telap,
-                                                      h_nHCal_hit_contrib_energy_vs_time_total, thickness_plastic_cm);
+
+            h_energyTotal->Fill(totalEnergy);
+            h_hitCount->Fill(totalHits);
+            h_energyRes->Fill(Ekin, totalEnergy);
+            p_energyRes->Fill(Ekin, totalEnergy);
+
+            for (const auto& [zValue, stats] : layerData)
+            {
+                h_layerHits->Fill(zValue, stats.first);
+                p_layerHits->Fill(zValue, stats.first);
+                h_layerEnergy->Fill(zValue, stats.second);
+                p_layerEnergy->Fill(zValue, stats.second);
+            }
         }
-
-        for (const auto& hit : hits) 
-        {
-            totalHits++;
-            totalEnergy += hit.getEnergy();
-
-            auto pos = hit.getPosition();
-            double r = sqrt(pos.x * pos.x + pos.y * pos.y);
-            
-            h_XYPos->Fill(pos.x, pos.y);
-            h_ZRPos->Fill(pos.z, r);
-            h_XYEnergy->Fill(pos.x, pos.y, hit.getEnergy());
-
-            double zBin = round(pos.z);
-            layerData[zBin].first++;         
-            layerData[zBin].second += hit.getEnergy();
-        }
-
-        h_energyTotal->Fill(totalEnergy);
-        h_hitCount->Fill(totalHits);
-        h_energyRes->Fill(Ekin, totalEnergy);
-        p_energyRes->Fill(Ekin, totalEnergy);
-
-        for (const auto& [zValue, stats] : layerData)
-        {
-            h_layerHits->Fill(zValue, stats.first);
-            p_layerHits->Fill(zValue, stats.first);
-            h_layerEnergy->Fill(zValue, stats.second);
-            p_layerEnergy->Fill(zValue, stats.second);
-        }
-    }
+        delete reader;
+    } 
     
     TFile *outFile = new TFile(outname_root.c_str(), "RECREATE");
     h_energyRes->Write();
@@ -288,9 +297,26 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_png, "hit_posE_").c_str());
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_pdf, "hit_posE_").c_str());
 
-    delete reader;
     delete c_evLayers;
     delete c_hit_posE;
 
     return 0;
+}
+
+int main(int argc, char** argv) {
+    if (argc < 5) {
+        cerr << "Usage: " << argv[0] << " <out.png> <out.root> <compact.xml> <input1.root> [input2.root ...]" << endl;
+        return 1;
+    }
+    
+    string outname_png = argv[1];
+    string outname_root = argv[2];
+    TString compact_file = argv[3];
+    
+    vector<string> filenames;
+    for (int i = 4; i < argc; i++) {
+        filenames.push_back(argv[i]);
+    }
+    
+    return basic_distribution_analysis(filenames, outname_png, outname_root, compact_file);
 }

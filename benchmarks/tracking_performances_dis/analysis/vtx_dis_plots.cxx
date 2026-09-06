@@ -26,7 +26,7 @@ void vtx_dis_plots(const std::string& config_name)
     nlohmann::json config;
     config_file >> config;
   
-    const std::string hists_file    = config["hists_file"];
+    const auto        hists_files   = config["hists_files"].get<std::vector<std::string>>();
     const std::string detector      = config["detector"];
     const std::string output_prefix = config["output_prefix"];
     const int         ebeam         = config["ebeam"];
@@ -37,7 +37,7 @@ void vtx_dis_plots(const std::string& config_name)
     fmt::print(fmt::emphasis::bold | fg(fmt::color::forest_green),
                 "Plotting DIS tracking analysis...\n");
     fmt::print(" - Detector package: {}\n", detector);
-    fmt::print(" - input file for histograms: {}\n", hists_file);
+    fmt::print(" - input files for histograms: {}\n", hists_files.size());
     fmt::print(" - output prefix for plots: {}\n", output_prefix);
     fmt::print(" - ebeam: {}\n", ebeam);
     fmt::print(" - pbeam: {}\n", pbeam);
@@ -46,33 +46,90 @@ void vtx_dis_plots(const std::string& config_name)
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Read file with histograms
-    TFile* file = new TFile(hists_file.c_str());
+    // Merge histograms from multiple files
+    std::cout<<"Merging histograms from "<<hists_files.size()<<" files..."<<std::endl;
+
+    TH2D* hgVr = nullptr;
+    TH2D* heff = nullptr;
+    TH2D* hg1 = nullptr;
+    TH2D* hg2 = nullptr;
+    TH2D* hr1 = nullptr;
+    TH2D* hr2 = nullptr;
+    TH2D* hres1r = nullptr;
+    TH2D* hres2r = nullptr;
+    TH2D* hres3r = nullptr;
+    TH2D* hres1g = nullptr;
+    TH2D* hres2g = nullptr;
+    TH2D* hres3g = nullptr;
+    TH1D* hng1 = nullptr;
+    TH1D* hng2 = nullptr;
+    TH1D* hnr1 = nullptr;
+    TH1D* hnr2 = nullptr;
+
+    for (size_t i = 0; i < hists_files.size(); ++i) {
+        TFile* file = TFile::Open(hists_files[i].c_str());
+        if (!file || file->IsZombie()) {
+            fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "Error: Cannot open file {}\n", hists_files[i]);
+            continue;
+        }
+
+        TH2D* tmp_hgVr = (TH2D*) file->Get("recoVsMCTracks");
+        TH2D* tmp_heff = (TH2D*) file->Get("recoVtxEff");
+        TH2D* tmp_hg1 = (TH2D*) file->Get("genVtxYvsXHist");
+        TH2D* tmp_hg2 = (TH2D*) file->Get("genVtxRvsZHist");
+        TH2D* tmp_hr1 = (TH2D*) file->Get("recoVtxYvsX");
+        TH2D* tmp_hr2 = (TH2D*) file->Get("recoVtxRvsZ");
+        TH2D* tmp_hres1r = (TH2D*) file->Get("vtxResXvsGenTrk");
+        TH2D* tmp_hres2r = (TH2D*) file->Get("vtxResYvsGenTrk");
+        TH2D* tmp_hres3r = (TH2D*) file->Get("vtxResZvsGenTrk");
+        TH2D* tmp_hres1g = (TH2D*) file->Get("vtxResXvsRecoTrk");
+        TH2D* tmp_hres2g = (TH2D*) file->Get("vtxResYvsRecoTrk");
+        TH2D* tmp_hres3g = (TH2D*) file->Get("vtxResZvsRecoTrk");
+        TH1D* tmp_hng1 = (TH1D*) file->Get("numGenTracks");
+        TH1D* tmp_hng2 = (TH1D*) file->Get("numGenTrkswithVtx");
+        TH1D* tmp_hnr1 = (TH1D*) file->Get("numRecoTracks");
+        TH1D* tmp_hnr2 = (TH1D*) file->Get("numRecoTrkswithVtx");
+
+        if (i == 0) {
+            hgVr = (TH2D*) tmp_hgVr->Clone("recoVsMCTracks");
+            heff = (TH2D*) tmp_heff->Clone("recoVtxEff");
+            hg1 = (TH2D*) tmp_hg1->Clone("genVtxYvsXHist");
+            hg2 = (TH2D*) tmp_hg2->Clone("genVtxRvsZHist");
+            hr1 = (TH2D*) tmp_hr1->Clone("recoVtxYvsX");
+            hr2 = (TH2D*) tmp_hr2->Clone("recoVtxRvsZ");
+            hres1r = (TH2D*) tmp_hres1r->Clone("vtxResXvsGenTrk");
+            hres2r = (TH2D*) tmp_hres2r->Clone("vtxResYvsGenTrk");
+            hres3r = (TH2D*) tmp_hres3r->Clone("vtxResZvsGenTrk");
+            hres1g = (TH2D*) tmp_hres1g->Clone("vtxResXvsRecoTrk");
+            hres2g = (TH2D*) tmp_hres2g->Clone("vtxResYvsRecoTrk");
+            hres3g = (TH2D*) tmp_hres3g->Clone("vtxResZvsRecoTrk");
+            hng1 = (TH1D*) tmp_hng1->Clone("numGenTracks");
+            hng2 = (TH1D*) tmp_hng2->Clone("numGenTrkswithVtx");
+            hnr1 = (TH1D*) tmp_hnr1->Clone("numRecoTracks");
+            hnr2 = (TH1D*) tmp_hnr2->Clone("numRecoTrkswithVtx");
+        } else {
+            if (tmp_hgVr) hgVr->Add(tmp_hgVr);
+            if (tmp_heff) heff->Add(tmp_heff);
+            if (tmp_hg1) hg1->Add(tmp_hg1);
+            if (tmp_hg2) hg2->Add(tmp_hg2);
+            if (tmp_hr1) hr1->Add(tmp_hr1);
+            if (tmp_hr2) hr2->Add(tmp_hr2);
+            if (tmp_hres1r) hres1r->Add(tmp_hres1r);
+            if (tmp_hres2r) hres2r->Add(tmp_hres2r);
+            if (tmp_hres3r) hres3r->Add(tmp_hres3r);
+            if (tmp_hres1g) hres1g->Add(tmp_hres1g);
+            if (tmp_hres2g) hres2g->Add(tmp_hres2g);
+            if (tmp_hres3g) hres3g->Add(tmp_hres3g);
+            if (tmp_hng1) hng1->Add(tmp_hng1);
+            if (tmp_hng2) hng2->Add(tmp_hng2);
+            if (tmp_hnr1) hnr1->Add(tmp_hnr1);
+            if (tmp_hnr2) hnr2->Add(tmp_hnr2);
+        }
+
+        file->Close();
+    }
 
     std::cout<<"Reading histograms..."<<std::endl;
-
-    TH2D* hgVr = (TH2D*) file->Get("recoVsMCTracks");
-    TH2D* heff = (TH2D*) file->Get("recoVtxEff");
-    
-    TH2D* hg1 = (TH2D*) file->Get("genVtxYvsXHist");
-    TH2D* hg2 = (TH2D*) file->Get("genVtxRvsZHist");
-    
-    TH2D* hr1 = (TH2D*) file->Get("recoVtxYvsX");
-    TH2D* hr2 = (TH2D*) file->Get("recoVtxRvsZ");
-    
-    TH2D* hres1r = (TH2D*) file->Get("vtxResXvsGenTrk");
-    TH2D* hres2r = (TH2D*) file->Get("vtxResYvsGenTrk");
-    TH2D* hres3r = (TH2D*) file->Get("vtxResZvsGenTrk");
-    
-    TH2D* hres1g = (TH2D*) file->Get("vtxResXvsRecoTrk");
-    TH2D* hres2g = (TH2D*) file->Get("vtxResYvsRecoTrk");
-    TH2D* hres3g = (TH2D*) file->Get("vtxResZvsRecoTrk");
-    
-    TH1D* hng1 = (TH1D*) file->Get("numGenTracks");
-    TH1D* hng2 = (TH1D*) file->Get("numGenTrkswithVtx");
-    
-    TH1D* hnr1 = (TH1D*) file->Get("numRecoTracks");
-    TH1D* hnr2 = (TH1D*) file->Get("numRecoTrkswithVtx");
     
     //--------------------------------------------------------------------------------------------------------------------------------------------
   

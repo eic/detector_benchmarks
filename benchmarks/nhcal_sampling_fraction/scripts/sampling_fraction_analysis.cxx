@@ -68,13 +68,13 @@ inline string addPrefixAfterSlash(const string& path,
     return path.substr(0, slash + 1) + prefix + extension;
 }
 
-int sampling_fraction_analysis(const string &filename, string outname_pdf, string outname_png, TString compact_file) 
+int sampling_fraction_analysis(const vector<string> &filenames, string outname_pdf, string outname_png, TString compact_file) 
 {
-
-    podio::ROOTReader *reader = new podio::ROOTReader();
-    reader->openFile(filename);
-    unsigned nEvents = reader->getEntries("events");
-    cout << "Number of events: " << nEvents << endl;
+    unsigned nEvents = 0;
+    for (const auto &filename : filenames) {
+        nEvents += podio::ROOTReader().openFile(filename).getEntries("events");
+    }
+    cout << "Total number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
     det->fromCompact(compact_file.Data());
@@ -123,23 +123,29 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
     TH2D *h_sampF_pi_Ekin = new TH2D("h_sampF_pi_Ekin", "nHCal sampling fraction vs. energy kin (#pi-); E_{kin} [GeV]; sampling fraction from hits [E_{scint}/E_{kin}]; counts", 
                                             NBINS, E_MIN_GEV, E_MAX_GEV, NBINS, SAMP_F_MIN, SAMP_F_LOW);
 
-    for (unsigned ev = 0; ev < nEvents; ev++) 
-    {
-        double hit_Esum = 0;
-        double hit_scint_Esum = 0;
-        double singlePart_Ekin = 0;
-
-        auto frameData = reader->readNextEntry(podio::Category::Event);
-        if (!frameData) 
+    for (const auto &filename : filenames) {
+        cout << "Processing file: " << filename << endl;
+        podio::ROOTReader *reader = new podio::ROOTReader();
+        reader->openFile(filename);
+        unsigned nEventsInFile = reader->getEntries("events");
+        
+        for (unsigned ev = 0; ev < nEventsInFile; ev++) 
         {
-            cerr << "Invalid FrameData at event " << ev << endl;
-            continue;
-        }
+            double hit_Esum = 0;
+            double hit_scint_Esum = 0;
+            double singlePart_Ekin = 0;
 
-        podio::Frame frame(std::move(frameData));
+            auto frameData = reader->readNextEntry(podio::Category::Event);
+            if (!frameData) 
+            {
+                cerr << "Invalid FrameData at event " << ev << endl;
+                continue;
+            }
 
-        const edm4hep::MCParticleCollection& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
-        const edm4hep::SimCalorimeterHitCollection& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
+            podio::Frame frame(std::move(frameData));
+
+            const edm4hep::MCParticleCollection& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
+            const edm4hep::SimCalorimeterHitCollection& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
 
         if (!SimCalorimeterHit_coll.isValid())    
         {
@@ -178,9 +184,9 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
             h_sampF_n->Fill(singlePart_Ekin, hit_scint_Esum/hit_Esum);
             h_sampF_n_Ekin->Fill(singlePart_Ekin, hit_scint_Esum/singlePart_Ekin);
         }   
-    }
-
-    delete reader; 
+        }
+        delete reader;
+    } 
 
     h_sampF_e->Sumw2();
     h_sampF_e_Ekin->Sumw2();
@@ -284,8 +290,18 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
 
 int main(int argc, char** argv) {
     if (argc < 5) {
-        cerr << "Usage: " << argv[0] << " <input.root> <out.pdf> <out.png> <compact.xml>" << endl;
+        cerr << "Usage: " << argv[0] << " <out.pdf> <out.png> <compact.xml> <input1.root> [input2.root ...]" << endl;
         return 1;
     }
-    return sampling_fraction_analysis(argv[1], argv[2], argv[3], argv[4]);
+    
+    string outname_pdf = argv[1];
+    string outname_png = argv[2];
+    TString compact_file = argv[3];
+    
+    vector<string> filenames;
+    for (int i = 4; i < argc; i++) {
+        filenames.push_back(argv[i]);
+    }
+    
+    return sampling_fraction_analysis(filenames, outname_pdf, outname_png, compact_file);
 }

@@ -23,7 +23,7 @@ void trk_dis_plots(const std::string& config_name)
     nlohmann::json config;
     config_file >> config;
 
-    const std::string hists_file    = config["hists_file"];
+    const auto        hists_files   = config["hists_files"].get<std::vector<std::string>>();
     const std::string detector      = config["detector"];
     const std::string output_prefix = config["output_prefix"];
     const int         ebeam         = config["ebeam"];
@@ -34,7 +34,7 @@ void trk_dis_plots(const std::string& config_name)
     fmt::print(fmt::emphasis::bold | fg(fmt::color::forest_green),
                 "Plotting DIS tracking analysis...\n");
     fmt::print(" - Detector package: {}\n", detector);
-    fmt::print(" - input file for histograms: {}\n", hists_file);
+    fmt::print(" - input files for histograms: {}\n", hists_files.size());
     fmt::print(" - output prefix for plots: {}\n", output_prefix);
     fmt::print(" - ebeam: {}\n", ebeam);
     fmt::print(" - pbeam: {}\n", pbeam);
@@ -43,25 +43,70 @@ void trk_dis_plots(const std::string& config_name)
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Read file with histograms
-    TFile* file = new TFile(hists_file.c_str());
+    // Merge histograms from multiple files
+    std::cout<<"Merging histograms from "<<hists_files.size()<<" files..."<<std::endl;
+
+    TH1D* h1a = nullptr;
+    TH1D* h1a1 = nullptr;
+    TH1D* h1a2 = nullptr;
+    TH1D* h1b = nullptr;
+    TH1D* h1b1 = nullptr;
+    TH1D* h1b2 = nullptr;
+    TH1D* h1c = nullptr;
+    TH1D* h1c1 = nullptr;
+    TH1D* h1c2 = nullptr;
+    TH1D* h2a = nullptr;
+    TH1D* h2b = nullptr;
+
+    for (size_t i = 0; i < hists_files.size(); ++i) {
+        TFile* file = TFile::Open(hists_files[i].c_str());
+        if (!file || file->IsZombie()) {
+            fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "Error: Cannot open file {}\n", hists_files[i]);
+            continue;
+        }
+
+        TH1D* tmp_h1a = (TH1D*) file->Get("h1a");
+        TH1D* tmp_h1a1 = (TH1D*) file->Get("h1a1");
+        TH1D* tmp_h1a2 = (TH1D*) file->Get("h1a2");
+        TH1D* tmp_h1b = (TH1D*) file->Get("h1b");
+        TH1D* tmp_h1b1 = (TH1D*) file->Get("h1b1");
+        TH1D* tmp_h1b2 = (TH1D*) file->Get("h1b2");
+        TH1D* tmp_h1c = (TH1D*) file->Get("h1c");
+        TH1D* tmp_h1c1 = (TH1D*) file->Get("h1c1");
+        TH1D* tmp_h1c2 = (TH1D*) file->Get("h1c2");
+        TH1D* tmp_h2a = (TH1D*) file->Get("h2a");
+        TH1D* tmp_h2b = (TH1D*) file->Get("h2b");
+
+        if (i == 0) {
+            h1a = (TH1D*) tmp_h1a->Clone("h1a");
+            h1a1 = (TH1D*) tmp_h1a1->Clone("h1a1");
+            h1a2 = (TH1D*) tmp_h1a2->Clone("h1a2");
+            h1b = (TH1D*) tmp_h1b->Clone("h1b");
+            h1b1 = (TH1D*) tmp_h1b1->Clone("h1b1");
+            h1b2 = (TH1D*) tmp_h1b2->Clone("h1b2");
+            h1c = (TH1D*) tmp_h1c->Clone("h1c");
+            h1c1 = (TH1D*) tmp_h1c1->Clone("h1c1");
+            h1c2 = (TH1D*) tmp_h1c2->Clone("h1c2");
+            h2a = (TH1D*) tmp_h2a->Clone("h2a");
+            h2b = (TH1D*) tmp_h2b->Clone("h2b");
+        } else {
+            if (tmp_h1a) h1a->Add(tmp_h1a);
+            if (tmp_h1a1) h1a1->Add(tmp_h1a1);
+            if (tmp_h1a2) h1a2->Add(tmp_h1a2);
+            if (tmp_h1b) h1b->Add(tmp_h1b);
+            if (tmp_h1b1) h1b1->Add(tmp_h1b1);
+            if (tmp_h1b2) h1b2->Add(tmp_h1b2);
+            if (tmp_h1c) h1c->Add(tmp_h1c);
+            if (tmp_h1c1) h1c1->Add(tmp_h1c1);
+            if (tmp_h1c2) h1c2->Add(tmp_h1c2);
+            if (tmp_h2a) h2a->Add(tmp_h2a);
+            if (tmp_h2b) h2b->Add(tmp_h2b);
+        }
+
+        file->Close();
+    }
 
     std::cout<<"Reading histograms..."<<std::endl;
-
-    TH1D* h1a = (TH1D*) file->Get("h1a");
-    TH1D* h1a1 = (TH1D*) file->Get("h1a1");
-    TH1D* h1a2 = (TH1D*) file->Get("h1a2");
-
-    TH1D* h1b = (TH1D*) file->Get("h1b");
-    TH1D* h1b1 = (TH1D*) file->Get("h1b1");
-    TH1D* h1b2 = (TH1D*) file->Get("h1b2");
-
-    TH1D* h1c = (TH1D*) file->Get("h1c");
-    TH1D* h1c1 = (TH1D*) file->Get("h1c1");
-    TH1D* h1c2 = (TH1D*) file->Get("h1c2");
-
-    TH1D* h2a = (TH1D*) file->Get("h2a");
-    TH1D* h2b = (TH1D*) file->Get("h2b");
 
     //--------------------------------------------------------------------------------------------------------------------------------------------
 

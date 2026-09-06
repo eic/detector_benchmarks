@@ -9,39 +9,10 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TMath.h"
-#include "nlohmann/json.hpp"
-#include <fstream>
-#include <vector>
-
 #define mpi 0.139  // 1.864 GeV/c^2
 
-using json = nlohmann::json;
-
-void Tracking_Performances(TString config_file="config.json")
+void Tracking_Performances(TString filename="tracking_output",TString particle="pi-", double mom=0.1, Double_t pTcut = 0.15, bool truth_seeding=false, TString output_dir=".")
 {
-
-  // Parse JSON config file
-  std::ifstream config_stream(config_file.Data());
-  if (!config_stream.is_open()) {
-    std::cerr << "Could not open config file: " << config_file << std::endl;
-    return;
-  }
-  json config = json::parse(config_stream);
-  config_stream.close();
-
-  // Extract configuration
-  std::vector<std::string> sim_files = config["sim_files"];
-  TString particle = config["particle"];
-  double mom = config["momentum"];
-  TString output_prefix = config["output_prefix"];
-  bool truth_seeding = config.value("truth_seeding", false);
-  Double_t pTcut = config.value("pTcut", 0.15);
-  
-  // Construct output_dir from output_prefix
-  TString output_dir = ".";
-  if (output_prefix != "") {
-    output_dir = output_prefix;
-  }
 
   // style of the plot
    gStyle->SetPalette(1);
@@ -91,26 +62,12 @@ void Tracking_Performances(TString config_file="config.json")
    hpull_theta[i]->SetName(Form("hpull_theta_%1.1f_%1.1f_pmax_%1.1f",mom,eta[i],eta[i+1]));
    }
    
-   // Create TChain from file list
-   TChain* chain = new TChain("events");
-   for (const auto& file_path : sim_files) {
-     if (debug) std::cout << "Adding file to chain: " << file_path << std::endl;
-     chain->Add(file_path.c_str());
-   }
-   
-   if (chain->GetEntries() == 0) {
-     std::cerr << "Error: Chain has no entries. Check file list and file accessibility." << std::endl;
-     return;
-   }
-   
-   TTreeReader myReader(chain);
-   if (debug) cout<<"Chain created with "<<myReader.GetEntries()<<" events"<<endl;
-   
-   TTree *tree = dynamic_cast<TTree*>(chain);
-   if (!tree) {
-    std::cerr << "Error: Could not get tree from chain" << std::endl;
-    return;
-   }
+   TFile* file = TFile::Open(filename.Data());
+   if (!file) {printf("file not found !!!"); return;}
+   TTreeReader myReader("events", file); // name of tree and file
+   if (debug) cout<<"Filename: "<<file->GetName()<<"\t NEvents: "<<myReader.GetEntries()<<endl;
+  
+   TTree *tree = dynamic_cast<TTree*>(file->Get("events"));
    if (!(tree->GetBranch("CentralCKFSeededTrackParameters") || tree->GetBranch("CentralCKFTruthSeededTrackParameters"))) {
      cerr << "Found neither CentralCKFSeededTrackParameters nor CentralCKFTruthSeededTrackParameters!" << endl;
      return;

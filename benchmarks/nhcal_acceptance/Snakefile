@@ -31,34 +31,25 @@ exec npsim \
 """
 
 
-rule nhcal_acceptance_combine:
+
+rule nhcal_acceptance_analysis:
     input:
-        lambda wildcards: expand(
+        sim_files=lambda wildcards: expand(
             "sim_output/nhcal_acceptance/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX:02d}.edm4hep.root", 
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=wildcards.ENERGY,
             INDEX=range(int(wildcards.N)),
         ),
-    wildcard_constraints:
-        N=r"\d+",
-        ENERGY=r"\d+"
-    output:
-        temp("sim_output/nhcal_acceptance/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root"),
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-hadd -f {output} {input} 
-"""
-
-rule nhcal_acceptance_analysis:
-    input:
-        combined="sim_output/nhcal_acceptance/sim_{DETECTOR_CONFIG}_E{ENERGY}GeV_combined_{N}files.edm4hep.root",
         script=workflow.source_path("scripts/acceptance_analysis.cxx"),
     output:
         png=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.png",
         pdf=f"results/nhcal_acceptance/analysis_{{DETECTOR_CONFIG}}_E{{ENERGY}}GeV_combined_{{N}}files.pdf",
+    wildcard_constraints:
+        N=r"\d+",
+        ENERGY=r"\d+"
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-    root -l -b -q '{input.script}("{input.combined}","{output.pdf}","{output.png}")'
+root -l -b -q '{input.script}("{input.sim_files}","{output.pdf}","{output.png}")'
 """
+

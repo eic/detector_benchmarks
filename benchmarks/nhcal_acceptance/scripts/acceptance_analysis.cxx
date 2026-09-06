@@ -9,13 +9,30 @@
 #include <set>
 #include <iostream>
 #include <TString.h>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 
-int acceptance_analysis(TString filename, string outname_pdf, string outname_png) 
+int acceptance_analysis(TString filelist_str, string outname_pdf, string outname_png) 
 {
+    // Parse space-separated file list
+    vector<TString> filenames;
+    istringstream iss(string(filelist_str));
+    string filename;
+    while (iss >> filename) {
+        filenames.push_back(TString(filename));
+    }
+    
+    if (filenames.empty()) {
+        cerr << "Error: No input files provided" << endl;
+        return 1;
+    }
+    
     TChain *chain = new TChain("events");
-    chain->Add(filename);
+    for (auto &fname : filenames) {
+        chain->Add(fname);
+    }
     
     TTreeReader reader(chain);
     
@@ -95,3 +112,17 @@ int acceptance_analysis(TString filename, string outname_pdf, string outname_png
 
     return 0;
 }
+
+int main(int argc, char* argv[]) {
+    if (argc < 4) {
+        cerr << "Usage: root -l -b -q 'acceptance_analysis.cxx(\"file1.root file2.root\",\"output.pdf\",\"output.png\")'" << endl;
+        return 1;
+    }
+    
+    TString filelist = argv[1];
+    string outname_pdf = argv[2];
+    string outname_png = argv[3];
+    
+    return acceptance_analysis(filelist, outname_pdf, outname_png);
+}
+

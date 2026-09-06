@@ -29,20 +29,20 @@ DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
 df = pd.DataFrame({})
 for eng in Energy:
     tree = uproot.open(f'sim_output/zdc_lyso/{DETECTOR_CONFIG}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.edm4eic.root')['events']
-    ecal_reco_energy = ak.sum(tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array(), axis=-1)
-    hcal_reco_energy = ak.sum(tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array(), axis=-1)
-    ecal_rec_energy = ak.sum(tree['EcalFarForwardZDCRecHits/EcalFarForwardZDCRecHits.energy'].array(), axis=-1)
-    hcal_rec_energy = ak.sum(tree['HcalFarForwardZDCRecHits/HcalFarForwardZDCRecHits.energy'].array(), axis=-1)
-    ecal_reco_clusters = [len(row) if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
-    ecal_reco_nhits = [row[0] if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
+    ecal_reco_energy = ak.sum(tree['EcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    hcal_reco_energy = ak.sum(tree['HcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    ecal_rec_energy = ak.sum(tree['EcalFarForwardZDCRecHits.energy'].array(), axis=-1)
+    hcal_rec_energy = ak.sum(tree['HcalFarForwardZDCRecHits.energy'].array(), axis=-1)
+    ecal_reco_clusters = [len(row) if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters.nhits'].array()]
+    ecal_reco_nhits = [row[0] if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters.nhits'].array()]
 
     tree = uproot.open(f'sim_output/zdc_lyso/{DETECTOR_CONFIG}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.rnt.root')['events']
-    ecal_sim_energy = ak.sum(tree['EcalFarForwardZDCHits/EcalFarForwardZDCHits.energy'].array(), axis=-1)
-    hcal_sim_energy = ak.sum(tree['HcalFarForwardZDCHits/HcalFarForwardZDCHits.energy'].array(), axis=-1)
+    ecal_sim_energy = ak.sum(tree['EcalFarForwardZDCHits.energy'].array(), axis=-1)
+    hcal_sim_energy = ak.sum(tree['HcalFarForwardZDCHits.energy'].array(), axis=-1)
 
-    par_x = tree['MCParticles/MCParticles.momentum.x'].array()[:,2]
-    par_y = tree['MCParticles/MCParticles.momentum.y'].array()[:,2]
-    par_z = tree['MCParticles/MCParticles.momentum.z'].array()[:,2]
+    par_x = tree['MCParticles.momentum.x'].array()[:,2]
+    par_y = tree['MCParticles.momentum.y'].array()[:,2]
+    par_z = tree['MCParticles.momentum.z'].array()[:,2]
 
     eng = int(eng*1000)
 

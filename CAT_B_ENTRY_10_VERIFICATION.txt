@@ -1,0 +1,70 @@
+HADD ELIMINATION - CATEGORY B ENTRY 10 - VERIFICATION REPORT
+==============================================================
+
+TASK: Modify basic_distribution_analysis.cxx and remove nhcal_basic_distribution_combine rule
+
+COMPLETED ACTIONS:
+==================
+
+1. ✓ Modified benchmarks/nhcal_basic_distribution/scripts/basic_distribution_analysis.cxx
+   - Changed function signature to accept vector<string> filenames
+   - Line 92: int basic_distribution_analysis(const vector<string> &filenames, ...)
+   - Implemented file iteration loop (lines 163-246)
+   - Added main() function (lines 299-318) for command-line argument parsing
+   - Usage format matches sampling_fraction_analysis pattern
+
+2. ✓ Modified benchmarks/nhcal_basic_distribution/Snakefile
+   - REMOVED: nhcal_basic_distribution_combine rule (was lines 38-55)
+   - UPDATED: nhcal_basic_distribution_analysis rule (now lines 38-71)
+   - Input: Changed from single merged file to direct sim file list
+   - Execution: Compiles C++ with dependencies, runs binary with file list
+   - Compilation includes all required libraries:
+     * root-config flags
+     * podio, podioRootIO
+     * edm4hep
+     * DDCore, DDRec
+
+3. ✓ Verified rule removal
+   - grep "nhcal_basic_distribution_combine:" returns no results
+   - Confirms combine rule completely removed
+
+4. ✓ Created summary documentation
+   - File: HADD_ELIMINATION_CAT_B_ENTRY_10.md
+   - Explains all changes and benefits
+
+RULES PRESENT (verified):
+=========================
+Line 6:  rule nhcal_basic_distribution_simulate
+Line 38: rule nhcal_basic_distribution_analysis (UPDATED)
+Line 73: rule nhcal_basic_distribution_combine_energy_resolution (unchanged)
+Line 89: rule nhcal_basic_distribution_analysis_energy_resolution (unchanged)
+
+WORKFLOW CHANGE:
+================
+Before: simulate → combine (hadd) → analysis
+After:  simulate → analysis (multi-file processing)
+
+IMPLEMENTATION DETAILS:
+=======================
+- File list passed as space-separated arguments
+- Script processes each file independently
+- Event counting loop aggregates total events
+- Same output format (PNG + ROOT files)
+- Binary cleaned up after execution
+
+CONSISTENCY CHECK:
+==================
+✓ Matches nhcal_sampling_fraction_analysis pattern
+✓ Uses same compilation approach with g++ and dependencies
+✓ Command-line argument parsing follows same pattern
+✓ Output file generation unchanged
+
+COMMIT: c5ad05c
+Author: Copilot <223556219+Copilot@users.noreply.github.com>
+Message: HADD elimination: Category B Entry 10 - Modify basic_distribution_analysis.cxx and remove combine rule
+
+STATUS: ✓ COMPLETE
+==================
+All modifications verified and committed.
+Temporary merged files eliminated.
+Dependency graph simplified.

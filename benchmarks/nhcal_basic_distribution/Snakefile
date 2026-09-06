@@ -8,7 +8,7 @@ rule nhcal_basic_distribution_simulate:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root",
+        "sim_output/nhcal_basic_distribution/E{ENERGY}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
     params:
         N_EVENTS=10000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
@@ -32,13 +32,14 @@ exec npsim \
     --gun.thetaMax 180*degree \
     --gun.distribution uniform \
     --gun.energy "{params.TOTAL_ENERGY}*GeV" \
+    --outputConfig.useRNTuple true \
     --outputFile {output}
 """
 
 rule nhcal_basic_distribution_combine:
     input:
         lambda wildcards: expand(
-            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.root", 
+            "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),
@@ -47,18 +48,18 @@ rule nhcal_basic_distribution_combine:
         N=r"\d+",
         ENERGY=r"\d+(\.\d+)?"
     output:
-        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root"),
+        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.rnt.root"),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            hadd -f {output} {input} 
+            hadd -f {output} {input}
         """
 
 rule nhcal_basic_distribution_analysis:
     input:
         workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
         workflow.source_path("scripts/NeutronThresholdUtil.h"),
-        combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.root",
+        combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.rnt.root",
         script=workflow.source_path("scripts/basic_distribution_analysis.cxx"),
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
@@ -68,13 +69,13 @@ rule nhcal_basic_distribution_analysis:
         N=r"\d+",
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
-        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml", 
+        DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             root -l -b -q '{input.script}+("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
         """
-    
+
 rule nhcal_basic_distribution_combine_energy_resolution:
     input:
         lambda wildcards: [
@@ -88,7 +89,7 @@ rule nhcal_basic_distribution_combine_energy_resolution:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            hadd -f {output} {input} 
+            hadd -f {output} {input}
         """
 
 rule nhcal_basic_distribution_analysis_energy_resolution:

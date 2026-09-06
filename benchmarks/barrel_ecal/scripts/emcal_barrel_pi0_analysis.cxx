@@ -26,8 +26,8 @@ using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
 void emcal_barrel_pi0_analysis(
-                                const char* input_fname = "sim_output/sim_emcal_barrel_pi0.edm4hep.root"
-                                //const char* input_fname = "../sim_output/sim_emcal_barrel_uniform_pi0.edm4hep.root"
+                                const char* input_fname = "sim_output/sim_emcal_barrel_pi0.edm4hep.rnt.root"
+                                //const char* input_fname = "../sim_output/sim_emcal_barrel_uniform_pi0.edm4hep.rnt.root"
                                 )
 {
   // Setting for graphs
@@ -128,9 +128,9 @@ void emcal_barrel_pi0_analysis(
   };
 
   std::vector<std::vector<double>> range = {{0, Ethr_max}, {0, 2000}, {0, fsam_est * Ethr_max}, {-3, 3}};
-  std::vector<std::string> col           = {"Ethr",   "nhits",   "Esim", "dE_rel"}; 
+  std::vector<std::string> col           = {"Ethr",   "nhits",   "Esim", "dE_rel"};
 
-  double meanE  = 5; 
+  double meanE  = 5;
   int nCol = range.size();
   for (int i = 0; i < nCol; i++){
     int binNum = 100;
@@ -155,7 +155,7 @@ void emcal_barrel_pi0_analysis(
               "dE; dE[GeV]; Events"
   };
   range = {{0,fsam_est}, {-3, 3}};
-  col   = {"fsam",   "dE"}; 
+  col   = {"fsam",   "dE"};
   nCol  = range.size();
   std::printf("Here %d\n", 10);
   std::vector<std::vector<double>> fitRange = {{0.005, fsam_est}, {-3, 3}};
@@ -171,7 +171,7 @@ void emcal_barrel_pi0_analysis(
   h2->Fit("gaus","","", fitRange[0][0], fitRange[0][1]);
   h2->GetFunction("gaus")->SetLineWidth(2);
   h2->GetFunction("gaus")->SetLineColor(kRed);
-  
+
   c->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.png", col[0])).c_str());
   c->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.pdf", col[0])).c_str());
   std::printf("Resolution %d\n", 0);
@@ -195,7 +195,7 @@ void emcal_barrel_pi0_analysis(
   c1->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.png", col[1])).c_str());
   c1->SaveAs((fmt::format("results/emcal_barrel_pi0_{}.pdf", col[1])).c_str());
   std::printf("Resolution %d\n", 1);
- 
+
   // Energy Resolution Calculation
   std::string test_tag = "Barrel_emcal_pi0";// TODO: Change test_tag to something else
   std::string detEle   = "Barrel_emcal";

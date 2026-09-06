@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-int checkResolutions(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.root", const TString outputFile="test.json") {
-    
+int checkResolutions(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.rnt.root", const TString outputFile="test.json") {
+
     int fail = 0;
 
     TFile *file = TFile::Open(inputFile);

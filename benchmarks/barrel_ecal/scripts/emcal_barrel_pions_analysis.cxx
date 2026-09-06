@@ -21,7 +21,7 @@
 using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
-void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_piplus.edm4hep.root")
+void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal_barrel_piplus.edm4hep.rnt.root")
 {
   // Setting for graphs
   gROOT->SetStyle("Plain");
@@ -143,7 +143,7 @@ void emcal_barrel_pions_analysis(const char* input_fname = "sim_output/sim_emcal
   hEsim->SetLineWidth(2);
   hEsim->SetLineColor(kBlue);
   hEsim->DrawClone();
-  c3->SaveAs("results/emcal_barrel_pions_Esim.png"); 
+  c3->SaveAs("results/emcal_barrel_pions_Esim.png");
   c3->SaveAs("results/emcal_barrel_pions_Esim.pdf");
 
   TCanvas *c4 = new TCanvas("c4", "c4", 700, 500);

@@ -27,9 +27,9 @@ rule zdc_lyso_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.rnt.root",
     log:
-        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root.log",
+        "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.rnt.root.log",
     params:
         num_events=1000,
         DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
@@ -47,13 +47,14 @@ exec npsim \
   --random.seed 1 \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
+  --outputConfig.useRNTuple true \
   --outputFile {output}
 """
 
 
 rule zdc_lyso_reco:
     input:
-        sim="sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.root",
+        sim="sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/zdc_lyso/{DETECTOR_CONFIG}_{PARTICLE}_{BEAM_ENERGY}GeV_theta_{THETA_MIN}deg_thru_{THETA_MAX}deg.eicrecon.edm4eic.root",

@@ -36,7 +36,7 @@ rule femc_pi0_simulate:
         NPSIM_HASH=get_spack_package_hash("npsim"),
     cache: True
     output:
-        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root"
+        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.rnt.root"
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -46,12 +46,13 @@ exec npsim \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
+   --outputConfig.useRNTuple true \
    --outputFile {output.SIM_FILE}
 """
 
 rule femc_pi0_recon:
     input:
-        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.root",
+        SIM_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_sim_pi0_{P}GeV.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/femc_pi0/{DETECTOR_CONFIG}_rec_pi0_{P}GeV.edm4eic.root",

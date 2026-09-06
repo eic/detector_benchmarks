@@ -43,8 +43,8 @@ using ROOT::RDataFrame;
 using namespace ROOT::VecOps;
 
 void emcal_barrel_pion_rejection_analysis(
-                                          const char* input_fname1 = "sim_output/sim_emcal_barrel_piRej_electron.edm4hep.root",
-                                          const char* input_fname2 = "sim_output/sim_emcal_barrel_piRej_piminus.edm4hep.root"
+                                          const char* input_fname1 = "sim_output/sim_emcal_barrel_piRej_electron.edm4hep.rnt.root",
+                                          const char* input_fname2 = "sim_output/sim_emcal_barrel_piRej_piminus.edm4hep.rnt.root"
                                           )
 {
   // Error Ignore Level Set
@@ -91,11 +91,11 @@ void emcal_barrel_pion_rejection_analysis(
   */
 
   // Detector Layer Variables
-  int layerNum; 
+  int layerNum;
   int dep_min = 1;
   int dep_max = 6;
 
-  // DD4HEP interface 
+  // DD4HEP interface
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
   detector.fromCompact(fmt::format("{}/{}.xml", detector_path, detector_name));
 
@@ -114,7 +114,7 @@ void emcal_barrel_pion_rejection_analysis(
     return TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z);
   };
 
-  // Thrown Eta 
+  // Thrown Eta
   auto Eta = [](std::vector<edm4hep::MCParticleData> const& input) {
     double E  = TMath::Sqrt(input[2].momentum.x*input[2].momentum.x + input[2].momentum.y*input[2].momentum.y + input[2].momentum.z*input[2].momentum.z + input[2].mass*input[2].mass);
     return 0.5*TMath::Log((E + input[2].momentum.z) / (E - input[2].momentum.z));
@@ -199,7 +199,7 @@ void emcal_barrel_pion_rejection_analysis(
     for (const auto& i: evt) {
       if( decoderScFi->get(i.cellID, layer_indexScFi) < 7 ){
         total_edep += i.energy;
-      } 
+      }
     }
     return total_edep;
   };
@@ -331,7 +331,7 @@ void emcal_barrel_pion_rejection_analysis(
               .Define("EDepSumOverPT",   fEp,                   {"EDepSum", "pT"})
               .Define("EDepFrac",        fEp,                   {"EDepSum", "Esim"})
               ;
-  
+
   // Particle Filters
   dep_min = 1;
   dep_max = 6;
@@ -344,7 +344,7 @@ void emcal_barrel_pion_rejection_analysis(
   // Generic 1D Histogram Plots Comparing Electons and Pions w/o cuts
   // Edep first 6 layers(EDep6), EDep/p, pT, eta
   std::vector<std::string> var              = {"Esim [GeV];", "EsimTot [GeV];", "EDep6 [GeV];", "EDep6/p;",     "pT [GeV];", "#eta;",  "EsimScFi [GeV]",  "EsimScFi/p"};
-  std::vector<std::string> var_save         = {"Esim",        "EsimTot",        "EDep6",        "EDep6OverP",   "pT",        "eta",    "EsimScFi",        "EsimScFiOverP"};  
+  std::vector<std::string> var_save         = {"Esim",        "EsimTot",        "EDep6",        "EDep6OverP",   "pT",        "eta",    "EsimScFi",        "EsimScFiOverP"};
   std::vector<std::string> col              = {"Esim",        "EsimTot",        "EDep6",        "EDep6OverP",   "pT",        "Eta",    "EsimScFi",        "EsimScFiOverP"};
   std::vector<std::vector<double>> h1Ranges = {{0,0.2},       {0, 0.2},         {0,0.25},       {0, 0.02},      {0, 18},     {-1, 1},  {0,0.2},            {0,0.2}};
   for (int i = 0; i < var.size(); i++){
@@ -359,7 +359,7 @@ void emcal_barrel_pion_rejection_analysis(
     hp->SetLineColor(kBlue);
     auto c = new TCanvas("c", "c", 700, 500);
     auto leng = new TLegend(0.7, 0.7, 0.9, 0.9);
-    if (var[i] != "EsimScFi/p"){ 
+    if (var[i] != "EsimScFi/p"){
       hp->DrawClone();
       he->DrawClone("same");
     }
@@ -385,7 +385,7 @@ void emcal_barrel_pion_rejection_analysis(
     std::string minCut = "Pthr>="+std::to_string(EBins[i][0]);
     std::string maxCut = "Pthr<"+std::to_string(EBins[i][1]);
     cutEEta += "(" + minCut + "&&" + maxCut + "&&";
-    
+
     for (int j = -1; j < 1; j++){
       std::string title = "#pi^{-}, e^{-}";
       title += fmt::format(" : {} < E < {}", EBins[i][0], EBins[i][1]);
@@ -488,12 +488,12 @@ void emcal_barrel_pion_rejection_analysis(
   dep_max = 6;
   for (int i = 0; i < 3; i++){   // E loop
     for (int j = 2; j < 4; j++){ // Eta Looop
-      
+
       // Apply eta cuts/binning and Momentum Cut
       std::string pCut = "Pthr>=" + std::to_string(lowEdges[i][j]) + "&&Pthr<" + std::to_string(E[i]);
       auto e_eta = d_ele.Filter(etaBin[j]).Filter(pCut);
       auto p_eta = d_pim.Filter(etaBin[j]).Filter(pCut);
-      
+
       // Print out the momentum distributions for the electron and pi-
       std::string title = "e^{-} (E = " + std::to_string((int)E[i]) + " GeV) : " + etaTitle[j] + "; p [GeV]; Events";
       auto he = e_eta.Histo1D({"he", title.c_str(), 100, lowEdges[i][j], E[i]}, "Pthr");
@@ -539,10 +539,10 @@ void emcal_barrel_pion_rejection_analysis(
       c->SaveAs((fmt::format("results/emcal_barrel_pion_rej_cut_ratio_pim_E{}_eta{}.png", (int)E[i], j)).c_str());
       c->SaveAs((fmt::format("results/emcal_barrel_pion_rej_cut_ratio_pim_E{}_eta{}.pdf", (int)E[i], j)).c_str());
       c->Clear();
-      
+
       // Print out the 1D distributions for the electron and pi- within the current Eta bin
       std::vector<std::string> endStr           = {";pT [GeV]; Events", ";EDep6/p; Events"};
-      std::vector<std::string> var_save_loc     = {"pT",                "EDep6OverP"};  
+      std::vector<std::string> var_save_loc     = {"pT",                "EDep6OverP"};
       std::vector<std::string> col_loc          = {"pT",                "EDep6OverP"};
       std::vector<std::vector<double>> h1Ranges = {{0, E[i]},           {0, 0.02}};
       for (int k = 0; k < 2; k++){
@@ -602,12 +602,12 @@ void emcal_barrel_pion_rejection_analysis(
   std::string test_tag = "Barrel_emcal_pion_rejection";
   //TODO: Change test_tag to something else
   std:string detectorEle = "Barrel_emcal";
-  
+
   for (int i = 0; i < etaTitle.size(); i++){
     etaTitle[i].erase(std::remove(etaTitle[i].begin(), etaTitle[i].end(), '#'), etaTitle[i].end());
-    std::replace(etaTitle[i].begin(), etaTitle[i].end(), 'e', 'E');    
+    std::replace(etaTitle[i].begin(), etaTitle[i].end(), 'e', 'E');
   }
-  
+
   // E, Eta = 18, 2
   // Pion rejection analysis complete - results stored in rejection ratios and efficiencies
   std::cout << fmt::format("Pion rejection E={}, Eta=2: rejection ratio = {}\n", (int)E[0], rejRatios[0][2]);

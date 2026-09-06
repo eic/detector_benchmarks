@@ -28,7 +28,7 @@ rule femc_electron_simulate:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
+        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.rnt.root",
     params:
         N_EVENTS=get_n_events,
         PHYSICS_LIST="FTFP_BERT",
@@ -46,12 +46,13 @@ exec npsim \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
+   --outputConfig.useRNTuple true \
    --outputFile {output.SIM_FILE}
 """
 
 rule femc_electron_recon:
     input:
-        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.root",
+        SIM_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_sim_e-_{P}GeV.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/femc_electron/{DETECTOR_CONFIG}_rec_e-_{P}GeV.edm4eic.root",

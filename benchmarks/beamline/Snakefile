@@ -11,7 +11,7 @@ rule beamline_steering_sim:
         macro=workflow.source_path("beamlineGPS.mac"),
         geometry_lib=find_epic_libraries(),
     output:
-        SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+        SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.rnt.root",
     params:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -26,6 +26,7 @@ rule beamline_steering_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
+            --outputConfig.useRNTuple true \
             --outputFile {output} \
             --physics.rangecut 100*m
         """
@@ -35,7 +36,7 @@ rule beamline_steering_analysis:
         warmup="warmup.edm4hep.root",
         script=workflow.source_path("beamlineAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
-        data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"beamlineTest{CAMPAIGN}.edm4hep.rnt.root",
     output:
         rootfile=ANALYSISDIR+"beamlineTestAnalysis{CAMPAIGN}.root",
         beamspot_canvas=ANALYSISDIR+"beamspot_{CAMPAIGN}.png",
@@ -65,7 +66,7 @@ rule beamline_acceptance_sim:
         macro=workflow.source_path("acceptanceGPS.mac"),
         geometry_lib=find_epic_libraries(),
     output:
-        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+        SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.rnt.root",
     params:
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -80,6 +81,7 @@ rule beamline_acceptance_sim:
             --macroFile {input.macro} \
             --compactFile $DETECTOR_PATH/epic_ip6_extended.xml \
             --printLevel WARNING \
+            --outputConfig.useRNTuple true \
             --outputFile {output} \
             --physics.rangecut 100*m
         """
@@ -89,7 +91,7 @@ rule beamline_acceptance_analysis:
         warmup="warmup.edm4hep.root",
         script=workflow.source_path("acceptanceAnalysis.C"),
         header=workflow.source_path("shared_functions.h"),
-        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.root",
+        data=SIMOUTDIR+"acceptanceTest{CAMPAIGN}.edm4hep.rnt.root",
     output:
         rootfile=ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
         beampipe_canvas=ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
@@ -116,18 +118,18 @@ rule beamline:
         ANALYSISDIR+"y_py_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_position_means_stdevs_{CAMPAIGN}.png",
         ANALYSISDIR+"fitted_momentum_means_stdevs_{CAMPAIGN}.png",
-        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",  
+        ANALYSISDIR+"pipe_parameter_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptanceTestAnalysis{CAMPAIGN}.root",
         ANALYSISDIR+"acceptance_in_beampipe_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_energy_theta_{CAMPAIGN}.png",
-        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",     
+        ANALYSISDIR+"acceptance_energy_theta_acceptance_{CAMPAIGN}.png",
         ANALYSISDIR+"acceptance_entries_{CAMPAIGN}.png"
     output:
         directory("results/beamline/steering_{CAMPAIGN}/")
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            mkdir {output}        
+            mkdir {output}
             cp -r {input} {output}
         """
 

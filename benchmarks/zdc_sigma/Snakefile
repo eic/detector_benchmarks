@@ -18,7 +18,7 @@ rule zdc_sigma_simulate:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.rnt.root",
     params:
         N_EVENTS=200,
         INDEX=lambda wildcards: wildcards.INDEX,
@@ -39,12 +39,13 @@ exec npsim \
    --numberOfEvents {params.N_EVENTS} \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
+   --outputConfig.useRNTuple true \
    --outputFile {output.SIM_FILE}
 """
 
 rule zdc_sigma_recon:
     input:
-        SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_sim_sigma_dec_{P}GeV_{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/zdc_sigma/{DETECTOR_CONFIG}_rec_sigma_dec_{P}GeV_{INDEX}.edm4eic.root",

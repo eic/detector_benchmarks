@@ -8,7 +8,7 @@ rule far_forward_dvcs_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
+        "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.rnt.root",
     params:
         N_EVENTS=1000,
         EBEAM=lambda wildcards: wildcards.EBEAM,
@@ -32,17 +32,18 @@ npsim \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
   --inputFiles root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/EXCLUSIVE/DVCS_ABCONV/{params.EBEAM}x{params.PBEAM}/DVCS.{params.INDEX}.ab.hiAcc.{params.EBEAM}x{params.PBEAM}.hepmc3.tree.root \
+  --outputConfig.useRNTuple true \
   --outputFile {output}
 """
 
 rule foo:
     input:
-        'sim_output/far_forward_dvcs/epic_craterlake_10x100/DVCS.1.ab.hiAcc.10x100.edm4hep.root'
+        'sim_output/far_forward_dvcs/epic_craterlake_10x100/DVCS.1.ab.hiAcc.10x100.edm4hep.rnt.root'
 
 # Process the files produced in the previous step through EICRecon
 rule far_forward_dvcs_reco:
     input:
-        sim="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.root",
+        sim="sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/far_forward_dvcs/{DETECTOR_CONFIG}/DVCS.{INDEX}.ab.hiAcc.{EBEAM}x{PBEAM}.eicrecon.edm4eic.root",

@@ -4,9 +4,9 @@ rule tracking_performance_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
     log:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root.log",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root.log",
     wildcard_constraints:
         PARTICLE="pi-",
         ENERGY="[0-9]+[kMG]eV",
@@ -37,13 +37,14 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+  --outputConfig.useRNTuple true \
   --outputFile {output}
 """
 
 
 rule tracking_performance_recon:
     input:
-        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.root",
+        "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX}.eicrecon.edm4eic.root",
@@ -72,7 +73,7 @@ rule tracking_performance_hit_maps:
         script_hitsmap=workflow.source_path("draw_hits.C"),
         script_nhits_eta=workflow.source_path("NhitsvsEta_ePIC.C"),
         sim=lambda wildcards: expand(
-            "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.root",
+            "sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.edm4hep.rnt.root",
             DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG},
             ENERGY=wildcards.ENERGY,
             PARTICLE=wildcards.PARTICLE,
@@ -86,7 +87,7 @@ rule tracking_performance_hit_maps:
         hitsrz_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.root",
         nhits_eta_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
         nhits_eta_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
-        sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.root"),
+        sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.rnt.root"),
     params:
         MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
     singularity: EIC_SINGULARITY_CONTAINER,
@@ -193,16 +194,16 @@ rule tracking_performance_summary_at_eta:
         "{CAMPAIGN}/Final_Results/pi-/mom/mom_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
         "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_0.5.png",
         "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_0.5.root",
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_1.0.png", 
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_1.0.root", 
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_2.0.png", 
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_2.0.root", 
-        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_20.0.png", 
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_1.0.png",
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_1.0.root",
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_2.0.png",
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_2.0.root",
+        "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_20.0.png",
         "{CAMPAIGN}/Final_Results/pi-/mom/hpulls_{ETA_MIN}_eta_{ETA_MAX}_pmax_20.0.root",
-        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
-        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root", 
-        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png", 
-        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",    
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaxy_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.png",
+        "{CAMPAIGN}/Final_Results/pi-/dca/dcaz_resol_{ETA_MIN}_eta_{ETA_MAX}.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         r"""

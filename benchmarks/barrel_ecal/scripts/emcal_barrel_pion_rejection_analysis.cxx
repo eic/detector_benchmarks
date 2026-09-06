@@ -601,7 +601,7 @@ void emcal_barrel_pion_rejection_analysis(
   //Tests
   std::string test_tag = "Barrel_emcal_pion_rejection";
   //TODO: Change test_tag to something else
-  std:string detectorEle = "Barrel_emcal";
+  std::string detectorEle = "Barrel_emcal";
 
   for (int i = 0; i < etaTitle.size(); i++){
     etaTitle[i].erase(std::remove(etaTitle[i].begin(), etaTitle[i].end(), '#'), etaTitle[i].end());

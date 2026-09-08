@@ -1,0 +1,191 @@
+"""
+RICH IRT (Indirect Ray Tracing) benchmark.
+
+Single particles are shot into the dRICH (or the pfRICH) acceptance, are
+reconstructed with eicrecon, and the IRT output collections are analyzed by a
+small C++ program (``benchmarks/irt/src``) which fills Cherenkov angle, photo
+electron and PID confusion matrix histograms.
+"""
+
+
+# Phase space covered for each of the RICH detectors
+IRT_SETTINGS = {
+    "DRICH": {
+        "THETA_MIN": 3,
+        "THETA_MAX": 25,
+        "P_MIN": 1.0,
+        "P_MAX": 50.0,
+    },
+    "PFRICH": {
+        "THETA_MIN": 155,
+        "THETA_MAX": 177,
+        "P_MIN": 0.5,
+        "P_MAX": 15.0,
+    },
+}
+
+IRT_PARTICLES = ["pi-", "kaon-", "proton"]
+
+IRT_N_EVENTS = 1000
+
+
+def irt_collections(rich):
+    """Collections that have to be present in the reconstructed file."""
+    return [
+        "MCParticles",
+        "CentralCKFTracks",
+        f"{rich}Tracks",
+        f"{rich}IrtRadiatorInfo",
+        f"{rich}IrtParticles",
+    ]
+
+
+rule irt_compile:
+    input:
+        cmakelists=workflow.source_path("CMakeLists.txt"),
+        sources=[
+            workflow.source_path(path)
+            for path in [
+                "include/Confusion.h",
+                "include/RICHIRT.h",
+                "include/Setup.h",
+                "src/Confusion.cpp",
+                "src/RICHIRT.cpp",
+                "src/Setup.cpp",
+                "src/main.cpp",
+            ]
+        ],
+    output:
+        executable="sim_output/irt/bin/irt_analysis",
+    params:
+        source_dir=lambda wildcards, input: os.path.dirname(input.cmakelists),
+    threads: 4
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+BUILD_DIR="$(mktemp -d)"
+trap 'rm -rf "$BUILD_DIR"' EXIT
+cmake -S "{params.source_dir}" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
+cmake --build "$BUILD_DIR" --parallel {threads}
+install -D "$BUILD_DIR/irt_analysis" {output.executable}
+"""
+
+
+rule irt_sim:
+    input:
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root",
+    log:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root.log",
+    wildcard_constraints:
+        RICH="(DRICH|PFRICH)",
+        PARTICLE="[a-z0-9+-]+",
+    params:
+        N_EVENTS=IRT_N_EVENTS,
+        SEED=1,
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        # wildcards are not included in the cache hash, add them as params
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        RICH=lambda wildcards: wildcards.RICH,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        THETA_MIN=lambda wildcards: IRT_SETTINGS[wildcards.RICH]["THETA_MIN"],
+        THETA_MAX=lambda wildcards: IRT_SETTINGS[wildcards.RICH]["THETA_MAX"],
+        P_MIN=lambda wildcards: IRT_SETTINGS[wildcards.RICH]["P_MIN"],
+        P_MAX=lambda wildcards: IRT_SETTINGS[wildcards.RICH]["P_MAX"],
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+set -m # monitor mode to prevent lingering processes
+exec npsim \
+  --runType batch \
+  --enableGun \
+  --gun.particle {params.PARTICLE} \
+  --gun.momentumMin "{params.P_MIN}*GeV" \
+  --gun.momentumMax "{params.P_MAX}*GeV" \
+  --gun.thetaMin "{params.THETA_MIN}*deg" \
+  --gun.thetaMax "{params.THETA_MAX}*deg" \
+  --gun.distribution eta \
+  --random.seed {params.SEED} \
+  -v WARNING \
+  --numberOfEvents {params.N_EVENTS} \
+  --compactFile "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml" \
+  --outputFile {output} \
+  > {log} 2>&1
+"""
+
+
+rule irt_recon:
+    input:
+        sim="sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/rec.edm4eic.root",
+    log:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/rec.edm4eic.root.log",
+    wildcard_constraints:
+        RICH="(DRICH|PFRICH)",
+        PARTICLE="[a-z0-9+-]+",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        RICH=lambda wildcards: wildcards.RICH,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        COLLECTIONS=lambda wildcards: ",".join(irt_collections(wildcards.RICH)),
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+exec eicrecon {input.sim} \
+  -Ppodio:output_file={output} \
+  -Ppodio:output_collections={params.COLLECTIONS} \
+  > {log} 2>&1
+"""
+
+
+rule irt_analysis:
+    input:
+        rec="sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/rec.edm4eic.root",
+        executable="sim_output/irt/bin/irt_analysis",
+    output:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/hists.root",
+    log:
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/hists.root.log",
+    wildcard_constraints:
+        RICH="(DRICH|PFRICH)",
+        PARTICLE="[a-z0-9+-]+",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+{input.executable} {wildcards.RICH} {input.rec} {output} > {log} 2>&1
+"""
+
+
+rule irt_plots:
+    input:
+        hists=lambda wildcards: expand(
+            "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/hists.root",
+            DETECTOR_CONFIG=[wildcards.DETECTOR_CONFIG],
+            RICH=[wildcards.RICH],
+            PARTICLE=IRT_PARTICLES,
+        ),
+        script=workflow.source_path("scripts/plot_irt.py"),
+        matplotlibrc=".matplotlibrc",
+    output:
+        directory("results/{DETECTOR_CONFIG}/irt/{RICH}"),
+    wildcard_constraints:
+        RICH="(DRICH|PFRICH)",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+env MATPLOTLIBRC={input.matplotlibrc} \
+python {input.script} \
+  --output-dir {output} \
+  --title "{wildcards.DETECTOR_CONFIG} {wildcards.RICH}" \
+  {input.hists}
+"""

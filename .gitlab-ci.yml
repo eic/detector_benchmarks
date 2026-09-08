@@ -164,7 +164,8 @@ deploy_results:
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
-    - rucio whoami
+    - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
+    - rucio upload --rse E1_BNL_DISK_1 pipeline-$CI_PIPELINE_ID.tar
   retry:
     max: 2
     when:

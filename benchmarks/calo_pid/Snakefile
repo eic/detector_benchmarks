@@ -19,7 +19,7 @@ rule calo_pid_sim:
     params:
         N_EVENTS=1000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         PARTICLE=lambda wildcards: wildcards.PARTICLE,
         ENERGY_MIN=lambda wildcards: format_energy_for_dd4hep(wildcards.ENERGY_MIN),

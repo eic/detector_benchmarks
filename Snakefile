@@ -4,6 +4,11 @@ import functools
 import os
 from snakemake.logging import logger
 
+shell.prefix(
+    f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh; "
+    f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
+)
+
 
 EIC_SINGULARITY_CONTAINER = os.getenv("EIC_SINGULARITY_CONTAINER", "/cvmfs/eic.opensciencegrid.org/singularity/eicweb/eic_xl:nightly")
 
@@ -43,7 +48,7 @@ def find_epic_libraries():
     libs = []
     lib = ctypes.util.find_library("epic")
     if lib is not None:
-        libs.append(os.environ["DETECTOR_PATH"] + "/../../lib/" + lib)
+        libs.append(config["DETECTOR_PREFIX"] + "/lib/" + lib)
     return libs
 
 

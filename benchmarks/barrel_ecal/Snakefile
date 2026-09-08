@@ -1,4 +1,4 @@
-DETECTOR_PATH = os.environ["DETECTOR_PATH"]
+DETECTOR_PATH = config["DETECTOR_PREFIX"] + "/share/epic"
 
 
 rule emcal_barrel_particles_gen:

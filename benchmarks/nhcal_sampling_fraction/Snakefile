@@ -14,7 +14,7 @@ rule nhcal_sampling_fraction_simulate:
         "sim_output/nhcal_sampling_fraction/{PARTICLE}/Ekin{ENERGY}GeV/sim.edm4hep.root",
     params:
         N_EVENTS=5000,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -65,7 +65,7 @@ rule nhcal_sampling_fraction_analysis:
         pdf="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf",
         png="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.png",
     params:
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         binary="results/nhcal_sampling_fraction/sampling_fraction_analysis"
     singularity: EIC_SINGULARITY_CONTAINER,

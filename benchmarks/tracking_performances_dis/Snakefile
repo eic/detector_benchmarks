@@ -14,7 +14,7 @@ rule trk_dis_sim:
         PBEAM=lambda wildcards: wildcards.PBEAM,
         MINQ2=lambda wildcards: wildcards.MINQ2,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -189,13 +189,13 @@ root -l -b -q '{input.script}("{input.config}")'
 #Examples of invocation
 rule trk_dis_run_locally:
     input:
-        "results/tracking_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+        "results/tracking_performances_dis/" + config["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
     message:
         "See output in {input[0]}"
 
 rule vtx_dis_run_locally:
     input:
-        "results/vertexing_performances_dis/" + os.environ["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
+        "results/vertexing_performances_dis/" + config["DETECTOR_CONFIG"] + "/pythia8NCDIS_18x275_minQ2=1_combined_5/plots.pdf",
     message:
         "See output in {input[0]}"
 

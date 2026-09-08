@@ -4,7 +4,7 @@ sim:lowq2_reconstruction:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
-        sim_output/lowq2_reconstruction/Low-Q2_Training_SimEvents_local.edm4hep.root \
+        sim_output/lowq2_reconstruction/Low-Q2_Training_SimEvents_local.edm4hep.rnt.root \
 
 bench:lowq2_reconstruction:
   extends: .det_benchmark
@@ -29,7 +29,7 @@ bench:lowq2_reconstruction_retrained:
   extends: .det_benchmark
   stage: benchmarks
   needs:
-    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"] 
+    - ["bench:lowq2_reconstruction","check:lowq2_reconstruction"]
   rules:
     - when: on_failure
   script:

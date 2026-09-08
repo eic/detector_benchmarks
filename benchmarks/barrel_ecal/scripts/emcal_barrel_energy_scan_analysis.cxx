@@ -34,23 +34,23 @@ void save_canvas(TCanvas* c, std::string label)
 
 void save_canvas(TCanvas* c, std::string label, double E)
 {
-  std::string label_with_E = fmt::format("{}/{}", E, label); 
+  std::string label_with_E = fmt::format("{}/{}", E, label);
   save_canvas(c, label_with_E);
 }
 void save_canvas(TCanvas* c, std::string label, std::string E_label)
 {
-  std::string label_with_E = fmt::format("{}/{}", E_label, label); 
+  std::string label_with_E = fmt::format("{}/{}", E_label, label);
   save_canvas(c, label_with_E);
 }
 void save_canvas(TCanvas* c, std::string var_label, std::string E_label, std::string particle_label)
 {
-  std::string label_with_E = fmt::format("{}/emcal_barrel_{}_{}", E_label, particle_label, var_label); 
+  std::string label_with_E = fmt::format("{}/emcal_barrel_{}_{}", E_label, particle_label, var_label);
   save_canvas(c, label_with_E);
 }
 
 std::tuple <double, double, double, double> extract_sampling_fraction_parameters(std::string particle_label, std::string E_label, dd4hep::Detector& detector)
 {
-  std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.edm4hep.root", E_label, particle_label);
+  std::string input_fname = fmt::format("sim_output/energy_scan/{}/sim_emcal_barrel_{}.edm4hep.rnt.root", E_label, particle_label);
   ROOT::EnableImplicitMT();
   ROOT::RDataFrame d0("events", input_fname);
 
@@ -77,7 +77,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     return sampled / thrown;
   };
 
-  // Energy deposited in layers 
+  // Energy deposited in layers
   auto decoder = detector.readout("EcalBarrelImagingHits").idSpec().decoder();
   fmt::print("{}\n", decoder->fieldDescription());
   auto layer_index = decoder->index("layer");
@@ -142,14 +142,14 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     auto down_range = h->GetMean() - 3*h->GetStdDev();
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
-    
-    h->GetXaxis()->SetRange(h->GetXaxis()->GetBinUpEdge(1), up_range); // skip 0th bin 
+
+    h->GetXaxis()->SetRange(h->GetXaxis()->GetBinUpEdge(1), up_range); // skip 0th bin
     auto mean_layer = h->GetMean();
     auto rms_layer = h->GetStdDev();
     h->GetXaxis()->SetRange(); // reset the range
     h->GetXaxis()->SetRangeUser(0.,up_range);
 
-    auto no_edep = (h->GetBinContent(1)/h->GetEntries())*100;  
+    auto no_edep = (h->GetBinContent(1)/h->GetEntries())*100;
     gr_no_edep.SetPoint(gr_no_edep.GetN(),layer,no_edep);
     gr_edep_mean.SetPoint(gr_edep_mean.GetN(),layer, mean_layer);
     gr_edep_mean.SetPointError(gr_edep_mean.GetN()-1,0, rms_layer);
@@ -183,7 +183,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     auto h = hEthr->DrawCopy();
     h->SetLineWidth(2);
     h->SetLineColor(kBlue);
-    save_canvas(c1, "Ethr", E_label, particle_label);  
+    save_canvas(c1, "Ethr", E_label, particle_label);
   }
 
   {
@@ -211,7 +211,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     TCanvas* c4 = new TCanvas("c4", "c4", 700, 500);
     auto h = hfsam->DrawCopy();
     h->SetLineWidth(2);
-    h->SetLineColor(kBlue); 
+    h->SetLineColor(kBlue);
     double up_fit = h->GetMean() + 5*h->GetStdDev();
     double down_fit = h->GetMean() - 5*h->GetStdDev();
     if(down_fit <=0 ) down_fit = h->GetXaxis()->GetBinUpEdge(1);
@@ -219,7 +219,7 @@ std::tuple <double, double, double, double> extract_sampling_fraction_parameters
     h->GetXaxis()->SetRangeUser(0.,up_fit);
     TF1 *gaus = h->GetFunction("gaus");
     gaus->SetLineWidth(2);
-    gaus->SetLineColor(kRed);    
+    gaus->SetLineColor(kRed);
     double mean = gaus->GetParameter(1);
     double sigma = gaus->GetParameter(2);
     double mean_err = gaus->GetParError(1);
@@ -265,8 +265,8 @@ void emcal_barrel_energy_scan_analysis(std::string particle_label = "electron")
   gStyle->SetPadRightMargin(0.14);
 
   auto scanned_energies = read_scanned_energies(fmt::format("sim_output/emcal_barrel_energy_scan_points_{}.txt", particle_label));
-  
-  //Take detector layers 
+
+  //Take detector layers
   std::string detector_path = "";
   std::string detector_name = "athena";
   if(std::getenv("DETECTOR_PATH")) {
@@ -278,7 +278,7 @@ void emcal_barrel_energy_scan_analysis(std::string particle_label = "electron")
 
   dd4hep::Detector& detector = dd4hep::Detector::getInstance();
   detector.fromCompact(fmt::format("{}/{}.xml", detector_path, detector_name));
-    
+
   TGraphErrors gr_fsam(scanned_energies.size()-1);
   TGraphErrors gr_fsam_res(scanned_energies.size()-1);
 
@@ -292,7 +292,7 @@ void emcal_barrel_energy_scan_analysis(std::string particle_label = "electron")
       auto fsam_res_rel_err = 100.0*(sqrt(pow((fsam_res_err/fsam),2)+pow((fsam_err*fsam_res)/(fsam*fsam),2)));
       gr_fsam_res.SetPointError(gr_fsam_res.GetN()-1,0.,fsam_res_rel_err);
   }
-    
+
   TCanvas* c5 = new TCanvas("c5", "c5", 700, 500);
   c5->cd();
   gr_fsam.SetTitle("Sampling Fraction Scan;True Energy [GeV];Sampling Fraction [%]");

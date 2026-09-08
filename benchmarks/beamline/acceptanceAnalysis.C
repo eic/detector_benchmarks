@@ -19,7 +19,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS2.edm4hep.root",
+int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS2.edm4hep.rnt.root",
                         TString outFile            = "output.root",
                         std::string compactName    = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beampipeCanvasName = "acceptance_in_beampipe.png",
@@ -27,7 +27,7 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
                         TString EThetaAccCanvasName= "acceptance_energy_theta_acceptance.png",
                         TString entryFractionCanvasName = "acceptance_entries.png") {
 
-    //Set ROOT style    
+    //Set ROOT style
     gStyle->SetPadLeftMargin(0.1);  // Set left margin
     gStyle->SetPadRightMargin(0.0); // Set right margin
     gStyle->SetPadTopMargin(0.0);   // Set top margin
@@ -44,11 +44,11 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
 
     //Set implicit multi-threading
     // ROOT::EnableImplicitMT();
-       
+
     //Load the detector config
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
     detector.fromCompact(compactName);
- 
+
     ROOT::RDataFrame d0("events",inFile, {"BackwardsBeamlineHits"});
     RNode d1 = d0;
     RVecS colNames = d1.GetColumnNames();
@@ -57,10 +57,10 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     int nEntries = d1.Count().GetValue();
     //Set number of entries to process
     // d1 = d1.Range(0,1000);
-    
-    //Get the collection 
+
+    //Get the collection
     std::string mcParticlesName = "MCParticles";
-    std::string readoutName = "BackwardsBeamlineHits";  
+    std::string readoutName = "BackwardsBeamlineHits";
 
     std::cout << "Running lazy RDataframe execution" << std::endl;
 
@@ -74,18 +74,18 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
             double pz = mcParticles[0].momentum.z;
             double p = std::sqrt(px*px + py*py + pz*pz);
             double theta = M_PI-std::acos(pz / p); // Angle from the z-axis
-            
+
             return theta;
         }, {mcParticlesName})
         .Define("energy",[](const vector<edm4hep::MCParticleData>& mcParticles) {
-           
+
             //Calculate energy from mass and momentum
             double mass = mcParticles[0].mass;
             double px = mcParticles[0].momentum.x;
             double py = mcParticles[0].momentum.y;
             double pz = mcParticles[0].momentum.z;
             double energy = std::sqrt(px*px + py*py + pz*pz + mass*mass);
-            
+
             return energy;
         }, {mcParticlesName});
 
@@ -112,21 +112,21 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
                 }
                 return radii;
                 }, {"pipeParameters"});
-                
+
 
         //global x,y,z position and momentum
         d1 = d1 .Define("NHits","BackwardsBeamlineHits.size()");
-        
+
         d1 = d1.Define("hitPosMom",globalToLocal(detector),{readoutName})
                 .Define("xpos","hitPosMom[0]")
                 .Define("ypos","hitPosMom[1]")
-                .Define("zpos","hitPosMom[2]");        
+                .Define("zpos","hitPosMom[2]");
 
     }
     else{
         std::cout << "Collection " << readoutName << " not found in file" << std::endl;
         return 1;
-    }    
+    }
 
     // Calculate the maximum pipe radius for plotting
     auto maxPipeRadius = 2*d1.Max("pipeRadius").GetValue();
@@ -136,12 +136,12 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     //Create array of histogram results
     std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsxy;
     std::map<TString,ROOT::RDF::RResultPtr<TH2D>> hHistsETheta;
-    
+
 
     std::map<TString,ROOT::RDF::RResultPtr<double>> pipeRadii;
     std::map<TString,double> filterEntries;
     std::map<TString,double> filterAcceptanceIntegral;
-    
+
     //Create histograms
     for(int i=0; i<=7; i++){
 
@@ -151,7 +151,7 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
         auto filterDF = d1.Define("xposf","xpos[pipeID=="+str_i+"]")
                           .Define("yposf","ypos[pipeID=="+str_i+"]")
                           .Define("pipeRadiusf","pipeRadius[pipeID=="+str_i+"]");
-                   
+
 
         TString beamspotName = "Beamspot ID"+str_i+";x offset [cm]; y offset [cm]";
         TString xyname = name+";x Offset [cm]; y Offset [cm]";
@@ -165,9 +165,9 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
         hHistsETheta[name] = extraFilterDF.Histo2D({EThetaName,EThetaName,eBins,2,18,thetaBins,0,0.011},"energy","theta");
 
         //Parameters of the pipe
-        pipeRadii[name]    = filterDF.Max("pipeRadiusf");        
+        pipeRadii[name]    = filterDF.Max("pipeRadiusf");
         // std::cout << "Pipe ID: " << name << " Radius: " << pipeRadii[name] << " " << filterDF.Min("pipeRadiusf").GetValue() << std::endl;
-    
+
     }
 
     // Create histograms of the beamspot
@@ -193,12 +193,12 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
     TCanvas *cETheta = new TCanvas("energy_theta_canvas","energy_theta_canvas",3000,1600);
     cETheta->Divide(4,2);
     i=1;
-    for(auto [name,h] : hHistsETheta){        
+    for(auto [name,h] : hHistsETheta){
         cETheta->cd(i++);
         h->Draw("colz");
         filterEntries[name] = h->GetEntries()/ nEntries;
     }
-  
+
     // Canvas for energy vs theta acceptance
     TCanvas *cEThetaAcc = new TCanvas("energy_theta_acceptance_canvas","energy_theta_acceptance_canvas",3000,1600);
     cEThetaAcc->Divide(4,2);
@@ -224,7 +224,7 @@ int acceptanceAnalysis( TString inFile             = "/home/simong/EIC/detector_
         {},
         "Pipe ID");
 
-    TCanvas *cPipeAcceptance = new TCanvas("cPipeAcceptance", "Pipe Acceptance", 1200, 400);    
+    TCanvas *cPipeAcceptance = new TCanvas("cPipeAcceptance", "Pipe Acceptance", 1200, 400);
     cPipeAcceptance->Divide(2, 1);
     cPipeAcceptance->cd(1);
     hPipeEntries->Draw("");

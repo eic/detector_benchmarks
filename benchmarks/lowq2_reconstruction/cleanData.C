@@ -5,8 +5,8 @@
 #include "edm4hep/SimTrackerHit.h"
 #include <iostream>
 
-void cleanData(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.root", const TString outputFile="test.root", const double BeamEnergy=18.0, const int desired_cellID = 66757, const bool appendTruth = true) {
-    
+void cleanData(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestcurrent.edm4hep.rnt.root", const TString outputFile="test.root", const double BeamEnergy=18.0, const int desired_cellID = 66757, const bool appendTruth = true) {
+
     float momentum_tolerance = 0.01; // Define the momentum tolerance for filtering
 
     // Create a ROOT DataFrame to read the input files
@@ -54,7 +54,7 @@ void cleanData(const TString inputFile="/home/simong/EIC/detector_benchmarks_anl
     // std::cout << "Original DataFrame size: " << df.Count().GetValue() << std::endl;
     // // Print the size of the filtered DataFrame
     // std::cout << "Filtered DataFrame size: " << filterDF.Count().GetValue() << std::endl;
-    
+
     // std::cout << "Tagger filtered DataFrame size" << taggerDF.Count().GetValue() << std::endl;
 
     // std::cout << "Filtered data saved to " << outputFile << std::endl;

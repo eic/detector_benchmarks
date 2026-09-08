@@ -32,7 +32,7 @@ rule emcal_barrel_particles:
         E_MIN = lambda wildcards: wildcards.E_MIN,
         E_MAX = lambda wildcards: wildcards.E_MAX,
     output:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.root"
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.rnt.root"
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
@@ -46,6 +46,7 @@ exec npsim \
    --numberOfEvents {params.JUGGLER_N_EVENTS} \
    --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
    --inputFiles {input.hepmc} \
+   --outputConfig.useRNTuple true \
    --outputFile {output}
 """
 
@@ -53,11 +54,11 @@ exec npsim \
 # This is needed to bridge snakemake rule files to "normal" benchmarks
 rule emcal_barrel_particles_compat_normal:
     input:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies5.0_5.0.edm4hep.root",
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies5.0_5.0.edm4hep.rnt.root",
     wildcard_constraints:
         PARTICLE="[^_]+",
     output:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -68,11 +69,11 @@ ln {input} {output}
 # This is needed to bridge snakemake rule files to "energy_scan" benchmarks
 rule emcal_barrel_particles_compat_energy_scan:
     input:
-        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E}_{E}.edm4hep.root",
+        "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E}_{E}.edm4hep.rnt.root",
     wildcard_constraints:
         PARTICLE="[^_]+",
     output:
-        "{DETECTOR_CONFIG}/sim_output/energy_scan/{E}/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+        "{DETECTOR_CONFIG}/sim_output/energy_scan/{E}/sim_emcal_barrel_{PARTICLE}.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -84,7 +85,7 @@ rule emcal_barrel_particles_analysis:
     input:
         workflow.source_path("scripts/emcal_barrel_common_functions.h"),
         script=workflow.source_path("scripts/emcal_barrel_particles_analysis.cxx"),
-        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.root",
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}.edm4hep.rnt.root",
     wildcard_constraints:
         PARTICLE="(electron|photon|piplus|piminus)", # avoid clash with "pions"
     output:
@@ -112,7 +113,7 @@ root -l -b -q '{input.script}+("{wildcards.PARTICLE}", true)'
 rule emcal_barrel_pions_analysis:
     input:
         script=workflow.source_path("scripts/emcal_barrel_pions_analysis.cxx"),
-        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piplus_energies5.0_5.0.edm4hep.root",
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piplus_energies5.0_5.0.edm4hep.rnt.root",
     output:
         expand(
             "{{DETECTOR_CONFIG}}/results/emcal_barrel_pions_{var_name}.{extension}",
@@ -130,7 +131,7 @@ root -l -b -q '{input.script}+("../{input.sim}")'
 rule emcal_barrel_pi0_analysis:
     input:
         script=workflow.source_path("scripts/emcal_barrel_pi0_analysis.cxx"),
-        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_pi0_energies5.0_5.0.edm4hep.root",
+        sim="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_pi0_energies5.0_5.0.edm4hep.rnt.root",
         fsam="{DETECTOR_CONFIG}/results/emcal_barrel_electron_calibration.json",
     output:
         expand(
@@ -150,7 +151,7 @@ ENERGY_SCAN_ENERGIES = [0.5, 1., 2., 5., 10.]
 rule emcal_energy_scan:
     input:
         # Require all simulations produced for this rule
-        expand("{{DETECTOR_CONFIG}}/sim_output/energy_scan/{energy}/sim_emcal_barrel_{{PARTICLE}}.edm4hep.root", energy=ENERGY_SCAN_ENERGIES),
+        expand("{{DETECTOR_CONFIG}}/sim_output/energy_scan/{energy}/sim_emcal_barrel_{{PARTICLE}}.edm4hep.rnt.root", energy=ENERGY_SCAN_ENERGIES),
     output:
         "{DETECTOR_CONFIG}/sim_output/emcal_barrel_energy_scan_points_{PARTICLE}.txt",
     run:
@@ -183,8 +184,8 @@ rule emcal_barrel_pion_rejection_analysis:
     input:
         workflow.source_path("scripts/emcal_barrel_common_functions.h"),
         script=workflow.source_path("scripts/emcal_barrel_pion_rejection_analysis.cxx"),
-        electron="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.root",
-        piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.root",
+        electron="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_electron_energies1.0_18.0.edm4hep.rnt.root",
+        piminus="{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_piminus_energies1.0_18.0.edm4hep.rnt.root",
     output:
         "{DETECTOR_CONFIG}/results/emcal_barrel_pion_rej_RatioRej.png",
         expand(

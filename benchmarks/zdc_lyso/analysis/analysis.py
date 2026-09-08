@@ -13,7 +13,7 @@ hep.set_style(hep.style.CMS)
 hep.set_style("CMS")
 
 def gaussian(x, amp, mean, sigma):
-    return amp * np.exp( -(x - mean)**2 / (2*sigma**2) ) 
+    return amp * np.exp( -(x - mean)**2 / (2*sigma**2) )
 
 def rotateY(xdata, zdata, angle):
     s = np.sin(angle)
@@ -21,7 +21,7 @@ def rotateY(xdata, zdata, angle):
     rotatedz = c*zdata - s*xdata
     rotatedx = s*zdata + c*xdata
     return rotatedx, rotatedz
-    
+
 Energy = [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 
 DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
@@ -29,21 +29,21 @@ DETECTOR_CONFIG = os.environ["DETECTOR_CONFIG"]
 df = pd.DataFrame({})
 for eng in Energy:
     tree = uproot.open(f'sim_output/zdc_lyso/{DETECTOR_CONFIG}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.eicrecon.edm4eic.root')['events']
-    ecal_reco_energy = ak.sum(tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.energy'].array(), axis=-1)
-    hcal_reco_energy = ak.sum(tree['HcalFarForwardZDCClusters/HcalFarForwardZDCClusters.energy'].array(), axis=-1)
-    ecal_rec_energy = ak.sum(tree['EcalFarForwardZDCRecHits/EcalFarForwardZDCRecHits.energy'].array(), axis=-1)
-    hcal_rec_energy = ak.sum(tree['HcalFarForwardZDCRecHits/HcalFarForwardZDCRecHits.energy'].array(), axis=-1)
-    ecal_reco_clusters = [len(row) if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
-    ecal_reco_nhits = [row[0] if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters/EcalFarForwardZDCClusters.nhits'].array()]
-    
-    tree = uproot.open(f'sim_output/zdc_lyso/{DETECTOR_CONFIG}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.root')['events']
-    ecal_sim_energy = ak.sum(tree['EcalFarForwardZDCHits/EcalFarForwardZDCHits.energy'].array(), axis=-1)
-    hcal_sim_energy = ak.sum(tree['HcalFarForwardZDCHits/HcalFarForwardZDCHits.energy'].array(), axis=-1)
+    ecal_reco_energy = ak.sum(tree['EcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    hcal_reco_energy = ak.sum(tree['HcalFarForwardZDCClusters.energy'].array(), axis=-1)
+    ecal_rec_energy = ak.sum(tree['EcalFarForwardZDCRecHits.energy'].array(), axis=-1)
+    hcal_rec_energy = ak.sum(tree['HcalFarForwardZDCRecHits.energy'].array(), axis=-1)
+    ecal_reco_clusters = [len(row) if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters.nhits'].array()]
+    ecal_reco_nhits = [row[0] if len(row)>=1 else 0 for row in tree['EcalFarForwardZDCClusters.nhits'].array()]
 
-    par_x = tree['MCParticles/MCParticles.momentum.x'].array()[:,2]
-    par_y = tree['MCParticles/MCParticles.momentum.y'].array()[:,2]
-    par_z = tree['MCParticles/MCParticles.momentum.z'].array()[:,2]
-    
+    tree = uproot.open(f'sim_output/zdc_lyso/{DETECTOR_CONFIG}_gamma_{eng}GeV_theta_0deg_thru_0.3deg.edm4hep.rnt.root')['events']
+    ecal_sim_energy = ak.sum(tree['EcalFarForwardZDCHits.energy'].array(), axis=-1)
+    hcal_sim_energy = ak.sum(tree['HcalFarForwardZDCHits.energy'].array(), axis=-1)
+
+    par_x = tree['MCParticles.momentum.x'].array()[:,2]
+    par_y = tree['MCParticles.momentum.y'].array()[:,2]
+    par_z = tree['MCParticles.momentum.z'].array()[:,2]
+
     eng = int(eng*1000)
 
     ecal_reco_energy = pd.DataFrame({f'ecal_reco_energy_{eng}': np.array(ecal_reco_energy, dtype=object)})
@@ -75,7 +75,7 @@ for i in range(6):
     x, z = rotateY(x,z, 0.025)
     theta = np.arccos(z/np.sqrt((x**2+y**2+z**2)))*1000
     condition = theta <= 3.5
-    
+
     plt.sca(ax[i%3,i//3])
     eng = int(Energy[i]*1000)
     plt.title(f'Gamma Energy: {eng} MeV')
@@ -92,7 +92,7 @@ for i in range(6):
         print("fit failed")
         mu.append(np.nan)
         sigma.append(np.nan)
-    
+
     temp = np.array(df[f'ecal_rec_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
     x = x[1:]/2 + x[:-1]/2
@@ -106,7 +106,7 @@ for i in range(6):
         print("fit failed")
         mu.append(np.nan)
         sigma.append(np.nan)
-    
+
     temp = np.array(df[f'ecal_sim_energy_{eng}'].astype(float).to_numpy()[condition])*1000
     hist, x = np.histogram(temp,bins=np.linspace(min(temp),max(temp)+np.std(abs(temp)),2*int(np.sqrt(len(temp)))))
     x = x[1:]/2 + x[:-1]/2
@@ -120,10 +120,10 @@ for i in range(6):
         print("fit failed")
         mu.append(np.nan)
         sigma.append(np.nan)
-    
+
     plt.xlabel('Energy (MeV)')
     plt.legend()
-    
+
 #plt.savefig('results/Energy_reconstruction_cluster.pdf')
 
 mu = np.array(mu)
@@ -206,7 +206,7 @@ for i in range(6):
 
 
 
-    
+
 
 plt.xlabel('Energy (MeV)')
 
@@ -253,14 +253,14 @@ fig6.tight_layout(pad=1.8)
 for i in range(6):
     plt.sca(ax[i//3,i%3])
     eng = int(Energy[i]*1000)
-    
+
     x = df[f'par_x_{eng}'].astype(float).to_numpy()
     y = df[f'par_y_{eng}'].astype(float).to_numpy()
     z = df[f'par_z_{eng}'].astype(float).to_numpy()
     x, z = rotateY(x,z, 0.025)
     theta = np.arccos(z/np.sqrt((x**2+y**2+z**2)))*1000
     condition = theta <= 3.5
-    
+
     plt.hist(df[f'ecal_reco_clusters_{eng}'][condition],bins=np.linspace(0,5,6))
     plt.xlabel('Number of Clusters')
     plt.title(f'Gamma Energy: {eng} MeV')
@@ -272,14 +272,14 @@ fig7.tight_layout(pad=1.8)
 for i in range(6):
     plt.sca(ax[i//3,i%3])
     eng = int(Energy[i]*1000)
-    
+
     x = df[f'par_x_{eng}'].astype(float).to_numpy()
     y = df[f'par_y_{eng}'].astype(float).to_numpy()
     z = df[f'par_z_{eng}'].astype(float).to_numpy()
     x, z = rotateY(x,z, 0.025)
     theta = np.arccos(z/np.sqrt((x**2+y**2+z**2)))*1000
     condition = theta <= 3.5
-    
+
     plt.hist(df[f'ecal_reco_nhits_{eng}'][condition],bins=np.linspace(0,max(df[f'ecal_reco_nhits_{eng}'][condition]),max(df[f'ecal_reco_nhits_{eng}'][condition])+1))
     plt.xlabel('Number of tower in Clusters')
     plt.title(f'Gamma Energy: {eng} MeV')

@@ -1,0 +1,13 @@
+bench:pythia8:
+  extends: .det_benchmark
+  stage: benchmarks
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 pythia8
+
+collect_results:pythia8:
+  extends: .det_benchmark
+  stage: collect
+  needs:
+    - ["bench:pythia8"]
+  script:
+    - ls -lrht

@@ -83,6 +83,7 @@ include: "benchmarks/nhcal_basic_distribution/Snakefile"
 include: "benchmarks/nhcal_sampling_fraction/Snakefile"
 include: "benchmarks/nhcal_dimuon_photoproduction/Snakefile"
 include: "benchmarks/nhcal_pion_rejection/Snakefile"
+include: "benchmarks/pythia8/Snakefile"
 
 use_s3 = config["remote_provider"].lower() == "s3"
 use_xrootd = config["remote_provider"].lower() == "xrootd"

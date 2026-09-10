@@ -165,7 +165,8 @@ deploy_results:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
     - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
-    - rucio upload --rse E1_BNL_DISK_1 pipeline-$CI_PIPELINE_ID.tar
+    - rucio upload --rse E1_BNL_DISK_1 --scope ${DEPLOY_RESULTS_SCOPE} ${DEPLOY_RESULTS_PATH}/pipeline-$CI_PIPELINE_ID.tar
+    - rucio did content add --to-did ${DEPLOY_RESULTS_SCOPE}:${DEPLOY_RESULTS_PATH} ${DEPLOY_RESULTS_SCOPE}:${DEPLOY_RESULTS_PATH}/pipeline-$CI_PIPELINE_ID.tar
   retry:
     max: 2
     when:

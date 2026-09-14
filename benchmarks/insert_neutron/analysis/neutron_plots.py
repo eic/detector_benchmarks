@@ -97,8 +97,8 @@ try:
     coeff, var_matrix = fit_theta_residuals(y, x)
     xx=np.linspace(x[0],x[-1],100)
     plt.plot(xx,gauss(xx,*coeff))
-except (RuntimeError, ValueError) as error:
-    print(f"theta fit failed: p={p} GeV, {eta_min}<eta<{eta_max}: {error}")
+except (RuntimeError, ValueError):
+    pass
 plt.xlabel("$\\theta_{rec}-\\theta_{truth}$ [mrad]")
 plt.ylabel("events")
 plt.title(f"$p={p}$ GeV, ${eta_min}<\\eta<{eta_max}$")
@@ -117,8 +117,8 @@ for eta_min, eta_max in zip(r[:-1],r[1:]):
             sigmas.append(np.abs(coeff[2]))
             dsigmas.append(np.sqrt(var_matrix[2][2]))
             xvals.append(p)
-        except (RuntimeError, ValueError) as error:
-            print(f"theta fit failed: p={p} GeV, {eta_min}<eta<{eta_max}: {error}")
+        except (RuntimeError, ValueError):
+            pass
     plt.sca(axs[1])
     plt.errorbar(xvals, sigmas, dsigmas, ls='', marker='o', label=f"${eta_min}<\\eta<{eta_max}$")
 plt.xlabel("$p_{n}$ [GeV]")

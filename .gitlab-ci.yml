@@ -107,6 +107,7 @@ common:setup:
   before_script:
     - source bin/env.sh
     - source ${DETECTOR_PREFIX}/bin/thisepic.sh
+    - eic-info
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC

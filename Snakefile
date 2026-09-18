@@ -5,7 +5,7 @@ import os
 from snakemake.logging import logger
 
 shell.prefix(
-    f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh; "
+    f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh {config['DETECTOR_CONFIG']}; "
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
 )
 

@@ -107,6 +107,7 @@ common:setup:
   before_script:
     - source bin/env.sh
     - source ${DETECTOR_PREFIX}/bin/thisepic.sh
+    - eic-info
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
@@ -195,15 +196,9 @@ deploy_results:
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
-    - |
-      if [ ! -x "$(command -v pelican)" ] ; then
-        wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz ;
-        sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114 pelican_Linux_x86_64.tar.gz') ;
-        tar zxf pelican_Linux_x86_64.tar.gz ;
-        export PATH=${PWD}/pelican-7.13.0:${PATH} ;
-      fi
     - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
-    - pelican object copy pipeline-$CI_PIPELINE_ID.tar $OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID.tar
+    - rucio upload --rse E1_BNL_DISK_1 --scope ${DEPLOY_RESULTS_SCOPE} pipeline-$CI_PIPELINE_ID.tar
+    - rucio did content add --to-did ${DEPLOY_RESULTS_SCOPE}:VALIDATION_INBOX ${DEPLOY_RESULTS_SCOPE}:pipeline-$CI_PIPELINE_ID.tar
   retry:
     max: 2
     when:

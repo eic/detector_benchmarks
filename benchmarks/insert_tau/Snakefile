@@ -26,7 +26,7 @@ rule insert_tau_simulate:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.rnt.root",
     params:
         N_EVENTS=get_n_events,
         INDEX=lambda wildcards: wildcards.INDEX,
@@ -47,12 +47,13 @@ exec npsim \
    --skipNEvents $(( {params.N_EVENTS} * {params.INDEX} )) \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
+   --outputConfig.useRNTuple true \
    --outputFile {output.SIM_FILE}
 """
 
 rule insert_tau_recon:
     input:
-        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_sim_tau-_{P}GeV_{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_tau/{DETECTOR_CONFIG}_rec_tau-_{P}GeV_{INDEX}.edm4eic.root",

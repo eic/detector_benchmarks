@@ -20,7 +20,7 @@ rule insert_muon_simulate:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.rnt.root",
     params:
         INDEX=lambda wildcards: wildcards.INDEX,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
@@ -41,12 +41,13 @@ exec npsim \
    --numberOfEvents $NEVENTS_SIM \
    --physicsList {params.PHYSICS_LIST} \
    --inputFiles {input.GEN_FILE} \
+   --outputConfig.useRNTuple true \
    --outputFile {output.SIM_FILE}
 """
 
 rule insert_muon_recon:
     input:
-        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+        SIM_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         REC_FILE="sim_output/insert_muon/{DETECTOR_CONFIG}_rec_mu-_{P}GeV_{INDEX}.edm4hep.root",
@@ -64,7 +65,7 @@ env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 
 rule insert_muon_analysis:
     input:
-        expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.root",
+        expand("sim_output/insert_muon/{DETECTOR_CONFIG}_sim_mu-_{P}GeV_{INDEX}.edm4hep.rnt.root",
             P=[50],
             DETECTOR_CONFIG=["{DETECTOR_CONFIG}"],
             INDEX=range(5),

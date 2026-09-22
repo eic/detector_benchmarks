@@ -7,9 +7,9 @@ rule backgrounds_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root",
+        "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.rnt.root",
     log:
-        "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.root.log",
+        "sim_output/{DETECTOR_CONFIG}/backgrounds/{PATH}.edm4hep.rnt.root.log",
     params:
         N_EVENTS=100,
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -29,6 +29,7 @@ exec npsim \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
   --inputFiles {params.hepmc} \
+  --outputConfig.useRNTuple true \
   --outputFile {output}
 """
 
@@ -39,9 +40,9 @@ rule backgrounds_ecal_backwards:
     input:
         matplotlibrc=".matplotlibrc",
         script="benchmarks/backgrounds/ecal_backwards.org2py.py",
-        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.root",
-        physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root",
-        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.root",
+        electron_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/electron/GETaLM1.0.0-1.0/10GeV/GETaLM1.0.0-1.0_ElectronBeamGas_10GeV_foam_emin10keV_run001.edm4hep.rnt.root",
+        physics_signal_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/DIS/NC/10x100/minQ2=1/pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.rnt.root",
+        proton_beam_gas_sim="sim_output/" + DETECTOR_CONFIG + "/backgrounds/EPIC/EVGEN/BACKGROUNDS/BEAMGAS/proton/pythia8.306-1.0/100GeV/pythia8.306-1.0_ProtonBeamGas_100GeV_run001.edm4hep.rnt.root",
     output:
         directory("results/backgrounds/backwards_ecal")
     log:

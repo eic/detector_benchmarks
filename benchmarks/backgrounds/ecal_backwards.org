@@ -56,10 +56,10 @@ setup_presentation_style()
 
 #+begin_src jupyter-python :results silent
 ELECTRON_BEAM_GAS_GEN=os.environ.get("ELECTRON_BEAM_GAS_GEN", "../beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")
-ELECTRON_BEAM_GAS_SIM=os.environ.get("ELECTRON_BEAM_GAS_SIM", "electron_beam_gas.edm4hep.root")
-PHYSICS_PROCESS_SIM=os.environ.get("PHYSICS_PROCESS_SIM", "pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root")
+ELECTRON_BEAM_GAS_SIM=os.environ.get("ELECTRON_BEAM_GAS_SIM", "electron_beam_gas.edm4hep.rnt.root")
+PHYSICS_PROCESS_SIM=os.environ.get("PHYSICS_PROCESS_SIM", "pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.rnt.root")
 PROTON_BEAM_GAS_GEN=os.environ.get("PROTON_BEAM_GAS_GEN", "100GeV.hepmc")
-PROTON_BEAM_GAS_SIM=os.environ.get("PROTON_BEAM_GAS_SIM", "proton+beam_gas_ep.edm4hep.root")
+PROTON_BEAM_GAS_SIM=os.environ.get("PROTON_BEAM_GAS_SIM", "proton+beam_gas_ep.edm4hep.rnt.root")
 
 output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
 output_dir.mkdir(parents=True, exist_ok=True)

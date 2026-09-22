@@ -19,7 +19,7 @@ rule zdc_neutron_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
+        "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.rnt.root",
     params:
         num_events=100,
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
@@ -36,6 +36,7 @@ exec npsim \
   --random.seed 1 \
   --numberOfEvents {params.num_events} \
   --inputFiles {input.hepmcfile} \
+  --outputConfig.useRNTuple true \
   --outputFile {output}
 """
 
@@ -43,7 +44,7 @@ exec npsim \
 # Process the file produced in the previous step through EICRecon
 rule zdc_neutron_reco:
     input:
-        sim="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
+        sim="sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
@@ -64,7 +65,7 @@ exec env DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 rule zdc_neutron_analyses:
     input:
         geant_script = workflow.source_path("analysis/fwd_neutrons_geant.C"),
-        data_geant = "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.root",
+        data_geant = "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4hep.rnt.root",
         recon_script = workflow.source_path("analysis/fwd_neutrons_recon.C"),
         data_recon = "sim_output/zdc_neutron/{DETECTOR_CONFIG}/fwd_neutrons.edm4eic.root",
     output:

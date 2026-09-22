@@ -20,7 +20,7 @@
 using RVecS       = ROOT::VecOps::RVec<string>;
 using RNode       = ROOT::RDF::RNode;
 
-int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS3.edm4hep.root",
+int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_benchmarks_anl/sim_output/beamline/acceptanceTestXS3.edm4hep.rnt.root",
                         TString outFile         = "output.root",
                         std::string compactName = "/home/simong/EIC/epic/install/share/epic/epic_ip6_extended.xml",
                         TString beamspotCanvasName = "beamspot_canvas.png",
@@ -31,7 +31,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
                         TString pipeParamsCanvasName = "pipe_parameters.png"
                     ){
 
-    //Set ROOT style    
+    //Set ROOT style
     gStyle->SetPadLeftMargin(0.1);  // Set left margin
     gStyle->SetPadRightMargin(0.0); // Set right margin
     gStyle->SetPadTopMargin(0.0);   // Set top margin
@@ -46,13 +46,13 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
 
     //Set implicit multi-threading
     ROOT::EnableImplicitMT();
-       
+
     int pass = 0;
 
     //Load the detector config
     dd4hep::Detector& detector = dd4hep::Detector::getInstance();
     detector.fromCompact(compactName);
- 
+
     ROOT::RDataFrame d0("events",inFile, {"BackwardsBeamlineHits"});
     RNode d1 = d0;
     RVecS colNames = d1.GetColumnNames();
@@ -62,9 +62,9 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     int   nEntries          = d1.Count().GetValue();
     float acceptableLoss    = 0.999; // Set the acceptable loss percentage to 0.1%
     float acceptableEntries = nEntries * acceptableLoss;
-    
-    //Get the collection 
-    std::string readoutName = "BackwardsBeamlineHits";  
+
+    //Get the collection
+    std::string readoutName = "BackwardsBeamlineHits";
 
     std::cout << "Running lazy RDataframe execution" << std::endl;
 
@@ -108,7 +108,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
                 }
                 return rotation;
                 }, {"pipeParameters"});
-                
+
 
         //global x,y,z position and momentum
         d1 = d1.Define("xpos_global","BackwardsBeamlineHits.position.x")
@@ -128,13 +128,13 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
                 .Define("momMag","sqrt(xmomMag*xmomMag+ymomMag*ymomMag+zmomMag*zmomMag)")
                 .Define("xmom","xmomMag/momMag")
                 .Define("ymom","ymomMag/momMag")
-                .Define("zmom","zmomMag/momMag");        
+                .Define("zmom","zmomMag/momMag");
 
     }
     else{
         std::cout << "Collection " << readoutName << " not found in file" << std::endl;
         return 1;
-    }    
+    }
 
     // Calculate the maximum pipe radius for plotting
     auto maxPipeRadius = 2*d1.Max("pipeRadius").GetValue();
@@ -199,7 +199,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     auto pxmax = pxmax_ptr.GetValue();
     auto pymin = pymin_ptr.GetValue();
     auto pymax = pymax_ptr.GetValue();
-    
+
     //Create histograms
     for(int i=0; i<=7; i++){
 
@@ -214,7 +214,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
                           .Define("xdetf","xdet[pipeID=="+std::to_string(i)+"]")
                           .Define("zdetf","zdet[pipeID=="+std::to_string(i)+"]")
                           .Define("rotationf","rotation[pipeID=="+std::to_string(i)+"]");
-                          
+
 
         //Calculate Min and Max values
         auto xminf = filterDF.Min("xposf").GetValue();
@@ -226,7 +226,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
         auto pyminf = filterDF.Min("ymomf").GetValue();
         auto pymaxf = filterDF.Max("ymomf").GetValue();
         // If the min and max values are equal, set them to a small value
-        if(xminf == xmaxf) {            
+        if(xminf == xmaxf) {
             xminf -= 0.01;
             xmaxf += 0.01;
             pass = 1; // Set pass to 1 if xminf == xmaxf
@@ -331,7 +331,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
             pxStdDevFitErr[name] = 0;
             pyStdDevFitErr[name] = 0;
         }
-     
+
     }
 
 
@@ -356,7 +356,7 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
         cXY->cd(i++);
 
         h->Draw("col");
-        
+
         // Only draw circle overlay if the shape is a cone segment
         if (pipeIsConeSegment[name] && pipeRadius > 0) {
             TEllipse *circle = new TEllipse(0,0,pipeRadius);
@@ -410,45 +410,45 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
     // ---------------------------------------------------------------------------
 
     // Create histograms for fitted X means and standard deviations
-    TH1F* hFittedXMeans = CreateFittedHistogram("hFittedXMeans", 
-        "Mean X Offset [cm]", 
-        xMeanFit, 
-        xMeanFitErr, 
+    TH1F* hFittedXMeans = CreateFittedHistogram("hFittedXMeans",
+        "Mean X Offset [cm]",
+        xMeanFit,
+        xMeanFitErr,
         "Pipe ID");
 
-    TH1F* hFittedXStdDevs = CreateFittedHistogram("hFittedXStdDevs", 
-        "Std Deviation X Offset [cm]", 
-        xStdDevFit, 
-        xStdDevFitErr, 
+    TH1F* hFittedXStdDevs = CreateFittedHistogram("hFittedXStdDevs",
+        "Std Deviation X Offset [cm]",
+        xStdDevFit,
+        xStdDevFitErr,
         "Pipe ID");
 
     // Create histograms for fitted Y means and standard deviations
-    TH1F* hFittedYMeans = CreateFittedHistogram("hFittedYMeans", 
+    TH1F* hFittedYMeans = CreateFittedHistogram("hFittedYMeans",
         "Mean Y Offset [cm]",
-        yMeanFit, 
-        yMeanFitErr, 
+        yMeanFit,
+        yMeanFitErr,
         "Pipe ID");
 
-    TH1F* hFittedYStdDevs = CreateFittedHistogram("hFittedYStdDevs", 
+    TH1F* hFittedYStdDevs = CreateFittedHistogram("hFittedYStdDevs",
         "Std Deviation Y Offset [cm]",
-        yStdDevFit, 
-        yStdDevFitErr, 
+        yStdDevFit,
+        yStdDevFitErr,
         "Pipe ID");
 
-    TH1F* hFittedPxMeans = CreateFittedHistogram("hFittedPxMeans", 
-        "Mean Px", 
-        pxMeanFit, 
-        pxMeanFitErr, 
+    TH1F* hFittedPxMeans = CreateFittedHistogram("hFittedPxMeans",
+        "Mean Px",
+        pxMeanFit,
+        pxMeanFitErr,
         "Pipe ID");
     TH1F* hFittedPyMeans = CreateFittedHistogram("hFittedPyMeans",
-        "Mean Py", 
-        pyMeanFit, 
-        pyMeanFitErr, 
+        "Mean Py",
+        pyMeanFit,
+        pyMeanFitErr,
         "Pipe ID");
     TH1F* hFittedPxStdDevs = CreateFittedHistogram("hFittedPxStdDevs",
-        "Std Deviation Px", 
-        pxStdDevFit, 
-        pxStdDevFitErr, 
+        "Std Deviation Px",
+        pxStdDevFit,
+        pxStdDevFitErr,
         "Pipe ID");
     TH1F* hFittedPyStdDevs = CreateFittedHistogram("hFittedPyStdDevs",
         "Std Deviation Py",
@@ -515,13 +515,13 @@ int beamlineAnalysis(   TString inFile          = "/home/simong/EIC/detector_ben
         "Pipe ID");
 
     // Create a canvas for the pipe parameters
-    TCanvas *cPipeParams = new TCanvas("cPipeParams", "Pipe Parameters", 1200, 400);    
+    TCanvas *cPipeParams = new TCanvas("cPipeParams", "Pipe Parameters", 1200, 400);
     cPipeParams->Divide(4, 1);
     cPipeParams->cd(1);
     hPipeRadii->Draw("");
     cPipeParams->cd(2);
     hPipeXPos->Draw("");
-    cPipeParams->cd(3); 
+    cPipeParams->cd(3);
     hPipeZPos->Draw("");
     cPipeParams->cd(4);
     hPipeRotations->Draw("");

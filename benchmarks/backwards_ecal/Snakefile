@@ -32,7 +32,7 @@ rule backwards_ecal_sim:
         """
 set -m # monitor mode to prevent lingering processes
 set -o pipefail
-exec npsim \
+npsim \
   --runType batch \
   --enableGun \
   --steeringFile "{input.steering_file}" \
@@ -41,8 +41,8 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --outputFile {output} \
-  --outputConfig.useRNTuple true | tee {log}
+  --outputConfig.useRNTuple true \
+  --outputFile {output} | tee {log}
 """
 
 
@@ -72,7 +72,7 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 rule backwards_ecal_dis_recon:
     input:
         # Reuse the centrally defined DIS simulation from the tracking benchmark.
-        sim="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.root",
+        sim="sim_output/tracking_performances_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/backwards_ecal_dis/{DETECTOR_CONFIG}/pythia8NCDIS_{EBEAM}x{PBEAM}_minQ2={MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{INDEX}.edm4eic.root",

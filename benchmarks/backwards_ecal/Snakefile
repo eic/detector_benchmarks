@@ -65,7 +65,7 @@ rule backwards_ecal_recon:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.sim} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters | tee {log}
+  -Ppodio:output_collections=MCParticles,EcalEndcapNRecHits,EcalEndcapNClusters,EcalEndcapNTruthClusters,EcalEndcapNTruthClusterAssociations | tee {log}
 """
 
 
@@ -198,6 +198,7 @@ rule backwards_ecal:
         ),
         matplotlibrc=".matplotlibrc",
         script="benchmarks/backwards_ecal/backwards_ecal.org2py.py",
+        truth_script=workflow.source_path("truth_cluster_agreement.py"),
     output:
         directory("results/backwards_ecal/{CAMPAIGN}/")
     log:
@@ -232,6 +233,11 @@ DETECTOR_CONFIG=""" + DETECTOR_CONFIG + """ \
 INPUT_PATH_FORMAT=listing/backwards_ecal/{wildcards.CAMPAIGN}/""" + DETECTOR_CONFIG + """/{{particle}}/{{energy}}/130to177deg.lst \
 OUTPUT_DIR={output} \
 python {input.script}
+if [[ "{wildcards.CAMPAIGN}" == "local" ]]; then
+  python {input.truth_script} \
+    --input-path-format "listing/backwards_ecal/local/""" + DETECTOR_CONFIG + """/e-/{{energy}}/130to177deg.lst" \
+    --output-dir {output}/truth_cluster_agreement
+fi
 """
 
 

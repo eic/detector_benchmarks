@@ -1,0 +1,56 @@
+rule pythia8_fetch_steering:
+    output:
+        "sim_output/pythia8/steerFiles/{STEERING}",
+    params:
+        url=lambda wildcards: f"https://github.com/eic/eicSimuBeamEffects/raw/master/Pythia8/steerFiles/{wildcards.STEERING}",
+        nevents=1000,
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell: """
+curl -L --output {output} {params.url}
+sed -i 's/^Main:numberOfEvents.*/Main:numberOfEvents = {params.nevents}/' {output}
+"""
+
+
+rule pythia8_generate:
+    input:
+        steering="sim_output/pythia8/steerFiles/dis_eicBeam_hiDiv_{EBEAM}x{PBEAM}_{Q2RANGE}",
+    output:
+        hepmc="sim_output/pythia8/{EBEAM}x{PBEAM}_{Q2RANGE}/gen.hepmc",
+        hist="sim_output/pythia8/{EBEAM}x{PBEAM}_{Q2RANGE}/gen.hist.root",
+    params:
+        config=1,  # 1 = high divergence
+        xangle=0.025,
+    wildcard_constraints:
+        EBEAM=r"\d+",
+        PBEAM=r"\d+",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell: """
+runBeamShapeHepMC {input.steering} {params.config} {wildcards.PBEAM} {wildcards.EBEAM} {params.xangle} {output.hist} {output.hepmc}
+"""
+
+
+rule pythia8_rivet:
+    input:
+        hepmc="sim_output/pythia8/{PREFIX}/gen.hepmc",
+    output:
+        yoda="sim_output/pythia8/{PREFIX}/MC_DIS.yoda",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell: """
+rivet --analysis MC_DIS --ignore-beams -o {output.yoda} {input.hepmc}
+"""
+
+
+rule pythia8_plots:
+    input:
+        yoda="sim_output/pythia8/{PREFIX}/MC_DIS.yoda",
+    output:
+        directory("results/pythia8/{PREFIX}/plots"),
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell: """
+rivet-mkhtml {input.yoda} -o {output}
+"""
+
+
+rule pythia8:
+    input:
+        "results/pythia8/18x275_10to100/plots",

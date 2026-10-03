@@ -127,7 +127,6 @@ include:
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
-  - local: 'benchmarks/campaign/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/far_forward_dvcs/config.yml'
   - local: 'benchmarks/lowq2_reconstruction/config.yml'
@@ -166,7 +165,6 @@ deploy_results:
     - "collect_results:barrel_ecal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"
-    - "collect_results:campaign"
     - "collect_results:ecal_gaps"
     - "collect_results:far_forward_dvcs"
     - "collect_results:lfhcal"

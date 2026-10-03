@@ -130,7 +130,7 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
         output:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
         params:
-            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+            search_path=lambda wildcards: f"EPIC/volatile/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \
@@ -147,7 +147,7 @@ else:
         output:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
         params:
-            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+            search_path=lambda wildcards: f"EPIC/volatile/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
     xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \

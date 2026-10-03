@@ -31,7 +31,7 @@ npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --inputFiles root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/EXCLUSIVE/DVCS_ABCONV/{params.EBEAM}x{params.PBEAM}/DVCS.{params.INDEX}.ab.hiAcc.{params.EBEAM}x{params.PBEAM}.hepmc3.tree.root \
+  --inputFiles root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/EVGEN/EXCLUSIVE/DVCS_ABCONV/{params.EBEAM}x{params.PBEAM}/DVCS.{params.INDEX}.ab.hiAcc.{params.EBEAM}x{params.PBEAM}.hepmc3.tree.root \
   --outputFile {output}
 """
 

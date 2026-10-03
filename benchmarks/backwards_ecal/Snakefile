@@ -133,8 +133,8 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
-      | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
+    xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \
+      | awk '{{ print "root://dtn2304.jlab.org:8443/"$1; }}' \
       | sort \
       > {output}
     if [ ! -s {output} ]; then
@@ -150,8 +150,8 @@ else:
             search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
-      | sed -e 's#^/volatile/eic/##' \
+    xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \
+      | sed -e 's#^/jlab-osdf-ro/eic/##' \
       | sort \
       > {output}
     if [ ! -s {output} ]; then

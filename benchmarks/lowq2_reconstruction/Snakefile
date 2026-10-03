@@ -14,7 +14,7 @@ rule filter_hepmc_for_training:
     output:
         SIMOUTDIR+"Low-Q2_Training_Events.hepmc3.tree.root",
     params:
-        events="root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
+        events="root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/EVGEN/SIDIS/pythia6-eic/1.0.0/18x275/q2_0to1/pythia_ep_noradcor_18x275_q2_0.000000001_1.0_run1.ab.hepmc3.tree.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """

@@ -92,8 +92,8 @@ upload_onnx:lowq2_reconstruction:
         echo "File $LOWQ2_ONNX_FILE does not exist, deployment failed";
         exit 1;
       fi
-    - XROOTD_ENDPOINT="root://dtn-eic.jlab.org/"
-    - XROOTD_CALIB_PREFIX="/volatile/eic/EPIC/xrdtest/CALIB/"
+    - XROOTD_ENDPOINT="root://dtn2304.jlab.org:8443/"
+    - XROOTD_CALIB_PREFIX="/jlab-osdf-ro/eic/EPIC/xrdtest/CALIB/"
     - ONNX_UPLOAD_URL="$OSDF_ENDPOINT$OSDF_CALIB_OUTPUT_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - ONNX_DOWNLOAD_URL="$XROOTD_ENDPOINT$XROOTD_CALIB_PREFIX/$ONNX_HASH/Low-Q2_Steering_Reconstruction.onnx"
     - echo "Deploying to xrootd server using pelican"

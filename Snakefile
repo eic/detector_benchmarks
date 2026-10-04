@@ -92,21 +92,7 @@ def get_remote_path(path):
     if use_s3:
         return f"s3https://eics3.sdcc.bnl.gov:9000/eictest/{path}"
     elif use_xrootd:
-        base_path = path.lstrip('/')
-        if base_path.startswith('EPIC/volatile/'):
-            normalized_path = base_path
-        elif base_path.startswith('EPIC/'):
-            normalized_path = 'EPIC/volatile/' + base_path[len('EPIC/'):]
-        elif base_path.startswith(('EVGEN/', 'RECO/', 'CALIB/', 'xrdtest/')):
-            normalized_path = 'EPIC/volatile/' + base_path
-        elif base_path == 'EPIC':
-            normalized_path = 'EPIC/volatile'
-        elif base_path in {'EVGEN', 'RECO', 'CALIB', 'xrdtest'}:
-            normalized_path = 'EPIC/volatile/' + base_path
-        else:
-            logger.warning(f"Unexpected XRootD path prefix for get_remote_path(): {path!r}; passing through unchanged.")
-            normalized_path = base_path
-        return f"root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/{normalized_path}"
+        return f"root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/volatile/{path}"
     else:
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 

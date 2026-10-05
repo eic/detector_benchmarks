@@ -57,7 +57,6 @@ include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"
 include: "benchmarks/beamline/Snakefile"
 include: "benchmarks/calo_pid/Snakefile"
-include: "benchmarks/campaign/Snakefile"
 include: "benchmarks/ecal_gaps/Snakefile"
 include: "benchmarks/far_forward_dvcs/Snakefile"
 include: "benchmarks/lowq2_reconstruction/Snakefile"
@@ -92,7 +91,7 @@ def get_remote_path(path):
     if use_s3:
         return f"s3https://eics3.sdcc.bnl.gov:9000/eictest/{path}"
     elif use_xrootd:
-        return f"root://dtn-eic.jlab.org//volatile/eic/{path}"
+        return f"root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/volatile/{path}"
     else:
         raise runtime_exception('Unexpected value for config["remote_provider"]: {config["remote_provider"]}')
 
@@ -109,7 +108,7 @@ rule fetch_epic:
     retries: 3
     singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
-xrdcp --debug 2 root://dtn-eic.jlab.org//volatile/eic/EPIC/{wildcards.PATH} {output.filepath}
+xrdcp --debug 2 root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/volatile/{wildcards.PATH} {output.filepath}
 """ if use_xrootd else """
 mc cp S3/eictest/EPIC/{wildcards.PATH} {output.filepath}
 """ if use_s3 else f"""

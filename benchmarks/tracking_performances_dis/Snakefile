@@ -30,7 +30,7 @@ npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-  --inputFiles root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/volatile/EVGEN/DIS/NC/{params.EBEAM}x{params.PBEAM}/minQ2={params.MINQ2}/pythia8NCDIS_{params.EBEAM}x{params.PBEAM}_minQ2={params.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_vtxfix_{params.INDEX}.hepmc3.tree.root \
+  --inputFiles root://dtn2304.jlab.org:8443//jlab-osdf-ro/eic/EPIC/volatile/EVGEN/DIS/NC/{params.EBEAM}x{params.PBEAM}/minQ2={params.MINQ2}/pythia8NCDIS_{params.EBEAM}x{params.PBEAM}_minQ2={params.MINQ2}_beamEffects_xAngle=-0.025_hiDiv_{params.INDEX}.hepmc3.tree.root \
   --outputFile {output}
 """
 

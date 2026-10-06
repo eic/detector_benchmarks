@@ -153,6 +153,7 @@ include:
   - local: 'benchmarks/nhcal_sampling_fraction/config.yml'
   - local: 'benchmarks/nhcal_dimuon_photoproduction/config.yml'
   - local: 'benchmarks/nhcal_pion_rejection/config.yml'
+  - local: 'benchmarks/pfa_validation/config.yml'
   
 deploy_results:
   allow_failure: true

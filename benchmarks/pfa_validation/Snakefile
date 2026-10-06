@@ -1,0 +1,313 @@
+# PFA Validation Benchmark Snakefile
+# Validates PandoraPFA and ArborPFA algorithms against baseline particle_flow
+
+import os
+
+# Helper function to determine number of events based on energy
+def get_n_events_single(wildcards):
+    energy = float(wildcards.ENERGY.replace("GeV", ""))
+    # More events for lower energies
+    if energy < 5:
+        return 10000
+    elif energy < 20:
+        return 5000
+    else:
+        return 2000
+
+def get_n_events_multi(wildcards):
+    return 1000
+
+
+# ============================================================================
+# SINGLE PARTICLE VALIDATION
+# ============================================================================
+
+rule pfa_validation_generate_single:
+    input:
+        script=workflow.source_path("analysis/gen_particles.cxx"),
+    output:
+        GEN_FILE="sim_output/pfa_validation/single/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.hepmc",
+    params:
+        N_EVENTS=get_n_events_single,
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        ENERGY=lambda wildcards: wildcards.ENERGY.replace("GeV", ""),
+        # Phase space definitions
+        TH_MIN=lambda wildcards: {
+            "forward": 2.0,
+            "barrel": 45.0,
+            "backward": 130.0
+        }[wildcards.PHASE_SPACE],
+        TH_MAX=lambda wildcards: {
+            "forward": 28.0,
+            "barrel": 135.0,
+            "backward": 177.0
+        }[wildcards.PHASE_SPACE],
+    wildcard_constraints:
+        PARTICLE="(e-|e\+|pi-|pi\+|gamma)",
+        ENERGY="[0-9]+GeV",
+        PHASE_SPACE="(forward|barrel|backward)",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+mkdir -p sim_output/pfa_validation/single
+root -l -b -q '{input.script}({params.N_EVENTS}, "{output.GEN_FILE}", "{params.PARTICLE}", {params.TH_MIN}, {params.TH_MAX}, 0., 360., {params.ENERGY})'
+"""
+
+
+rule pfa_validation_simulate_single:
+    input:
+        GEN_FILE="sim_output/pfa_validation/single/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.hepmc",
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        SIM_FILE="sim_output/pfa_validation/single/{DETECTOR_CONFIG}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_sim.edm4hep.root",
+    log:
+        "sim_output/pfa_validation/single/{DETECTOR_CONFIG}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_sim.log",
+    params:
+        N_EVENTS=get_n_events_single,
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+exec npsim \
+   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed 1 \
+   --numberOfEvents {params.N_EVENTS} \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE} \
+   2>&1 | tee {log}
+"""
+
+
+rule pfa_validation_recon_single:
+    input:
+        SIM_FILE="sim_output/pfa_validation/single/{DETECTOR_CONFIG}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_sim.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        REC_FILE="sim_output/pfa_validation/single/{DETECTOR_CONFIG}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_rec.edm4eic.root",
+    log:
+        "sim_output/pfa_validation/single/{DETECTOR_CONFIG}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_rec.log",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+        # PFA collections - plugins must be explicitly loaded
+        OUTPUT_COLLECTIONS="MCParticles,PandoraPFAParticles,ArborPFAParticles",
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+# PFA plugins must be explicitly loaded with -Pplugins=pandora,arbor
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.SIM_FILE} \
+  -Ppodio:output_file={output.REC_FILE} \
+  -Ppodio:output_collections={params.OUTPUT_COLLECTIONS} \
+  -Pplugins=pandora,arbor \
+  2>&1 | tee {log}
+"""
+
+
+rule pfa_validation_analysis_single:
+    input:
+        files=lambda wildcards: expand(
+            "sim_output/pfa_validation/single/{{DETECTOR_CONFIG}}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}_rec.edm4eic.root",
+            PARTICLE=[wildcards.PARTICLE],
+            ENERGY=["1GeV", "5GeV", "10GeV", "20GeV", "50GeV"],
+            PHASE_SPACE=["forward", "barrel", "backward"],
+        ),
+        script=workflow.source_path("analysis/pfa_single_particle.py"),
+    output:
+        results_dir=directory("results/pfa_validation/{DETECTOR_CONFIG}/single/{PARTICLE}/"),
+    params:
+        PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+    wildcard_constraints:
+        PARTICLE="(e-|e\+|pi-|pi\+|gamma)",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+mkdir -p {output.results_dir}
+python3 {input.script} \
+  --input-pattern "sim_output/pfa_validation/single/{params.DETECTOR_CONFIG}/{params.PARTICLE}_*_rec.edm4eic.root" \
+  --output-dir {output.results_dir} \
+  --particle {params.PARTICLE}
+"""
+
+
+# ============================================================================
+# MULTI-PARTICLE VALIDATION
+# ============================================================================
+
+rule pfa_validation_generate_multi:
+    input:
+        script=workflow.source_path("analysis/gen_multiparticle.cxx"),
+    output:
+        GEN_FILE="sim_output/pfa_validation/multi/{EVENT_TYPE}_{ENERGY}.hepmc",
+    params:
+        N_EVENTS=get_n_events_multi,
+        EVENT_TYPE=lambda wildcards: {
+            "dijet": 0,
+            "hadrons": 1,
+            "emshower": 2
+        }[wildcards.EVENT_TYPE],
+        ENERGY=lambda wildcards: wildcards.ENERGY.replace("GeV", ""),
+    wildcard_constraints:
+        EVENT_TYPE="(dijet|hadrons|emshower)",
+        ENERGY="[0-9]+GeV",
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+mkdir -p sim_output/pfa_validation/multi
+root -l -b -q '{input.script}({params.N_EVENTS}, "{output.GEN_FILE}", {params.EVENT_TYPE}, {params.ENERGY})'
+"""
+
+
+rule pfa_validation_simulate_multi:
+    input:
+        GEN_FILE="sim_output/pfa_validation/multi/{EVENT_TYPE}_{ENERGY}.hepmc",
+        warmup="warmup.edm4hep.root",
+        geometry_lib=find_epic_libraries(),
+    output:
+        SIM_FILE="sim_output/pfa_validation/multi/{DETECTOR_CONFIG}/{EVENT_TYPE}_{ENERGY}_sim.edm4hep.root",
+    log:
+        "sim_output/pfa_validation/multi/{DETECTOR_CONFIG}/{EVENT_TYPE}_{ENERGY}_sim.log",
+    params:
+        N_EVENTS=get_n_events_multi,
+        PHYSICS_LIST="FTFP_BERT",
+        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        DD4HEP_HASH=get_spack_package_hash("dd4hep"),
+        NPSIM_HASH=get_spack_package_hash("npsim"),
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+exec npsim \
+   --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
+   --random.seed 2 \
+   --numberOfEvents {params.N_EVENTS} \
+   --physicsList {params.PHYSICS_LIST} \
+   --inputFiles {input.GEN_FILE} \
+   --outputFile {output.SIM_FILE} \
+   2>&1 | tee {log}
+"""
+
+
+rule pfa_validation_recon_multi:
+    input:
+        SIM_FILE="sim_output/pfa_validation/multi/{DETECTOR_CONFIG}/{EVENT_TYPE}_{ENERGY}_sim.edm4hep.root",
+        warmup="warmup.edm4hep.root",
+    output:
+        REC_FILE="sim_output/pfa_validation/multi/{DETECTOR_CONFIG}/{EVENT_TYPE}_{ENERGY}_rec.edm4eic.root",
+    log:
+        "sim_output/pfa_validation/multi/{DETECTOR_CONFIG}/{EVENT_TYPE}_{ENERGY}_rec.log",
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
+        OUTPUT_COLLECTIONS="MCParticles,PandoraPFAParticles,ArborPFAParticles",
+    cache: True
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+# PFA plugins must be explicitly loaded with -Pplugins=pandora,arbor
+exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
+  eicrecon {input.SIM_FILE} \
+  -Ppodio:output_file={output.REC_FILE} \
+  -Ppodio:output_collections={params.OUTPUT_COLLECTIONS} \
+  -Pplugins=pandora,arbor \
+  2>&1 | tee {log}
+"""
+
+
+rule pfa_validation_analysis_multi:
+    input:
+        files=lambda wildcards: expand(
+            "sim_output/pfa_validation/multi/{{DETECTOR_CONFIG}}/{EVENT_TYPE}_{ENERGY}_rec.edm4eic.root",
+            EVENT_TYPE=["dijet", "hadrons", "emshower"],
+            ENERGY=["10GeV", "20GeV", "50GeV"],
+        ),
+        script=workflow.source_path("analysis/pfa_multiparticle.py"),
+    output:
+        results_dir=directory("results/pfa_validation/{DETECTOR_CONFIG}/multiparticle/"),
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+mkdir -p {output.results_dir}
+python3 {input.script} \
+  --input-pattern "sim_output/pfa_validation/multi/{params.DETECTOR_CONFIG}/*_rec.edm4eic.root" \
+  --output-dir {output.results_dir}
+"""
+
+
+# ============================================================================
+# COMPARISON PLOTS
+# ============================================================================
+
+rule pfa_validation_comparison:
+    input:
+        single_dirs=expand(
+            "results/pfa_validation/{{DETECTOR_CONFIG}}/single/{PARTICLE}/",
+            PARTICLE=["e-", "pi-", "gamma"],
+        ),
+        multi_dir="results/pfa_validation/{DETECTOR_CONFIG}/multiparticle/",
+        script=workflow.source_path("analysis/pfa_comparison.py"),
+    output:
+        results_dir=directory("results/pfa_validation/{DETECTOR_CONFIG}/comparison/"),
+    params:
+        DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
+    singularity: EIC_SINGULARITY_CONTAINER,
+    shell:
+        """
+mkdir -p {output.results_dir}
+python3 {input.script} \
+  --single-dir "results/pfa_validation/{params.DETECTOR_CONFIG}/single/" \
+  --multi-dir "results/pfa_validation/{params.DETECTOR_CONFIG}/multiparticle/" \
+  --output-dir {output.results_dir}
+"""
+
+
+# ============================================================================
+# TOP-LEVEL RULES
+# ============================================================================
+
+rule pfa_validation:
+    input:
+        # Single particle results for key particles
+        expand(
+            "results/pfa_validation/{{DETECTOR_CONFIG}}/single/{PARTICLE}/",
+            PARTICLE=["e-", "pi-", "gamma"],
+        ),
+        # Multi-particle results
+        "results/pfa_validation/{DETECTOR_CONFIG}/multiparticle/",
+        # Comparison plots
+        "results/pfa_validation/{DETECTOR_CONFIG}/comparison/",
+    output:
+        directory("results/pfa_validation/{DETECTOR_CONFIG}/")
+    shell:
+        """
+mkdir -p {output}
+# Copy/consolidate results (already exist in subdirectories)
+echo "PFA validation complete for {wildcards.DETECTOR_CONFIG}"
+ls -lh results/pfa_validation/{wildcards.DETECTOR_CONFIG}/
+"""
+
+
+rule pfa_validation_local:
+    input:
+        "results/pfa_validation/epic_craterlake/"
+
+
+# TODO: Add campaign rules once tested with local
+# rule pfa_validation_campaigns:
+#     input:
+#         expand(
+#             "results/pfa_validation/{CAMPAIGN}",
+#             CAMPAIGN=["25.10.4"],
+#         )

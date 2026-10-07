@@ -66,6 +66,26 @@ for array in arrays_sim.values():
 print("making theta recon plot")
 from scipy.optimize import curve_fit
 
+def fit_theta_residuals(y, x):
+    y=np.asarray(y, dtype=float)
+    x=np.asarray(x, dtype=float)
+    bc=(x[1:]+x[:-1])/2
+    if np.max(y)==0:
+        raise RuntimeError("empty theta residual histogram")
+    coeff=(np.max(y), bc[np.argmax(y)], 1.0)
+    # Fit the peak, then recenter the range on each fitted mean and width.
+    for iteration in range(3):
+        slc=abs(bc-coeff[1])<3*coeff[2]
+        if np.count_nonzero(slc)<4:
+            raise RuntimeError("too few bins in theta fit range")
+        sigma=np.sqrt(y[slc])+(y[slc]==0)
+        coeff, var_matrix = curve_fit(gauss, bc[slc], y[slc], p0=coeff, sigma=sigma, bounds=([0, x[0], 0], [np.inf, x[-1], np.inf]), maxfev=10000)
+        if np.any(~np.isfinite(coeff)) or np.any(~np.isfinite(var_matrix)):
+            raise RuntimeError("theta fit has invalid parameters or covariance")
+        if coeff[2]>=(x[-1]-x[0])/2 or np.sqrt(var_matrix[2][2])>=coeff[2]:
+            raise RuntimeError("theta fit width is unconstrained")
+    return coeff, var_matrix
+
 fig, axs=plt.subplots(1,2, figsize=(16,8))
 plt.sca(axs[0])
 p=40
@@ -73,18 +93,12 @@ eta_min=3.4; eta_max=3.6
 y,x,_=plt.hist(1000*(arrays_sim[p]['theta_recon']-arrays_sim[p]['theta_truth'])\
                [(arrays_sim[p]['eta_truth']>eta_min)&(arrays_sim[p]['eta_truth']<eta_max)], bins=50,
                     range=(-10,10), histtype='step')
-bc=(x[1:]+x[:-1])/2
-slc=abs(bc)<3
-# try:
-fnc=gauss
-sigma=np.sqrt(y[slc])+(y[slc]==0)
-p0=(100, 0, 5)
 try:
-    coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
-    xx=np.linspace(-5,5,100)
-    plt.plot(xx,fnc(xx,*coeff))
-except RuntimeError:
-    print("fit failed")
+    coeff, var_matrix = fit_theta_residuals(y, x)
+    xx=np.linspace(x[0],x[-1],100)
+    plt.plot(xx,gauss(xx,*coeff))
+except (RuntimeError, ValueError):
+    pass
 plt.xlabel("$\\theta_{rec}-\\theta_{truth}$ [mrad]")
 plt.ylabel("events")
 plt.title(f"$p={p}$ GeV, ${eta_min}<\\eta<{eta_max}$")
@@ -98,18 +112,12 @@ for eta_min, eta_max in zip(r[:-1],r[1:]):
         y,x=np.histogram(1000*(arrays_sim[p]['theta_recon']-arrays_sim[p]['theta_truth'])\
                          [(arrays_sim[p]['eta_truth']>eta_min)&(arrays_sim[p]['eta_truth']<eta_max)],
                          bins=50, range=(-10,10))
-        bc=(x[1:]+x[:-1])/2
-        slc=abs(bc)<3
-        fnc=gauss
-        p0=(100, 0, 5)
-        #print(bc[slc],y[slc])
-        sigma=np.sqrt(y[slc])+(y[slc]==0)
         try:
-            coeff, var_matrix = curve_fit(fnc, list(bc[slc]), list(y[slc]), p0=p0, sigma=list(sigma), maxfev=10000)
+            coeff, var_matrix = fit_theta_residuals(y, x)
             sigmas.append(np.abs(coeff[2]))
             dsigmas.append(np.sqrt(var_matrix[2][2]))
             xvals.append(p)
-        except:
+        except (RuntimeError, ValueError):
             pass
     plt.sca(axs[1])
     plt.errorbar(xvals, sigmas, dsigmas, ls='', marker='o', label=f"${eta_min}<\\eta<{eta_max}$")

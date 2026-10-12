@@ -1,0 +1,34 @@
+sim:irt:
+  extends: .det_benchmark
+  stage: simulate
+  allow_failure: true # first iteration, IRT collection names are not settled yet
+  parallel:
+    matrix:
+      - PARTICLE: ["pi-", "kaon-", "proton"]
+  timeout: 1 hours
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/irt/epic_craterlake/DRICH/${PARTICLE}/rec.edm4eic.root
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
+bench:irt:
+  extends: .det_benchmark
+  stage: benchmarks
+  allow_failure: true # first iteration, IRT collection names are not settled yet
+  needs: ["sim:irt"]
+  script:
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/irt/DRICH
+
+collect_results:irt:
+  extends: .det_benchmark
+  stage: collect
+  allow_failure: true # first iteration, IRT collection names are not settled yet
+  needs: ["bench:irt"]
+  when: always
+  script:
+    - ls -al
+    - mv results{,_save}/ # move results directory out of the way to preserve it
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/irt/DRICH
+    - mv results{_save,}/

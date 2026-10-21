@@ -22,7 +22,7 @@ rule backwards_ecal_sim:
     params:
         N_EVENTS=get_n_events,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -130,11 +130,11 @@ if config.get("stream_from_xrootd", True) not in [False, "", "0", "false"]:
         output:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
         params:
-            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+            search_path=lambda wildcards: f"EPIC/volatile/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
-      | awk '{{ print "root://dtn-eic.jlab.org/"$1; }}' \
+    xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \
+      | awk '{{ print "root://dtn2304.jlab.org:8443/"$1; }}' \
       | sort \
       > {output}
     if [ ! -s {output} ]; then
@@ -147,11 +147,11 @@ else:
         output:
             "listing/backwards_ecal/{CAMPAIGN}/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst.orig",
         params:
-            search_path=lambda wildcards: f"EPIC/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
+            search_path=lambda wildcards: f"EPIC/volatile/RECO/{wildcards.CAMPAIGN}/epic_craterlake/SINGLE/{wildcards.PARTICLE}/{wildcards.ENERGY}/{wildcards.PHASE_SPACE}/",
         singularity: EIC_SINGULARITY_CONTAINER,
         shell: """
-    xrdfs root://dtn-eic.jlab.org/ ls /volatile/eic/{params.search_path} \
-      | sed -e 's#^/volatile/eic/##' \
+    xrdfs root://dtn2304.jlab.org:8443/ ls /jlab-osdf-ro/eic/{params.search_path} \
+      | sed -e 's#^/jlab-osdf-ro/eic/##' \
       | sort \
       > {output}
     if [ ! -s {output} ]; then
@@ -179,12 +179,10 @@ else:
 ruleorder: backwards_ecal_local_sim_list > backwards_ecal_campaign_sim_list
 
 
-DETECTOR_CONFIG=os.environ["DETECTOR_CONFIG"]
-
 rule backwards_ecal:
     input:
         expand(
-            "listing/backwards_ecal/{{CAMPAIGN}}/" + DETECTOR_CONFIG + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
+            "listing/backwards_ecal/{{CAMPAIGN}}/" + config["DETECTOR_CONFIG"] + "/{PARTICLE}/{ENERGY}/{PHASE_SPACE}.lst",
             PARTICLE=["pi-", "e-"],
             ENERGY=[
                 "100MeV",

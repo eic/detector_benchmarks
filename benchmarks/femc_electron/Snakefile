@@ -32,7 +32,7 @@ rule femc_electron_simulate:
     params:
         N_EVENTS=get_n_events,
         PHYSICS_LIST="FTFP_BERT",
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),

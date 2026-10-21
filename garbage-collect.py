@@ -52,7 +52,7 @@ for cache_path in cache_dir.iterdir():
 print(f"Total cache size: {total_size / 1024. / 1024.:.1f} MiB")
 
 paths.sort(key=lambda t: t[1])
-while total_size >= target_size:
+while total_size >= target_size and paths:
     cache_path, _, size = paths.pop()
     if cache_path in alive:
         print(f"{cache_path} is alive")

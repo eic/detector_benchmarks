@@ -3,6 +3,7 @@ image: ${BENCHMARKS_REGISTRY}/${BENCHMARKS_CONTAINER}${BENCHMARKS_SIGIL}${BENCHM
 variables:
   DETECTOR: epic
   DETECTOR_CONFIG: epic_craterlake
+  DETECTOR_PREFIX: /opt/detector/epic-main
   GITHUB_PR: ''
   GITHUB_REPOSITORY: ''
   GITHUB_SHA: ''
@@ -79,22 +80,22 @@ benchmarks:detector:pending:
 
 common:setup:
   stage: config
+  image: alpine
   before_script:
   script:
     - source bin/env.sh
     - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
     - |
       echo "BENCHMARKS_TAG: ${BENCHMARKS_TAG}"
       echo "BENCHMARKS_CONTAINER: ${BENCHMARKS_CONTAINER}"
       echo "BENCHMARKS_REGISTRY: ${BENCHMARKS_REGISTRY}"
     - |
-      mkdir_local_data_link sim_output
-      mkdir_local_data_link EPIC
+      bin/mkdir_local_data_link sim_output
+      bin/mkdir_local_data_link EPIC
     - |
       mkdir -p results
       mkdir -p config
-    - eic-info
+    - apk add python3
     - |
       flock --nonblock /scratch/garbage-collect.lock \
         ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
@@ -105,9 +106,8 @@ common:setup:
     - ["common:setup"]
   before_script:
     - source bin/env.sh
-    - export PATH="${CI_PROJECT_DIR}/bin:${PATH}"
-    - export ROOT_INCLUDE_PATH="${CI_PROJECT_DIR}/include:${ROOT_INCLUDE_PATH}"
-    - source /opt/detector/epic-main/bin/thisepic.sh
+    - source ${DETECTOR_PREFIX}/bin/thisepic.sh
+    - eic-info
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
     - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
@@ -127,12 +127,10 @@ include:
   - local: 'benchmarks/backwards_ecal/config.yml'
   - local: 'benchmarks/beamline/config.yml'
   - local: 'benchmarks/calo_pid/config.yml'
-  - local: 'benchmarks/campaign/config.yml'
   - local: 'benchmarks/ecal_gaps/config.yml'
   - local: 'benchmarks/far_forward_dvcs/config.yml'
   - local: 'benchmarks/lowq2_reconstruction/config.yml'
   - local: 'benchmarks/secondary_vertexing_dis/config.yml'
-  - local: 'benchmarks/tracking_detectors/config.yml'
   - local: 'benchmarks/tracking_performances/config.yml'
   - local: 'benchmarks/tracking_performances_dis/config.yml'
   - local: 'benchmarks/barrel_ecal/config.yml'
@@ -142,7 +140,6 @@ include:
   - local: 'benchmarks/zdc_photon/config.yml'
   - local: 'benchmarks/zdc_pi0/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
-  - local: 'benchmarks/b0_tracker/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
   - local: 'benchmarks/irt/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
@@ -169,7 +166,6 @@ deploy_results:
     - "collect_results:barrel_ecal"
     - "collect_results:beamline"
     - "collect_results:calo_pid"
-    - "collect_results:campaign"
     - "collect_results:ecal_gaps"
     - "collect_results:far_forward_dvcs"
     - "collect_results:lfhcal"
@@ -200,15 +196,9 @@ deploy_results:
   script:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
-    - |
-      if [ ! -x "$(command -v pelican)" ] ; then
-        wget https://dl.pelicanplatform.org/7.13.0/pelican_Linux_x86_64.tar.gz ;
-        sha256sum -c <(echo '38ac8548c67302299e50a1b81c159ed418e90d84a6606ddd377fd2c8b164d114 pelican_Linux_x86_64.tar.gz') ;
-        tar zxf pelican_Linux_x86_64.tar.gz ;
-        export PATH=${PWD}/pelican-7.13.0:${PATH} ;
-      fi
     - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
-    - pelican object copy pipeline-$CI_PIPELINE_ID.tar $OSDF_ENDPOINT$OSDF_OUTPUT_PREFIX/pipeline-$CI_PIPELINE_ID.tar
+    - rucio upload --rse E1_BNL_DISK_1 --scope ${DEPLOY_RESULTS_SCOPE} pipeline-$CI_PIPELINE_ID.tar
+    - rucio did content add --to-did ${DEPLOY_RESULTS_SCOPE}:VALIDATION_INBOX ${DEPLOY_RESULTS_SCOPE}:pipeline-$CI_PIPELINE_ID.tar
   retry:
     max: 2
     when:

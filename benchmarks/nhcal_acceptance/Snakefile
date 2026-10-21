@@ -7,7 +7,7 @@ rule nhcal_acceptance_simulate:
     params:
         N_EVENTS=10000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         ENERGY=lambda wildcards: wildcards.ENERGY,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),

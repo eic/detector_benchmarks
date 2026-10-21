@@ -18,7 +18,7 @@ rule ecal_gaps_sim:
     params:
         N_EVENTS=1000,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
-        DETECTOR_PATH=os.environ["DETECTOR_PATH"],
+        DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG=lambda wildcards: wildcards.DETECTOR_CONFIG,
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
@@ -59,7 +59,7 @@ rule ecal_gaps_recon:
 set -m # monitor mode to prevent lingering processes
 exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
   eicrecon {input.sim} -Ppodio:output_file={output} \
-  -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles
+  -Ppodio:output_collections=EcalEndcapNRecHits,EcalBarrelScFiRecHits,EcalBarrelImagingRecHits,EcalEndcapPRecHits,MCParticles,EcalEndcapNTruthClusters,EcalEndcapNTruthClusterAssociations,EcalBarrelTruthClusters,EcalBarrelTruthClusterAssociations,EcalEndcapPTruthClusters,EcalEndcapPTruthClusterAssociations
 """
 
 
@@ -67,6 +67,7 @@ rule ecal_gaps:
     input:
         matplotlibrc=".matplotlibrc",
         script="benchmarks/ecal_gaps/ecal_gaps.org2py.py",
+        truth_script=workflow.source_path("truth_clusters.py"),
         # TODO pass as a file list?
         _=expand(
             "sim_output/ecal_gaps/{{DETECTOR_CONFIG}}/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.{INDEX:04d}.eicrecon.edm4eic.root",
@@ -102,4 +103,5 @@ MATPLOTLIBRC={input.matplotlibrc} \
 OUTPUT_DIR={output} \
 DETECTOR_CONFIG={wildcards.DETECTOR_CONFIG} \
 python {input.script}
+python {input.truth_script} --detector-config {wildcards.DETECTOR_CONFIG} --output-dir {output}
 """

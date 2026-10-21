@@ -175,7 +175,6 @@ rule irt_plots:
             PARTICLE=IRT_PARTICLES,
         ),
         script=workflow.source_path("scripts/plot_irt.py"),
-        matplotlibrc=".matplotlibrc",
     output:
         directory("results/{DETECTOR_CONFIG}/irt/{RICH}"),
     wildcard_constraints:
@@ -183,7 +182,6 @@ rule irt_plots:
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-env MATPLOTLIBRC={input.matplotlibrc} \
 python {input.script} \
   --output-dir {output} \
   --title "{wildcards.DETECTOR_CONFIG} {wildcards.RICH}" \

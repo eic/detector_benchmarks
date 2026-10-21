@@ -7,7 +7,7 @@ sim:irt:
       - PARTICLE: ["pi-", "kaon-", "proton"]
   timeout: 1 hours
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/irt/epic_craterlake/DRICH/${PARTICLE}/rec.edm4eic.root
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 sim_output/irt/epic_craterlake/{DRICH,PFRICH}/${PARTICLE}/rec.edm4eic.root
   retry:
     max: 2
     when:
@@ -19,7 +19,7 @@ bench:irt:
   allow_failure: true # first iteration, IRT collection names are not settled yet
   needs: ["sim:irt"]
   script:
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/irt/DRICH
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 results/epic_craterlake/irt/{DRICH,PFRICH}
 
 collect_results:irt:
   extends: .det_benchmark
@@ -30,5 +30,5 @@ collect_results:irt:
   script:
     - ls -al
     - mv results{,_save}/ # move results directory out of the way to preserve it
-    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/irt/DRICH
+    - snakemake $SNAKEMAKE_FLAGS --cores 1 --delete-all-output results/epic_craterlake/irt/{DRICH,PFRICH}
     - mv results{_save,}/

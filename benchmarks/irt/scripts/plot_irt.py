@@ -8,86 +8,84 @@ which case the histograms are summed before plotting.
 import argparse
 import os
 
-import matplotlib.pyplot as plt
-import numpy as np
-import uproot
-from matplotlib.colors import LogNorm
+import ROOT
 
-PID_LABELS = [r"$e$", r"$\pi$", r"$K$", r"$p$", r"$\mu$"]
+ROOT.gROOT.SetBatch(True)
+ROOT.TH1.AddDirectory(False)
+ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 
 def load_histograms(input_files):
     """Sum the histograms of all input files, keyed by histogram name."""
     histograms = {}
     for input_file in input_files:
-        with uproot.open(input_file) as f:
-            for key in f.keys():
-                name = key.split(";")[0]
-                values, *edges = f[key].to_numpy()
-                if name in histograms:
-                    previous_values, previous_edges = histograms[name]
-                    if not all(
-                        np.array_equal(a, b) for a, b in zip(previous_edges, edges)
-                    ):
-                        raise ValueError(f"Inconsistent binning for histogram {name}")
-                    values = previous_values + values
-                histograms[name] = (values, edges)
+        f = ROOT.TFile.Open(input_file)
+        if not f or f.IsZombie():
+            raise OSError(f"Can not open {input_file}")
+        for key in f.GetListOfKeys():
+            obj = key.ReadObj()
+            if not obj.InheritsFrom("TH1"):
+                continue
+            name = obj.GetName()
+            if name in histograms:
+                # TH1::Add checks binning consistency
+                if not histograms[name].Add(obj):
+                    raise ValueError(f"Inconsistent binning for histogram {name}")
+            else:
+                histograms[name] = obj.Clone(name)
+        f.Close()
     return histograms
 
 
+def save(canvas, path):
+    canvas.SaveAs(path)
+    canvas.Close()
+
+
 def plot_th1(hist, path, title, xlabel):
-    values, (edges,) = hist
-    fig, ax = plt.subplots()
-    ax.stairs(values, edges, fill=True, alpha=0.7)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel("Entries")
-    ax.set_title(title)
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
+    canvas = ROOT.TCanvas("c", "", 800, 600)
+    hist.SetTitle(f"{title};{xlabel};Entries")
+    hist.SetFillColorAlpha(ROOT.kAzure + 1, 0.7)
+    hist.SetLineColor(ROOT.kAzure + 2)
+    hist.SetStats(False)
+    hist.Draw("HIST")
+    save(canvas, path)
 
 
 def plot_th2(hist, path, title, xlabel, ylabel):
-    values, (xedges, yedges) = hist
-    norm = LogNorm(vmin=1, vmax=max(values.max(), 1)) if values.max() > 0 else None
-    fig, ax = plt.subplots()
-    mesh = ax.pcolormesh(xedges, yedges, values.T, norm=norm)
-    fig.colorbar(mesh, ax=ax, label="Entries")
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
+    canvas = ROOT.TCanvas("c", "", 800, 600)
+    canvas.SetRightMargin(0.15)
+    if hist.GetMaximum() > 0:
+        canvas.SetLogz()
+    hist.SetTitle(f"{title};{xlabel};{ylabel};Entries")
+    hist.SetStats(False)
+    hist.Draw("COLZ")
+    save(canvas, path)
 
 
 def plot_confusion(hist, path, title):
-    values, _ = hist
     # normalize per true species (y axis) to get identification probabilities
-    norm = values.sum(axis=0, keepdims=True)
-    fractions = np.divide(values, norm, out=np.zeros_like(values), where=norm > 0)
-
-    fig, ax = plt.subplots()
-    mesh = ax.imshow(fractions.T, origin="lower", vmin=0.0, vmax=1.0, cmap="viridis")
-    fig.colorbar(mesh, ax=ax, label="Fraction of true species")
-    ax.set_xticks(range(len(PID_LABELS)), PID_LABELS)
-    ax.set_yticks(range(len(PID_LABELS)), PID_LABELS)
-    ax.set_xlabel("Reconstructed PID")
-    ax.set_ylabel("True PID")
-    ax.set_title(title)
-    for i in range(fractions.shape[0]):
-        for j in range(fractions.shape[1]):
-            if norm[0, j] == 0:
-                continue
-            ax.text(
-                i,
-                j,
-                f"{fractions[i, j]:.2f}",
-                ha="center",
-                va="center",
-                color="white" if fractions[i, j] < 0.5 else "black",
-                fontsize="small",
+    fractions = hist.Clone("Confusion_fractions")
+    for j in range(1, hist.GetNbinsY() + 1):
+        total = sum(hist.GetBinContent(i, j) for i in range(1, hist.GetNbinsX() + 1))
+        for i in range(1, hist.GetNbinsX() + 1):
+            fractions.SetBinContent(
+                i, j, hist.GetBinContent(i, j) / total if total > 0 else 0.0
             )
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
+            fractions.SetBinError(i, j, 0.0)
+
+    canvas = ROOT.TCanvas("c", "", 800, 700)
+    canvas.SetRightMargin(0.15)
+    ROOT.gStyle.SetPaintTextFormat(".2f")
+    fractions.SetTitle(f"{title};Reconstructed PID;True PID;Fraction of true species")
+    fractions.SetStats(False)
+    fractions.SetMinimum(0.0)
+    fractions.SetMaximum(1.0)
+    fractions.GetXaxis().SetLabelSize(0.06)
+    fractions.GetYaxis().SetLabelSize(0.06)
+    fractions.SetMarkerSize(1.5)
+    fractions.Draw("COLZ TEXT")
+    save(canvas, path)
 
 
 def main():
@@ -111,20 +109,20 @@ def main():
             histograms["m_RICH_Mom"],
             out("momentum.png"),
             title("Track momentum"),
-            r"$p$ [GeV/$c$]",
+            "p [GeV/c]",
         )
     if "m_RICH_ETA" in histograms:
         plot_th1(
             histograms["m_RICH_ETA"],
             out("eta.png"),
             title("Track pseudorapidity"),
-            r"$\eta$",
+            "#eta",
         )
 
     for prefix, filename, xlabel, text in [
-        ("m_Theta_Rad_", "theta_rad_", r"$\theta_C$ [mrad]", "Cherenkov angle, radiator"),
-        ("m_Npe_Rad_", "npe_rad_", r"$N_{pe}$", "Number of photoelectrons, radiator"),
-        ("m_NHits_Rad_", "nhits_rad_", r"$N_{hits}$", "Number of hits, radiator"),
+        ("m_Theta_Rad_", "theta_rad_", "#theta_{C} [mrad]", "Cherenkov angle, radiator"),
+        ("m_Npe_Rad_", "npe_rad_", "N_{pe}", "Number of photoelectrons, radiator"),
+        ("m_NHits_Rad_", "nhits_rad_", "N_{hits}", "Number of hits, radiator"),
     ]:
         for name in sorted(k for k in histograms if k.startswith(prefix)):
             index = name[len(prefix):]
@@ -141,8 +139,8 @@ def main():
             histograms[name],
             out(f"theta_vs_momentum_rad_{index}.png"),
             title(f"Cherenkov angle vs. momentum, radiator {index}"),
-            r"$p$ [GeV/$c$]",
-            r"$\theta_C$ [mrad]",
+            "p [GeV/c]",
+            "#theta_{C} [mrad]",
         )
 
     if "Confusion" in histograms:

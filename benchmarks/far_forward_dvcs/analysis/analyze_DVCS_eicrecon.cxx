@@ -12,9 +12,11 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TFile.h>
+#include <TROOT.h>
 #include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 #include <TString.h>
@@ -95,10 +97,16 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 
 
 	//B0 tracker hits
-	TH2D* h_B0_occupancy_map_layer_0 = new TH2D("B0_occupancy_map_0", "B0_occupancy_map_0", 100, -400, 0, 100, -170, 170);
-	TH2D* h_B0_occupancy_map_layer_1 = new TH2D("B0_occupancy_map_1", "B0_occupancy_map_1", 100, -400, 0, 100, -170, 170);
-	TH2D* h_B0_occupancy_map_layer_2 = new TH2D("B0_occupancy_map_2", "B0_occupancy_map_2", 100, -400, 0, 100, -170, 170);
-	TH2D* h_B0_occupancy_map_layer_3 = new TH2D("B0_occupancy_map_3", "B0_occupancy_map_3", 100, -400, 0, 100, -170, 170);
+	//one map per cellID layer (readout system:8,layer:4,...), created on first hit
+	std::map<int, TH2D*> h_B0_occupancy_map_layer;
+	auto B0OccupancyMap = [&](int layer) {
+		TH2D*& h = h_B0_occupancy_map_layer[layer];
+		if (h == nullptr) {
+			h = new TH2D(TString::Format("B0_occupancy_map_layer_%d", layer), TString::Format("B0 tracker layer %d;hit x [mm];hit y [mm]", layer), 100, -400, 0, 100, -170, 170);
+			h->SetDirectory(gROOT);
+		}
+		return h;
+	};
 	TH1D* h_B0_hit_energy_deposit = new TH1D("B0_tracker_hit_energy_deposit", ";Deposited Energy [keV]", 100, 0.0, 500.0);
 	
 	//B0 EMCAL clusters
@@ -220,7 +228,7 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 		//b0 tracker hits
 		TTreeReaderArray<float> b0_hits_x = {tree_reader, "B0TrackerRecHits.position.x"};
     	TTreeReaderArray<float> b0_hits_y = {tree_reader, "B0TrackerRecHits.position.y"};
-    	TTreeReaderArray<float> b0_hits_z = {tree_reader, "B0TrackerRecHits.position.z"};
+    	TTreeReaderArray<ULong_t> b0_hits_cellID = {tree_reader, "B0TrackerRecHits.cellID"};
 		TTreeReaderArray<float> b0_MC_momentum_x = {tree_reader, "B0TrackerHits.momentum.x"};
         TTreeReaderArray<float> b0_MC_momentum_y = {tree_reader, "B0TrackerHits.momentum.y"};
         TTreeReaderArray<float> b0_MC_momentum_z = {tree_reader, "B0TrackerHits.momentum.z"};
@@ -230,7 +238,6 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 		//b0 EMCAL
 		TTreeReaderArray<float> b0_cluster_x = {tree_reader, "B0ECalClusters.position.x"};
     	TTreeReaderArray<float> b0_cluster_y = {tree_reader, "B0ECalClusters.position.y"};
-    	TTreeReaderArray<float> b0_cluster_z = {tree_reader, "B0ECalClusters.position.z"};
 		TTreeReaderArray<float>  b0_cluster_energy = {tree_reader, "B0ECalClusters.energy"}; //deposited energy in cluster
 		
 		//reco tracks (where b0 tracks live!!!)
@@ -396,14 +403,12 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 			
 			double hit_x = -9999.;
 			double hit_y = -9999.;
-			double hit_z = -9999.;
 			double hit_deposited_energy = -9999.;
 			
 			for(int b0cluster = 0; b0cluster < b0_cluster_x.GetSize(); b0cluster++){
 			
 				hit_x = b0_cluster_x[b0cluster];
 				hit_y = b0_cluster_y[b0cluster];
-				hit_z = b0_cluster_z[b0cluster];
 				hit_deposited_energy = b0_cluster_energy[b0cluster]*1.246; //poor man's calibration constant, for now
 							
 				h_B0_emcal_occupancy_map->Fill(hit_x, hit_y);
@@ -417,18 +422,13 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
     		
 				hit_x = b0_hits_x[b0hit];
 				hit_y = b0_hits_y[b0hit];
-				hit_z = b0_hits_z[b0hit];
 				hit_deposited_energy = b0_hits_eDep[b0hit]*1e6; //convert GeV --> keV
 				
 				h_B0_hit_energy_deposit->Fill(hit_deposited_energy);
 				
 				//if(hit_deposited_energy < 10.0){ continue; } //threshold value -- 10 keV, arbitrary for now
 								
-				//ACLGAD layout
-    			if(hit_z > 5700 && hit_z < 5990){ h_B0_occupancy_map_layer_0->Fill(hit_x, hit_y); }
-				if(hit_z > 6100 && hit_z < 6200){ h_B0_occupancy_map_layer_1->Fill(hit_x, hit_y); }
-				if(hit_z > 6400 && hit_z < 6500){ h_B0_occupancy_map_layer_2->Fill(hit_x, hit_y); }
-				if(hit_z > 6700 && hit_z < 6750){ h_B0_occupancy_map_layer_3->Fill(hit_x, hit_y); }
+				B0OccupancyMap((b0_hits_cellID[b0hit] >> 8) & 0xF)->Fill(hit_x, hit_y);
 				
 			}
 		
@@ -436,15 +436,6 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 			//reconstructed tracks with ACTS -- used for B0
 			//cout << "Event has " << reco_track_x.GetSize() << " reco tracks from ACTS..." << endl;
 			
-			bool hasB0Track = false;
-            bool hasHit1 = false;
-            bool hasHit2 = false;
-            bool hasHit3 = false;
-            bool hasHit4 = false;
-
-			int b0Hit_layer_1 = 0;
-			
-
 			for(int iRecoTrk = 0; iRecoTrk < reco_track_x.GetSize(); iRecoTrk++){
     		
 				TVector3 prec_reco_tracks(reco_track_x[iRecoTrk], reco_track_y[iRecoTrk], reco_track_z[iRecoTrk]);
@@ -685,10 +676,7 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
     h_pz_OMD->Write();
     h_omd_occupancy_map->Write(); 
 	
-	h_B0_occupancy_map_layer_0->Write();
-	h_B0_occupancy_map_layer_1->Write();
-	h_B0_occupancy_map_layer_2->Write();
-	h_B0_occupancy_map_layer_3->Write();
+	for (auto& [layer, h] : h_B0_occupancy_map_layer) { h->Write(); }
 	h_B0_hit_energy_deposit->Write();
 	
 	h_B0_emcal_occupancy_map->Write();

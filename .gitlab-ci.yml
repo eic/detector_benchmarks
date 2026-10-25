@@ -97,9 +97,15 @@ common:setup:
       mkdir -p config
     - apk add python3
     - |
-      flock --nonblock /scratch/garbage-collect.lock \
-        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
-        || true
+      # Remove scratch space of pipelines older than the artifact expiry (72 hours), so that
+      # their symlinks no longer keep snakemake cache entries alive, then prune the cache.
+      # physics_benchmarks shares the cache but does not run garbage collection itself.
+      flock --nonblock /scratch/garbage-collect.lock sh -c '
+        find /scratch -mindepth 1 -maxdepth 1 -type d \
+          \( -name "detector_benchmarks_*" -o -name "physics_benchmarks_*" \) -mmin +4320 \
+          -print -exec rm -rf {} +
+        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch
+      ' || true
 
 .det_benchmark:
   needs:

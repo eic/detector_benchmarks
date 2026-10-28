@@ -100,7 +100,7 @@ upload_onnx:lowq2_reconstruction:
     - rucio did add --type dataset --lifetime 0 "$ONNX_RUCIO_DID"
     - rucio did content add --to-did "$ONNX_RUCIO_DID" "$ONNX_RUCIO_FILE_DID"
     - xrdfs root://dtn-rucio.jlab.org:1094 stat "$ONNX_RUCIO_LFN/Low-Q2_Steering_Reconstruction.onnx"
-    - echo "ONNX Rucio DID: $ONNX_DOWNLOAD_URL"
+    - 'echo "ONNX Rucio DID: $ONNX_DOWNLOAD_URL"'
     - |
       # Build artifact folder URL for review
       ARTIFACTS_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/browse/results/lowq2_reconstruction/"

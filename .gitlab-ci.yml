@@ -97,9 +97,15 @@ common:setup:
       mkdir -p config
     - apk add python3
     - |
-      flock --nonblock /scratch/garbage-collect.lock \
-        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch \
-        || true
+      # Remove scratch space of pipelines older than the artifact expiry (72 hours), so that
+      # their symlinks no longer keep snakemake cache entries alive, then prune the cache.
+      # physics_benchmarks shares the cache but does not run garbage collection itself.
+      flock --nonblock /scratch/garbage-collect.lock sh -c '
+        find /scratch -mindepth 1 -maxdepth 1 -type d \
+          \( -name "detector_benchmarks_*" -o -name "physics_benchmarks_*" \) -mmin +4320 \
+          -print -exec rm -rf {} +
+        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch
+      ' || true
 
 .det_benchmark:
   needs:
@@ -116,6 +122,8 @@ common:setup:
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
+    # remove dangling symlinks to garbage-collected cache entries, so snakemake regenerates them
+    - find -L "${LOCAL_DATA_PATH}/sim_output" "${LOCAL_DATA_PATH}/EPIC" -type l -print -delete || true
     - ls -lrtha
   retry:
     max: 2
@@ -141,6 +149,7 @@ include:
   - local: 'benchmarks/zdc_pi0/config.yml'
   - local: 'benchmarks/material_scan/config.yml'
   - local: 'benchmarks/insert_muon/config.yml'
+  - local: 'benchmarks/irt/config.yml'
   - local: 'benchmarks/insert_tau/config.yml'
   - local: 'benchmarks/zdc_sigma/config.yml'
   - local: 'benchmarks/zdc_lambda/config.yml'
@@ -181,6 +190,7 @@ deploy_results:
     - "collect_results:zdc_neutron"
     - "collect_results:insert_muon"
     - "collect_results:insert_tau"
+    - "collect_results:irt"
     - "collect_results:zdc_photon"
     - "collect_results:zdc_pi0"
     - "collect_results:femc_electron"
@@ -195,6 +205,8 @@ deploy_results:
     - snakemake $SNAKEMAKE_FLAGS --cores 1 results/metadata.json
     - find results -print | sort | tee summary.txt
     - mv results pipeline-$CI_PIPELINE_ID; tar cf pipeline-$CI_PIPELINE_ID.tar pipeline-$CI_PIPELINE_ID/; mv pipeline-$CI_PIPELINE_ID results
+    - chmod 400 "$DEPLOY_RESULTS_X509_USER_PROXY"
+    - export X509_USER_PROXY="$DEPLOY_RESULTS_X509_USER_PROXY"
     - rucio upload --rse E1_BNL_DISK_1 --scope ${DEPLOY_RESULTS_SCOPE} pipeline-$CI_PIPELINE_ID.tar
     - rucio did content add --to-did ${DEPLOY_RESULTS_SCOPE}:VALIDATION_INBOX ${DEPLOY_RESULTS_SCOPE}:pipeline-$CI_PIPELINE_ID.tar
   retry:

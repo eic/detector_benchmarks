@@ -50,7 +50,7 @@ rule nhcal_sampling_fraction_combine:
     wildcard_constraints:
         ENERGY=r"\d+"
     output:
-        f"sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root",
+        temp("sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.root"),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """

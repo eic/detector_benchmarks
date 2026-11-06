@@ -54,7 +54,7 @@ rule nhcal_pion_rejection_combine:
             INDEX=range(int(wildcards.N)),
         )
     output:
-        "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        temp("sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root"),
     wildcard_constraints:
         N = r"\d+",
     singularity: EIC_SINGULARITY_CONTAINER,

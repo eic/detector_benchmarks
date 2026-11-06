@@ -45,9 +45,8 @@ common:setup:
   stage: config
   before_script:
   script:
-    -|
+    - |
       ps aux
-      exit 1
       uptime
       df -h
       cat /proc/mounts
@@ -60,7 +59,6 @@ common:setup:
       cat test
       stat test
       if [ -n "${RM}" ] ; then rm -rf $RM ; fi
-      exit 0
       cat >filter_broken.py <<EOF
       import sys
       import ROOT
@@ -91,10 +89,11 @@ common:setup:
       echo "removing broken symlinks"
       find `realpath /scratch` -xtype l -print -delete
       echo "listing most offending directories"
-      find `realpath /scratch` -type d -links 2 -print0 | (du -sL --files0-from=- || true) | sort -n > /tmp/df
+      mkdir results
+      find `realpath /scratch` -type d -links 2 -print0 | (du -sL --files0-from=- || true) | sort -n > results/df
       #echo "listing cached entries by size"
-      #find `realpath /scratch` -type l -print0 | (du -sL --files0-from=- || true) | sort -n > /tmp/df
-      #find `realpath /scratch` -type f -print0 | du -s --files0-from=- || true | sort -n > /tmp/df
-      head /tmp/df
-      tail -n 1000 /tmp/df
+      #find `realpath /scratch` -type l -print0 | (du -sL --files0-from=- || true) | sort -n > results/df
+      #find `realpath /scratch` -type f -print0 | du -s --files0-from=- || true | sort -n > results/df
+      head results/df
+      tail -n 1000 results/df
       df -h

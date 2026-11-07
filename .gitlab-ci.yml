@@ -117,14 +117,19 @@ common:setup:
     - eic-info
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output
-    - ln -s "${LOCAL_DATA_PATH}/EPIC" EPIC
+    # Per-job EPIC directory inside the pipeline's scratch space, so that
+    # `--delete-all-output` in one job (e.g. collect_results:*) cannot delete
+    # inputs, such as steering files, that a concurrent job is still using
+    - mkdir -p "${LOCAL_DATA_PATH}/EPIC/${CI_JOB_ID}"
+    - ln -s "${LOCAL_DATA_PATH}/EPIC/${CI_JOB_ID}" EPIC
     # snakemake support
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     # remove dangling symlinks to garbage-collected cache entries, so snakemake regenerates them
-    - find -L "${LOCAL_DATA_PATH}/sim_output" "${LOCAL_DATA_PATH}/EPIC" -type l -print -delete || true
+    # (the per-job EPIC directory is always new and empty)
+    - find -L "${LOCAL_DATA_PATH}/sim_output" -type l -print -delete || true
     - ls -lrtha
   retry:
     max: 2

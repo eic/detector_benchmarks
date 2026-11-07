@@ -220,9 +220,29 @@ benchmarks:detector:success:
   extends: .status
   variables:
     STATE: "success"
-  after_script:
-    # Cleanup scratch space
-    - rm -rfv $LOCAL_DATA_PATH
+  when: on_success
+
+# Remove this pipeline's scratch space once all benchmarks have succeeded, so its
+# symlinks no longer keep snakemake cache entries alive for garbage-collect.py.
+# This is a separate job rather than part of the .status jobs because:
+#  - .status jobs only run for GitHub-triggered pipelines (GITHUB_SHA non-empty),
+#  - .status jobs never source bin/env.sh, so $LOCAL_DATA_PATH is empty there,
+#  - curlimages/curl runs as an unprivileged user and cannot remove files
+#    created by the (root) benchmark jobs.
+# Failed pipelines keep their scratch space for debugging; it is expired by
+# common:setup after 72 hours.
+cleanup:scratch:
+  stage: status-report
+  image: alpine
+  dependencies: []
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - |
+      SCRATCH_DIR="${LOCAL_DATA_PATH:-/scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}}"
+      echo "Removing ${SCRATCH_DIR}"
+      rm -rf "${SCRATCH_DIR}"
+      df -h /scratch || true
   when: on_success
 
 benchmarks:detector:failure:

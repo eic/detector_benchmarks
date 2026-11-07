@@ -220,9 +220,44 @@ benchmarks:detector:success:
   extends: .status
   variables:
     STATE: "success"
-  after_script:
-    # Cleanup scratch space
-    - rm -rfv $LOCAL_DATA_PATH
+  when: on_success
+
+# Runs in the final stage after the pipeline has succeeded and removes this
+# pipeline's scratch space, so its
+# symlinks no longer keep snakemake cache entries alive for garbage-collect.py.
+# This is a separate job rather than part of the .status jobs because:
+#  - .status jobs only run for GitHub-triggered pipelines (GITHUB_SHA non-empty),
+#  - .status jobs never source bin/env.sh, so $LOCAL_DATA_PATH is empty there,
+#  - curlimages/curl runs as an unprivileged user and cannot remove files
+#    created by the (root) benchmark jobs.
+# The path is always /scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}, the default of
+# bin/env.sh. A LOCAL_DATA_PATH override or the $PWD/scratch fallback (when
+# /scratch is not writable) is deliberately not removed here.
+# It is not tied to benchmarks:detector:success with an optional `needs:`: when
+# that job is skipped (no GITHUB_SHA), `needs` would let this job start at the
+# beginning of the pipeline, while other jobs still use the scratch space.
+# Failed pipelines keep their scratch space for debugging; it is expired by
+# common:setup after 72 hours.
+cleanup:scratch:
+  stage: status-report
+  image: alpine
+  dependencies: []
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - |
+      # Only ever remove this pipeline's own directory directly under /scratch;
+      # refuse to run if the CI variables used to build the path look wrong.
+      case "${CI_PROJECT_NAME}" in
+        ""|.|..|*/*) echo "Unexpected CI_PROJECT_NAME='${CI_PROJECT_NAME}', not removing anything"; exit 1 ;;
+      esac
+      case "${CI_PIPELINE_ID}" in
+        ""|*[!0-9]*) echo "Unexpected CI_PIPELINE_ID='${CI_PIPELINE_ID}', not removing anything"; exit 1 ;;
+      esac
+      SCRATCH_DIR="/scratch/${CI_PROJECT_NAME}_${CI_PIPELINE_ID}"
+      echo "Removing ${SCRATCH_DIR}"
+      rm -rf -- "${SCRATCH_DIR}"
+      df -h /scratch || true
   when: on_success
 
 benchmarks:detector:failure:

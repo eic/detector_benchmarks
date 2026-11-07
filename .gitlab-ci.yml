@@ -112,7 +112,8 @@ common:setup:
     - ["common:setup"]
   before_script:
     - source bin/env.sh
-    - source ${DETECTOR_PREFIX}/bin/thisepic.sh
+    # pass DETECTOR_CONFIG, or thisepic.sh resets it to its default "epic"
+    - source "${DETECTOR_PREFIX}/bin/thisepic.sh" "${DETECTOR_CONFIG:-}"
     - eic-info
     - ls -lrtha 
     - ln -s "${LOCAL_DATA_PATH}/sim_output" sim_output

@@ -7,6 +7,7 @@ variables:
   GITHUB_REPOSITORY: ''
   GITHUB_SHA: ''
   SNAKEMAKE_FLAGS: '--cache'
+  LS: ''
   RM: ''
 
 workflow:
@@ -58,6 +59,7 @@ common:setup:
       sleep 60
       cat test
       stat test
+      if [ -n "${LS}" ] ; then ls -al $LS ; fi
       if [ -n "${RM}" ] ; then rm -rf $RM ; fi
       cat >filter_broken.py <<EOF
       import sys

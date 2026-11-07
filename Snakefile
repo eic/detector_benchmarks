@@ -1,6 +1,7 @@
 configfile: "snakemake.yml"
 
 import functools
+import re
 import os
 from snakemake.logging import logger
 
@@ -50,6 +51,22 @@ def find_epic_libraries():
     if lib is not None:
         libs.append(config["DETECTOR_PREFIX"] + "/lib/" + lib)
     return libs
+
+
+def gun_energy(energy):
+    """Convert an energy wildcard such as "500MeV" to a DD4hep expression such as "500*MeV"."""
+    m = re.fullmatch(r"([0-9.]+)([kMGT]?eV)", energy)
+    if m is None:
+        raise ValueError(f"Cannot parse energy {energy!r}")
+    return f"{m.group(1)}*{m.group(2)}"
+
+
+def gun_theta_range(phase_space):
+    """Convert a phase space wildcard such as "130to177deg" to its (min, max) polar angle in degrees."""
+    m = re.fullmatch(r"([0-9.]+)to([0-9.]+)deg", phase_space)
+    if m is None:
+        raise ValueError(f"Cannot parse phase space {phase_space!r}")
+    return m.group(1), m.group(2)
 
 
 include: "benchmarks/backgrounds/Snakefile"

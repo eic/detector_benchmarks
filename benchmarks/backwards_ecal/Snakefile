@@ -7,7 +7,6 @@ def get_n_events(wildcards):
 
 rule backwards_ecal_sim:
     input:
-        steering_file=ancient("EPIC/EVGEN/SINGLE/{PARTICLE}/{ENERGY}/{PHASE_SPACE}/{PARTICLE}_{ENERGY}_{PHASE_SPACE}.steer"),
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
@@ -20,6 +19,11 @@ rule backwards_ecal_sim:
         PHASE_SPACE="(3to50|45to135|130to177)deg",
         INDEX=r"\d{4}",
     params:
+        # gun settings of the EPIC/EVGEN/SINGLE steering files; params (unlike wildcards) are part of the cache hash
+        GUN_PARTICLE=lambda wildcards: wildcards.PARTICLE,
+        GUN_ENERGY=lambda wildcards: gun_energy(wildcards.ENERGY),
+        GUN_THETA_MIN=lambda wildcards: gun_theta_range(wildcards.PHASE_SPACE)[0],
+        GUN_THETA_MAX=lambda wildcards: gun_theta_range(wildcards.PHASE_SPACE)[1],
         N_EVENTS=get_n_events,
         SEED=lambda wildcards: "1" + wildcards.INDEX,
         DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
@@ -35,7 +39,11 @@ set -o pipefail
 exec npsim \
   --runType batch \
   --enableGun \
-  --steeringFile "{input.steering_file}" \
+  --gun.particle "{params.GUN_PARTICLE}" \
+  --gun.energy "{params.GUN_ENERGY}" \
+  --gun.distribution "cos(theta)" \
+  --gun.thetaMin "{params.GUN_THETA_MIN}*degree" \
+  --gun.thetaMax "{params.GUN_THETA_MAX}*degree" \
   --random.seed {params.SEED} \
   --filter.tracker edep0 \
   -v WARNING \

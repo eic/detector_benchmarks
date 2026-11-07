@@ -4,6 +4,7 @@ import argparse
 import os
 import time
 from pathlib import Path
+from stat import S_ISREG
 
 parser = argparse.ArgumentParser(
     description="Performs garbage collection for Snakemake file cache",
@@ -63,6 +64,16 @@ for cache_path in cache_paths:
         # e.g. a snakemake temporary directory that has since been removed
         continue
     size = stat.st_size
+    if S_ISREG(stat.st_mode) and size == 0:
+        # An empty output is never a valid cache entry (e.g. a ROOT file whose
+        # writer hit a full disk but still exited successfully). Every
+        # workflow that hits it would fail, so remove it regardless of age or
+        # symlinks; dangling symlinks are cleaned up before snakemake runs, so
+        # the output is regenerated. Entries are moved into the cache
+        # atomically, so this cannot catch a file that is still being written.
+        cache_path.unlink(missing_ok=True)
+        print(f"Removing empty {cache_path}")
+        continue
     total_size += size
     if time.time() - stat.st_mtime < grace_period:
         # recently stored, its symlinks may not have been seen by the scan

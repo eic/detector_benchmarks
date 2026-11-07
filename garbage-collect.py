@@ -65,12 +65,7 @@ for cache_path in cache_paths:
         continue
     size = stat.st_size
     if S_ISREG(stat.st_mode) and size == 0:
-        # An empty output is never a valid cache entry (e.g. a ROOT file whose
-        # writer hit a full disk but still exited successfully). Every
-        # workflow that hits it would fail, so remove it regardless of age or
-        # symlinks; dangling symlinks are cleaned up before snakemake runs, so
-        # the output is regenerated. Entries are moved into the cache
-        # atomically, so this cannot catch a file that is still being written.
+        # empty entries are never valid (e.g. written on a full disk): remove regardless of age or symlinks
         cache_path.unlink(missing_ok=True)
         print(f"Removing empty {cache_path}")
         continue

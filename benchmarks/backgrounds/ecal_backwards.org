@@ -122,7 +122,9 @@ def filter_name(name):
 # so read eagerly and wrap for the dask-based analysis below. With uproot >= 5.7.8, restore:
 #   uproot.dask({path: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32)
 def read_events(path):
-    return dak.from_awkward(uproot.concatenate({path: "events"}, filter_name=filter_name), npartitions=1)
+    # uproot.concatenate does not support RNTuple either, so open the single file directly
+    with uproot.open(path) as f:
+        return dak.from_awkward(f["events"].arrays(filter_name=filter_name), npartitions=1)
 
 def field(events, path):
     # TTree reads have flat "Coll.member.sub" fields, RNTuple reads have nested records

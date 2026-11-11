@@ -118,7 +118,9 @@ def filter_name(name):
     collection = name.split(".")[0]
     return collection.endswith("Hits") or collection == "MCParticles"
 
-# uproot.dask cannot project RNTuple columns, so read eagerly and wrap for the dask-based analysis below
+# FIXME: uproot < 5.7.8 cannot project RNTuple columns in uproot.dask (scikit-hep/uproot5#1783, #1785),
+# so read eagerly and wrap for the dask-based analysis below. With uproot >= 5.7.8, restore:
+#   uproot.dask({path: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32)
 def read_events(path):
     return dak.from_awkward(uproot.concatenate({path: "events"}, filter_name=filter_name), npartitions=1)
 

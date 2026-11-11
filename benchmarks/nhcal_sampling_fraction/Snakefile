@@ -77,7 +77,7 @@ rule nhcal_sampling_fraction_analysis:
             $(python-config --includes) \
             -I/opt/local/include \
             -L/opt/local/lib \
-            -lpodio -lpodioRootIO -ledm4hep -lDDCore -lDDRec \
+            -lpodio -lpodioIO -lpodioRootIO -ledm4hep -lDDCore -lDDRec \
             -o {output.pdf}.bin && \
         {output.pdf}.bin "{input.combined}" "{output.pdf}" "{output.png}" "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}" && \
         rm {output.pdf}.bin

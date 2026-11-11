@@ -25,7 +25,7 @@
 
 #include <podio/Frame.h>
 #include <podio/CollectionBase.h>
-#include "podio/ROOTReader.h"
+#include "podio/Reader.h"
 #include "podio/CollectionIDTable.h"
 #include "podio/ObjectID.h"
 
@@ -71,9 +71,8 @@ inline string addPrefixAfterSlash(const string& path,
 int sampling_fraction_analysis(const string &filename, string outname_pdf, string outname_png, TString compact_file) 
 {
 
-    podio::ROOTReader *reader = new podio::ROOTReader();
-    reader->openFile(filename);
-    unsigned nEvents = reader->getEntries("events");
+    auto reader = podio::makeReader(filename);
+    unsigned nEvents = reader.getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
@@ -129,14 +128,7 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         double hit_scint_Esum = 0;
         double singlePart_Ekin = 0;
 
-        auto frameData = reader->readNextEntry(podio::Category::Event);
-        if (!frameData) 
-        {
-            cerr << "Invalid FrameData at event " << ev << endl;
-            continue;
-        }
-
-        podio::Frame frame(std::move(frameData));
+        podio::Frame frame = reader.readNextEvent();
 
         const edm4hep::MCParticleCollection& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
         const edm4hep::SimCalorimeterHitCollection& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
@@ -180,7 +172,6 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         }   
     }
 
-    delete reader; 
 
     h_sampF_e->Sumw2();
     h_sampF_e_Ekin->Sumw2();

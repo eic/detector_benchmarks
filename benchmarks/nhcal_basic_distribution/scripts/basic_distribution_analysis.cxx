@@ -27,8 +27,7 @@
 
 #include <podio/Frame.h>
 #include <podio/CollectionBase.h>
-#include "podio/ROOTReader.h"
-//#include <podio/ROOTFrameReader.h>
+#include "podio/Reader.h"
 #include "podio/CollectionIDTable.h"
 #include "podio/ObjectID.h"
 
@@ -91,9 +90,8 @@ string changeExtension(const string& path, const string& new_ext)
 
 int basic_distribution_analysis(const string &filename, string outname_png, string outname_root, TString compact_file) 
 {
-    podio::ROOTReader *reader = new podio::ROOTReader();
-    reader->openFile(filename);
-    unsigned nEvents = reader->getEntries("events");
+    auto reader = podio::makeReader(filename);
+    unsigned nEvents = reader.getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
     det = &(dd4hep::Detector::getInstance());
@@ -164,14 +162,7 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     
     for (unsigned ev = 0; ev < nEvents; ev++) 
     {
-        auto frameData = reader->readNextEntry(podio::Category::Event);
-        if (!frameData) 
-        {
-            cerr << "Invalid FrameData at event " << ev << endl;
-            continue;
-        }
-
-        podio::Frame frame(std::move(frameData));
+        podio::Frame frame = reader.readNextEvent();
 
         auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
             return frame.get(name);
@@ -288,7 +279,6 @@ int basic_distribution_analysis(const string &filename, string outname_png, stri
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_png, "hit_posE_").c_str());
     c_hit_posE->SaveAs(addPrefixAfterSlash(outname_pdf, "hit_posE_").c_str());
 
-    delete reader;
     delete c_evLayers;
     delete c_hit_posE;
 

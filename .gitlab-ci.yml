@@ -106,43 +106,7 @@ common:setup:
           -print -exec rm -rf {} +
         ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch
       ' || true
-    - |
-      # Text-based histogram of snakemake cache size distribution in hourly bins
-      python3 - << 'EOF' || true
-      import os, sys, time
-      from pathlib import Path
-      from collections import defaultdict
-
-      cache_dir = os.environ.get("SNAKEMAKE_OUTPUT_CACHE")
-      if not cache_dir or not os.path.isdir(cache_dir):
-          sys.exit(0)
-
-      now = time.time()
-      bins = defaultdict(int)
-      for p in Path(cache_dir).iterdir():
-          try:
-              if not p.is_file():
-                  continue
-              st = p.stat()
-          except OSError:
-              continue
-          age_h = int(max(0, now - st.st_mtime) // 3600)
-          bins[age_h] += st.st_size
-
-      if not bins:
-          print(f"Snakemake cache ({cache_dir}) is empty.")
-          sys.exit(0)
-
-      max_h = max(bins)
-      max_sz = max(bins.values())
-      total_sz = sum(bins.values())
-      print(f"Snakemake cache hourly size distribution ({total_sz / (1024**3):.1f} GiB total in {cache_dir}):")
-      for h in range(max_h + 1):
-          sz = bins[h]
-          if sz or max_h <= 72:
-              bar = "#" * int(40 * sz / max_sz) if max_sz else ""
-              print(f"{h:3d}h: {sz / (1024**3):6.2f} GiB | {bar}".rstrip())
-      EOF
+    - ./cache-histogram.py || true
 
 .det_benchmark:
   needs:

@@ -25,10 +25,15 @@ def main():
         return 0
 
     cache_dir = Path(args.cache_dir)
+    try:
+        entries = list(cache_dir.iterdir())
+    except OSError:
+        return 0
+
     now = time.time()
     bins = defaultdict(int)
 
-    for p in cache_dir.iterdir():
+    for p in entries:
         try:
             if not p.is_file():
                 continue
@@ -46,11 +51,12 @@ def main():
     max_sz = max(bins.values())
     total_sz = sum(bins.values())
     print(f"Snakemake cache hourly size distribution ({total_sz / (1024**3):.1f} GiB total in {cache_dir}):")
-    for h in range(max_h + 1):
+
+    hours_to_print = range(max_h + 1) if max_h <= 72 else sorted(bins.keys())
+    for h in hours_to_print:
         sz = bins[h]
-        if sz or max_h <= 72:
-            bar = "#" * int(40 * sz / max_sz) if max_sz else ""
-            print(f"{h:3d}h: {sz / (1024**3):6.2f} GiB | {bar}".rstrip())
+        bar = "#" * int(40 * sz / max_sz) if max_sz else ""
+        print(f"{h:3d}h: {sz / (1024**3):6.2f} GiB | {bar}".rstrip())
 
     return 0
 

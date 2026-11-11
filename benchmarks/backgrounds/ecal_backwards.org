@@ -125,9 +125,17 @@ def read_events(path):
     return dak.from_awkward(uproot.concatenate({path: "events"}, filter_name=filter_name), npartitions=1)
 
 def field(events, path):
+    # TTree reads have flat "Coll.member.sub" fields, RNTuple reads have nested records
+    if path in events.fields:
+        return events[path]
     for part in path.split("."):
         events = events[part]
     return events
+
+def energy_fields(events):
+    if any("." in name for name in events.fields):
+        return [name for name in events.fields if ".energy" in name]
+    return [f"{name}.energy" for name in events.fields if "energy" in events[name].fields]
 
 datasets = {
     # https://wiki.bnl.gov/EPIC/index.php?title=Electron_Beam_Gas
@@ -411,7 +419,7 @@ for edep_min in [0]: # GeV
         values = []
         norms = []
 
-        for branch_name in [f"{name}.energy" for name in events.fields if "energy" in events[name].fields]:
+        for branch_name in energy_fields(events):
             if "ZDC_SiliconPix_Hits" in branch_name: continue
 
             edep = ak.ravel(field(events, branch_name))

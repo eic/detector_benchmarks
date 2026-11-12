@@ -6,10 +6,11 @@ rule zdc_sigma_generate:
     params:
         N_EVENTS=1000,
         P=lambda wildcards: wildcards.P,
+        SEED=lambda wildcards: stable_seed("zdc_sigma", wildcards.P),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},{params.SEED},"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_sigma_simulate:

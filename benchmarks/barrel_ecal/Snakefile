@@ -31,6 +31,7 @@ rule emcal_barrel_particles:
         PARTICLE = lambda wildcards: wildcards.PARTICLE,
         E_MIN = lambda wildcards: wildcards.E_MIN,
         E_MAX = lambda wildcards: wildcards.E_MAX,
+        SEED = lambda wildcards: stable_seed("emcal_barrel", wildcards.PARTICLE, wildcards.E_MIN, wildcards.E_MAX),
     output:
         "{DETECTOR_CONFIG}/sim_output/sim_emcal_barrel_{PARTICLE}_energies{E_MIN}_{E_MAX}.edm4hep.rnt.root"
     cache: True
@@ -44,6 +45,7 @@ exec npsim \
    --part.minimalKineticEnergy 0.5*GeV  \
    --filter.tracker edep0 \
    --numberOfEvents {params.JUGGLER_N_EVENTS} \
+   --random.seed {params.SEED} \
    --compactFile """ + DETECTOR_PATH + """/{wildcards.DETECTOR_CONFIG}.xml \
    --inputFiles {input.hepmc} \
    --outputConfig.useRNTuple true \

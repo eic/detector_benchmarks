@@ -16,6 +16,7 @@ rule backgrounds_sim:
         hepmc=lambda wildcards: get_remote_path(f"{wildcards.PATH.removeprefix('EPIC/')}.hepmc3.tree.root"),
         DD4HEP_HASH=get_spack_package_hash("dd4hep"),
         NPSIM_HASH=get_spack_package_hash("npsim"),
+        SEED=lambda wildcards: stable_seed("backgrounds", wildcards.PATH),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
@@ -27,6 +28,7 @@ exec npsim \
   --filter.tracker edep0 \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
+  --random.seed {params.SEED} \
   --compactFile $DETECTOR_PATH/{wildcards.DETECTOR_CONFIG}.xml \
   --inputFiles {params.hepmc} \
   --outputConfig.useRNTuple true \

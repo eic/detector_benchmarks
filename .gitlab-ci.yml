@@ -106,6 +106,7 @@ common:setup:
           -print -exec rm -rf {} +
         ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch
       ' || true
+    - ./cache-histogram.py || true
 
 .det_benchmark:
   needs:

@@ -1,7 +1,3 @@
-#include <TChain.h>
-#include <TTreeReader.h>
-#include <TTreeReaderArray.h>
-#include <TTreeReaderValue.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -9,24 +5,22 @@
 #include <set>
 #include <iostream>
 #include <TString.h>
+#include <TStyle.h>
+
+#include <podio/Frame.h>
+#include <podio/Reader.h>
+#include <edm4hep/MCParticleCollection.h>
+#include <edm4hep/CaloHitContributionCollection.h>
+
+R__LOAD_LIBRARY(podioIO)
+R__LOAD_LIBRARY(edm4hep)
 
 using namespace std;
 
 int acceptance_analysis(TString filename, string outname_pdf, string outname_png) 
 {
-    TChain *chain = new TChain("events");
-    chain->Add(filename);
-    
-    TTreeReader reader(chain);
-    
-    TTreeReaderArray<int> mc_pdg(reader, "MCParticles.PDG");
-    TTreeReaderArray<int> mc_genStatus(reader, "MCParticles.generatorStatus");
-    TTreeReaderArray<double> mc_px(reader, "MCParticles.momentum.x");
-    TTreeReaderArray<double> mc_py(reader, "MCParticles.momentum.y");
-    TTreeReaderArray<double> mc_pz(reader, "MCParticles.momentum.z");
-
-    TTreeReaderArray<int> contrib_particle_idx(reader, "_HcalEndcapNHitsContributions_particle.index");
-    TTreeReaderArray<unsigned int> contrib_particle_cid(reader, "_HcalEndcapNHitsContributions_particle.collectionID");
+    auto reader = podio::makeReader(filename.Data());
+    const unsigned nEvents = reader.getEntries("events");
 
     int nEtaBins = 100;
     int nPhiBins = 100;
@@ -41,17 +35,22 @@ int acceptance_analysis(TString filename, string outname_pdf, string outname_png
     TH2D* hEtaPhiDetected = new TH2D("hEtaPhiDetected", "#pi- detected in nHCal; #eta; #phi[rad]",
                                      nEtaBins, etaMin, etaMax, nPhiBins, -TMath::Pi(), TMath::Pi());
 
-    while (reader.Next()) 
+    for (unsigned ev = 0; ev < nEvents; ++ev)
     {
+        const auto frame = reader.readNextEvent();
+        const auto& mcParticles = frame.get<edm4hep::MCParticleCollection>("MCParticles");
+        const auto& contributions = frame.get<edm4hep::CaloHitContributionCollection>("HcalEndcapNHitsContributions");
+
         map<int, pair<double, double>> pi_minus_eta_phi; 
         set<int> detected;
-        for (size_t i = 0; i < mc_pdg.GetSize(); ++i) 
+        for (size_t i = 0; i < mcParticles.size(); ++i) 
         {
-            if (mc_pdg[i] == -211 && mc_genStatus[i] == 1) 
+            const auto mc = mcParticles[i];
+            if (mc.getPDG() == -211 && mc.getGeneratorStatus() == 1) 
             {
-                float px = mc_px[i];
-                float py = mc_py[i];
-                float pz = mc_pz[i];
+                float px = mc.getMomentum().x;
+                float py = mc.getMomentum().y;
+                float pz = mc.getMomentum().z;
 
                 float p = sqrt(px * px + py * py + pz * pz);
                 float eta = 0.5 * log((p + pz) / (p - pz + 1e-8));
@@ -62,8 +61,10 @@ int acceptance_analysis(TString filename, string outname_pdf, string outname_png
             }
         }
 
-        for (size_t i = 0; i < contrib_particle_idx.GetSize(); i++) {
-            int idx = contrib_particle_idx[i];
+        for (const auto& contrib : contributions) {
+            const auto particle = contrib.getParticle();
+            if (!particle.isAvailable() || particle.getObjectID().collectionID != mcParticles.getID()) continue;
+            int idx = particle.getObjectID().index;
             if (pi_minus_eta_phi.count(idx)) {
                 detected.insert(idx);
             }

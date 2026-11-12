@@ -1,3 +1,11 @@
+#include <podio/Frame.h>
+#include <podio/Reader.h>
+#include <edm4hep/MCParticleCollection.h>
+#include <edm4hep/SimCalorimeterHitCollection.h>
+
+R__LOAD_LIBRARY(podioIO)
+R__LOAD_LIBRARY(edm4hep)
+
 //------------------
 int get_layer_number(TVector3 pos){
 
@@ -103,36 +111,13 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
     h3c_hcal->SetLineColor(kBlue);h3c_hcal->SetLineWidth(3);
 
     //Read ROOT file
-    TFile* file = new TFile(inputfile.c_str());
-    TTree *tree = (TTree*) file->Get("events");
+    auto reader = podio::makeReader(inputfile);
+    const unsigned nEvents = reader.getEntries("events");
 
     //Set cut
     float edep_cut = 1.; //In GeV
     
-    cout<<"Total number of events to analyze is "<<tree->GetEntries()<<endl;
-
-    //Create Array Reader
-    TTreeReader tr(tree);
-
-    TTreeReaderArray<int>   gen_status(tr, "MCParticles.generatorStatus");
-    TTreeReaderArray<int>   gen_pid(tr, "MCParticles.PDG");
-    TTreeReaderArray<double> gen_px(tr, "MCParticles.momentum.x");
-    TTreeReaderArray<double> gen_py(tr, "MCParticles.momentum.y");
-    TTreeReaderArray<double> gen_pz(tr, "MCParticles.momentum.z");
-    TTreeReaderArray<double> gen_mass(tr, "MCParticles.mass");
-    TTreeReaderArray<float> gen_charge(tr, "MCParticles.charge");
-    TTreeReaderArray<double> gen_vx(tr, "MCParticles.vertex.x");
-    TTreeReaderArray<double> gen_vy(tr, "MCParticles.vertex.y");
-    TTreeReaderArray<double> gen_vz(tr, "MCParticles.vertex.z");
-
-    //ZDC LYSO ECal
-    TTreeReaderArray<float> ecal_hit_e(tr,"EcalFarForwardZDCHits.energy");
-
-    //ZDC SiPM-on-tile HCal
-    TTreeReaderArray<float> hcal_hit_e(tr, "HcalFarForwardZDCHits.energy");
-    TTreeReaderArray<float> hcal_hit_x(tr, "HcalFarForwardZDCHits.position.x");
-    TTreeReaderArray<float> hcal_hit_y(tr, "HcalFarForwardZDCHits.position.y");
-    TTreeReaderArray<float> hcal_hit_z(tr, "HcalFarForwardZDCHits.position.z");
+    cout<<"Total number of events to analyze is "<<nEvents<<endl;
 
     //Other variables
     int counter(0),counter_3p5(0),counter_3p5to6(0);
@@ -144,7 +129,11 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
     float hcal_e_tot(0);
     
     //Loop over events
-    while (tr.Next()) {
+    for (unsigned iev = 0; iev < nEvents; ++iev) {
+       const auto frame = reader.readNextEvent();
+       const auto& mcParticles = frame.get<edm4hep::MCParticleCollection>("MCParticles");
+       const auto& ecalHits = frame.get<edm4hep::SimCalorimeterHitCollection>("EcalFarForwardZDCHits");
+       const auto& hcalHits = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalFarForwardZDCHits");
 	
 	if(counter%1000==0) cout<<"Analyzing event "<<counter<<endl;
 	counter++;
@@ -154,10 +143,10 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
        hcal_e_tot = 0;
 
        //Loop over generated particles, select primary neutron
-       for(int igen=0;igen<gen_status.GetSize();igen++){
-        	if(gen_status[igen]==1 && gen_pid[igen]==2112){
+       for(const auto& gen : mcParticles){
+        	if(gen.getGeneratorStatus()==1 && gen.getPDG()==2112){
 
-                     neut_true.SetXYZM(gen_px[igen],gen_py[igen],gen_pz[igen],gen_mass[igen]);
+                     neut_true.SetXYZM(gen.getMomentum().x,gen.getMomentum().y,gen.getMomentum().z,gen.getMass());
                      h1_neut->Fill(neut_true.Theta()*TMath::RadToDeg(),neut_true.E());
 
 			//Wrt proton beam direction
@@ -170,18 +159,18 @@ void fwd_neutrons_geant(std::string inputfile, std::string outputfile){
        } //End loop over generated particles
 
        //Loop over ECal hits
-       for(int ihit=0;ihit<ecal_hit_e.GetSize();ihit++){
-               ecal_e_tot +=  ecal_hit_e[ihit];           
+       for(const auto& hit : ecalHits){
+               ecal_e_tot +=  hit.getEnergy();
        }
 
        //Loop over HCal hits
-       for(int ihit=0;ihit<hcal_hit_e.GetSize();ihit++){
-              hcal_e_tot +=  hcal_hit_e[ihit];
+       for(const auto& hit : hcalHits){
+              hcal_e_tot +=  hit.getEnergy();
 
               //Cell hit position in global coordinates
-              double hit_x = (double) hcal_hit_x[ihit];
-              double hit_y = (double) hcal_hit_y[ihit];
-              double hit_z = (double) hcal_hit_z[ihit];
+              double hit_x = (double) hit.getPosition().x;
+              double hit_y = (double) hit.getPosition().y;
+              double hit_z = (double) hit.getPosition().z;
               
               TVector3 hit_pos_det(hit_x,hit_y,hit_z);
               auto layer_number = get_layer_number(hit_pos_det);

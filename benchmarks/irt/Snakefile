@@ -76,9 +76,9 @@ rule irt_sim:
         warmup="warmup.edm4hep.root",
         geometry_lib=find_epic_libraries(),
     output:
-        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root",
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.rnt.root",
     log:
-        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root.log",
+        "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.rnt.root.log",
     wildcard_constraints:
         RICH="(DRICH|PFRICH)",
         PARTICLE="[a-z0-9+-]+",
@@ -114,6 +114,7 @@ exec npsim \
   -v WARNING \
   --numberOfEvents {params.N_EVENTS} \
   --compactFile "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml" \
+  --outputConfig.useRNTuple true \
   --outputFile {output} \
   > {log} 2>&1
 """
@@ -121,7 +122,7 @@ exec npsim \
 
 rule irt_recon:
     input:
-        sim="sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.root",
+        sim="sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/sim.edm4hep.rnt.root",
         warmup="warmup.edm4hep.root",
     output:
         "sim_output/irt/{DETECTOR_CONFIG}/{RICH}/{PARTICLE}/rec.edm4eic.root",

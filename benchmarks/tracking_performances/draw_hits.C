@@ -8,6 +8,27 @@
 #include <TLegend.h>
 #include <TMath.h>
 
+#include <podio/Frame.h>
+#include <podio/Reader.h>
+#include <edm4hep/SimTrackerHitCollection.h>
+
+R__LOAD_LIBRARY(podioIO)
+R__LOAD_LIBRARY(edm4hep)
+
+void fill_hits(const TString& filename, const std::vector<std::pair<std::string, std::function<void(const edm4hep::SimTrackerHit&)>>>& fillers)
+{
+  auto reader = podio::makeReader(filename.Data());
+  const unsigned nEvents = reader.getEntries("events");
+  for (unsigned i = 0; i < nEvents; ++i) {
+    const auto frame = reader.readNextEvent();
+    for (const auto& [collName, fill] : fillers) {
+      for (const auto& hit : frame.get<edm4hep::SimTrackerHitCollection>(collName)) {
+        fill(hit);
+      }
+    }
+  }
+}
+
 void draw_hits(TString filename="", TString output_prefix=".")
 {
 
@@ -22,8 +43,6 @@ void draw_hits(TString filename="", TString output_prefix=".")
    gStyle->SetOptStat(0);
 
 //=======Reading the root file DD4HEP===========
- TFile *f = TFile::Open(Form("%s",filename.Data()));
- TTree *sim = (TTree*)f->Get("events");
 
  // Timer Start
   TStopwatch timer;
@@ -41,17 +60,15 @@ void draw_hits(TString filename="", TString output_prefix=".")
   TH2D *hitsxy_barrel_tof = new TH2D("hitsxy_barrel_tof","hitsxy_barrel_tof",nbins,-x,x,nbins,-y,y);
   TH2D *hitsxy_barrel_mm_out = new TH2D("hitsxy_barrel_mm_out","hitsxy_barrel_mm_out",nbins,-x,x,nbins,-y,y);
 
-  TString si_vtx_hitsXY ="VertexBarrelHits.position.y*0.1:VertexBarrelHits.position.x*0.1>>hitsxy_vtx_si";
-  TString si_barrel_hitsXY ="SiBarrelHits.position.y*0.1:SiBarrelHits.position.x*0.1>>hitsxy_barrel_si";
-  TString barrel_mpgd_in_hitsXY ="MPGDBarrelHits.position.y*0.1:MPGDBarrelHits.position.x*0.1>>hitsxy_barrel_mm_in";
-  TString tof_barrel_hitsXY ="TOFBarrelHits.position.y*0.1:TOFBarrelHits.position.x*0.1>>hitsxy_barrel_tof";
-  TString barrel_mpgd_out_hitsXY ="OuterMPGDBarrelHits.position.y*0.1:OuterMPGDBarrelHits.position.x*0.1>>hitsxy_barrel_mm_out";
-
-        sim->Draw(si_vtx_hitsXY.Data(),"",""); // Multiply by 0.1 for cm
-        sim->Draw(si_barrel_hitsXY.Data(),"","");
-        sim->Draw(barrel_mpgd_in_hitsXY.Data(),"","");
-        sim->Draw(tof_barrel_hitsXY.Data(),"","");
-        sim->Draw(barrel_mpgd_out_hitsXY.Data(),"","");
+  // Multiply by 0.1 for cm
+  auto xy = [](TH2D* h) { return [h](const edm4hep::SimTrackerHit& hit) { h->Fill(hit.getPosition().x*0.1, hit.getPosition().y*0.1); }; };
+  fill_hits(filename, {
+    {"VertexBarrelHits", xy(hitsxy_vtx_si)},
+    {"SiBarrelHits", xy(hitsxy_barrel_si)},
+    {"MPGDBarrelHits", xy(hitsxy_barrel_mm_in)},
+    {"TOFBarrelHits", xy(hitsxy_barrel_tof)},
+    {"OuterMPGDBarrelHits", xy(hitsxy_barrel_mm_out)},
+  });
 
         hitsxy_vtx_si->SetMarkerStyle(31);
         hitsxy_vtx_si->SetTitle("Hit Points (XY)");
@@ -128,62 +145,27 @@ void draw_hits(TString filename="", TString output_prefix=".")
    TH2D *hitsrz_fwd_mpgd_1 = new TH2D("hitsrz_fwd_mpgd_1","hitsrz_fwd_mpgd_1",nbinsx,-x,x,nbinsy,-y,y);
    TH2D *hitsrz_bwd_mpgd_1 = new TH2D("hitsrz_bwd_mpgd_1","hitsrz_bwd_mpgd_1",nbinsx,-x,x,nbinsy,-y,y);
 
-    TString si_vtx_hitsrz_posR  ="sqrt(VertexBarrelHits.position.x*VertexBarrelHits.position.x+VertexBarrelHits.position.y*VertexBarrelHits.position.y)*0.1:VertexBarrelHits.position.z*0.1>>hitsrz_vtx_si";
+    // R signed by y, multiply by 0.1 for cm
+    auto rz = [](TH2D* hpos, TH2D* hneg) {
+      return [hpos, hneg](const edm4hep::SimTrackerHit& hit) {
+        const auto& p = hit.getPosition();
+        const double r = std::sqrt(p.x*p.x + p.y*p.y)*0.1;
+        if (p.y > 0) hpos->Fill(p.z*0.1, r);
+        else if (p.y < 0) hneg->Fill(p.z*0.1, -r);
+      };
+    };
+    fill_hits(filename, {
+      {"VertexBarrelHits", rz(hitsrz_vtx_si, hitsrz_vtx_si_1)},
+      {"SiBarrelHits", rz(hitsrz_barrel_si, hitsrz_barrel_si_1)},
+      {"MPGDBarrelHits", rz(hitsrz_barrel_mm_in, hitsrz_barrel_mm_in_1)},
+      {"TOFBarrelHits", rz(hitsrz_barrel_tof, hitsrz_barrel_tof_1)},
+      {"TrackerEndcapHits", rz(hitsrz_disks_si, hitsrz_disks_si_1)},
+      {"TOFEndcapHits", rz(hitsrz_endcap_tof, hitsrz_endcap_tof_1)},
+      {"OuterMPGDBarrelHits", rz(hitsrz_barrel_mm_out, hitsrz_barrel_mm_out_1)},
+      {"ForwardMPGDEndcapHits", rz(hitsrz_fwd_mpgd, hitsrz_fwd_mpgd_1)},
+      {"BackwardMPGDEndcapHits", rz(hitsrz_bwd_mpgd, hitsrz_bwd_mpgd_1)},
+    });
 
-    TString si_barrel_hitsrz_posR ="sqrt(SiBarrelHits.position.x*SiBarrelHits.position.x+SiBarrelHits.position.y*SiBarrelHits.position.y)*0.1:SiBarrelHits.position.z*0.1>>hitsrz_barrel_si";
-
-    TString barrel_mpgd_in_hitsrz_posR= "sqrt(MPGDBarrelHits.position.x*MPGDBarrelHits.position.x+MPGDBarrelHits.position.y*MPGDBarrelHits.position.y)*0.1:MPGDBarrelHits.position.z*0.1>>hitsrz_barrel_mm_in";
-
-    TString tof_barrel_hitsrz_posR ="sqrt(TOFBarrelHits.position.x*TOFBarrelHits.position.x+TOFBarrelHits.position.y*TOFBarrelHits.position.y)*0.1:TOFBarrelHits.position.z*0.1>>hitsrz_barrel_tof";
-
-    TString barrel_mpgd_out_hitsrz_posR ="sqrt(OuterMPGDBarrelHits.position.x*OuterMPGDBarrelHits.position.x+OuterMPGDBarrelHits.position.y*OuterMPGDBarrelHits.position.y)*0.1:OuterMPGDBarrelHits.position.z*0.1>>hitsrz_barrel_mm_out";
-
-    TString disks_si_hitsrz_posR ="sqrt(TrackerEndcapHits.position.x*TrackerEndcapHits.position.x+TrackerEndcapHits.position.y*TrackerEndcapHits.position.y)*0.1:TrackerEndcapHits.position.z*0.1>>hitsrz_disks_si";
-
-    TString endcap_tof_hitsrz_posR ="sqrt(TOFEndcapHits.position.x*TOFEndcapHits.position.x+TOFEndcapHits.position.y*TOFEndcapHits.position.y)*0.1:TOFEndcapHits.position.z*0.1>>hitsrz_endcap_tof";
-
-    TString fwd_mpgd_hitsrz_posR ="sqrt(ForwardMPGDEndcapHits.position.x*ForwardMPGDEndcapHits.position.x+ForwardMPGDEndcapHits.position.y*ForwardMPGDEndcapHits.position.y)*0.1:ForwardMPGDEndcapHits.position.z*0.1>>hitsrz_fwd_mpgd";
-
-    TString bwd_mpgd_hitsrz_posR ="sqrt(BackwardMPGDEndcapHits.position.x*BackwardMPGDEndcapHits.position.x+BackwardMPGDEndcapHits.position.y*BackwardMPGDEndcapHits.position.y)*0.1:BackwardMPGDEndcapHits.position.z*0.1>>hitsrz_bwd_mpgd";
-
-
-        sim->Draw(si_vtx_hitsrz_posR.Data(),"VertexBarrelHits.position.y>0",""); // Multiply by 0.1 for cm
-        sim->Draw(si_barrel_hitsrz_posR.Data(),"SiBarrelHits.position.y>0","");
-        sim->Draw(barrel_mpgd_in_hitsrz_posR.Data(),"MPGDBarrelHits.position.y>0","");
-        sim->Draw(tof_barrel_hitsrz_posR.Data(),"TOFBarrelHits.position.y>0","");
-        sim->Draw(disks_si_hitsrz_posR.Data(),"TrackerEndcapHits.position.y>0","");
-        sim->Draw(endcap_tof_hitsrz_posR.Data(),"TOFEndcapHits.position.y>0","");
-        sim->Draw(barrel_mpgd_out_hitsrz_posR.Data(),"OuterMPGDBarrelHits.position.y>0","");
-        sim->Draw(fwd_mpgd_hitsrz_posR.Data(),"ForwardMPGDEndcapHits.position.y>0","");
-        sim->Draw(bwd_mpgd_hitsrz_posR.Data(),"BackwardMPGDEndcapHits.position.y>0","");
-
-    TString si_vtx_hitsrz_negR  ="-1.0*sqrt(VertexBarrelHits.position.x*VertexBarrelHits.position.x+VertexBarrelHits.position.y*VertexBarrelHits.position.y)*0.1:VertexBarrelHits.position.z*0.1>>hitsrz_vtx_si_1";
-
-    TString si_barrel_hitsrz_negR ="-1.0*sqrt(SiBarrelHits.position.x*SiBarrelHits.position.x+SiBarrelHits.position.y*SiBarrelHits.position.y)*0.1:SiBarrelHits.position.z*0.1>>hitsrz_barrel_si_1";
-
-    TString barrel_mpgd_in_hitsrz_negR= "-1.0*sqrt(MPGDBarrelHits.position.x*MPGDBarrelHits.position.x+MPGDBarrelHits.position.y*MPGDBarrelHits.position.y)*0.1:MPGDBarrelHits.position.z*0.1>>hitsrz_barrel_mm_in_1";
-
-    TString tof_barrel_hitsrz_negR ="-1.0*sqrt(TOFBarrelHits.position.x*TOFBarrelHits.position.x+TOFBarrelHits.position.y*TOFBarrelHits.position.y)*0.1:TOFBarrelHits.position.z*0.1>>hitsrz_barrel_tof_1";
-
-    TString barrel_mpgd_out_hitsrz_negR ="-1.0*sqrt(OuterMPGDBarrelHits.position.x*OuterMPGDBarrelHits.position.x+OuterMPGDBarrelHits.position.y*OuterMPGDBarrelHits.position.y)*0.1:OuterMPGDBarrelHits.position.z*0.1>>hitsrz_barrel_mm_out_1";
-
-    TString disks_si_hitsrz_negR ="-1.0*sqrt(TrackerEndcapHits.position.x*TrackerEndcapHits.position.x+TrackerEndcapHits.position.y*TrackerEndcapHits.position.y)*0.1:TrackerEndcapHits.position.z*0.1>>hitsrz_disks_si_1";
-
-    TString endcap_tof_hitsrz_negR ="-1.0*sqrt(TOFEndcapHits.position.x*TOFEndcapHits.position.x+TOFEndcapHits.position.y*TOFEndcapHits.position.y)*0.1:TOFEndcapHits.position.z*0.1>>hitsrz_endcap_tof_1";
-
-    TString fwd_mpgd_hitsrz_negR ="-1.0*sqrt(ForwardMPGDEndcapHits.position.x*ForwardMPGDEndcapHits.position.x+ForwardMPGDEndcapHits.position.y*ForwardMPGDEndcapHits.position.y)*0.1:ForwardMPGDEndcapHits.position.z*0.1>>hitsrz_fwd_mpgd_1";
-
-    TString bwd_mpgd_hitsrz_negR ="-1.0*sqrt(BackwardMPGDEndcapHits.position.x*BackwardMPGDEndcapHits.position.x+BackwardMPGDEndcapHits.position.y*BackwardMPGDEndcapHits.position.y)*0.1:BackwardMPGDEndcapHits.position.z*0.1>>hitsrz_bwd_mpgd_1";
-
-          sim->Draw(si_vtx_hitsrz_negR.Data(),"VertexBarrelHits.position.y<0",""); // Multiply by 0.1 for cm
-          sim->Draw(si_barrel_hitsrz_negR.Data(),"SiBarrelHits.position.y<0","");
-          sim->Draw(barrel_mpgd_in_hitsrz_negR.Data(),"MPGDBarrelHits.position.y<0","");
-          sim->Draw(tof_barrel_hitsrz_negR.Data(),"TOFBarrelHits.position.y<0","");
-          sim->Draw(disks_si_hitsrz_negR.Data(),"TrackerEndcapHits.position.y<0","");
-          sim->Draw(endcap_tof_hitsrz_negR.Data(),"TOFEndcapHits.position.y<0","");
-          sim->Draw(barrel_mpgd_out_hitsrz_negR.Data(),"OuterMPGDBarrelHits.position.y<0","");
-          sim->Draw(fwd_mpgd_hitsrz_negR.Data(),"ForwardMPGDEndcapHits.position.y<0","");
-          sim->Draw(bwd_mpgd_hitsrz_negR.Data(),"BackwardMPGDEndcapHits.position.y<0","");
 
 
           hitsrz_vtx_si->SetMarkerStyle(31);

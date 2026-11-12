@@ -56,10 +56,10 @@ setup_presentation_style()
 
 #+begin_src jupyter-python :results silent
 ELECTRON_BEAM_GAS_GEN=os.environ.get("ELECTRON_BEAM_GAS_GEN", "../beam_gas_ep_10GeV_foam_emin10keV_10Mevt_vtx.hepmc")
-ELECTRON_BEAM_GAS_SIM=os.environ.get("ELECTRON_BEAM_GAS_SIM", "electron_beam_gas.edm4hep.root")
-PHYSICS_PROCESS_SIM=os.environ.get("PHYSICS_PROCESS_SIM", "pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.root")
+ELECTRON_BEAM_GAS_SIM=os.environ.get("ELECTRON_BEAM_GAS_SIM", "electron_beam_gas.edm4hep.rnt.root")
+PHYSICS_PROCESS_SIM=os.environ.get("PHYSICS_PROCESS_SIM", "pythia8NCDIS_10x100_minQ2=1_beamEffects_xAngle=-0.025_hiDiv_1.edm4hep.rnt.root")
 PROTON_BEAM_GAS_GEN=os.environ.get("PROTON_BEAM_GAS_GEN", "100GeV.hepmc")
-PROTON_BEAM_GAS_SIM=os.environ.get("PROTON_BEAM_GAS_SIM", "proton+beam_gas_ep.edm4hep.root")
+PROTON_BEAM_GAS_SIM=os.environ.get("PROTON_BEAM_GAS_SIM", "proton+beam_gas_ep.edm4hep.rnt.root")
 
 output_dir=Path(os.environ.get("OUTPUT_DIR", "./"))
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -115,24 +115,46 @@ vertices_electron_beam_gas = builder.snapshot()
 
 #+begin_src jupyter-python :results silent
 def filter_name(name):
-    return "Hits." in name or "MCParticles." in name
+    collection = name.split(".")[0]
+    return collection.endswith("Hits") or collection == "MCParticles"
+
+# FIXME: uproot < 5.7.8 cannot project RNTuple columns in uproot.dask (scikit-hep/uproot5#1783, #1785),
+# so read eagerly and wrap for the dask-based analysis below. With uproot >= 5.7.8, restore:
+#   uproot.dask({path: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32)
+def read_events(path):
+    # uproot.concatenate does not support RNTuple either, so open the single file directly
+    with uproot.open(path) as f:
+        return dak.from_awkward(f["events"].arrays(filter_name=filter_name), npartitions=1)
+
+def field(events, path):
+    # TTree reads have flat "Coll.member.sub" fields, RNTuple reads have nested records
+    if path in events.fields:
+        return events[path]
+    for part in path.split("."):
+        events = events[part]
+    return events
+
+def energy_fields(events):
+    if any("." in name for name in events.fields):
+        return [name for name in events.fields if ".energy" in name]
+    return [f"{name}.energy" for name in events.fields if "energy" in events[name].fields]
 
 datasets = {
     # https://wiki.bnl.gov/EPIC/index.php?title=Electron_Beam_Gas
     "electron beam gas 10 GeV": {
         "vertices": vertices_electron_beam_gas,
-        "events": uproot.dask({ELECTRON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "events": read_events(ELECTRON_BEAM_GAS_SIM),
         "cmap": "cool",
         "rate": 3.2e6, # Hz
     },
     "DIS 10x100, $Q^2 > 1$ GeV${}^2$": {
-        "events": uproot.dask({PHYSICS_PROCESS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "events": read_events(PHYSICS_PROCESS_SIM),
         "rate": 184e3, # Hz
     },
     # https://wiki.bnl.gov/EPIC/index.php?title=Hadron_Beam_Gas
     "proton beam gas 100 GeV": {
         "vertices": vertices_proton_beam_gas,
-        "events": uproot.dask({PROTON_BEAM_GAS_SIM: "events"}, filter_name=filter_name, open_files=False, steps_per_file=32),
+        "events": read_events(PROTON_BEAM_GAS_SIM),
         "cmap": "summer",
         "rate": 31.9e3, # Hz
     },
@@ -207,10 +229,10 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
     for dataset_ix, (label, ds) in enumerate(datasets.items()):
         events = ds["events"]
 
-        energy_sums = ak.sum(events[f"{collection_name}.energy"].head(10000), axis=1)
+        energy_sums = ak.sum(field(events, f"{collection_name}.energy").head(10000), axis=1)
         event_id = ak.argmax(energy_sums)
-        xs = events[f"{collection_name}.position.x"].head(event_id + 1)[event_id].to_numpy()
-        ys = events[f"{collection_name}.position.y"].head(event_id + 1)[event_id].to_numpy()
+        xs = field(events, f"{collection_name}.position.x").head(event_id + 1)[event_id].to_numpy()
+        ys = field(events, f"{collection_name}.position.y").head(event_id + 1)[event_id].to_numpy()
 
         bin_widths = [None, None]
         for ix, vals in enumerate([xs, ys]):
@@ -228,7 +250,7 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
         plt.hist2d(
             xs,
             ys,
-            weights=events[f"{collection_name}.energy"].head(event_id + 1)[event_id].to_numpy(),
+            weights=field(events, f"{collection_name}.energy").head(event_id + 1)[event_id].to_numpy(),
             bins=bins,
             cmin=1e-10,
         )
@@ -266,10 +288,10 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
     events = ds["events"]
 
     r = np.hypot(
-        ak.ravel(events[f"{collection_name}.position.x"]),
-        ak.ravel(events[f"{collection_name}.position.y"]),
+        ak.ravel(field(events, f"{collection_name}.position.x")),
+        ak.ravel(field(events, f"{collection_name}.position.y")),
     )
-    cellID = ak.ravel(events[f"{collection_name}.cellID"])
+    cellID = ak.ravel(field(events, f"{collection_name}.cellID"))
 
     cellID_for_r[collection_name] = np.array(client.gather(client.compute([
         len_delayed(unique_delayed(
@@ -310,10 +332,10 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
             weight = ds["rate"] / len(events)
 
             r = np.hypot(
-                ak.ravel(events[f"{collection_name}.position.x"]),
-                ak.ravel(events[f"{collection_name}.position.y"]),
+                ak.ravel(field(events, f"{collection_name}.position.x")),
+                ak.ravel(field(events, f"{collection_name}.position.y")),
             )
-            edep = ak.ravel(events[f"{collection_name}.energy"])
+            edep = ak.ravel(field(events, f"{collection_name}.energy"))
             r = r[edep > edep_min]
 
             hist = dh.factory(
@@ -343,8 +365,8 @@ for collection_name in ["EcalEndcapNHits", "EcalEndcapPHits"]:
             events = ds["events"]
             weight = ds["rate"] / len(events)
 
-            z = ds["events"]["MCParticles.vertex.z"][:,1]
-            totedep = ak.sum(events[f"{collection_name}.energy"], axis=1)
+            z = field(ds["events"], "MCParticles.vertex.z")[:,1]
+            totedep = ak.sum(field(events, f"{collection_name}.energy"), axis=1)
             z = z[totedep > totedep_min]
 
             hist = dh.factory(
@@ -399,11 +421,10 @@ for edep_min in [0]: # GeV
         values = []
         norms = []
 
-        for branch_name in events.fields:
-            if ".energy" not in branch_name: continue
+        for branch_name in energy_fields(events):
             if "ZDC_SiliconPix_Hits" in branch_name: continue
 
-            edep = ak.ravel(events[branch_name])
+            edep = ak.ravel(field(events, branch_name))
 
             #cellID = ak.ravel(events[branch_name.replace(".energy", ".cellID")])
             #num_towers = len(unique_delayed(

@@ -4,8 +4,8 @@ sim:beamline:
   script:
     - |
       snakemake $SNAKEMAKE_FLAGS --cores $MAX_CORES_PER_JOB \
-        sim_output/beamline/acceptanceTestlocal.edm4hep.root \
-        sim_output/beamline/beamlineTestlocal.edm4hep.root
+        sim_output/beamline/acceptanceTestlocal.edm4hep.rnt.root \
+        sim_output/beamline/beamlineTestlocal.edm4hep.rnt.root
 
 bench:beamline:
   extends: .det_benchmark

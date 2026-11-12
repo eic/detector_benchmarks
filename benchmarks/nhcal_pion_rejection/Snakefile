@@ -1,4 +1,6 @@
 rule nhcal_pion_rejection_simulate:
+    input:
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
     params:

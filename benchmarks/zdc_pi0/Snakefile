@@ -6,11 +6,12 @@ rule zdc_pi0_generate:
     params:
         N_EVENTS=1000,
         P=lambda wildcards: wildcards.P,
+        SEED=lambda wildcards: stable_seed("zdc_pi0", wildcards.P),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p sim_output/zdc_pi0
-root -l -b -q '{input.script}({params.N_EVENTS},0,"{output.GEN_FILE}",{params.P},{params.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},{params.SEED},"{output.GEN_FILE}",{params.P},{params.P})'
 """
 
 rule zdc_pi0_simulate:

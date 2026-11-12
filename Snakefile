@@ -71,6 +71,12 @@ def gun_theta_range(phase_space):
     return m.group(1), m.group(2)
 
 
+def stable_seed(*parts):
+    """Derive a reproducible, nonzero 31-bit random seed from strings such as wildcard values."""
+    import zlib
+    return zlib.crc32("_".join(map(str, parts)).encode()) % (2**31 - 1) + 1
+
+
 include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"

@@ -8,10 +8,11 @@ rule insert_muon_generate:
         th_max=7.0,
         th_min=1.7,
         P=lambda wildcards: wildcards.P,
+        SEED=lambda wildcards: stable_seed("insert_muon", wildcards.P),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
+root -l -b -q '{input.script}({params.NEVENTS_GEN},"{output.GEN_FILE}", "mu-", {params.th_min}, {params.th_max}, 0., 360., {params.P}, 0, 1, {params.SEED})'
 """
 
 rule insert_muon_simulate:

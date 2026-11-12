@@ -54,3 +54,6 @@ particles/energies) to incorrectly collide onto the same cache entry.
 To avoid this, any wildcard that affects the result of a cached rule (or of
 an upstream rule it depends on) must be listed explicitly in `params`, e.g.
 `PARTICLE = lambda wildcards: wildcards.PARTICLE`.
+
+See [doc/cache-policy.md](doc/cache-policy.md) for the complete cache key
+definition, the list of cached rules, and when CI skips the shared cache.

@@ -123,6 +123,17 @@ common:setup:
     - mkdir "${DETECTOR_CONFIG}"
     - ln -s "${LOCAL_DATA_PATH}/sim_output" "${DETECTOR_CONFIG}/sim_output"
     - ln -s "../results" "${DETECTOR_CONFIG}/results"
+    - |
+      # Pipelines testing an upstream change produce cache entries keyed on software that later
+      # pipelines will never use. An epic change affects every cached output: use a cache private
+      # to this pipeline, removed with its scratch space, which still lets jobs of this pipeline
+      # share outputs. An EICrecon change only affects reconstruction: keep the shared cache for
+      # simulations, but do not cache rules keyed on EICRECON_HASH.
+      case "${GITHUB_REPOSITORY}" in
+        eic/epic) export SNAKEMAKE_OUTPUT_CACHE="${LOCAL_DATA_PATH}/snakemake-cache" ;;
+        eic/EICrecon) export BENCHMARKS_CACHE_EXCLUDE_PARAMS="EICRECON_HASH" ;;
+      esac
+      echo "SNAKEMAKE_OUTPUT_CACHE=${SNAKEMAKE_OUTPUT_CACHE} BENCHMARKS_CACHE_EXCLUDE_PARAMS=${BENCHMARKS_CACHE_EXCLUDE_PARAMS:-}"
     - mkdir -p "$SNAKEMAKE_OUTPUT_CACHE"
     # remove dangling symlinks to garbage-collected cache entries, so snakemake regenerates them
     - find -L "${LOCAL_DATA_PATH}/sim_output" "${LOCAL_DATA_PATH}/EPIC" -type l -print -delete || true

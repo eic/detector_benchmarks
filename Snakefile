@@ -203,3 +203,11 @@ EOF
 # validate JSON
 jq '.' {output}
 """
+
+
+# Rules whose cache key includes one of these params would only fill the cache with outputs no
+# later pipeline can retrieve (e.g. EICRECON_HASH when testing an EICrecon change)
+_cache_exclude_params = set(os.environ.get("BENCHMARKS_CACHE_EXCLUDE_PARAMS", "").split())
+for _rule in workflow.rules:
+    if _rule.cache and _cache_exclude_params & set(_rule.params.keys()):
+        _rule.cache = None

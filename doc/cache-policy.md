@@ -135,7 +135,7 @@ The table lists every eligible rule in this repository.
 contains its shell template, which depends on `remote_provider` in
 `snakemake.yml`, and the `PATH` param.
 
-| Rule | Snakefile | Kind | epic in key | Spack hash params | Cached when `GITHUB_REPOSITORY` is `eic/EICrecon` |
+| Rule | Snakefile | Kind | epic in key | Spack hash params | Cached for eic/EICrecon PRs |
 |---|---|---|---|---|---|
 | `backgrounds_sim` | [benchmarks/backgrounds/Snakefile](../benchmarks/backgrounds/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
 | `backwards_ecal_sim` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
@@ -229,33 +229,43 @@ are fetched or regenerated.
 
 The cache directory and the excluded rules are chosen in the `before_script`
 of `.det_benchmark` (inherited by every CI job that runs Snakemake), based on
-`GITHUB_REPOSITORY`, which eic/containers passes to pipelines it triggers:
+`GITHUB_REPOSITORY` and `GITHUB_PR`, which the eic/epic and eic/EICrecon
+GitHub workflows pass through eic/containers to the pipelines it triggers.
+`GITHUB_PR` is the pull request number for `pull_request` events and empty for
+all other events (merge queue, tags, branch pushes, manual runs):
 
 ```ebnf
 policy            = epic policy | eicrecon policy | default policy ;
 
-epic policy       = ( GITHUB_REPOSITORY = "eic/epic" ) ,
+epic policy       = ( GITHUB_REPOSITORY = "eic/epic" ) , ( GITHUB_PR <> "" ) ,
                     ( cache directory = pipeline cache ) ,
                     ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "" ) ;
 
-eicrecon policy   = ( GITHUB_REPOSITORY = "eic/EICrecon" ) ,
+eicrecon policy   = ( GITHUB_REPOSITORY = "eic/EICrecon" ) , ( GITHUB_PR <> "" ) ,
                     ( cache directory = shared cache ) ,
                     ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "EICRECON_HASH" ) ;
 
-default policy    = ( GITHUB_REPOSITORY = ? any other value, including empty ? ) ,
+default policy    = ? any other GITHUB_REPOSITORY (including empty), or GITHUB_PR = "" ? ,
                     ( cache directory = shared cache ) ,
                     ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "" ) ;
 ```
 
-Rationale: a pipeline that tests an epic or EICrecon change produces keys
-containing that change's `libepic.so` or `EICRECON_HASH`. No later pipeline
-builds the same software, so such entries could never be retrieved again.
+Rationale: a pipeline that tests an epic or EICrecon pull request builds the
+PR's head commit (`epic@git.<sha>=main`, `eicrecon@git.<sha>=main`), so its
+keys contain that commit's `libepic.so` or `EICRECON_HASH`. The head commit
+never becomes `main` as is (epic only allows squash merges through its merge
+queue, and GitHub never fast-forwards a pull request), so no later pipeline
+builds the same software and such entries could never be retrieved again.
 
- - With an epic change, every cached output depends on the epic build, so the
-   whole cache moves into the pipeline. Jobs of the same pipeline still share
+ - For an epic PR, every cached output depends on the epic build, so the whole
+   cache moves into the pipeline. Jobs of the same pipeline still share
    entries, as described in section 5.
- - With an EICrecon change, simulations do not depend on EICrecon and keep
-   using the shared cache. Only rules keyed on `EICRECON_HASH` are not cached.
+ - For an EICrecon PR, simulations do not depend on EICrecon and keep using
+   the shared cache. Only rules keyed on `EICRECON_HASH` are not cached.
+ - An epic merge-queue run tests the squash commit that `main` is then
+   fast-forwarded to, which the next nightly container build also builds, so
+   it uses the shared cache. Tag, branch and manual runs also use the shared
+   cache: they are rare, and their entries are evicted by garbage collection.
 
 Complete list of conditions under which an output is neither read from nor
 written to the shared cache:
@@ -266,8 +276,8 @@ written to the shared cache:
 | 2 | Snakemake runs without `--cache`: any run outside CI unless `--cache` is passed, and the `RUN_EXTENDED_BENCHMARK` steps in `benchmarks/barrel_ecal/config.yml`, which do not pass `$SNAKEMAKE_FLAGS` | Nothing cached; Snakemake warns that the rules are "eligible for caching" |
 | 3 | `--cache` is given but `SNAKEMAKE_OUTPUT_CACHE` is not set | Nothing cached; Snakemake warns that no cache location is set |
 | 4 | The job's output exists and is up to date | Cache not consulted (section 5) |
-| 5 | `GITHUB_REPOSITORY` is `eic/epic` | All cached rules use the pipeline cache instead of the shared cache |
-| 6 | `GITHUB_REPOSITORY` is `eic/EICrecon` and the rule has an `EICRECON_HASH` param | The rule is not cached at all |
+| 5 | `GITHUB_REPOSITORY` is `eic/epic` and `GITHUB_PR` is not empty | All cached rules use the pipeline cache instead of the shared cache |
+| 6 | `GITHUB_REPOSITORY` is `eic/EICrecon`, `GITHUB_PR` is not empty, and the rule has an `EICRECON_HASH` param | The rule is not cached at all |
 
 
 7. Removal of entries

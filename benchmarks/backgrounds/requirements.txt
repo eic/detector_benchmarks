@@ -1,7 +1,7 @@
-awkward ~= 2.7.2
+awkward ~= 2.8, >= 2.8.2
 dask ~= 2024.12.1
-dask_awkward ~= 2024.12.2
-dask_histogram ~= 2024.12.1
+dask_awkward >= 2025.3.0
+dask_histogram >= 2025.2.0
 distributed ~= 2024.12.1
 pyhepmc
-uproot ~= 5.5.1
+uproot ~= 5.7, >= 5.7.1

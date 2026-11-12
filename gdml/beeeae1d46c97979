@@ -1,0 +1,828 @@
+<?xml version='1.0' encoding='ASCII'?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+  <position name="Mesh2Tess_0" unit="mm" x="146.53956604003906" y="1947.0426025390625" z="-3120.0"/>
+  <position name="Mesh2Tess_1" unit="mm" x="184.80897521972656" y="2640.66259765625" z="-3120.0"/>
+  <position name="Mesh2Tess_2" unit="mm" x="191.39878845214844" y="1822.5211181640625" z="-1500.0"/>
+  <position name="Mesh2Tess_3" unit="mm" x="137.5178680419922" y="2295.95068359375" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_4" unit="mm" x="-16.438724517822266" y="1952.47998046875" z="-3120.0"/>
+  <position name="Mesh2Tess_5" unit="mm" x="311.9709167480469" y="1927.412841796875" z="-1593.5693359375"/>
+  <position name="Mesh2Tess_6" unit="mm" x="-88.18714141845703" y="2298.374267578125" z="3120.0"/>
+  <position name="Mesh2Tess_7" unit="mm" x="69.9859390258789" y="1951.2945556640625" z="-3120.0"/>
+  <position name="Mesh2Tess_8" unit="mm" x="136.802001953125" y="1947.7509765625" z="-3120.0"/>
+  <position name="Mesh2Tess_9" unit="mm" x="224.35931396484375" y="1939.563720703125" z="-3120.0"/>
+  <position name="Mesh2Tess_10" unit="mm" x="182.5694122314453" y="2292.808349609375" z="3120.0"/>
+  <position name="Mesh2Tess_11" unit="mm" x="308.66217041015625" y="1797.901611328125" z="-1493.495361328125"/>
+  <position name="Mesh2Tess_12" unit="mm" x="-142.97047424316406" y="2295.6171875" z="3120.0"/>
+  <position name="Mesh2Tess_13" unit="mm" x="92.4133071899414" y="2298.208251953125" z="3120.0"/>
+  <position name="Mesh2Tess_14" unit="mm" x="242.75379943847656" y="2682.2529296875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_15" unit="mm" x="-142.97047424316406" y="2295.6171875" z="1863.727294921875"/>
+  <position name="Mesh2Tess_16" unit="mm" x="31.661272048950195" y="1952.29248046875" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_17" unit="mm" x="148.03939819335938" y="1946.876708984375" z="-3120.0"/>
+  <position name="Mesh2Tess_18" unit="mm" x="21.898897171020508" y="1952.4263916015625" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_19" unit="mm" x="190.5620574951172" y="1943.1754150390625" z="3158.10009765625"/>
+  <position name="Mesh2Tess_20" unit="mm" x="262.8031921386719" y="1813.601806640625" z="1500.0"/>
+  <position name="Mesh2Tess_21" unit="mm" x="-27.470766067504883" y="1952.3037109375" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_22" unit="mm" x="298.36029052734375" y="1808.0924072265625" z="1500.0"/>
+  <position name="Mesh2Tess_23" unit="mm" x="-219.31109619140625" y="2631.517578125" z="3120.0"/>
+  <position name="Mesh2Tess_24" unit="mm" x="11.838549613952637" y="1832.5054931640625" z="-1500.0"/>
+  <position name="Mesh2Tess_25" unit="mm" x="54.39787673950195" y="1951.739013671875" z="3120.0"/>
+  <position name="Mesh2Tess_26" unit="mm" x="227.144775390625" y="1818.4119873046875" z="1500.0"/>
+  <position name="Mesh2Tess_27" unit="mm" x="227.55056762695312" y="2288.78173828125" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_28" unit="mm" x="320.4813537597656" y="1795.7991943359375" z="-1493.495361328125"/>
+  <position name="Mesh2Tess_29" unit="mm" x="263.1612548828125" y="2682.2529296875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_30" unit="mm" x="271.8563537597656" y="1933.4783935546875" z="3120.0"/>
+  <position name="Mesh2Tess_31" unit="mm" x="-43.04451370239258" y="2299.66259765625" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_32" unit="mm" x="-14.344938278198242" y="1832.487548828125" z="-1500.0"/>
+  <position name="Mesh2Tess_33" unit="mm" x="93.56013488769531" y="1830.15380859375" z="-1500.0"/>
+  <position name="Mesh2Tess_34" unit="mm" x="-74.91143798828125" y="2646.0615234375" z="3120.0"/>
+  <position name="Mesh2Tess_35" unit="mm" x="173.51055908203125" y="1944.7720947265625" z="-3120.0"/>
+  <position name="Mesh2Tess_36" unit="mm" x="136.17086791992188" y="1947.7427978515625" z="3158.10009765625"/>
+  <position name="Mesh2Tess_37" unit="mm" x="262.39697265625" y="1934.784912109375" z="-3120.0"/>
+  <position name="Mesh2Tess_38" unit="mm" x="119.69926452636719" y="1828.6302490234375" z="-1500.0"/>
+  <position name="Mesh2Tess_39" unit="mm" x="-97.87144470214844" y="2297.98193359375" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_40" unit="mm" x="-0.17947699129581451" y="1952.4969482421875" z="3120.0"/>
+  <position name="Mesh2Tess_41" unit="mm" x="31.661272048950195" y="1952.29248046875" z="-3120.0"/>
+  <position name="Mesh2Tess_42" unit="mm" x="184.80897521972656" y="2640.66259765625" z="3120.0"/>
+  <position name="Mesh2Tess_43" unit="mm" x="-54.75668716430664" y="1951.72900390625" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_44" unit="mm" x="-219.31109619140625" y="2631.517578125" z="-3120.0"/>
+  <position name="Mesh2Tess_45" unit="mm" x="21.898897171020508" y="1952.4263916015625" z="-3120.0"/>
+  <position name="Mesh2Tess_46" unit="mm" x="58.719085693359375" y="1951.61376953125" z="-3120.0"/>
+  <position name="Mesh2Tess_47" unit="mm" x="272.4440002441406" y="2283.873046875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_48" unit="mm" x="2.114713191986084" y="2300.064453125" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_49" unit="mm" x="108.28362274169922" y="1949.54443359375" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_50" unit="mm" x="108.9327163696289" y="1949.455810546875" z="3120.0"/>
+  <position name="Mesh2Tess_51" unit="mm" x="-54.76995086669922" y="1951.7806396484375" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_52" unit="mm" x="165.33963012695312" y="1825.0697021484375" z="-1500.0"/>
+  <position name="Mesh2Tess_53" unit="mm" x="-178.73770141601562" y="2641.08056640625" z="3120.0"/>
+  <position name="Mesh2Tess_54" unit="mm" x="289.1993103027344" y="1931.013427734375" z="-3120.0"/>
+  <position name="Mesh2Tess_55" unit="mm" x="290.926513671875" y="1930.7010498046875" z="-3120.0"/>
+  <position name="Mesh2Tess_56" unit="mm" x="282.99285888671875" y="1931.8798828125" z="-3120.0"/>
+  <position name="Mesh2Tess_57" unit="mm" x="-33.956092834472656" y="1823.8382568359375" z="-1493.47998046875"/>
+  <position name="Mesh2Tess_58" unit="mm" x="143.30796813964844" y="2636.7490234375" z="3120.0"/>
+  <position name="Mesh2Tess_59" unit="mm" x="-133.2957763671875" y="2296.19970703125" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_60" unit="mm" x="298.85125732421875" y="1929.54345703125" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_61" unit="mm" x="298.8552551269531" y="1929.4896240234375" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_62" unit="mm" x="217.70445251464844" y="1940.322021484375" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_63" unit="mm" x="80.99443817138672" y="2645.88232421875" z="3120.0"/>
+  <position name="Mesh2Tess_64" unit="mm" x="135.29403686523438" y="1947.803955078125" z="-3120.0"/>
+  <position name="Mesh2Tess_65" unit="mm" x="222.86724853515625" y="1939.788330078125" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_66" unit="mm" x="81.67327117919922" y="1950.7880859375" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_67" unit="mm" x="109.78643798828125" y="1949.407958984375" z="-3120.0"/>
+  <position name="Mesh2Tess_68" unit="mm" x="27.111846923828125" y="1952.3087158203125" z="3158.10009765625"/>
+  <position name="Mesh2Tess_69" unit="mm" x="289.0579833984375" y="2281.760986328125" z="1863.002197265625"/>
+  <position name="Mesh2Tess_70" unit="mm" x="-159.6141815185547" y="2294.4521484375" z="1863.0811767578125"/>
+  <position name="Mesh2Tess_71" unit="mm" x="-242.1497344970703" y="2682.2529296875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_72" unit="mm" x="272.4963684082031" y="1812.170654296875" z="1500.0"/>
+  <position name="Mesh2Tess_73" unit="mm" x="-115.82899475097656" y="2638.098876953125" z="3120.0"/>
+  <position name="Mesh2Tess_74" unit="mm" x="211.6602020263672" y="1940.9906005859375" z="-3120.0"/>
+  <position name="Mesh2Tess_75" unit="mm" x="-30.724315643310547" y="1952.2552490234375" z="-3120.0"/>
+  <position name="Mesh2Tess_76" unit="mm" x="184.739013671875" y="1943.7901611328125" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_77" unit="mm" x="201.1406707763672" y="1821.4716796875" z="1500.0"/>
+  <position name="Mesh2Tess_78" unit="mm" x="-7.577517509460449" y="2300.052734375" z="3120.0"/>
+  <position name="Mesh2Tess_79" unit="mm" x="-46.746639251708984" y="1951.937255859375" z="-3120.0"/>
+  <position name="Mesh2Tess_80" unit="mm" x="-178.73770141601562" y="2641.08056640625" z="-3120.0"/>
+  <position name="Mesh2Tess_81" unit="mm" x="-7.577517509460449" y="2300.052734375" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_82" unit="mm" x="27.111846923828125" y="1952.3087158203125" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_83" unit="mm" x="91.51116180419922" y="2639.054443359375" z="-3120.0"/>
+  <position name="Mesh2Tess_84" unit="mm" x="143.30796813964844" y="2636.7490234375" z="-3120.0"/>
+  <position name="Mesh2Tess_85" unit="mm" x="244.8043212890625" y="1937.0894775390625" z="3158.10009765625"/>
+  <position name="Mesh2Tess_86" unit="mm" x="37.5825309753418" y="2299.758056640625" z="3120.0"/>
+  <position name="Mesh2Tess_87" unit="mm" x="242.75379943847656" y="2682.2529296875" z="3120.0"/>
+  <position name="Mesh2Tess_88" unit="mm" x="132.9273223876953" y="2643.7822265625" z="-3120.0"/>
+  <position name="Mesh2Tess_89" unit="mm" x="80.99443817138672" y="2645.88232421875" z="-3120.0"/>
+  <position name="Mesh2Tess_90" unit="mm" x="108.28362274169922" y="1949.54443359375" z="-3120.0"/>
+  <position name="Mesh2Tess_91" unit="mm" x="37.5825309753418" y="2299.758056640625" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_92" unit="mm" x="-6.675602436065674" y="1952.537841796875" z="-3120.0"/>
+  <position name="Mesh2Tess_93" unit="mm" x="155.5790252685547" y="1825.9276123046875" z="1500.0"/>
+  <position name="Mesh2Tess_94" unit="mm" x="289.1993103027344" y="1931.013427734375" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_95" unit="mm" x="47.81517791748047" y="1831.9197998046875" z="1500.0"/>
+  <position name="Mesh2Tess_96" unit="mm" x="83.77336883544922" y="1830.6279296875" z="1500.0"/>
+  <position name="Mesh2Tess_97" unit="mm" x="-263.16046142578125" y="2682.2529296875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_98" unit="mm" x="7.611645698547363" y="1952.482177734375" z="-3120.0"/>
+  <position name="Mesh2Tess_99" unit="mm" x="-67.99297332763672" y="1951.31298828125" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_100" unit="mm" x="-88.18714141845703" y="2298.374267578125" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_101" unit="mm" x="-115.82899475097656" y="2638.098876953125" z="-3120.0"/>
+  <position name="Mesh2Tess_102" unit="mm" x="182.5694122314453" y="2292.808349609375" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_103" unit="mm" x="260.9095458984375" y="1935.038818359375" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_104" unit="mm" x="92.4133071899414" y="2298.208251953125" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_105" unit="mm" x="190.5620574951172" y="1943.1754150390625" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_106" unit="mm" x="222.86724853515625" y="1939.788330078125" z="-3120.0"/>
+  <position name="Mesh2Tess_107" unit="mm" x="29.030324935913086" y="2646.962646484375" z="-3120.0"/>
+  <position name="Mesh2Tess_108" unit="mm" x="129.47483825683594" y="1827.964111328125" z="-1500.0"/>
+  <position name="Mesh2Tess_109" unit="mm" x="-27.470766067504883" y="1952.3037109375" z="3120.0"/>
+  <position name="Mesh2Tess_110" unit="mm" x="262.8031921386719" y="1813.601806640625" z="-1500.0"/>
+  <position name="Mesh2Tess_111" unit="mm" x="249.72824096679688" y="1936.4608154296875" z="-3120.0"/>
+  <position name="Mesh2Tess_112" unit="mm" x="98.5340347290039" y="1950.0614013671875" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_113" unit="mm" x="242.75379943847656" y="2682.2529296875" z="-3120.0"/>
+  <position name="Mesh2Tess_114" unit="mm" x="137.5178680419922" y="2295.95068359375" z="3120.0"/>
+  <position name="Mesh2Tess_115" unit="mm" x="39.679080963134766" y="2640.342529296875" z="3120.0"/>
+  <position name="Mesh2Tess_116" unit="mm" x="272.4440002441406" y="2283.873046875" z="1862.3536376953125"/>
+  <position name="Mesh2Tess_117" unit="mm" x="60.22807693481445" y="1951.6201171875" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_118" unit="mm" x="184.739013671875" y="1943.7901611328125" z="-3120.0"/>
+  <position name="Mesh2Tess_119" unit="mm" x="-142.97047424316406" y="2295.6171875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_120" unit="mm" x="191.39878845214844" y="1822.5211181640625" z="1500.0"/>
+  <position name="Mesh2Tess_121" unit="mm" x="-97.87144470214844" y="2297.98193359375" z="3120.0"/>
+  <position name="Mesh2Tess_122" unit="mm" x="275.054443359375" y="1933.026123046875" z="-3120.0"/>
+  <position name="Mesh2Tess_123" unit="mm" x="263.1612548828125" y="2682.2529296875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_124" unit="mm" x="262.81756591796875" y="2285.00048828125" z="3120.0"/>
+  <position name="Mesh2Tess_125" unit="mm" x="21.636383056640625" y="1832.416015625" z="-1500.0"/>
+  <position name="Mesh2Tess_126" unit="mm" x="213.16500854492188" y="1940.8785400390625" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_127" unit="mm" x="163.38243103027344" y="1945.649169921875" z="3120.0"/>
+  <position name="Mesh2Tess_128" unit="mm" x="262.81756591796875" y="2285.00048828125" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_129" unit="mm" x="-54.76995086669922" y="1951.7806396484375" z="-1593.7491455078125"/>
+  <position name="Mesh2Tess_130" unit="mm" x="251.2305908203125" y="1936.3192138671875" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_131" unit="mm" x="237.048828125" y="1938.0538330078125" z="-3120.0"/>
+  <position name="Mesh2Tess_132" unit="mm" x="-6.675602436065674" y="1952.537841796875" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_133" unit="mm" x="236.8641815185547" y="1817.1715087890625" z="-1500.0"/>
+  <position name="Mesh2Tess_134" unit="mm" x="47.27312469482422" y="2299.57958984375" z="3120.0"/>
+  <position name="Mesh2Tess_135" unit="mm" x="33.16817855834961" y="1952.2152099609375" z="-3120.0"/>
+  <position name="Mesh2Tess_136" unit="mm" x="298.85125732421875" y="1929.54345703125" z="-1593.4130859375"/>
+  <position name="Mesh2Tess_137" unit="mm" x="-54.75668716430664" y="1951.72900390625" z="3120.0"/>
+  <position name="Mesh2Tess_138" unit="mm" x="91.51116180419922" y="2639.054443359375" z="3120.0"/>
+  <position name="Mesh2Tess_139" unit="mm" x="136.17086791992188" y="1947.7427978515625" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_140" unit="mm" x="127.84175872802734" y="2296.509765625" z="3120.0"/>
+  <position name="Mesh2Tess_141" unit="mm" x="54.39787673950195" y="1951.739013671875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_142" unit="mm" x="132.9273223876953" y="2643.7822265625" z="3120.0"/>
+  <position name="Mesh2Tess_143" unit="mm" x="127.84175872802734" y="2296.509765625" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_144" unit="mm" x="260.9095458984375" y="1935.038818359375" z="-3120.0"/>
+  <position name="Mesh2Tess_145" unit="mm" x="39.679080963134766" y="2640.342529296875" z="-3120.0"/>
+  <position name="Mesh2Tess_146" unit="mm" x="198.95201110839844" y="1942.3343505859375" z="-3120.0"/>
+  <position name="Mesh2Tess_147" unit="mm" x="11.838549613952637" y="1832.5054931640625" z="1500.0"/>
+  <position name="Mesh2Tess_148" unit="mm" x="57.6093635559082" y="1831.637939453125" z="1500.0"/>
+  <position name="Mesh2Tess_149" unit="mm" x="271.8563537597656" y="1933.4783935546875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_150" unit="mm" x="217.70445251464844" y="1940.322021484375" z="3120.0"/>
+  <position name="Mesh2Tess_151" unit="mm" x="98.5340347290039" y="1950.0614013671875" z="-3120.0"/>
+  <position name="Mesh2Tess_152" unit="mm" x="60.22807693481445" y="1951.6201171875" z="-3120.0"/>
+  <position name="Mesh2Tess_153" unit="mm" x="81.67327117919922" y="1950.7880859375" z="3120.0"/>
+  <position name="Mesh2Tess_154" unit="mm" x="-22.012544631958008" y="1824.080810546875" z="1493.47998046875"/>
+  <position name="Mesh2Tess_155" unit="mm" x="160.77841186523438" y="1945.8660888671875" z="-3120.0"/>
+  <position name="Mesh2Tess_156" unit="mm" x="236.61936950683594" y="2636.525146484375" z="3120.0"/>
+  <position name="Mesh2Tess_157" unit="mm" x="29.030324935913086" y="2646.962646484375" z="3120.0"/>
+  <position name="Mesh2Tess_158" unit="mm" x="-242.1497344970703" y="2682.2529296875" z="3120.0"/>
+  <position name="Mesh2Tess_159" unit="mm" x="-0.17947699129581451" y="1952.4969482421875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_160" unit="mm" x="-54.75668716430664" y="1951.72900390625" z="-3120.0"/>
+  <position name="Mesh2Tess_161" unit="mm" x="93.56013488769531" y="1830.15380859375" z="1500.0"/>
+  <position name="Mesh2Tess_162" unit="mm" x="213.16500854492188" y="1940.8785400390625" z="-3120.0"/>
+  <position name="Mesh2Tess_163" unit="mm" x="-64.010986328125" y="2639.864501953125" z="3120.0"/>
+  <position name="Mesh2Tess_164" unit="mm" x="-167.60235595703125" y="2635.316162109375" z="3120.0"/>
+  <position name="Mesh2Tess_165" unit="mm" x="97.0252914428711" y="1950.084716796875" z="-3120.0"/>
+  <position name="Mesh2Tess_166" unit="mm" x="251.2305908203125" y="1936.3192138671875" z="-3120.0"/>
+  <position name="Mesh2Tess_167" unit="mm" x="-54.76995086669922" y="1951.7806396484375" z="-3120.0"/>
+  <position name="Mesh2Tess_168" unit="mm" x="272.4963684082031" y="1812.170654296875" z="-1500.0"/>
+  <position name="Mesh2Tess_169" unit="mm" x="108.9327163696289" y="1949.455810546875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_170" unit="mm" x="298.85125732421875" y="1929.54345703125" z="-3120.0"/>
+  <position name="Mesh2Tess_171" unit="mm" x="-0.17947699129581451" y="1952.4969482421875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_172" unit="mm" x="298.8552551269531" y="1929.4896240234375" z="-3120.0"/>
+  <position name="Mesh2Tess_173" unit="mm" x="244.8043212890625" y="1937.0894775390625" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_174" unit="mm" x="289.0579833984375" y="2281.760986328125" z="3158.10009765625"/>
+  <position name="Mesh2Tess_175" unit="mm" x="236.61936950683594" y="2636.525146484375" z="-3120.0"/>
+  <position name="Mesh2Tess_176" unit="mm" x="-126.8490219116211" y="2644.080810546875" z="3120.0"/>
+  <position name="Mesh2Tess_177" unit="mm" x="20.390348434448242" y="1952.3905029296875" z="-3120.0"/>
+  <position name="Mesh2Tess_178" unit="mm" x="108.9327163696289" y="1949.455810546875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_179" unit="mm" x="-45.00990295410156" y="1952.0303955078125" z="-3120.0"/>
+  <position name="Mesh2Tess_180" unit="mm" x="-159.6141815185547" y="2294.4521484375" z="3158.10009765625"/>
+  <position name="Mesh2Tess_181" unit="mm" x="-242.1497344970703" y="2682.2529296875" z="-3120.0"/>
+  <position name="Mesh2Tess_182" unit="mm" x="-263.16046142578125" y="2682.2529296875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_183" unit="mm" x="190.5620574951172" y="1943.1754150390625" z="3120.0"/>
+  <position name="Mesh2Tess_184" unit="mm" x="-167.60235595703125" y="2635.316162109375" z="-3120.0"/>
+  <position name="Mesh2Tess_185" unit="mm" x="-64.010986328125" y="2639.864501953125" z="-3120.0"/>
+  <position name="Mesh2Tess_186" unit="mm" x="298.36029052734375" y="1808.0924072265625" z="-1500.0"/>
+  <position name="Mesh2Tess_187" unit="mm" x="227.144775390625" y="1818.4119873046875" z="-1500.0"/>
+  <position name="Mesh2Tess_188" unit="mm" x="84.2599868774414" y="1950.677978515625" z="-3120.0"/>
+  <position name="Mesh2Tess_189" unit="mm" x="195.04953002929688" y="2633.42724609375" z="3120.0"/>
+  <position name="Mesh2Tess_190" unit="mm" x="-12.168296813964844" y="2640.612548828125" z="-3120.0"/>
+  <position name="Mesh2Tess_191" unit="mm" x="242.75379943847656" y="2682.2529296875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_192" unit="mm" x="71.4910659790039" y="1951.187744140625" z="-3120.0"/>
+  <position name="Mesh2Tess_193" unit="mm" x="-126.8490219116211" y="2644.080810546875" z="-3120.0"/>
+  <position name="Mesh2Tess_194" unit="mm" x="217.90386962890625" y="2289.72021484375" z="3120.0"/>
+  <position name="Mesh2Tess_195" unit="mm" x="217.90386962890625" y="2289.72021484375" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_196" unit="mm" x="311.9709167480469" y="1927.412841796875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_197" unit="mm" x="-27.470766067504883" y="1952.3037109375" z="3158.10009765625"/>
+  <position name="Mesh2Tess_198" unit="mm" x="136.17086791992188" y="1947.7427978515625" z="3120.0"/>
+  <position name="Mesh2Tess_199" unit="mm" x="45.94458770751953" y="1951.956298828125" z="-3120.0"/>
+  <position name="Mesh2Tess_200" unit="mm" x="-33.956092834472656" y="1823.8382568359375" z="1493.47998046875"/>
+  <position name="Mesh2Tess_201" unit="mm" x="-45.00990295410156" y="1952.0303955078125" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_202" unit="mm" x="195.04953002929688" y="2633.42724609375" z="-3120.0"/>
+  <position name="Mesh2Tess_203" unit="mm" x="227.55056762695312" y="2288.78173828125" z="3120.0"/>
+  <position name="Mesh2Tess_204" unit="mm" x="129.47483825683594" y="1827.964111328125" z="1500.0"/>
+  <position name="Mesh2Tess_205" unit="mm" x="298.8552551269531" y="1929.4896240234375" z="3120.0"/>
+  <position name="Mesh2Tess_206" unit="mm" x="54.39787673950195" y="1951.739013671875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_207" unit="mm" x="-43.04451370239258" y="2299.66259765625" z="3120.0"/>
+  <position name="Mesh2Tess_208" unit="mm" x="47.27312469482422" y="2299.57958984375" z="1862.3551025390625"/>
+  <position name="Mesh2Tess_209" unit="mm" x="272.4440002441406" y="2283.873046875" z="3120.0"/>
+  <position name="Mesh2Tess_210" unit="mm" x="122.54288482666016" y="1948.647705078125" z="-3120.0"/>
+  <position name="Mesh2Tess_211" unit="mm" x="-17.94624900817871" y="1952.4144287109375" z="-3120.0"/>
+  <position name="Mesh2Tess_212" unit="mm" x="-14.344938278198242" y="1832.487548828125" z="1500.0"/>
+  <position name="Mesh2Tess_213" unit="mm" x="175.01724243164062" y="1944.6895751953125" z="-3120.0"/>
+  <position name="Mesh2Tess_214" unit="mm" x="57.6093635559082" y="1831.637939453125" z="-1500.0"/>
+  <position name="Mesh2Tess_215" unit="mm" x="163.38243103027344" y="1945.649169921875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_216" unit="mm" x="308.66217041015625" y="1797.901611328125" z="1493.495361328125"/>
+  <position name="Mesh2Tess_217" unit="mm" x="-38.73580551147461" y="1952.1126708984375" z="-3120.0"/>
+  <position name="Mesh2Tess_218" unit="mm" x="119.69926452636719" y="1828.6302490234375" z="1500.0"/>
+  <position name="Mesh2Tess_219" unit="mm" x="-22.94498062133789" y="2647.022216796875" z="3120.0"/>
+  <position name="Mesh2Tess_220" unit="mm" x="271.8563537597656" y="1933.4783935546875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_221" unit="mm" x="21.636383056640625" y="1832.416015625" z="1500.0"/>
+  <position name="Mesh2Tess_222" unit="mm" x="2.114713191986084" y="2300.064453125" z="3120.0"/>
+  <position name="Mesh2Tess_223" unit="mm" x="27.111846923828125" y="1952.3087158203125" z="3120.0"/>
+  <position name="Mesh2Tess_224" unit="mm" x="146.53956604003906" y="1947.0426025390625" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_225" unit="mm" x="-54.75668716430664" y="1951.72900390625" z="3158.10009765625"/>
+  <position name="Mesh2Tess_226" unit="mm" x="-12.168296813964844" y="2640.612548828125" z="3120.0"/>
+  <position name="Mesh2Tess_227" unit="mm" x="-67.99297332763672" y="1951.31298828125" z="-1593.593505859375"/>
+  <position name="Mesh2Tess_228" unit="mm" x="-52.73464584350586" y="2299.460693359375" z="3120.0"/>
+  <position name="Mesh2Tess_229" unit="mm" x="-16.438724517822266" y="1952.47998046875" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_230" unit="mm" x="201.1406707763672" y="1821.4716796875" z="-1500.0"/>
+  <position name="Mesh2Tess_231" unit="mm" x="165.33963012695312" y="1825.0697021484375" z="1500.0"/>
+  <position name="Mesh2Tess_232" unit="mm" x="-52.73464584350586" y="2299.460693359375" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_233" unit="mm" x="-133.2957763671875" y="2296.19970703125" z="3120.0"/>
+  <position name="Mesh2Tess_234" unit="mm" x="69.9859390258789" y="1951.2945556640625" z="-1593.4134521484375"/>
+  <position name="Mesh2Tess_235" unit="mm" x="82.72808837890625" y="2298.576904296875" z="3120.0"/>
+  <position name="Mesh2Tess_236" unit="mm" x="136.802001953125" y="1947.7509765625" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_237" unit="mm" x="236.8641815185547" y="1817.1715087890625" z="1500.0"/>
+  <position name="Mesh2Tess_238" unit="mm" x="163.38243103027344" y="1945.649169921875" z="-3158.10009765625"/>
+  <position name="Mesh2Tess_239" unit="mm" x="82.72808837890625" y="2298.576904296875" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_240" unit="mm" x="186.2352752685547" y="1943.5948486328125" z="-3120.0"/>
+  <position name="Mesh2Tess_241" unit="mm" x="298.8552551269531" y="1929.4896240234375" z="3158.10009765625"/>
+  <position name="Mesh2Tess_242" unit="mm" x="217.70445251464844" y="1940.322021484375" z="3158.10009765625"/>
+  <position name="Mesh2Tess_243" unit="mm" x="244.8043212890625" y="1937.0894775390625" z="3120.0"/>
+  <position name="Mesh2Tess_244" unit="mm" x="155.5790252685547" y="1825.9276123046875" z="-1500.0"/>
+  <position name="Mesh2Tess_245" unit="mm" x="81.67327117919922" y="1950.7880859375" z="3158.10009765625"/>
+  <position name="Mesh2Tess_246" unit="mm" x="47.81517791748047" y="1831.9197998046875" z="-1500.0"/>
+  <position name="Mesh2Tess_247" unit="mm" x="83.77336883544922" y="1830.6279296875" z="-1500.0"/>
+  <position name="Mesh2Tess_248" unit="mm" x="172.90614318847656" y="2293.556884765625" z="3120.0"/>
+  <position name="Mesh2Tess_249" unit="mm" x="-22.94498062133789" y="2647.022216796875" z="-3120.0"/>
+  <position name="Mesh2Tess_250" unit="mm" x="320.4813537597656" y="1795.7991943359375" z="1493.495361328125"/>
+  <position name="Mesh2Tess_251" unit="mm" x="172.90614318847656" y="2293.556884765625" z="1863.7286376953125"/>
+  <position name="Mesh2Tess_252" unit="mm" x="-242.1497344970703" y="2682.2529296875" z="3158.10009765625"/>
+  <position name="Mesh2Tess_253" unit="mm" x="-5.167411804199219" y="1952.4901123046875" z="-3120.0"/>
+  <position name="Mesh2Tess_254" unit="mm" x="175.01724243164062" y="1944.6895751953125" z="-1593.74951171875"/>
+  <position name="Mesh2Tess_255" unit="mm" x="-74.91143798828125" y="2646.0615234375" z="-3120.0"/>
+  <position name="Mesh2Tess_256" unit="mm" x="-22.012544631958008" y="1824.080810546875" z="-1493.47998046875"/>
+  <position name="center" x="0" y="0" z="0" unit="mm"/>
+  <rotation name="identity" x="0" y="0" z="0" unit="deg"/>
+  </define>
+<materials/>
+<solids>
+    <box name="WorldBox" x="1000" y="1000" z="1000" lunit="mm"/>
+  <tessellated name="Mesh2Tess">
+      <triangular vertex1="Mesh2Tess_156" vertex2="Mesh2Tess_202" vertex3="Mesh2Tess_189" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_156" vertex2="Mesh2Tess_175" vertex3="Mesh2Tess_202" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_27" vertex2="Mesh2Tess_203" vertex3="Mesh2Tess_189" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_103" vertex2="Mesh2Tess_168" vertex3="Mesh2Tess_72" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_103" vertex2="Mesh2Tess_72" vertex3="Mesh2Tess_27" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_202" vertex2="Mesh2Tess_144" vertex3="Mesh2Tess_103" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_202" vertex2="Mesh2Tess_103" vertex3="Mesh2Tess_27" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_189" vertex2="Mesh2Tess_202" vertex3="Mesh2Tess_27" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_233" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_233" vertex2="Mesh2Tess_121" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_121" vertex2="Mesh2Tess_6" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_137" vertex2="Mesh2Tess_228" vertex3="Mesh2Tess_109" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_6" vertex2="Mesh2Tess_228" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_228" vertex2="Mesh2Tess_207" vertex3="Mesh2Tess_109" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_109" vertex2="Mesh2Tess_78" vertex3="Mesh2Tess_40" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_207" vertex2="Mesh2Tess_78" vertex3="Mesh2Tess_109" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_40" vertex2="Mesh2Tess_222" vertex3="Mesh2Tess_223" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_78" vertex2="Mesh2Tess_222" vertex3="Mesh2Tess_40" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_222" vertex2="Mesh2Tess_86" vertex3="Mesh2Tess_223" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_86" vertex2="Mesh2Tess_134" vertex3="Mesh2Tess_223" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_223" vertex2="Mesh2Tess_134" vertex3="Mesh2Tess_25" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_25" vertex2="Mesh2Tess_235" vertex3="Mesh2Tess_153" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_134" vertex2="Mesh2Tess_235" vertex3="Mesh2Tess_25" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_158" vertex2="Mesh2Tess_53" vertex3="Mesh2Tess_23" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_235" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_153" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_153" vertex2="Mesh2Tess_140" vertex3="Mesh2Tess_50" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_13" vertex2="Mesh2Tess_140" vertex3="Mesh2Tess_153" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_50" vertex2="Mesh2Tess_114" vertex3="Mesh2Tess_198" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_140" vertex2="Mesh2Tess_114" vertex3="Mesh2Tess_50" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_158" vertex2="Mesh2Tess_176" vertex3="Mesh2Tess_53" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_53" vertex2="Mesh2Tess_176" vertex3="Mesh2Tess_164" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_198" vertex2="Mesh2Tess_248" vertex3="Mesh2Tess_127" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_114" vertex2="Mesh2Tess_248" vertex3="Mesh2Tess_198" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_248" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_127" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_158" vertex2="Mesh2Tess_34" vertex3="Mesh2Tess_176" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_176" vertex2="Mesh2Tess_34" vertex3="Mesh2Tess_73" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_127" vertex2="Mesh2Tess_194" vertex3="Mesh2Tess_183" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_10" vertex2="Mesh2Tess_194" vertex3="Mesh2Tess_127" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_183" vertex2="Mesh2Tess_203" vertex3="Mesh2Tess_150" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_194" vertex2="Mesh2Tess_203" vertex3="Mesh2Tess_183" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_34" vertex2="Mesh2Tess_219" vertex3="Mesh2Tess_163" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_203" vertex2="Mesh2Tess_124" vertex3="Mesh2Tess_150" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_150" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_243" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_243" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_30" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_30" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_205" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_124" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_150" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_219" vertex2="Mesh2Tess_157" vertex3="Mesh2Tess_226" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_157" vertex2="Mesh2Tess_63" vertex3="Mesh2Tess_115" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_63" vertex2="Mesh2Tess_142" vertex3="Mesh2Tess_138" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_142" vertex2="Mesh2Tess_42" vertex3="Mesh2Tess_58" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_124" vertex2="Mesh2Tess_156" vertex3="Mesh2Tess_209" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_42" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_189" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_189" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_156" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_63" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_142" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_142" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_42" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_156" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_209" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_158" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_219" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_158" vertex2="Mesh2Tess_219" vertex3="Mesh2Tess_34" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_219" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_157" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_157" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_63" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_23" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_121" vertex2="Mesh2Tess_53" vertex3="Mesh2Tess_164" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_23" vertex2="Mesh2Tess_233" vertex3="Mesh2Tess_12" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_228" vertex2="Mesh2Tess_176" vertex3="Mesh2Tess_73" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_164" vertex2="Mesh2Tess_6" vertex3="Mesh2Tess_121" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_78" vertex2="Mesh2Tess_34" vertex3="Mesh2Tess_163" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_73" vertex2="Mesh2Tess_207" vertex3="Mesh2Tess_228" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_86" vertex2="Mesh2Tess_219" vertex3="Mesh2Tess_226" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_163" vertex2="Mesh2Tess_222" vertex3="Mesh2Tess_78" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_235" vertex2="Mesh2Tess_157" vertex3="Mesh2Tess_115" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_226" vertex2="Mesh2Tess_134" vertex3="Mesh2Tess_86" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_140" vertex2="Mesh2Tess_63" vertex3="Mesh2Tess_138" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_115" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_235" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_248" vertex2="Mesh2Tess_142" vertex3="Mesh2Tess_58" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_138" vertex2="Mesh2Tess_114" vertex3="Mesh2Tess_140" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_194" vertex2="Mesh2Tess_42" vertex3="Mesh2Tess_189" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_58" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_248" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_189" vertex2="Mesh2Tess_203" vertex3="Mesh2Tess_194" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_128" vertex2="Mesh2Tess_156" vertex3="Mesh2Tess_124" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_94" vertex2="Mesh2Tess_128" vertex3="Mesh2Tess_22" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_94" vertex2="Mesh2Tess_22" vertex3="Mesh2Tess_186" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_175" vertex2="Mesh2Tess_94" vertex3="Mesh2Tess_54" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_175" vertex2="Mesh2Tess_156" vertex3="Mesh2Tess_128" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_175" vertex2="Mesh2Tess_128" vertex3="Mesh2Tess_94" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_79" vertex2="Mesh2Tess_167" vertex3="Mesh2Tess_160" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_179" vertex2="Mesh2Tess_167" vertex3="Mesh2Tess_79" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_217" vertex2="Mesh2Tess_179" vertex3="Mesh2Tess_79" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_4" vertex2="Mesh2Tess_75" vertex3="Mesh2Tess_211" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_253" vertex2="Mesh2Tess_92" vertex3="Mesh2Tess_4" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_253" vertex2="Mesh2Tess_4" vertex3="Mesh2Tess_211" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_98" vertex2="Mesh2Tess_92" vertex3="Mesh2Tess_253" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_45" vertex2="Mesh2Tess_98" vertex3="Mesh2Tess_177" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_135" vertex2="Mesh2Tess_45" vertex3="Mesh2Tess_177" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_135" vertex2="Mesh2Tess_41" vertex3="Mesh2Tess_45" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_199" vertex2="Mesh2Tess_41" vertex3="Mesh2Tess_135" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_152" vertex2="Mesh2Tess_199" vertex3="Mesh2Tess_46" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_192" vertex2="Mesh2Tess_152" vertex3="Mesh2Tess_46" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_192" vertex2="Mesh2Tess_7" vertex3="Mesh2Tess_152" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_188" vertex2="Mesh2Tess_7" vertex3="Mesh2Tess_192" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_151" vertex2="Mesh2Tess_188" vertex3="Mesh2Tess_165" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_90" vertex2="Mesh2Tess_151" vertex3="Mesh2Tess_165" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_67" vertex2="Mesh2Tess_90" vertex3="Mesh2Tess_165" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_210" vertex2="Mesh2Tess_90" vertex3="Mesh2Tess_67" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_8" vertex2="Mesh2Tess_210" vertex3="Mesh2Tess_64" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_0" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_64" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_17" vertex2="Mesh2Tess_0" vertex3="Mesh2Tess_64" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_155" vertex2="Mesh2Tess_0" vertex3="Mesh2Tess_17" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_213" vertex2="Mesh2Tess_155" vertex3="Mesh2Tess_35" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_240" vertex2="Mesh2Tess_213" vertex3="Mesh2Tess_35" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_240" vertex2="Mesh2Tess_118" vertex3="Mesh2Tess_213" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_146" vertex2="Mesh2Tess_118" vertex3="Mesh2Tess_240" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_162" vertex2="Mesh2Tess_146" vertex3="Mesh2Tess_74" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_9" vertex2="Mesh2Tess_162" vertex3="Mesh2Tess_74" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_9" vertex2="Mesh2Tess_106" vertex3="Mesh2Tess_162" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_131" vertex2="Mesh2Tess_106" vertex3="Mesh2Tess_9" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_166" vertex2="Mesh2Tess_131" vertex3="Mesh2Tess_111" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_37" vertex2="Mesh2Tess_166" vertex3="Mesh2Tess_111" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_37" vertex2="Mesh2Tess_144" vertex3="Mesh2Tess_166" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_122" vertex2="Mesh2Tess_144" vertex3="Mesh2Tess_37" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_55" vertex2="Mesh2Tess_54" vertex3="Mesh2Tess_56" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_170" vertex2="Mesh2Tess_55" vertex3="Mesh2Tess_172" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_170" vertex2="Mesh2Tess_54" vertex3="Mesh2Tess_55" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_181" vertex3="Mesh2Tess_44" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_175" vertex2="Mesh2Tess_54" vertex3="Mesh2Tess_170" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_170" vertex2="Mesh2Tess_113" vertex3="Mesh2Tess_175" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_167" vertex3="Mesh2Tess_44" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_75" vertex2="Mesh2Tess_179" vertex3="Mesh2Tess_217" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_179" vertex2="Mesh2Tess_44" vertex3="Mesh2Tess_167" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_4" vertex3="Mesh2Tess_184" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_92" vertex2="Mesh2Tess_184" vertex3="Mesh2Tess_4" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_184" vertex2="Mesh2Tess_193" vertex3="Mesh2Tess_80" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_193" vertex3="Mesh2Tess_181" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_193" vertex3="Mesh2Tess_255" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_41" vertex2="Mesh2Tess_101" vertex3="Mesh2Tess_193" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_193" vertex2="Mesh2Tess_101" vertex3="Mesh2Tess_255" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_41" vertex2="Mesh2Tess_193" vertex3="Mesh2Tess_45" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_249" vertex3="Mesh2Tess_113" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_113" vertex3="Mesh2Tess_181" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_185" vertex3="Mesh2Tess_255" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_185" vertex3="Mesh2Tess_249" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_255" vertex3="Mesh2Tess_152" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_90" vertex2="Mesh2Tess_190" vertex3="Mesh2Tess_249" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_249" vertex2="Mesh2Tess_190" vertex3="Mesh2Tess_113" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_190" vertex3="Mesh2Tess_107" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_90" vertex2="Mesh2Tess_249" vertex3="Mesh2Tess_151" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_107" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_145" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_0" vertex2="Mesh2Tess_145" vertex3="Mesh2Tess_8" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_145" vertex2="Mesh2Tess_89" vertex3="Mesh2Tess_107" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_107" vertex2="Mesh2Tess_89" vertex3="Mesh2Tess_113" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_89" vertex3="Mesh2Tess_88" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_118" vertex2="Mesh2Tess_83" vertex3="Mesh2Tess_89" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_89" vertex2="Mesh2Tess_83" vertex3="Mesh2Tess_88" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_118" vertex2="Mesh2Tess_89" vertex3="Mesh2Tess_213" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_106" vertex2="Mesh2Tess_84" vertex3="Mesh2Tess_88" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_88" vertex2="Mesh2Tess_84" vertex3="Mesh2Tess_113" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_84" vertex3="Mesh2Tess_1" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_1" vertex3="Mesh2Tess_175" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_106" vertex2="Mesh2Tess_88" vertex3="Mesh2Tess_162" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_54" vertex2="Mesh2Tess_122" vertex3="Mesh2Tess_56" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_144" vertex2="Mesh2Tess_202" vertex3="Mesh2Tess_1" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_1" vertex2="Mesh2Tess_202" vertex3="Mesh2Tess_175" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_144" vertex2="Mesh2Tess_1" vertex3="Mesh2Tess_166" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_128" vertex2="Mesh2Tess_203" vertex3="Mesh2Tess_27" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_128" vertex2="Mesh2Tess_124" vertex3="Mesh2Tess_203" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_122" vertex2="Mesh2Tess_54" vertex3="Mesh2Tess_94" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_144" vertex2="Mesh2Tess_94" vertex3="Mesh2Tess_103" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_144" vertex2="Mesh2Tess_122" vertex3="Mesh2Tess_94" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_103" vertex2="Mesh2Tess_94" vertex3="Mesh2Tess_168" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_168" vertex2="Mesh2Tess_94" vertex3="Mesh2Tess_186" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_168" vertex2="Mesh2Tess_186" vertex3="Mesh2Tess_22" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_168" vertex2="Mesh2Tess_22" vertex3="Mesh2Tess_72" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_72" vertex2="Mesh2Tess_22" vertex3="Mesh2Tess_128" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_72" vertex2="Mesh2Tess_128" vertex3="Mesh2Tess_27" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_241" vertex3="Mesh2Tess_205" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_209" vertex2="Mesh2Tess_47" vertex3="Mesh2Tess_205" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_241" vertex2="Mesh2Tess_149" vertex3="Mesh2Tess_205" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_205" vertex2="Mesh2Tess_149" vertex3="Mesh2Tess_30" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_30" vertex2="Mesh2Tess_85" vertex3="Mesh2Tess_243" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_149" vertex2="Mesh2Tess_85" vertex3="Mesh2Tess_30" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_243" vertex2="Mesh2Tess_242" vertex3="Mesh2Tess_150" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_85" vertex2="Mesh2Tess_242" vertex3="Mesh2Tess_243" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_150" vertex2="Mesh2Tess_19" vertex3="Mesh2Tess_183" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_242" vertex2="Mesh2Tess_19" vertex3="Mesh2Tess_150" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_183" vertex2="Mesh2Tess_215" vertex3="Mesh2Tess_127" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_19" vertex2="Mesh2Tess_215" vertex3="Mesh2Tess_183" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_127" vertex2="Mesh2Tess_36" vertex3="Mesh2Tess_198" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_215" vertex2="Mesh2Tess_36" vertex3="Mesh2Tess_127" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_198" vertex2="Mesh2Tess_169" vertex3="Mesh2Tess_50" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_36" vertex2="Mesh2Tess_169" vertex3="Mesh2Tess_198" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_153" vertex2="Mesh2Tess_245" vertex3="Mesh2Tess_25" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_50" vertex2="Mesh2Tess_245" vertex3="Mesh2Tess_153" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_169" vertex2="Mesh2Tess_245" vertex3="Mesh2Tess_50" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_245" vertex2="Mesh2Tess_141" vertex3="Mesh2Tess_25" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_25" vertex2="Mesh2Tess_68" vertex3="Mesh2Tess_223" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_141" vertex2="Mesh2Tess_68" vertex3="Mesh2Tess_25" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_40" vertex2="Mesh2Tess_159" vertex3="Mesh2Tess_109" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_223" vertex2="Mesh2Tess_159" vertex3="Mesh2Tess_40" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_68" vertex2="Mesh2Tess_159" vertex3="Mesh2Tess_223" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_109" vertex2="Mesh2Tess_197" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_159" vertex2="Mesh2Tess_197" vertex3="Mesh2Tess_109" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_197" vertex2="Mesh2Tess_225" vertex3="Mesh2Tess_137" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_116" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_87" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_136" vertex2="Mesh2Tess_11" vertex3="Mesh2Tess_216" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_136" vertex2="Mesh2Tess_216" vertex3="Mesh2Tess_116" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_170" vertex3="Mesh2Tess_136" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_136" vertex3="Mesh2Tess_116" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_87" vertex2="Mesh2Tess_113" vertex3="Mesh2Tess_116" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_137" vertex3="Mesh2Tess_225" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_225" vertex3="Mesh2Tess_119" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_87" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_252" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_191" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_252" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_15" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_12" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_129" vertex2="Mesh2Tess_15" vertex3="Mesh2Tess_154" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_129" vertex2="Mesh2Tess_154" vertex3="Mesh2Tess_256" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_129" vertex3="Mesh2Tess_167" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_15" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_15" vertex3="Mesh2Tess_129" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_53" vertex2="Mesh2Tess_44" vertex3="Mesh2Tess_23" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_53" vertex2="Mesh2Tess_80" vertex3="Mesh2Tess_44" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_59" vertex2="Mesh2Tess_233" vertex3="Mesh2Tess_23" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_201" vertex2="Mesh2Tess_32" vertex3="Mesh2Tess_212" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_201" vertex2="Mesh2Tess_212" vertex3="Mesh2Tess_59" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_44" vertex2="Mesh2Tess_179" vertex3="Mesh2Tess_201" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_44" vertex2="Mesh2Tess_201" vertex3="Mesh2Tess_59" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_23" vertex2="Mesh2Tess_44" vertex3="Mesh2Tess_59" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_39" vertex2="Mesh2Tess_233" vertex3="Mesh2Tess_59" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_39" vertex2="Mesh2Tess_121" vertex3="Mesh2Tess_233" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_39" vertex2="Mesh2Tess_53" vertex3="Mesh2Tess_121" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_229" vertex2="Mesh2Tess_39" vertex3="Mesh2Tess_147" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_229" vertex2="Mesh2Tess_147" vertex3="Mesh2Tess_24" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_229" vertex3="Mesh2Tess_4" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_53" vertex3="Mesh2Tess_39" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_80" vertex2="Mesh2Tess_39" vertex3="Mesh2Tess_229" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_176" vertex2="Mesh2Tess_184" vertex3="Mesh2Tess_164" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_176" vertex2="Mesh2Tess_193" vertex3="Mesh2Tess_184" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_100" vertex2="Mesh2Tess_6" vertex3="Mesh2Tess_164" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_132" vertex2="Mesh2Tess_125" vertex3="Mesh2Tess_221" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_132" vertex2="Mesh2Tess_221" vertex3="Mesh2Tess_100" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_184" vertex2="Mesh2Tess_92" vertex3="Mesh2Tess_132" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_184" vertex2="Mesh2Tess_132" vertex3="Mesh2Tess_100" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_164" vertex2="Mesh2Tess_184" vertex3="Mesh2Tess_100" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_232" vertex2="Mesh2Tess_6" vertex3="Mesh2Tess_100" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_232" vertex2="Mesh2Tess_228" vertex3="Mesh2Tess_6" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_232" vertex2="Mesh2Tess_176" vertex3="Mesh2Tess_228" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_18" vertex2="Mesh2Tess_232" vertex3="Mesh2Tess_95" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_18" vertex2="Mesh2Tess_95" vertex3="Mesh2Tess_246" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_193" vertex2="Mesh2Tess_18" vertex3="Mesh2Tess_45" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_193" vertex2="Mesh2Tess_176" vertex3="Mesh2Tess_232" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_193" vertex2="Mesh2Tess_232" vertex3="Mesh2Tess_18" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_34" vertex2="Mesh2Tess_101" vertex3="Mesh2Tess_73" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_34" vertex2="Mesh2Tess_255" vertex3="Mesh2Tess_101" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_31" vertex2="Mesh2Tess_207" vertex3="Mesh2Tess_73" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_16" vertex2="Mesh2Tess_214" vertex3="Mesh2Tess_148" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_16" vertex2="Mesh2Tess_148" vertex3="Mesh2Tess_31" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_101" vertex2="Mesh2Tess_41" vertex3="Mesh2Tess_16" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_101" vertex2="Mesh2Tess_16" vertex3="Mesh2Tess_31" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_73" vertex2="Mesh2Tess_101" vertex3="Mesh2Tess_31" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_81" vertex2="Mesh2Tess_207" vertex3="Mesh2Tess_31" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_81" vertex2="Mesh2Tess_78" vertex3="Mesh2Tess_207" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_81" vertex2="Mesh2Tess_34" vertex3="Mesh2Tess_78" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_117" vertex2="Mesh2Tess_81" vertex3="Mesh2Tess_96" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_117" vertex2="Mesh2Tess_96" vertex3="Mesh2Tess_247" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_117" vertex3="Mesh2Tess_152" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_34" vertex3="Mesh2Tess_81" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_255" vertex2="Mesh2Tess_81" vertex3="Mesh2Tess_117" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_219" vertex2="Mesh2Tess_185" vertex3="Mesh2Tess_163" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_219" vertex2="Mesh2Tess_249" vertex3="Mesh2Tess_185" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_48" vertex2="Mesh2Tess_222" vertex3="Mesh2Tess_163" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_234" vertex2="Mesh2Tess_33" vertex3="Mesh2Tess_161" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_234" vertex2="Mesh2Tess_161" vertex3="Mesh2Tess_48" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_185" vertex2="Mesh2Tess_7" vertex3="Mesh2Tess_234" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_185" vertex2="Mesh2Tess_234" vertex3="Mesh2Tess_48" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_163" vertex2="Mesh2Tess_185" vertex3="Mesh2Tess_48" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_91" vertex2="Mesh2Tess_222" vertex3="Mesh2Tess_48" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_91" vertex2="Mesh2Tess_86" vertex3="Mesh2Tess_222" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_91" vertex2="Mesh2Tess_219" vertex3="Mesh2Tess_86" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_112" vertex2="Mesh2Tess_91" vertex3="Mesh2Tess_218" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_112" vertex2="Mesh2Tess_218" vertex3="Mesh2Tess_38" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_249" vertex2="Mesh2Tess_112" vertex3="Mesh2Tess_151" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_249" vertex2="Mesh2Tess_219" vertex3="Mesh2Tess_91" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_249" vertex2="Mesh2Tess_91" vertex3="Mesh2Tess_112" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_157" vertex2="Mesh2Tess_190" vertex3="Mesh2Tess_226" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_157" vertex2="Mesh2Tess_107" vertex3="Mesh2Tess_190" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_208" vertex2="Mesh2Tess_134" vertex3="Mesh2Tess_226" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_49" vertex2="Mesh2Tess_108" vertex3="Mesh2Tess_204" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_49" vertex2="Mesh2Tess_204" vertex3="Mesh2Tess_208" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_190" vertex2="Mesh2Tess_90" vertex3="Mesh2Tess_49" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_190" vertex2="Mesh2Tess_49" vertex3="Mesh2Tess_208" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_226" vertex2="Mesh2Tess_190" vertex3="Mesh2Tess_208" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_239" vertex2="Mesh2Tess_134" vertex3="Mesh2Tess_208" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_239" vertex2="Mesh2Tess_235" vertex3="Mesh2Tess_134" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_239" vertex2="Mesh2Tess_157" vertex3="Mesh2Tess_235" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_236" vertex2="Mesh2Tess_239" vertex3="Mesh2Tess_93" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_236" vertex2="Mesh2Tess_93" vertex3="Mesh2Tess_244" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_107" vertex2="Mesh2Tess_236" vertex3="Mesh2Tess_8" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_107" vertex2="Mesh2Tess_157" vertex3="Mesh2Tess_239" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_107" vertex2="Mesh2Tess_239" vertex3="Mesh2Tess_236" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_63" vertex2="Mesh2Tess_145" vertex3="Mesh2Tess_115" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_63" vertex2="Mesh2Tess_89" vertex3="Mesh2Tess_145" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_104" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_115" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_224" vertex2="Mesh2Tess_52" vertex3="Mesh2Tess_231" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_224" vertex2="Mesh2Tess_231" vertex3="Mesh2Tess_104" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_145" vertex2="Mesh2Tess_0" vertex3="Mesh2Tess_224" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_145" vertex2="Mesh2Tess_224" vertex3="Mesh2Tess_104" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_115" vertex2="Mesh2Tess_145" vertex3="Mesh2Tess_104" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_143" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_104" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_143" vertex2="Mesh2Tess_140" vertex3="Mesh2Tess_13" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_143" vertex2="Mesh2Tess_63" vertex3="Mesh2Tess_140" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_254" vertex2="Mesh2Tess_143" vertex3="Mesh2Tess_120" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_254" vertex2="Mesh2Tess_120" vertex3="Mesh2Tess_2" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_89" vertex2="Mesh2Tess_254" vertex3="Mesh2Tess_213" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_89" vertex2="Mesh2Tess_63" vertex3="Mesh2Tess_143" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_89" vertex2="Mesh2Tess_143" vertex3="Mesh2Tess_254" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_142" vertex2="Mesh2Tess_83" vertex3="Mesh2Tess_138" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_142" vertex2="Mesh2Tess_88" vertex3="Mesh2Tess_83" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_3" vertex2="Mesh2Tess_114" vertex3="Mesh2Tess_138" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_76" vertex2="Mesh2Tess_230" vertex3="Mesh2Tess_77" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_76" vertex2="Mesh2Tess_77" vertex3="Mesh2Tess_3" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_83" vertex2="Mesh2Tess_118" vertex3="Mesh2Tess_76" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_83" vertex2="Mesh2Tess_76" vertex3="Mesh2Tess_3" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_138" vertex2="Mesh2Tess_83" vertex3="Mesh2Tess_3" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_251" vertex2="Mesh2Tess_114" vertex3="Mesh2Tess_3" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_251" vertex2="Mesh2Tess_248" vertex3="Mesh2Tess_114" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_251" vertex2="Mesh2Tess_142" vertex3="Mesh2Tess_248" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_126" vertex2="Mesh2Tess_251" vertex3="Mesh2Tess_26" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_126" vertex2="Mesh2Tess_26" vertex3="Mesh2Tess_187" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_88" vertex2="Mesh2Tess_126" vertex3="Mesh2Tess_162" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_88" vertex2="Mesh2Tess_142" vertex3="Mesh2Tess_251" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_88" vertex2="Mesh2Tess_251" vertex3="Mesh2Tess_126" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_42" vertex2="Mesh2Tess_84" vertex3="Mesh2Tess_58" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_42" vertex2="Mesh2Tess_1" vertex3="Mesh2Tess_84" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_102" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_58" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_65" vertex2="Mesh2Tess_133" vertex3="Mesh2Tess_237" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_65" vertex2="Mesh2Tess_237" vertex3="Mesh2Tess_102" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_84" vertex2="Mesh2Tess_106" vertex3="Mesh2Tess_65" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_84" vertex2="Mesh2Tess_65" vertex3="Mesh2Tess_102" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_58" vertex2="Mesh2Tess_84" vertex3="Mesh2Tess_102" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_195" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_102" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_195" vertex2="Mesh2Tess_194" vertex3="Mesh2Tess_10" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_195" vertex2="Mesh2Tess_42" vertex3="Mesh2Tess_194" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_130" vertex2="Mesh2Tess_195" vertex3="Mesh2Tess_20" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_130" vertex2="Mesh2Tess_20" vertex3="Mesh2Tess_110" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_1" vertex2="Mesh2Tess_130" vertex3="Mesh2Tess_166" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_1" vertex2="Mesh2Tess_42" vertex3="Mesh2Tess_195" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_1" vertex2="Mesh2Tess_195" vertex3="Mesh2Tess_130" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_172" vertex2="Mesh2Tess_55" vertex3="Mesh2Tess_61" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_61" vertex2="Mesh2Tess_56" vertex3="Mesh2Tess_220" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_55" vertex2="Mesh2Tess_56" vertex3="Mesh2Tess_61" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_56" vertex2="Mesh2Tess_122" vertex3="Mesh2Tess_220" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_220" vertex2="Mesh2Tess_37" vertex3="Mesh2Tess_173" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_122" vertex2="Mesh2Tess_37" vertex3="Mesh2Tess_220" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_37" vertex2="Mesh2Tess_111" vertex3="Mesh2Tess_173" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_173" vertex2="Mesh2Tess_131" vertex3="Mesh2Tess_62" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_111" vertex2="Mesh2Tess_131" vertex3="Mesh2Tess_173" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_131" vertex2="Mesh2Tess_9" vertex3="Mesh2Tess_62" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_9" vertex2="Mesh2Tess_74" vertex3="Mesh2Tess_62" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_62" vertex2="Mesh2Tess_146" vertex3="Mesh2Tess_105" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_74" vertex2="Mesh2Tess_146" vertex3="Mesh2Tess_62" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_146" vertex2="Mesh2Tess_240" vertex3="Mesh2Tess_105" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_105" vertex2="Mesh2Tess_35" vertex3="Mesh2Tess_238" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_240" vertex2="Mesh2Tess_35" vertex3="Mesh2Tess_105" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_35" vertex2="Mesh2Tess_155" vertex3="Mesh2Tess_238" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_238" vertex2="Mesh2Tess_17" vertex3="Mesh2Tess_139" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_155" vertex2="Mesh2Tess_17" vertex3="Mesh2Tess_238" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_17" vertex2="Mesh2Tess_64" vertex3="Mesh2Tess_139" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_139" vertex2="Mesh2Tess_210" vertex3="Mesh2Tess_178" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_64" vertex2="Mesh2Tess_210" vertex3="Mesh2Tess_139" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_210" vertex2="Mesh2Tess_67" vertex3="Mesh2Tess_178" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_178" vertex2="Mesh2Tess_165" vertex3="Mesh2Tess_66" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_67" vertex2="Mesh2Tess_165" vertex3="Mesh2Tess_178" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_165" vertex2="Mesh2Tess_188" vertex3="Mesh2Tess_66" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_188" vertex2="Mesh2Tess_192" vertex3="Mesh2Tess_66" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_66" vertex2="Mesh2Tess_192" vertex3="Mesh2Tess_206" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_192" vertex2="Mesh2Tess_46" vertex3="Mesh2Tess_206" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_206" vertex2="Mesh2Tess_199" vertex3="Mesh2Tess_82" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_46" vertex2="Mesh2Tess_199" vertex3="Mesh2Tess_206" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_199" vertex2="Mesh2Tess_135" vertex3="Mesh2Tess_82" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_135" vertex2="Mesh2Tess_177" vertex3="Mesh2Tess_82" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_82" vertex2="Mesh2Tess_98" vertex3="Mesh2Tess_171" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_177" vertex2="Mesh2Tess_98" vertex3="Mesh2Tess_82" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_98" vertex2="Mesh2Tess_253" vertex3="Mesh2Tess_171" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_171" vertex2="Mesh2Tess_211" vertex3="Mesh2Tess_21" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_253" vertex2="Mesh2Tess_211" vertex3="Mesh2Tess_171" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_211" vertex2="Mesh2Tess_75" vertex3="Mesh2Tess_21" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_21" vertex2="Mesh2Tess_217" vertex3="Mesh2Tess_43" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_75" vertex2="Mesh2Tess_217" vertex3="Mesh2Tess_21" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_217" vertex2="Mesh2Tess_79" vertex3="Mesh2Tess_43" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_79" vertex2="Mesh2Tess_160" vertex3="Mesh2Tess_43" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_167" vertex2="Mesh2Tess_43" vertex3="Mesh2Tess_160" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_167" vertex2="Mesh2Tess_51" vertex3="Mesh2Tess_43" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_71" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_181" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_61" vertex2="Mesh2Tess_60" vertex3="Mesh2Tess_172" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_172" vertex2="Mesh2Tess_60" vertex3="Mesh2Tess_170" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_75" vertex2="Mesh2Tess_4" vertex3="Mesh2Tess_229" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_179" vertex2="Mesh2Tess_229" vertex3="Mesh2Tess_201" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_179" vertex2="Mesh2Tess_75" vertex3="Mesh2Tess_229" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_98" vertex2="Mesh2Tess_45" vertex3="Mesh2Tess_18" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_92" vertex2="Mesh2Tess_18" vertex3="Mesh2Tess_132" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_92" vertex2="Mesh2Tess_98" vertex3="Mesh2Tess_18" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_199" vertex2="Mesh2Tess_152" vertex3="Mesh2Tess_117" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_41" vertex2="Mesh2Tess_117" vertex3="Mesh2Tess_16" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_41" vertex2="Mesh2Tess_199" vertex3="Mesh2Tess_117" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_188" vertex2="Mesh2Tess_151" vertex3="Mesh2Tess_112" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_112" vertex3="Mesh2Tess_234" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_188" vertex3="Mesh2Tess_112" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_210" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_236" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_90" vertex2="Mesh2Tess_236" vertex3="Mesh2Tess_49" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_90" vertex2="Mesh2Tess_210" vertex3="Mesh2Tess_236" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_155" vertex2="Mesh2Tess_213" vertex3="Mesh2Tess_254" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_0" vertex2="Mesh2Tess_254" vertex3="Mesh2Tess_224" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_0" vertex2="Mesh2Tess_155" vertex3="Mesh2Tess_254" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_146" vertex2="Mesh2Tess_162" vertex3="Mesh2Tess_126" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_118" vertex2="Mesh2Tess_126" vertex3="Mesh2Tess_76" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_118" vertex2="Mesh2Tess_146" vertex3="Mesh2Tess_126" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_131" vertex2="Mesh2Tess_166" vertex3="Mesh2Tess_130" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_106" vertex2="Mesh2Tess_130" vertex3="Mesh2Tess_65" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_106" vertex2="Mesh2Tess_131" vertex3="Mesh2Tess_130" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_119" vertex2="Mesh2Tess_225" vertex3="Mesh2Tess_197" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_119" vertex2="Mesh2Tess_197" vertex3="Mesh2Tess_159" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_119" vertex2="Mesh2Tess_159" vertex3="Mesh2Tess_68" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_119" vertex2="Mesh2Tess_68" vertex3="Mesh2Tess_141" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_141" vertex3="Mesh2Tess_245" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_245" vertex3="Mesh2Tess_169" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_169" vertex3="Mesh2Tess_36" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_36" vertex3="Mesh2Tess_215" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_215" vertex3="Mesh2Tess_19" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_19" vertex3="Mesh2Tess_242" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_242" vertex3="Mesh2Tess_85" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_85" vertex3="Mesh2Tess_149" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_149" vertex3="Mesh2Tess_241" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_119" vertex3="Mesh2Tess_141" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_191" vertex2="Mesh2Tess_252" vertex3="Mesh2Tess_119" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_191" vertex2="Mesh2Tess_119" vertex3="Mesh2Tess_47" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_47" vertex2="Mesh2Tess_209" vertex3="Mesh2Tess_174" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_209" vertex2="Mesh2Tess_69" vertex3="Mesh2Tess_174" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_209" vertex2="Mesh2Tess_116" vertex3="Mesh2Tess_69" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_11" vertex2="Mesh2Tess_28" vertex3="Mesh2Tess_250" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_11" vertex2="Mesh2Tess_250" vertex3="Mesh2Tess_216" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_136" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_11" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_11" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_28" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_170" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_136" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_60" vertex2="Mesh2Tess_196" vertex3="Mesh2Tess_170" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_196" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_170" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_113" vertex2="Mesh2Tess_123" vertex3="Mesh2Tess_14" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_29" vertex2="Mesh2Tess_87" vertex3="Mesh2Tess_191" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_29" vertex2="Mesh2Tess_123" vertex3="Mesh2Tess_113" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_29" vertex2="Mesh2Tess_113" vertex3="Mesh2Tess_87" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_216" vertex2="Mesh2Tess_250" vertex3="Mesh2Tess_69" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_216" vertex2="Mesh2Tess_69" vertex3="Mesh2Tess_116" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_15" vertex2="Mesh2Tess_12" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_180" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_119" vertex3="Mesh2Tess_180" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_181" vertex2="Mesh2Tess_71" vertex3="Mesh2Tess_182" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_97" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_181" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_97" vertex2="Mesh2Tess_181" vertex3="Mesh2Tess_182" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_252" vertex2="Mesh2Tess_158" vertex3="Mesh2Tess_97" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_167" vertex2="Mesh2Tess_129" vertex3="Mesh2Tess_227" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_99" vertex2="Mesh2Tess_167" vertex3="Mesh2Tess_227" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_51" vertex2="Mesh2Tess_167" vertex3="Mesh2Tess_99" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_227" vertex2="Mesh2Tess_129" vertex3="Mesh2Tess_57" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_57" vertex2="Mesh2Tess_129" vertex3="Mesh2Tess_256" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_256" vertex2="Mesh2Tess_154" vertex3="Mesh2Tess_200" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_256" vertex2="Mesh2Tess_200" vertex3="Mesh2Tess_57" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_200" vertex2="Mesh2Tess_154" vertex3="Mesh2Tess_15" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_200" vertex2="Mesh2Tess_15" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_201" vertex2="Mesh2Tess_229" vertex3="Mesh2Tess_32" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_32" vertex2="Mesh2Tess_229" vertex3="Mesh2Tess_24" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_32" vertex2="Mesh2Tess_24" vertex3="Mesh2Tess_147" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_32" vertex2="Mesh2Tess_147" vertex3="Mesh2Tess_212" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_212" vertex2="Mesh2Tess_147" vertex3="Mesh2Tess_39" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_212" vertex2="Mesh2Tess_39" vertex3="Mesh2Tess_59" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_132" vertex2="Mesh2Tess_18" vertex3="Mesh2Tess_125" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_125" vertex2="Mesh2Tess_18" vertex3="Mesh2Tess_246" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_125" vertex2="Mesh2Tess_246" vertex3="Mesh2Tess_95" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_125" vertex2="Mesh2Tess_95" vertex3="Mesh2Tess_221" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_221" vertex2="Mesh2Tess_95" vertex3="Mesh2Tess_232" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_221" vertex2="Mesh2Tess_232" vertex3="Mesh2Tess_100" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_16" vertex2="Mesh2Tess_117" vertex3="Mesh2Tess_214" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_214" vertex2="Mesh2Tess_117" vertex3="Mesh2Tess_247" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_214" vertex2="Mesh2Tess_247" vertex3="Mesh2Tess_96" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_214" vertex2="Mesh2Tess_96" vertex3="Mesh2Tess_148" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_148" vertex2="Mesh2Tess_96" vertex3="Mesh2Tess_81" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_148" vertex2="Mesh2Tess_81" vertex3="Mesh2Tess_31" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_234" vertex2="Mesh2Tess_112" vertex3="Mesh2Tess_33" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_33" vertex2="Mesh2Tess_112" vertex3="Mesh2Tess_38" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_33" vertex2="Mesh2Tess_38" vertex3="Mesh2Tess_218" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_33" vertex2="Mesh2Tess_218" vertex3="Mesh2Tess_161" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_161" vertex2="Mesh2Tess_218" vertex3="Mesh2Tess_91" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_161" vertex2="Mesh2Tess_91" vertex3="Mesh2Tess_48" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_49" vertex2="Mesh2Tess_236" vertex3="Mesh2Tess_108" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_108" vertex2="Mesh2Tess_236" vertex3="Mesh2Tess_244" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_108" vertex2="Mesh2Tess_244" vertex3="Mesh2Tess_93" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_108" vertex2="Mesh2Tess_93" vertex3="Mesh2Tess_204" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_204" vertex2="Mesh2Tess_93" vertex3="Mesh2Tess_239" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_204" vertex2="Mesh2Tess_239" vertex3="Mesh2Tess_208" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_224" vertex2="Mesh2Tess_254" vertex3="Mesh2Tess_52" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_52" vertex2="Mesh2Tess_254" vertex3="Mesh2Tess_2" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_52" vertex2="Mesh2Tess_2" vertex3="Mesh2Tess_120" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_52" vertex2="Mesh2Tess_120" vertex3="Mesh2Tess_231" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_231" vertex2="Mesh2Tess_120" vertex3="Mesh2Tess_143" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_231" vertex2="Mesh2Tess_143" vertex3="Mesh2Tess_104" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_76" vertex2="Mesh2Tess_126" vertex3="Mesh2Tess_230" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_230" vertex2="Mesh2Tess_126" vertex3="Mesh2Tess_187" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_230" vertex2="Mesh2Tess_187" vertex3="Mesh2Tess_26" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_230" vertex2="Mesh2Tess_26" vertex3="Mesh2Tess_77" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_77" vertex2="Mesh2Tess_26" vertex3="Mesh2Tess_251" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_77" vertex2="Mesh2Tess_251" vertex3="Mesh2Tess_3" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_65" vertex2="Mesh2Tess_130" vertex3="Mesh2Tess_133" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_133" vertex2="Mesh2Tess_130" vertex3="Mesh2Tess_110" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_133" vertex2="Mesh2Tess_110" vertex3="Mesh2Tess_20" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_133" vertex2="Mesh2Tess_20" vertex3="Mesh2Tess_237" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_237" vertex2="Mesh2Tess_20" vertex3="Mesh2Tess_195" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_237" vertex2="Mesh2Tess_195" vertex3="Mesh2Tess_102" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_51" vertex2="Mesh2Tess_21" vertex3="Mesh2Tess_43" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_220" vertex2="Mesh2Tess_60" vertex3="Mesh2Tess_61" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_21" vertex2="Mesh2Tess_71" vertex3="Mesh2Tess_171" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_51" vertex2="Mesh2Tess_71" vertex3="Mesh2Tess_21" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_171" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_82" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_82" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_206" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_206" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_66" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_66" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_178" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_178" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_139" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_139" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_238" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_238" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_105" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_105" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_62" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_62" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_173" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_173" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_220" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_71" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_171" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_220" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_60" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_252" vertex2="Mesh2Tess_180" vertex3="Mesh2Tess_119" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_252" vertex2="Mesh2Tess_97" vertex3="Mesh2Tess_180" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_29" vertex2="Mesh2Tess_47" vertex3="Mesh2Tess_174" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_29" vertex2="Mesh2Tess_191" vertex3="Mesh2Tess_47" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_69" vertex2="Mesh2Tess_29" vertex3="Mesh2Tess_174" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_5" vertex2="Mesh2Tess_69" vertex3="Mesh2Tess_250" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_5" vertex2="Mesh2Tess_250" vertex3="Mesh2Tess_28" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_123" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_196" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_123" vertex2="Mesh2Tess_29" vertex3="Mesh2Tess_69" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_123" vertex2="Mesh2Tess_69" vertex3="Mesh2Tess_5" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_60" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_123" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_60" vertex2="Mesh2Tess_123" vertex3="Mesh2Tess_196" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_70" vertex2="Mesh2Tess_180" vertex3="Mesh2Tess_97" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_227" vertex2="Mesh2Tess_200" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_227" vertex2="Mesh2Tess_57" vertex3="Mesh2Tess_200" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_182" vertex2="Mesh2Tess_99" vertex3="Mesh2Tess_227" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_182" vertex2="Mesh2Tess_227" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_97" vertex2="Mesh2Tess_182" vertex3="Mesh2Tess_70" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_99" vertex2="Mesh2Tess_182" vertex3="Mesh2Tess_71" type="ABSOLUTE"/>
+    <triangular vertex1="Mesh2Tess_99" vertex2="Mesh2Tess_71" vertex3="Mesh2Tess_51" type="ABSOLUTE"/>
+    </tessellated>
+  </solids>
+<structure>
+  <volume name="BarrelHCalChimneySector">
+    <solidref ref="Mesh2Tess"/>
+  </volume>
+</structure>
+<setup name="Default" version="1.0">
+    <world ref="BarrelHCalChimneySector"/>
+</setup>
+</gdml>

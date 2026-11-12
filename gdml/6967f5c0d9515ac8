@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='us-ascii'?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+  <position name="Mesh2Tess_0" unit="mm" x="-1180.725+1511.50146484375" y="-426.919+808.344482421875" z="-3.5" />
+  <position name="Mesh2Tess_1" unit="mm" x="-1180.725+867.1035766601562" y="-426.919" z="-3.5" />
+  <position name="Mesh2Tess_2" unit="mm" x="-1180.725+1511.50146484375" y="-426.919+808.344482421875" z="3.5" />
+  <position name="Mesh2Tess_3" unit="mm" x="-1180.725+1295.924560546875" y="-426.919+808.344482421875" z="-3.5" />
+  <position name="Mesh2Tess_4" unit="mm" x="-1180.725+1242.0673828125" y="-426.919+808.344482421875" z="-3.5" />
+  <position name="Mesh2Tess_5" unit="mm" x="-1180.725+1054.8138427734375" y="-426.919" z="3.5" />
+  <position name="Mesh2Tess_6" unit="mm" x="-1180.725+1054.8138427734375" y="-426.919" z="-3.5" />
+  <position name="Mesh2Tess_7" unit="mm" x="-1180.725+867.1035766601562" y="-426.919" z="3.5" />
+  <position name="Mesh2Tess_8" unit="mm" x="-1180.725+1367.39453125" y="-426.919+799.2944946289062" z="-3.5" />
+  <position name="Mesh2Tess_9" unit="mm" x="-1180.725+1367.39453125" y="-426.919+799.2944946289062" z="3.5" />
+  <position name="Mesh2Tess_10" unit="mm" x="-1180.725+1242.0673828125" y="-426.919+808.344482421875" z="3.5" />
+  <position name="Mesh2Tess_11" unit="mm" x="-1180.725+1295.924560546875" y="-426.919+808.344482421875" z="3.5" />
+  <position name="Mesh2Tess_12" unit="mm" x="-1180.725+1367.39453125" y="-426.919+808.344482421875" z="-3.5" />
+  <position name="Mesh2Tess_13" unit="mm" x="-1180.725+1295.924560546875" y="-426.919+799.2944946289062" z="-3.5" />
+  <position name="Mesh2Tess_14" unit="mm" x="-1180.725+1295.924560546875" y="-426.919+799.2944946289062" z="3.5" />
+  <position name="Mesh2Tess_15" unit="mm" x="-1180.725+1367.39453125" y="-426.919+808.344482421875" z="3.5" />
+  </define>
+<materials />
+<solids>
+    <tessellated name="Mesh2Tess">
+    <triangular vertex1="Mesh2Tess_9" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_14" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_8" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_9" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_10" vertex2="Mesh2Tess_7" vertex3="Mesh2Tess_5" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_14" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_5" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_11" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_14" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_9" vertex2="Mesh2Tess_14" vertex3="Mesh2Tess_5" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_2" vertex2="Mesh2Tess_15" vertex3="Mesh2Tess_9" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_2" vertex2="Mesh2Tess_9" vertex3="Mesh2Tess_5" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_13" vertex2="Mesh2Tess_11" vertex3="Mesh2Tess_14" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_13" vertex2="Mesh2Tess_3" vertex3="Mesh2Tess_11" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_1" vertex2="Mesh2Tess_4" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_4" vertex2="Mesh2Tess_13" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_4" vertex2="Mesh2Tess_3" vertex3="Mesh2Tess_13" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_13" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_0" vertex3="Mesh2Tess_8" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_8" vertex2="Mesh2Tess_0" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_15" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_15" vertex2="Mesh2Tess_8" vertex3="Mesh2Tess_9" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_2" vertex2="Mesh2Tess_6" vertex3="Mesh2Tess_0" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_2" vertex2="Mesh2Tess_5" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_5" vertex2="Mesh2Tess_1" vertex3="Mesh2Tess_6" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_5" vertex2="Mesh2Tess_7" vertex3="Mesh2Tess_1" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_4" vertex3="Mesh2Tess_1" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_7" vertex2="Mesh2Tess_10" vertex3="Mesh2Tess_4" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_10" vertex2="Mesh2Tess_11" vertex3="Mesh2Tess_3" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_10" vertex2="Mesh2Tess_3" vertex3="Mesh2Tess_4" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_12" vertex2="Mesh2Tess_2" vertex3="Mesh2Tess_0" type="ABSOLUTE" />
+    <triangular vertex1="Mesh2Tess_15" vertex2="Mesh2Tess_2" vertex3="Mesh2Tess_12" type="ABSOLUTE" />
+    </tessellated>
+  </solids>
+<structure>
+  <volume name="Tile06">
+    <solidref ref="Mesh2Tess"/>
+  </volume>
+</structure>
+<setup name="Default" version="1.0">
+    <world ref="Tile06"/>
+</setup>
+</gdml>

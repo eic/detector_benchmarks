@@ -49,6 +49,7 @@ rule nhcal_dimuon_photoproduction_recon:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

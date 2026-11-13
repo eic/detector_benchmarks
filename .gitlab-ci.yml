@@ -127,14 +127,13 @@ common:setup:
       # Pipelines testing an upstream PR produce cache entries keyed on software that later
       # pipelines will never use: the PR head commit never lands on main as is. An epic PR affects
       # every cached output: use a cache private to this pipeline, removed with its scratch space,
-      # which still lets jobs of this pipeline share outputs. An EICrecon PR only affects
-      # reconstruction: keep the shared cache for simulations, but do not cache rules keyed on
-      # EICRECON_HASH. Other upstream triggers (e.g. epic merge queue, whose commit becomes main)
-      # use the shared cache.
+      # which still lets jobs of this pipeline share outputs. An EICrecon PR keeps caching
+      # reconstruction in the shared cache: a job that reruns an uncached reconstruction rewrites
+      # the shared output in place while other jobs of the pipeline may be reading it. Other
+      # upstream triggers (e.g. epic merge queue, whose commit becomes main) use the shared cache.
       if [ -n "${GITHUB_PR}" ]; then
         case "${GITHUB_REPOSITORY}" in
           eic/epic) export SNAKEMAKE_OUTPUT_CACHE="${LOCAL_DATA_PATH}/snakemake-cache" ;;
-          eic/EICrecon) export BENCHMARKS_CACHE_EXCLUDE_PARAMS="EICRECON_HASH" ;;
         esac
       fi
       echo "SNAKEMAKE_OUTPUT_CACHE=${SNAKEMAKE_OUTPUT_CACHE} BENCHMARKS_CACHE_EXCLUDE_PARAMS=${BENCHMARKS_CACHE_EXCLUDE_PARAMS:-}"

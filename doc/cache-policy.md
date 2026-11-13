@@ -121,8 +121,11 @@ Consequences:
 cached rule       = eligible rule - excluded rule ;
 eligible rule     = ? a rule with "cache: True" (the 57 rules in the table below) ? ;
 excluded rule     = ? an eligible rule whose params include a name listed in
-                      $BENCHMARKS_CACHE_EXCLUDE_PARAMS (see section 6) ? ;
+                      $BENCHMARKS_CACHE_EXCLUDE_PARAMS ? ;
 ```
+
+CI does not set `BENCHMARKS_CACHE_EXCLUDE_PARAMS` (section 6), so in CI every
+eligible rule is cached.
 
 The table lists every eligible rule in this repository.
 
@@ -135,65 +138,65 @@ The table lists every eligible rule in this repository.
 contains its shell template, which depends on `remote_provider` in
 `snakemake.yml`, and the `PATH` param.
 
-| Rule | Snakefile | Kind | epic in key | Spack hash params | Cached for eic/EICrecon PRs |
-|---|---|---|---|---|---|
-| `backgrounds_sim` | [benchmarks/backgrounds/Snakefile](../benchmarks/backgrounds/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `backwards_ecal_sim` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `backwards_ecal_recon` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | reconstruction | via `backwards_ecal_sim` | `EICRECON_HASH` | no |
-| `backwards_ecal_dis_recon` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | reconstruction | via `trk_dis_sim` | `EICRECON_HASH` | no |
-| `emcal_barrel_particles` | [benchmarks/barrel_ecal/Snakefile](../benchmarks/barrel_ecal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `beamline_steering_sim` | [benchmarks/beamline/Snakefile](../benchmarks/beamline/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `beamline_acceptance_sim` | [benchmarks/beamline/Snakefile](../benchmarks/beamline/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `calo_pid_sim` | [benchmarks/calo_pid/Snakefile](../benchmarks/calo_pid/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `calo_pid_recon` | [benchmarks/calo_pid/Snakefile](../benchmarks/calo_pid/Snakefile) | reconstruction | via `calo_pid_sim` | `EICRECON_HASH` | no |
-| `ecal_gaps_sim` | [benchmarks/ecal_gaps/Snakefile](../benchmarks/ecal_gaps/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `ecal_gaps_recon` | [benchmarks/ecal_gaps/Snakefile](../benchmarks/ecal_gaps/Snakefile) | reconstruction | via `ecal_gaps_sim` | `EICRECON_HASH` | no |
-| `far_forward_dvcs_sim` | [benchmarks/far_forward_dvcs/Snakefile](../benchmarks/far_forward_dvcs/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `far_forward_dvcs_reco` | [benchmarks/far_forward_dvcs/Snakefile](../benchmarks/far_forward_dvcs/Snakefile) | reconstruction | via `far_forward_dvcs_sim` | `EICRECON_HASH` | no |
-| `lowq2_training_sim` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `lowq2_reconstruction_particles_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` | no |
-| `lowq2_reconstruction_tensors_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` | no |
-| `lowq2_steering_reconstruction_particles_trained_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` | no |
-| `tracking_performance_sim` | [benchmarks/tracking_performances/Snakefile](../benchmarks/tracking_performances/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `tracking_performance_recon` | [benchmarks/tracking_performances/Snakefile](../benchmarks/tracking_performances/Snakefile) | reconstruction | via `tracking_performance_sim` | `EICRECON_HASH` | no |
-| `trk_dis_sim` | [benchmarks/tracking_performances_dis/Snakefile](../benchmarks/tracking_performances_dis/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `trk_dis_reco` | [benchmarks/tracking_performances_dis/Snakefile](../benchmarks/tracking_performances_dis/Snakefile) | reconstruction | via `trk_dis_sim` | `EICRECON_HASH` | no |
-| `lfhcal_sim` | [benchmarks/lfhcal/Snakefile](../benchmarks/lfhcal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `lfhcal_recon` | [benchmarks/lfhcal/Snakefile](../benchmarks/lfhcal/Snakefile) | reconstruction | via `lfhcal_sim` | `EICRECON_HASH` | no |
-| `zdc_lyso_sim` | [benchmarks/zdc_lyso/Snakefile](../benchmarks/zdc_lyso/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_lyso_reco` | [benchmarks/zdc_lyso/Snakefile](../benchmarks/zdc_lyso/Snakefile) | reconstruction | via `zdc_lyso_sim` | `EICRECON_HASH` | no |
-| `zdc_neutron_sim` | [benchmarks/zdc_neutron/Snakefile](../benchmarks/zdc_neutron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_neutron_reco` | [benchmarks/zdc_neutron/Snakefile](../benchmarks/zdc_neutron/Snakefile) | reconstruction | via `zdc_neutron_sim` | `EICRECON_HASH` | no |
-| `insert_muon_simulate` | [benchmarks/insert_muon/Snakefile](../benchmarks/insert_muon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `insert_muon_recon` | [benchmarks/insert_muon/Snakefile](../benchmarks/insert_muon/Snakefile) | reconstruction | via `insert_muon_simulate` | `EICRECON_HASH` | no |
-| `irt_sim` | [benchmarks/irt/Snakefile](../benchmarks/irt/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `irt_recon` | [benchmarks/irt/Snakefile](../benchmarks/irt/Snakefile) | reconstruction | via `irt_sim` | `EICRECON_HASH` | no |
-| `zdc_lambda_simulate` | [benchmarks/zdc_lambda/Snakefile](../benchmarks/zdc_lambda/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_lambda_recon` | [benchmarks/zdc_lambda/Snakefile](../benchmarks/zdc_lambda/Snakefile) | reconstruction | via `zdc_lambda_simulate` | `EICRECON_HASH` | no |
-| `zdc_photon_simulate` | [benchmarks/zdc_photon/Snakefile](../benchmarks/zdc_photon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_photon_recon` | [benchmarks/zdc_photon/Snakefile](../benchmarks/zdc_photon/Snakefile) | reconstruction | via `zdc_photon_simulate` | `EICRECON_HASH` | no |
-| `zdc_pi0_simulate` | [benchmarks/zdc_pi0/Snakefile](../benchmarks/zdc_pi0/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_pi0_recon` | [benchmarks/zdc_pi0/Snakefile](../benchmarks/zdc_pi0/Snakefile) | reconstruction | via `zdc_pi0_simulate` | `EICRECON_HASH` | no |
-| `zdc_sigma_simulate` | [benchmarks/zdc_sigma/Snakefile](../benchmarks/zdc_sigma/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `zdc_sigma_recon` | [benchmarks/zdc_sigma/Snakefile](../benchmarks/zdc_sigma/Snakefile) | reconstruction | via `zdc_sigma_simulate` | `EICRECON_HASH` | no |
-| `insert_neutron_simulate` | [benchmarks/insert_neutron/Snakefile](../benchmarks/insert_neutron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `insert_neutron_recon` | [benchmarks/insert_neutron/Snakefile](../benchmarks/insert_neutron/Snakefile) | reconstruction | via `insert_neutron_simulate` | `EICRECON_HASH` | no |
-| `insert_tau_simulate` | [benchmarks/insert_tau/Snakefile](../benchmarks/insert_tau/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `insert_tau_recon` | [benchmarks/insert_tau/Snakefile](../benchmarks/insert_tau/Snakefile) | reconstruction | via `insert_tau_simulate` | `EICRECON_HASH` | no |
-| `femc_electron_simulate` | [benchmarks/femc_electron/Snakefile](../benchmarks/femc_electron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `femc_electron_recon` | [benchmarks/femc_electron/Snakefile](../benchmarks/femc_electron/Snakefile) | reconstruction | via `femc_electron_simulate` | `EICRECON_HASH` | no |
-| `femc_photon_simulate` | [benchmarks/femc_photon/Snakefile](../benchmarks/femc_photon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `femc_photon_recon` | [benchmarks/femc_photon/Snakefile](../benchmarks/femc_photon/Snakefile) | reconstruction | via `femc_photon_simulate` | `EICRECON_HASH` | no |
-| `femc_pi0_simulate` | [benchmarks/femc_pi0/Snakefile](../benchmarks/femc_pi0/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `femc_pi0_recon` | [benchmarks/femc_pi0/Snakefile](../benchmarks/femc_pi0/Snakefile) | reconstruction | via `femc_pi0_simulate` | `EICRECON_HASH` | no |
-| `nhcal_acceptance_simulate` | [benchmarks/nhcal_acceptance/Snakefile](../benchmarks/nhcal_acceptance/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `nhcal_basic_distribution_simulate` | [benchmarks/nhcal_basic_distribution/Snakefile](../benchmarks/nhcal_basic_distribution/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `nhcal_sampling_fraction_simulate` | [benchmarks/nhcal_sampling_fraction/Snakefile](../benchmarks/nhcal_sampling_fraction/Snakefile) | simulation | — | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `nhcal_dimuon_photoproduction_simulate` | [benchmarks/nhcal_dimuon_photoproduction/Snakefile](../benchmarks/nhcal_dimuon_photoproduction/Snakefile) | simulation | — | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `nhcal_dimuon_photoproduction_recon` | [benchmarks/nhcal_dimuon_photoproduction/Snakefile](../benchmarks/nhcal_dimuon_photoproduction/Snakefile) | reconstruction | — | — | yes |
-| `nhcal_pion_rejection_simulate` | [benchmarks/nhcal_pion_rejection/Snakefile](../benchmarks/nhcal_pion_rejection/Snakefile) | simulation | — | `DD4HEP_HASH`, `NPSIM_HASH` | yes |
-| `nhcal_pion_rejection_recon` | [benchmarks/nhcal_pion_rejection/Snakefile](../benchmarks/nhcal_pion_rejection/Snakefile) | reconstruction | — | — | yes |
-| `fetch_epic` | [Snakefile](../Snakefile) | download | — | — | yes |
+| Rule | Snakefile | Kind | epic in key | Spack hash params |
+|---|---|---|---|---|
+| `backgrounds_sim` | [benchmarks/backgrounds/Snakefile](../benchmarks/backgrounds/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `backwards_ecal_sim` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `backwards_ecal_recon` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | reconstruction | via `backwards_ecal_sim` | `EICRECON_HASH` |
+| `backwards_ecal_dis_recon` | [benchmarks/backwards_ecal/Snakefile](../benchmarks/backwards_ecal/Snakefile) | reconstruction | via `trk_dis_sim` | `EICRECON_HASH` |
+| `emcal_barrel_particles` | [benchmarks/barrel_ecal/Snakefile](../benchmarks/barrel_ecal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `beamline_steering_sim` | [benchmarks/beamline/Snakefile](../benchmarks/beamline/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `beamline_acceptance_sim` | [benchmarks/beamline/Snakefile](../benchmarks/beamline/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `calo_pid_sim` | [benchmarks/calo_pid/Snakefile](../benchmarks/calo_pid/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `calo_pid_recon` | [benchmarks/calo_pid/Snakefile](../benchmarks/calo_pid/Snakefile) | reconstruction | via `calo_pid_sim` | `EICRECON_HASH` |
+| `ecal_gaps_sim` | [benchmarks/ecal_gaps/Snakefile](../benchmarks/ecal_gaps/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `ecal_gaps_recon` | [benchmarks/ecal_gaps/Snakefile](../benchmarks/ecal_gaps/Snakefile) | reconstruction | via `ecal_gaps_sim` | `EICRECON_HASH` |
+| `far_forward_dvcs_sim` | [benchmarks/far_forward_dvcs/Snakefile](../benchmarks/far_forward_dvcs/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `far_forward_dvcs_reco` | [benchmarks/far_forward_dvcs/Snakefile](../benchmarks/far_forward_dvcs/Snakefile) | reconstruction | via `far_forward_dvcs_sim` | `EICRECON_HASH` |
+| `lowq2_training_sim` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `lowq2_reconstruction_particles_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` |
+| `lowq2_reconstruction_tensors_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` |
+| `lowq2_steering_reconstruction_particles_trained_eicrecon` | [benchmarks/lowq2_reconstruction/Snakefile](../benchmarks/lowq2_reconstruction/Snakefile) | reconstruction | via `lowq2_training_sim` | `EICRECON_HASH` |
+| `tracking_performance_sim` | [benchmarks/tracking_performances/Snakefile](../benchmarks/tracking_performances/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `tracking_performance_recon` | [benchmarks/tracking_performances/Snakefile](../benchmarks/tracking_performances/Snakefile) | reconstruction | via `tracking_performance_sim` | `EICRECON_HASH` |
+| `trk_dis_sim` | [benchmarks/tracking_performances_dis/Snakefile](../benchmarks/tracking_performances_dis/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `trk_dis_reco` | [benchmarks/tracking_performances_dis/Snakefile](../benchmarks/tracking_performances_dis/Snakefile) | reconstruction | via `trk_dis_sim` | `EICRECON_HASH` |
+| `lfhcal_sim` | [benchmarks/lfhcal/Snakefile](../benchmarks/lfhcal/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `lfhcal_recon` | [benchmarks/lfhcal/Snakefile](../benchmarks/lfhcal/Snakefile) | reconstruction | via `lfhcal_sim` | `EICRECON_HASH` |
+| `zdc_lyso_sim` | [benchmarks/zdc_lyso/Snakefile](../benchmarks/zdc_lyso/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_lyso_reco` | [benchmarks/zdc_lyso/Snakefile](../benchmarks/zdc_lyso/Snakefile) | reconstruction | via `zdc_lyso_sim` | `EICRECON_HASH` |
+| `zdc_neutron_sim` | [benchmarks/zdc_neutron/Snakefile](../benchmarks/zdc_neutron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_neutron_reco` | [benchmarks/zdc_neutron/Snakefile](../benchmarks/zdc_neutron/Snakefile) | reconstruction | via `zdc_neutron_sim` | `EICRECON_HASH` |
+| `insert_muon_simulate` | [benchmarks/insert_muon/Snakefile](../benchmarks/insert_muon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `insert_muon_recon` | [benchmarks/insert_muon/Snakefile](../benchmarks/insert_muon/Snakefile) | reconstruction | via `insert_muon_simulate` | `EICRECON_HASH` |
+| `irt_sim` | [benchmarks/irt/Snakefile](../benchmarks/irt/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `irt_recon` | [benchmarks/irt/Snakefile](../benchmarks/irt/Snakefile) | reconstruction | via `irt_sim` | `EICRECON_HASH` |
+| `zdc_lambda_simulate` | [benchmarks/zdc_lambda/Snakefile](../benchmarks/zdc_lambda/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_lambda_recon` | [benchmarks/zdc_lambda/Snakefile](../benchmarks/zdc_lambda/Snakefile) | reconstruction | via `zdc_lambda_simulate` | `EICRECON_HASH` |
+| `zdc_photon_simulate` | [benchmarks/zdc_photon/Snakefile](../benchmarks/zdc_photon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_photon_recon` | [benchmarks/zdc_photon/Snakefile](../benchmarks/zdc_photon/Snakefile) | reconstruction | via `zdc_photon_simulate` | `EICRECON_HASH` |
+| `zdc_pi0_simulate` | [benchmarks/zdc_pi0/Snakefile](../benchmarks/zdc_pi0/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_pi0_recon` | [benchmarks/zdc_pi0/Snakefile](../benchmarks/zdc_pi0/Snakefile) | reconstruction | via `zdc_pi0_simulate` | `EICRECON_HASH` |
+| `zdc_sigma_simulate` | [benchmarks/zdc_sigma/Snakefile](../benchmarks/zdc_sigma/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `zdc_sigma_recon` | [benchmarks/zdc_sigma/Snakefile](../benchmarks/zdc_sigma/Snakefile) | reconstruction | via `zdc_sigma_simulate` | `EICRECON_HASH` |
+| `insert_neutron_simulate` | [benchmarks/insert_neutron/Snakefile](../benchmarks/insert_neutron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `insert_neutron_recon` | [benchmarks/insert_neutron/Snakefile](../benchmarks/insert_neutron/Snakefile) | reconstruction | via `insert_neutron_simulate` | `EICRECON_HASH` |
+| `insert_tau_simulate` | [benchmarks/insert_tau/Snakefile](../benchmarks/insert_tau/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `insert_tau_recon` | [benchmarks/insert_tau/Snakefile](../benchmarks/insert_tau/Snakefile) | reconstruction | via `insert_tau_simulate` | `EICRECON_HASH` |
+| `femc_electron_simulate` | [benchmarks/femc_electron/Snakefile](../benchmarks/femc_electron/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `femc_electron_recon` | [benchmarks/femc_electron/Snakefile](../benchmarks/femc_electron/Snakefile) | reconstruction | via `femc_electron_simulate` | `EICRECON_HASH` |
+| `femc_photon_simulate` | [benchmarks/femc_photon/Snakefile](../benchmarks/femc_photon/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `femc_photon_recon` | [benchmarks/femc_photon/Snakefile](../benchmarks/femc_photon/Snakefile) | reconstruction | via `femc_photon_simulate` | `EICRECON_HASH` |
+| `femc_pi0_simulate` | [benchmarks/femc_pi0/Snakefile](../benchmarks/femc_pi0/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `femc_pi0_recon` | [benchmarks/femc_pi0/Snakefile](../benchmarks/femc_pi0/Snakefile) | reconstruction | via `femc_pi0_simulate` | `EICRECON_HASH` |
+| `nhcal_acceptance_simulate` | [benchmarks/nhcal_acceptance/Snakefile](../benchmarks/nhcal_acceptance/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `nhcal_basic_distribution_simulate` | [benchmarks/nhcal_basic_distribution/Snakefile](../benchmarks/nhcal_basic_distribution/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `nhcal_sampling_fraction_simulate` | [benchmarks/nhcal_sampling_fraction/Snakefile](../benchmarks/nhcal_sampling_fraction/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `nhcal_dimuon_photoproduction_simulate` | [benchmarks/nhcal_dimuon_photoproduction/Snakefile](../benchmarks/nhcal_dimuon_photoproduction/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `nhcal_dimuon_photoproduction_recon` | [benchmarks/nhcal_dimuon_photoproduction/Snakefile](../benchmarks/nhcal_dimuon_photoproduction/Snakefile) | reconstruction | via `nhcal_dimuon_photoproduction_simulate` | `EICRECON_HASH` |
+| `nhcal_pion_rejection_simulate` | [benchmarks/nhcal_pion_rejection/Snakefile](../benchmarks/nhcal_pion_rejection/Snakefile) | simulation | `libepic.so` content | `DD4HEP_HASH`, `NPSIM_HASH` |
+| `nhcal_pion_rejection_recon` | [benchmarks/nhcal_pion_rejection/Snakefile](../benchmarks/nhcal_pion_rejection/Snakefile) | reconstruction | via `nhcal_pion_rejection_simulate` | `EICRECON_HASH` |
+| `fetch_epic` | [Snakefile](../Snakefile) | download | — | — |
 
 Rules without `cache: True` (event generators, `warmup_run`, analyses,
 `compile_analysis`, `org2py`, `metadata`, …) are never cached. Their job hash
@@ -227,27 +230,21 @@ are fetched or regenerated.
 6. When the shared cache is skipped
 -----------------------------------
 
-The cache directory and the excluded rules are chosen in the `before_script`
-of `.det_benchmark` (inherited by every CI job that runs Snakemake), based on
-`GITHUB_REPOSITORY` and `GITHUB_PR`, which the eic/epic and eic/EICrecon
-GitHub workflows pass through eic/containers to the pipelines it triggers.
-`GITHUB_PR` is the pull request number for `pull_request` events and empty for
-all other events (merge queue, tags, branch pushes, manual runs):
+The cache directory is chosen in the `before_script` of `.det_benchmark`
+(inherited by every CI job that runs Snakemake), based on `GITHUB_REPOSITORY`
+and `GITHUB_PR`, which the eic/epic and eic/EICrecon GitHub workflows pass
+through eic/containers to the pipelines it triggers. `GITHUB_PR` is the pull
+request number for `pull_request` events and empty for all other events
+(merge queue, tags, branch pushes, manual runs):
 
 ```ebnf
-policy            = epic policy | eicrecon policy | default policy ;
+policy            = epic policy | default policy ;
 
 epic policy       = ( GITHUB_REPOSITORY = "eic/epic" ) , ( GITHUB_PR <> "" ) ,
-                    ( cache directory = pipeline cache ) ,
-                    ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "" ) ;
-
-eicrecon policy   = ( GITHUB_REPOSITORY = "eic/EICrecon" ) , ( GITHUB_PR <> "" ) ,
-                    ( cache directory = shared cache ) ,
-                    ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "EICRECON_HASH" ) ;
+                    ( cache directory = pipeline cache ) ;
 
 default policy    = ? any other GITHUB_REPOSITORY (including empty), or GITHUB_PR = "" ? ,
-                    ( cache directory = shared cache ) ,
-                    ( BENCHMARKS_CACHE_EXCLUDE_PARAMS = "" ) ;
+                    ( cache directory = shared cache ) ;
 ```
 
 Rationale: a pipeline that tests an epic or EICrecon pull request builds the
@@ -260,8 +257,14 @@ builds the same software and such entries could never be retrieved again.
  - For an epic PR, every cached output depends on the epic build, so the whole
    cache moves into the pipeline. Jobs of the same pipeline still share
    entries, as described in section 5.
- - For an EICrecon PR, simulations do not depend on EICrecon and keep using
-   the shared cache. Only rules keyed on `EICRECON_HASH` are not cached.
+ - An EICrecon PR uses the shared cache, including for reconstruction, even
+   though its reconstruction entries are never retrieved by later pipelines
+   (section 8). Its simulations do not depend on EICrecon and are shared with
+   other pipelines. Reconstruction stays cached because jobs of the same
+   pipeline share outputs under `sim_output/`: when a job reruns a cached
+   reconstruction it only replaces the output with a link to the cache entry,
+   but when it reruns an uncached one it rewrites the shared output in place
+   while another job may be reading it.
  - An epic merge-queue run tests the squash commit that `main` is then
    fast-forwarded to, which the next nightly container build also builds, so
    it uses the shared cache. Tag, branch and manual runs also use the shared
@@ -277,7 +280,7 @@ written to the shared cache:
 | 3 | `--cache` is given but `SNAKEMAKE_OUTPUT_CACHE` is not set | Nothing cached; Snakemake warns that no cache location is set |
 | 4 | The job's output exists and is up to date | Cache not consulted (section 5) |
 | 5 | `GITHUB_REPOSITORY` is `eic/epic` and `GITHUB_PR` is not empty | All cached rules use the pipeline cache instead of the shared cache |
-| 6 | `GITHUB_REPOSITORY` is `eic/EICrecon`, `GITHUB_PR` is not empty, and the rule has an `EICRECON_HASH` param | The rule is not cached at all |
+| 6 | The rule has a param listed in `BENCHMARKS_CACHE_EXCLUDE_PARAMS` (never set in CI) | The rule is not cached at all |
 
 
 7. Removal of entries
@@ -319,11 +322,15 @@ pipeline's scratch directory.
 8. Known gaps
 -------------
 
- - `nhcal_pion_rejection_simulate`, `nhcal_dimuon_photoproduction_simulate`
-   and `nhcal_sampling_fraction_simulate` do not include `libepic.so`, and
-   `nhcal_pion_rejection_recon` and `nhcal_dimuon_photoproduction_recon` have
-   no `EICRECON_HASH`. Their keys do not change with the epic or EICrecon
-   build, and condition 6 does not apply to those two reconstruction rules.
+ - A pipeline that tests an EICrecon PR stores its reconstruction outputs in
+   the shared cache, where no later pipeline retrieves them, until garbage
+   collection evicts them (section 6 explains why).
+ - When two pipelines miss the cache for the same entry at the same time, the
+   one that finishes last replaces the entry with its own, newer file. The
+   other pipeline's outputs that depend on that entry then look outdated, so
+   its later jobs rerun them, and through the regenerated
+   `warmup.edm4hep.root` everything else that depends on `warmup_run`. For
+   cached rules these reruns are cache hits.
  - If `ctypes.util.find_library("epic")` finds no library, `geometry_lib` is
    empty and keys silently lose the epic dependency.
  - If `spack` is missing or `spack find` fails, `get_spack_package_hash()`

@@ -3,6 +3,7 @@
 import uproot
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import argparse
 
 def main():
@@ -154,7 +155,7 @@ def main():
                             
                             # Apply kaon selection cuts
                             passes_vertex_quality = chi2_ndf < 3.0  # Good vertex fit
-                            passes_decay_length = 0.05 < decay_2d < 2.0  # Reasonable decay length for kaons
+                            passes_decay_length = 0.05 < decay_2d < 100.0  # K0S: c*tau = 26.8 mm
                             
                             # Only store candidates that pass quality cuts
                             if passes_vertex_quality and passes_decay_length:
@@ -169,7 +170,7 @@ def main():
                                     kaon_candidates += 1
                                     print(f"  -> KAON CANDIDATE: mass={inv_mass:.4f} GeV, decay_length={decay_2d:.3f} mm, χ²/ndf={chi2_ndf:.2f}")
                             else:
-                                print(f"  -> Failed cuts: χ²/ndf={chi2_ndf:.2f} (cut<3.0), decay_length={decay_2d:.3f}mm (cut: 0.05-2.0mm)")
+                                print(f"  -> Failed cuts: χ²/ndf={chi2_ndf:.2f} (cut<3.0), decay_length={decay_2d:.3f}mm (cut: 0.05-100mm)")
                         else:
                             print(f"  -> Invalid mass² = {inv_mass_sq}")
                     else:
@@ -195,7 +196,7 @@ def main():
 
     if len(invariant_masses) > 0:
         print(f"\n=== ANALYSIS RESULTS (AFTER CUTS) ===")
-        print(f"Applied cuts: χ²/ndf < 3.0, 0.05 < decay_length < 2.0 mm")
+        print(f"Applied cuts: χ²/ndf < 3.0, 0.05 < decay_length < 100 mm")
         print(f"Mass range: {np.min(invariant_masses):.4f} - {np.max(invariant_masses):.4f} GeV")
         print(f"Mean mass: {np.mean(invariant_masses):.4f} ± {np.std(invariant_masses):.4f} GeV")
         print(f"Decay length range: {np.min(decay_lengths_2d):.3f} - {np.max(decay_lengths_2d):.3f} mm")
@@ -215,7 +216,9 @@ def main():
             'Very Short (<0.1mm)': (0, 0.1),
             'Short (0.1-0.5mm)': (0.1, 0.5),
             'Medium (0.5-1.0mm)': (0.5, 1.0),
-            'Long (>1.0mm)': (1.0, np.inf)
+            'Long (1.0-2.0mm)': (1.0, 2.0),
+            'Displaced (2-10mm)': (2.0, 10.0),
+            'Displaced (>10mm)': (10.0, np.inf)
         }
         
         for cut_name, (min_cut, max_cut) in decay_cuts.items():
@@ -229,9 +232,10 @@ def main():
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
         # Mass vs decay length (2D histogram)
-        h = ax.hist2d(invariant_masses, decay_lengths_2d, 
-                     bins=[np.linspace(0, 1, 21), 15], 
-                     cmap='viridis', alpha=0.8, range=[[0, 1], None])
+        h = ax.hist2d(invariant_masses, decay_lengths_2d,
+                     bins=[np.linspace(0, 1, 41), np.geomspace(0.05, 100, 25)],
+                     cmap='viridis', norm=LogNorm(), cmin=1)
+        ax.set_yscale('log')
         plt.colorbar(h[3], ax=ax, label='Count')
         ax.axvline(0.4976, color='red', linestyle='--', linewidth=2, alpha=0.9, label='K⁰_S')
         ax.axvline(0.4937, color='orange', linestyle=':', linewidth=2, alpha=0.9, label='K±')

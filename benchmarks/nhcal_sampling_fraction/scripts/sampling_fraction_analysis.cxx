@@ -135,11 +135,11 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
 
         if (!SimCalorimeterHit_coll.hasID())    
         {
-            cerr << "HcalEndcapNHits collection is not valid!" << endl;
+            cerr << "HcalEndcapNHits collection not found in frame!" << endl;
         }
         if (!MCParticles_coll.hasID())    
         {
-            cerr << "MCParticles collection is not valid!" << endl;
+            cerr << "MCParticles collection not found in frame!" << endl;
         }
 
         edm4hep::MCParticle mcpart =  MCParticles_coll.at(0);

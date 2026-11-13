@@ -15,7 +15,8 @@ rule nhcal_dimuon_photoproduction_presimulate:
 
 rule nhcal_dimuon_photoproduction_simulate:
     input:
-        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
+        hepmc="sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
     params:
@@ -33,7 +34,7 @@ rule nhcal_dimuon_photoproduction_simulate:
         """
             exec npsim \
                 --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-                --inputFile {input} \
+                --inputFile {input.hepmc} \
                 -v WARNING \
                 --random.seed {params.SEED} \
                 --numberOfEvents {params.N_EVENTS} \
@@ -48,6 +49,7 @@ rule nhcal_dimuon_photoproduction_recon:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

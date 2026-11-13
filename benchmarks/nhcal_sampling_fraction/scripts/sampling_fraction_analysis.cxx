@@ -133,11 +133,11 @@ int sampling_fraction_analysis(const string &filename, string outname_pdf, strin
         const edm4hep::MCParticleCollection& MCParticles_coll  = frame.get<edm4hep::MCParticleCollection>("MCParticles");
         const edm4hep::SimCalorimeterHitCollection& SimCalorimeterHit_coll = frame.get<edm4hep::SimCalorimeterHitCollection>("HcalEndcapNHits");
 
-        if (!SimCalorimeterHit_coll.isValid())    
+        if (!SimCalorimeterHit_coll.hasID())    
         {
             cerr << "HcalEndcapNHits collection is not valid!" << endl;
         }
-        if (!MCParticles_coll.isValid())    
+        if (!MCParticles_coll.hasID())    
         {
             cerr << "MCParticles collection is not valid!" << endl;
         }

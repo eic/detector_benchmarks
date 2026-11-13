@@ -502,7 +502,7 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
 
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc, int muTag)->void {
             try {
-                if (!linkCol.isValid() || linkCol.empty()) return;
+                if (!linkCol.hasID() || linkCol.empty()) return;
                 
                 for (const auto& link : linkCol) {
                     auto simpart = link.getTo();
@@ -515,11 +515,11 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
             } catch (...) {}
         };
 
-        if (!linkCol.isValid() || linkCol.empty()) continue;
+        if (!linkCol.hasID() || linkCol.empty()) continue;
         if (m1.isAvailable() && abs(m1.getPDG())==13) find_associated_reco(m1, 0);
         if (m2.isAvailable() && abs(m2.getPDG())==13) find_associated_reco(m2, 1);
 
-        if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+        if (!recParts.hasID() || !projSegs.hasID() || !hcalRec.hasID() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
         set<int> uniqueCentersZ10;
         map<double, double> layerData;

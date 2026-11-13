@@ -203,3 +203,15 @@ EOF
 # validate JSON
 jq '.' {output}
 """
+
+
+# Rules whose cache key includes one of these params would only fill the cache with outputs no
+# later pipeline can retrieve (e.g. EICRECON_HASH when testing an EICrecon change)
+_cache_exclude_params = set(os.environ.get("BENCHMARKS_CACHE_EXCLUDE_PARAMS", "").split())
+for _rule in workflow.rules:
+    if _cache_exclude_params & set(_rule.params.keys()):
+        # older Snakemake (e.g. 9.6) keeps the cache directive in workflow.cache_rules, newer in rule.cache
+        if hasattr(_rule, "cache"):
+            _rule.cache = None
+        else:
+            workflow.cache_rules.pop(_rule.name, None)

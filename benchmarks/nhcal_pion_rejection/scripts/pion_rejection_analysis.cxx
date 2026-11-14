@@ -443,7 +443,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         vector<edm4eic::ReconstructedParticle> matchedRecos;
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
-                if (!linkCol.isValid() || linkCol.empty()) return;
+                if (!linkCol.hasID() || linkCol.empty()) return;
                 
                 for (const auto& link : linkCol) {
                     auto simpart = link.getTo();
@@ -456,10 +456,10 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             } catch (...) {}
         };
 
-        if (!linkCol.isValid() || linkCol.empty()) continue;
+        if (!linkCol.hasID() || linkCol.empty()) continue;
         for(const auto&  p: vPions) if (p.getPDG() == -211) find_associated_reco(p);
 
-        if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+        if (!recParts.hasID() || !projSegs.hasID() || !hcalRec.hasID() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
         set<int> uniqueCentersZ10;
         map<double, double> layerData;

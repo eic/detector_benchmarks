@@ -98,13 +98,15 @@ common:setup:
     - apk add python3
     - |
       # Remove scratch space of pipelines older than the artifact expiry (72 hours), so that
-      # their symlinks no longer keep snakemake cache entries alive, then prune the cache.
+      # their symlinks no longer keep snakemake cache entries alive, then prune the cache
+      # to 500G and further until /scratch (about 1T, shared with the pipeline scratch
+      # directories) has at least 200G free.
       # physics_benchmarks shares the cache but does not run garbage collection itself.
       flock --nonblock /scratch/garbage-collect.lock sh -c '
         find /scratch -mindepth 1 -maxdepth 1 -type d \
           \( -name "detector_benchmarks_*" -o -name "physics_benchmarks_*" \) -mmin +4320 \
           -print -exec rm -rf {} +
-        ./garbage-collect.py --target-size 500G --symlink-roots-dir /scratch
+        ./garbage-collect.py --target-size 500G --min-free 200G --symlink-roots-dir /scratch
       ' || true
     - ./cache-histogram.py || true
 

@@ -295,7 +295,8 @@ stale scratch removal    = ? common:setup removes /scratch/detector_benchmarks_*
                              72 hours ago, including their pipeline caches ? ;
 
 garbage collection       = ? common:setup runs garbage-collect.py on the shared cache
-                             with a 500G target size; see below ? ;
+                             with a 500G target size and a 200G minimum of free space;
+                             see below ? ;
 ```
 
 Stale scratch removal and garbage collection run under
@@ -310,7 +311,19 @@ pipeline holds the lock.
     points to ("alive"),
  4. removes the remaining entries in decreasing order of
     `size × (now − access time)` until the total size of the cache is below
-    the target.
+    the target,
+ 5. continues removing entries in the same order, with the same protections,
+    until the filesystem holding the cache has at least the minimum free
+    space (as reported by `statvfs`, measured after every removal). The cache
+    shares `/scratch` (about 1T) with the pipeline scratch directories, so a
+    cache below its target does not by itself leave space free.
+
+If the minimum free space cannot be reached because all remaining entries are
+protected by 2. or 3., `garbage-collect.py` prints a warning with the free
+space, the minimum, the size and number of entries protected by each rule, and
+the space used outside the cache. The job does not fail. Entries in the grace
+period or alive are never removed to make space, because the pipelines that
+are using them would then fail.
 
 The pipeline cache is not garbage collected; it lives exactly as long as the
 pipeline's scratch directory.

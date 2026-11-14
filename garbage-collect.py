@@ -55,7 +55,7 @@ def free_space():
     # space available to unprivileged users (statvfs f_bavail) on the filesystem holding the cache
     return shutil.disk_usage(cache_dir).free
 
-GiB = 1024.**3
+GiB = 1024**3
 
 # List the cache before scanning for symlinks: entries stored (and symlinked)
 # while the scan is running are then never considered for removal
@@ -67,8 +67,11 @@ if args.symlink_roots_dir is not None:
         if path.is_symlink():
             alive.add(path.resolve())
 
+now = time.time()
 paths = []
 total_size = 0
+# space allocated on disk (st_blocks), unlike the apparent size (st_size) used for the target size
+total_allocated = 0
 grace_size = grace_count = 0
 alive_size = alive_count = 0
 for cache_path in cache_paths:
@@ -83,8 +86,10 @@ for cache_path in cache_paths:
         cache_path.unlink(missing_ok=True)
         print(f"Removing empty {cache_path}")
         continue
+    allocated = stat.st_blocks * 512
     total_size += size
-    if time.time() - stat.st_mtime < grace_period:
+    total_allocated += allocated
+    if now - stat.st_mtime < grace_period:
         # recently stored, its symlinks may not have been seen by the scan
         grace_size += size
         grace_count += 1
@@ -92,23 +97,24 @@ for cache_path in cache_paths:
     if cache_path in alive:
         alive_size += size
         alive_count += 1
-    age = time.time() - stat.st_atime
+    age = now - stat.st_atime
     score = size * age
-    paths.append((cache_path, score, size))
+    paths.append((cache_path, score, size, allocated))
 
 print(f"Total cache size: {total_size / 1024. / 1024.:.1f} MiB")
 if min_free is not None:
     print(f"Free space: {free_space() / GiB:.1f} GiB (minimum {min_free / GiB:.1f} GiB)")
 
 def remove_next():
-    global total_size
-    cache_path, _, size = paths.pop()
+    global total_size, total_allocated
+    cache_path, _, size, allocated = paths.pop()
     if cache_path in alive:
         print(f"{cache_path} is alive")
     else:
         cache_path.unlink(missing_ok=True)
         print(f"Removing {cache_path} of {size / 1024. / 1024.:.1f} MiB")
         total_size -= size
+        total_allocated -= allocated
 
 paths.sort(key=lambda t: t[1])
 while total_size >= target_size and paths:
@@ -137,6 +143,6 @@ if min_free is not None:
             f"The remaining cache of {total_size / GiB:.1f} GiB is protected: "
             f"{grace_size / GiB:.1f} GiB in {grace_count} entries modified less than {args.grace_period} ago (grace period), "
             f"{alive_size / GiB:.1f} GiB in {alive_count} entries that symbolic links under {args.symlink_roots_dir or '(no --symlink-roots-dir)'} point to (alive). "
-            f"Outside the cache, {max(usage.used - total_size, 0) / GiB:.1f} GiB of the {usage.total / GiB:.1f} GiB filesystem is used "
-            f"(e.g. pipeline scratch directories)."
+            f"Outside the cache, about {max(usage.used - total_allocated, 0) / GiB:.1f} GiB of the {usage.total / GiB:.1f} GiB filesystem is used "
+            f"(pipeline scratch directories, and removed cache entries that are still open)."
         )

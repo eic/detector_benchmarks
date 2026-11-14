@@ -71,6 +71,8 @@ common:setup:
           try:
               f = ROOT.TFile(filename)
               bad = bad or f.IsZombie()
+              # files may open fine but lack the 'events' tree
+              bad = bad or not f.GetKey("events")
           except OSError:
               bad = True
           if bad:

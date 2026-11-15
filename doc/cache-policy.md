@@ -293,40 +293,70 @@ pipeline scratch removal = ? the cleanup:scratch job of a successful pipeline re
                              /scratch/detector_benchmarks_<CI_PIPELINE_ID>, including
                              its pipeline cache and its symbolic links ? ;
 
-stale scratch removal    = ? common:setup removes /scratch/detector_benchmarks_* and
-                             /scratch/physics_benchmarks_* directories modified more than
-                             72 hours ago, including their pipeline caches ? ;
+stale scratch removal    = ? garbage-collect.py in common:setup removes
+                             /scratch/detector_benchmarks_* and /scratch/physics_benchmarks_*
+                             directories inactive for more than 72 hours, and, when short of
+                             free space, inactive for more than 24 hours, including their
+                             pipeline caches; see below ? ;
 
 garbage collection       = ? common:setup runs garbage-collect.py on the shared cache
                              with a 500G target size and a 200G minimum of free space;
                              see below ? ;
 ```
 
-Stale scratch removal and garbage collection run under
-`flock --nonblock /scratch/garbage-collect.lock`. They are skipped when another
-pipeline holds the lock.
+Stale scratch removal and garbage collection run in one `garbage-collect.py`
+process under `flock --nonblock /scratch/garbage-collect.lock`. They are
+skipped when another pipeline holds the lock.
+
+A scratch directory's last activity is the newest modification time (`lstat`,
+symbolic links not followed) of the directory or anything below it.
+`bin/env.sh` touches `$LOCAL_DATA_PATH` at the start of every job, so a job
+that is started or retried counts as activity even if it writes nothing there.
+physics_benchmarks has its own `bin/env.sh`; its directories count as active
+only through what its jobs write.
 
 `garbage-collect.py` lists the shared cache, then:
 
- 1. removes empty regular files (never valid entries) unconditionally,
- 2. never removes entries modified less than 6 hours ago (grace period),
- 3. never removes entries that a symbolic link anywhere under `/scratch`
-    points to ("alive"),
- 4. removes the remaining entries in decreasing order of
+ 1. scans `/scratch` for symbolic links; removes scratch directories inactive
+    for more than 72 hours (`--scratch-max-age`); the links in the remaining
+    scratch directories, and anywhere else under `/scratch`, make the cache
+    entries they point to "alive",
+ 2. removes empty regular files (never valid entries) unconditionally,
+ 3. never removes entries modified less than 6 hours ago (grace period),
+ 4. never removes alive entries,
+ 5. removes the remaining entries in decreasing order of
     `size × (now − access time)` until the total size of the cache is below
     the target,
- 5. continues removing entries in the same order, with the same protections,
+ 6. continues removing entries in the same order, with the same protections,
     until the filesystem holding the cache has at least the minimum free
     space (as reported by `statvfs`, measured after every removal). The cache
     shares `/scratch` (about 1T) with the pipeline scratch directories, so a
-    cache below its target does not by itself leave space free.
+    cache below its target does not by itself leave space free,
+ 7. when no removable entry is left and space is still short, removes the
+    least recently active scratch directory inactive for more than 24 hours
+    (`--scratch-grace-period`; typically a failed pipeline that was not
+    retried). Entries that only this directory kept alive join the removable
+    entries of 6., which are removed before the next scratch directory.
+    Repeats until the minimum free space is reached.
 
-If the minimum free space cannot be reached because all remaining entries are
-protected by 2. or 3., `garbage-collect.py` prints a warning with the free
-space, the minimum, the size and number of entries protected by each rule, and
-the space used outside the cache. The job does not fail. Entries in the grace
-period or alive are never removed to make space, because the pipelines that
-are using them would then fail.
+```
+free < min? ──► removable cache entry? ──yes──► remove highest score ─┐
+   ▲                   │ no                                            │
+   │                   ▼                                               │
+   │        scratch dir inactive > 24h? ──yes──► remove least recent; │
+   │                   │ no                      release its pins ─────┤
+   │                   ▼                                               │
+   │                WARNING, stop                                      │
+   └───────────────────────────────────────────────────────────────────┘
+```
+
+If the minimum free space cannot be reached, `garbage-collect.py` prints a
+warning with the free space, the minimum, the size and number of entries
+protected by the grace period and by symbolic links, the number and size of
+the scratch directories kept, and the space used outside the cache. The job
+does not fail. Entries in the grace period or alive, and scratch directories
+active within 24 hours, are never removed to make space, because the
+pipelines that are using them would then fail.
 
 The pipeline cache is not garbage collected; it lives exactly as long as the
 pipeline's scratch directory.

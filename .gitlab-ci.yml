@@ -97,17 +97,20 @@ common:setup:
       mkdir -p config
     - apk add python3
     - |
-      # Remove scratch space of pipelines older than the artifact expiry (72 hours), so that
-      # their symlinks no longer keep snakemake cache entries alive, then prune the cache
-      # to 500G and further until /scratch (about 1T, shared with the pipeline scratch
-      # directories) has at least 200G free.
+      # Prune the shared snakemake cache to 500G, then further until /scratch (about 1T,
+      # shared with the pipeline scratch directories) has at least 200G free.
+      # Pipeline scratch directories count as active while anything in them (or the
+      # directory itself, touched by bin/env.sh at the start of every job) was modified.
+      # They are removed when inactive for more than 72 hours (the artifact expiry), and
+      # when inactive for more than 24 hours if the minimum free space is not reached
+      # otherwise. A removed scratch directory no longer keeps cache entries alive.
       # physics_benchmarks shares the cache but does not run garbage collection itself.
-      flock --nonblock /scratch/garbage-collect.lock sh -c '
-        find /scratch -mindepth 1 -maxdepth 1 -type d \
-          \( -name "detector_benchmarks_*" -o -name "physics_benchmarks_*" \) -mmin +4320 \
-          -print -exec rm -rf {} +
-        ./garbage-collect.py --target-size 500G --min-free 200G --symlink-roots-dir /scratch
-      ' || true
+      flock --nonblock /scratch/garbage-collect.lock \
+        ./garbage-collect.py --target-size 500G --min-free 200G --symlink-roots-dir /scratch \
+          --scratch-pattern 'detector_benchmarks_*' --scratch-pattern 'physics_benchmarks_*' \
+          --scratch-pattern 'generator_benchmarks_*' \
+          --scratch-max-age 72h --scratch-grace-period 24h \
+        || true
     - ./cache-histogram.py || true
 
 .det_benchmark:
@@ -254,8 +257,9 @@ benchmarks:detector:success:
 # It is not tied to benchmarks:detector:success with an optional `needs:`: when
 # that job is skipped (no GITHUB_SHA), `needs` would let this job start at the
 # beginning of the pipeline, while other jobs still use the scratch space.
-# Failed pipelines keep their scratch space for debugging; it is expired by
-# common:setup after 72 hours.
+# Failed pipelines keep their scratch space for debugging; garbage-collect.py in
+# common:setup removes it after 72 hours without activity, or after 24 hours
+# without activity when /scratch is short of free space.
 cleanup:scratch:
   stage: status-report
   image: alpine

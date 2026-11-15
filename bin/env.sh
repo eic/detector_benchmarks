@@ -24,6 +24,9 @@ if [ ! -n  "${LOCAL_DATA_PATH}" ] ; then
   fi
 fi
 mkdir -p "${LOCAL_DATA_PATH}"
+# Mark the scratch space as active (also on job retries), so that garbage-collect.py
+# does not consider it stale
+touch "${LOCAL_DATA_PATH}" || true
 if [ ! -d "${LOCAL_DATA_PATH}" ]; then 
   echo "LOCAL_DATA_PATH (${LOCAL_DATA_PATH}) does not exist!!"
   echo "Creating LOCAL_DATA_PATH=$(pwd)/local_data "

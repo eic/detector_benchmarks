@@ -1,3 +1,7 @@
+# all consumers of these outputs read them through cache_resolve
+REMOTE_CACHE_READY_RULES.update({"femc_electron_simulate", "femc_electron_recon"})
+
+
 def get_n_events(wildcards):
     energy = float(wildcards.P)
     n_events = 1000
@@ -66,7 +70,7 @@ rule femc_electron_recon:
     shell:
         """
 env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
-  eicrecon {input.SIM_FILE} -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
+  eicrecon $(cache_resolve {input.SIM_FILE}) -Ppodio:output_file={output.REC_FILE} -Ppodio:output_collections=MCParticles,EcalEndcapPClusters -Pjana:nevents={params.N_EVENTS}
 """
 
 rule femc_electron_analysis:

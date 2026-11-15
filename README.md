@@ -57,3 +57,8 @@ an upstream rule it depends on) must be listed explicitly in `params`, e.g.
 
 See [doc/cache-policy.md](doc/cache-policy.md) for the complete cache key
 definition, the list of cached rules, and when CI skips the shared cache.
+
+Section 9 of that document describes an experimental remote cache (Pelican/OSDF
+or XRootD, `SNAKEMAKE_OUTPUT_CACHE=pelican://...` or `root://...`), in which
+consumers can read cached outputs over `root://` without downloading them; such
+consumers open `$(cache_resolve {input.X})` instead of `{input.X}`.

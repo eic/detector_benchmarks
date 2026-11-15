@@ -16,8 +16,16 @@ try:
 except:
     pass
 
+def cache_resolve(path):
+    # a remote-only cache stub (benchmarks/common/remote_cache.smk) holds the URL to read instead
+    magic = "#snakemake-remote-cache-entry\n"
+    with open(path, "rb") as fp:
+        if fp.read(len(magic)) == magic.encode():
+            return fp.readline().decode().strip()
+    return path
+
 import uproot as ur
-arrays_sim={p:ur.open(f'sim_output/femc_electron/{config}_rec_e-_{p}GeV.edm4eic.root:events').arrays() for p in (10, 20, 30, 40, 50, 60,70,80)}
+arrays_sim={p:ur.open({cache_resolve(f'sim_output/femc_electron/{config}_rec_e-_{p}GeV.edm4eic.root'): 'events'}).arrays() for p in (10, 20, 30, 40, 50, 60,70,80)}
 
 for p in arrays_sim:
     array=arrays_sim[p]

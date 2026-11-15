@@ -353,3 +353,70 @@ pipeline's scratch directory.
    `DETECTOR_PREFIX`.
  - physics_benchmarks writes to the same shared cache and does not apply the
    policy in section 6.
+
+
+9. Remote cache (proof of concept, not used in CI)
+--------------------------------------------------
+
+`benchmarks/common/remote_cache.smk` lets the cache live in Pelican/OSDF or
+XRootD storage. It is inactive unless `$SNAKEMAKE_OUTPUT_CACHE` is a URL.
+
+```ebnf
+remote cache entry = remote cache , "/" , provenance hash , output suffix ;
+remote cache       = ? $SNAKEMAKE_OUTPUT_CACHE: "pelican://<federation>/<path>",
+                       "osdf:///<path>" (pelican plugin) or
+                       "root[s]://<host>[:<port>]//<path>" (xrootd plugin) ? ;
+read url           = ? $BENCHMARKS_CACHE_READ_PREFIX (default: remote cache) ? ,
+                     "/" , provenance hash , output suffix ;
+stub file          = "#snakemake-remote-cache-entry" , newline , read url , newline ;
+```
+
+Entry names and keys are those of sections 2 and 3: the backend does not
+change any key.
+
+| Variable | Effect |
+|---|---|
+| `SNAKEMAKE_OUTPUT_CACHE` | URL of the remote cache; a plain path keeps the local cache |
+| `BENCHMARKS_CACHE_STORAGE_PROVIDER` | override the storage plugin (e.g. `fs` for tests) |
+| `BENCHMARKS_CACHE_READ_PREFIX` | prefix of read URLs, e.g. `root://<host>:<port>//<path>` when writing via `pelican://` |
+| `BENCHMARKS_CACHE_REMOTE_ONLY=1` | outputs of rules in `REMOTE_CACHE_READY_RULES` become stub files |
+
+ - Default mode: a hit downloads the entry to the output path; a miss runs the
+   job and uploads its output, which stays local. No consumer changes needed.
+ - Remote-only mode, per rule in `REMOTE_CACHE_READY_RULES`: on a hit, and
+   after a miss has been uploaded, the output path holds a stub file instead
+   of the data. Consumers open `$(cache_resolve {input.X})` (shell function
+   defined in `shell.prefix`) or the URL returned by a Python resolver (see
+   `benchmarks/femc_electron/analysis/femc_electron_plots.py`). On a local
+   (non-stub) file both return the path unchanged, so migrated consumers work
+   in every mode. A rule may join `REMOTE_CACHE_READY_RULES` only when every
+   consumer of its output is migrated. Migrated so far: `femc_electron_simulate`,
+   `femc_electron_recon`.
+ - A failed lookup or download is a cache miss (the job runs); a failed upload
+   leaves the output local. After the first such failure the remote cache is
+   not used for the rest of the run. A failed upload of an entry that exists
+   remotely (concurrent writer) is accepted.
+ - Requires `snakemake-storage-plugin-pelican` or `snakemake-storage-plugin-xrootd`
+   in the Snakemake environment, write credentials for the remote path (Pelican:
+   `--storage-pelican-token-file`; XRootD: the token/X.509 environment of the
+   XRootD client), and XRootD support in ROOT/podio and `fsspec-xrootd` (for
+   `uproot`) wherever consumers read `root://` URLs.
+
+Open issues:
+
+ - Snakemake's own storage cache is used only with `--default-storage-provider`,
+   which would move every workflow file to that storage. The module therefore
+   replaces `snakemake.workflow.LocalOutputFileCache`, a Snakemake internal
+   (verified with 9.6.3 and 9.27.2).
+ - Uploads are not atomic: a reader can see a partially written entry, which
+   `exists` reports as a hit.
+ - Remote entries are not garbage collected by `garbage-collect.py`; expiry is
+   left to the storage (e.g. a volatile namespace).
+ - The CI steps that create, clean and garbage collect the local cache
+   directory (`.gitlab-ci.yml`) assume a local path.
+ - `fetch_epic` copies remote files into the cache; with a remote cache its
+   consumers could read the source URL directly instead.
+ - Detecting an unreachable host (once per run) waits for the storage
+   client's timeouts and the plugin's retries: 10-70 s per operation measured
+   with `XRD_CONNECTIONRETRY=1 XRD_CONNECTIONWINDOW=3 XRD_REQUESTTIMEOUT=5`,
+   more than 5 min with the XRootD defaults.

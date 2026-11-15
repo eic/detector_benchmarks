@@ -85,6 +85,9 @@ def _remote_cache_install():
 
         def __init__(self):
             self.inner = StorageOutputFileCache(provider)
+            # set on the first failed remote operation; later jobs skip the
+            # remote instead of each waiting through the client's retries
+            self.unreachable = False
 
         def __getattr__(self, name):
             return getattr(self.inner, name)
@@ -110,14 +113,22 @@ def _remote_cache_install():
         # An unreachable remote cache is treated as a cache miss: the job runs
         # and keeps its output locally, instead of failing the pipeline.
 
+        def _disable(self, what, e):
+            self.unreachable = True
+            logger.warning(f"{what} failed, not using the remote cache for the rest of this run: {e}")
+
         async def exists(self, job, *args):
+            if self.unreachable:
+                return False
             try:
                 return await self.inner.exists(job, *args)
             except Exception as e:
-                logger.warning(f"Remote cache lookup failed for {job}, treating as miss: {e}")
+                self._disable(f"Remote cache lookup for {job}", e)
                 return False
 
         async def fetch(self, job, *args):
+            if self.unreachable:
+                self.inner.raise_cache_miss_exception(job)
             try:
                 if not self._remote_only(job):
                     return await self.inner.fetch(job, *args)
@@ -128,13 +139,15 @@ def _remote_cache_install():
             except CacheMissException:
                 raise
             except Exception as e:
-                logger.warning(f"Remote cache fetch failed for {job}, running it: {e}")
+                self._disable(f"Remote cache fetch for {job}", e)
                 raise CacheMissException(str(e))
             for entry in entries:
                 self._write_stub(entry)
             logger.info(f"Remote cache hit for {job}: outputs are stubs pointing to {read_prefix}")
 
         async def store(self, job, *args):
+            if self.unreachable:
+                return
             entries = await self._entries(job, *args, check_output_exists=True)
             for entry in entries:
                 try:
@@ -146,7 +159,7 @@ def _remote_cache_install():
                     except Exception:
                         stored = False
                     if not stored:
-                        logger.warning(f"Upload of {entry.query} failed, keeping local output: {e}")
+                        self._disable(f"Upload of {entry.query} (output kept local)", e)
                         return
                     logger.warning(f"Cache entry {entry.query} already exists: {e}")
             if self._remote_only(job):

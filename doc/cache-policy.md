@@ -393,8 +393,9 @@ change any key.
    consumer of its output is migrated. Migrated so far: `femc_electron_simulate`,
    `femc_electron_recon`.
  - A failed lookup or download is a cache miss (the job runs); a failed upload
-   leaves the output local. A failed upload of an entry that exists remotely
-   (concurrent writer) is accepted.
+   leaves the output local. After the first such failure the remote cache is
+   not used for the rest of the run. A failed upload of an entry that exists
+   remotely (concurrent writer) is accepted.
  - Requires `snakemake-storage-plugin-pelican` or `snakemake-storage-plugin-xrootd`
    in the Snakemake environment, write credentials for the remote path (Pelican:
    `--storage-pelican-token-file`; XRootD: the token/X.509 environment of the
@@ -415,5 +416,7 @@ Open issues:
    directory (`.gitlab-ci.yml`) assume a local path.
  - `fetch_epic` copies remote files into the cache; with a remote cache its
    consumers could read the source URL directly instead.
- - An unreachable host makes each lookup wait for the storage client's
-   timeouts and retries before falling back to running the job.
+ - Detecting an unreachable host (once per run) waits for the storage
+   client's timeouts and the plugin's retries: 10-70 s per operation measured
+   with `XRD_CONNECTIONRETRY=1 XRD_CONNECTIONWINDOW=3 XRD_REQUESTTIMEOUT=5`,
+   more than 5 min with the XRootD defaults.

@@ -64,7 +64,7 @@ target_size = parse_size(args.target_size)
 min_free = parse_size(args.min_free) if args.min_free is not None else None
 
 if (scratch_max_age is not None or scratch_grace_period is not None) and (args.symlink_roots_dir is None or not args.scratch_pattern):
-    parser.error("--scratch-max-age and --scratch-grace-period need --symlink-roots-dir and --scratch-pattern")
+    parser.error("--scratch-max-age/--scratch-grace-period require --symlink-roots-dir and at least one --scratch-pattern")
 
 def free_space():
     # space available to unprivileged users (statvfs f_bavail) on the filesystem holding the cache
@@ -84,7 +84,8 @@ def scan_tree(root):
         path = stack.pop()
         try:
             st = os.lstat(path)
-        except FileNotFoundError:
+        except OSError:
+            # removed meanwhile, or not accessible
             continue
         newest = max(newest, st.st_mtime)
         allocated += st.st_blocks * 512
@@ -94,7 +95,7 @@ def scan_tree(root):
             try:
                 with os.scandir(path) as it:
                     stack.extend(entry.path for entry in it)
-            except (FileNotFoundError, NotADirectoryError, PermissionError):
+            except OSError:
                 pass
     return newest, allocated, targets
 
@@ -126,7 +127,10 @@ if args.symlink_roots_dir is not None:
     for child in sorted(roots_dir.iterdir()):
         try:
             st = child.lstat()
-        except FileNotFoundError:
+        except OSError as e:
+            # removed meanwhile, or not accessible: neither scanned nor removed
+            if not isinstance(e, FileNotFoundError):
+                print(f"Skipping {child}: {e}")
             continue
         is_scratch = (
             S_ISDIR(st.st_mode)
@@ -237,7 +241,8 @@ if min_free is not None:
             for target in set(targets):
                 pins[target].discard(path)
                 if not is_alive(target) and target in waiting:
-                    bisect.insort(removable, waiting.pop(target), key=lambda t: t[0])
+                    # tuples sort by score first, like removable
+                    bisect.insort(removable, waiting.pop(target))
         else:
             break
 

@@ -8,6 +8,11 @@ from snakemake.logging import logger
 shell.prefix(
     f"source {config['DETECTOR_PREFIX']}/bin/thisepic.sh {config['DETECTOR_CONFIG']}; "
     f"export ROOT_MAX_THREADS={config['BENCHMARK_N_THREADS']}; "
+    # cache_resolve PATH: prints the read URL if PATH is a remote-only cache stub
+    # (benchmarks/common/remote_cache.smk), else PATH
+    "cache_resolve() {{ "
+    "if [ \"$(head -c 29 \"$1\" 2>/dev/null | tr -d '\\0')\" = '#snakemake-remote-cache-entry' ]; "
+    "then sed -n 2p \"$1\"; else printf '%s\\n' \"$1\"; fi; }}; "
 )
 
 
@@ -77,6 +82,7 @@ def stable_seed(*parts):
     return zlib.crc32("_".join(map(str, parts)).encode()) % (2**31 - 1) + 1
 
 
+include: "benchmarks/common/remote_cache.smk"
 include: "benchmarks/backgrounds/Snakefile"
 include: "benchmarks/backwards_ecal/Snakefile"
 include: "benchmarks/barrel_ecal/Snakefile"

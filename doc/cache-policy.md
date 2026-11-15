@@ -294,8 +294,8 @@ pipeline scratch removal = ? the cleanup:scratch job of a successful pipeline re
                              its pipeline cache and its symbolic links ? ;
 
 stale scratch removal    = ? garbage-collect.py in common:setup removes
-                             /scratch/detector_benchmarks_* and /scratch/physics_benchmarks_*
-                             directories inactive for more than 72 hours, and, when short of
+                             /scratch/detector_benchmarks_*, /scratch/physics_benchmarks_* and
+                             /scratch/generator_benchmarks_* directories inactive for more than 72 hours, and, when short of
                              free space, inactive for more than 24 hours, including their
                              pipeline caches; see below ? ;
 
@@ -312,8 +312,9 @@ A scratch directory's last activity is the newest modification time (`lstat`,
 symbolic links not followed) of the directory or anything below it.
 `bin/env.sh` touches `$LOCAL_DATA_PATH` at the start of every job, so a job
 that is started or retried counts as activity even if it writes nothing there.
-physics_benchmarks has its own `bin/env.sh`; its directories count as active
-only through what its jobs write.
+physics_benchmarks and generator_benchmarks do not run this repository's
+`bin/env.sh`; their directories count as active only through what their jobs
+write.
 
 `garbage-collect.py` lists the shared cache, then:
 

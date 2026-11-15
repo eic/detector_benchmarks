@@ -108,6 +108,7 @@ common:setup:
       flock --nonblock /scratch/garbage-collect.lock \
         ./garbage-collect.py --target-size 500G --min-free 200G --symlink-roots-dir /scratch \
           --scratch-pattern 'detector_benchmarks_*' --scratch-pattern 'physics_benchmarks_*' \
+          --scratch-pattern 'generator_benchmarks_*' \
           --scratch-max-age 72h --scratch-grace-period 24h \
         || true
     - ./cache-histogram.py || true

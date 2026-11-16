@@ -27,11 +27,11 @@ for p in momenta:
     # corrupted/truncated upstream simulation or reconstruction file): the lambda
     # (index 2) and neutron (index 3) truth momenta are read below, so drop any
     # event that doesn't have them rather than crashing the whole benchmark.
-    n_mcparticles = ak.num(arrays_sim[p]["MCParticles.momentum.x"])
-    n_good = ak.sum(n_mcparticles >= 4)
+    has_enough_mcparticles = ak.num(arrays_sim[p]["MCParticles.momentum.x"], axis=1) >= 4
+    n_good = ak.sum(has_enough_mcparticles)
     if n_good < len(arrays_sim[p]):
         print(f"WARNING: p={p} GeV: dropping {len(arrays_sim[p]) - n_good} of {len(arrays_sim[p])} events with fewer than 4 MCParticles")
-    arrays_sim[p] = arrays_sim[p][n_mcparticles >= 4]
+    arrays_sim[p] = arrays_sim[p][has_enough_mcparticles]
 
 def gauss(x, A,mu, sigma):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))

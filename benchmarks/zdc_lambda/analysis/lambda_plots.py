@@ -23,6 +23,15 @@ for p in momenta:
         f'sim_output/zdc_lambda/{config}_rec_lambda_dec_{p}GeV_{index}.edm4eic.root': 'events'
         for index in range(5)
     })
+    # Guard against malformed events with too few truth MCParticles (e.g. from a
+    # corrupted/truncated upstream simulation or reconstruction file): the lambda
+    # (index 2) and neutron (index 3) truth momenta are read below, so drop any
+    # event that doesn't have them rather than crashing the whole benchmark.
+    n_mcparticles = ak.num(arrays_sim[p]["MCParticles.momentum.x"])
+    n_good = ak.sum(n_mcparticles >= 4)
+    if n_good < len(arrays_sim[p]):
+        print(f"WARNING: p={p} GeV: dropping {len(arrays_sim[p]) - n_good} of {len(arrays_sim[p])} events with fewer than 4 MCParticles")
+    arrays_sim[p] = arrays_sim[p][n_mcparticles >= 4]
 
 def gauss(x, A,mu, sigma):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))

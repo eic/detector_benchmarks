@@ -9,6 +9,7 @@ variables:
   SNAKEMAKE_FLAGS: '--cache'
   LS: ''
   RM: ''
+  RMLN: ''
 
 workflow:
   name: '$PIPELINE_NAME'
@@ -61,6 +62,7 @@ common:setup:
       stat test
       if [ -n "${LS}" ] ; then ls -al $LS ; fi
       if [ -n "${RM}" ] ; then rm -rf $RM ; fi
+      if [ -n "${RMLN}" ] ; then rm -rf $RMLN $(realpath $RMLN 2>/dev/null) ; fi
       cat >filter_broken.py <<EOF
       import sys
       import ROOT

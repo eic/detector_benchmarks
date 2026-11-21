@@ -44,26 +44,13 @@ exec npsim \
 """
 
 
-rule nhcal_sampling_fraction_combine:
+rule nhcal_sampling_fraction_analysis:
     input:
-        lambda wildcards: expand(
+        sim=expand(
             "sim_output/nhcal_sampling_fraction/{PARTICLE}/Ekin{ENERGY}GeV/sim.edm4hep.rnt.root",
             ENERGY=["0.5", "0.7", "1.0", "2.0", "5.0", "10.0"],
             PARTICLE=["pi-", "neutron", "e-"],
         ),
-    wildcard_constraints:
-        ENERGY=r"\d+"
-    output:
-        temp("sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.rnt.root"),
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-hadd -f {output} {input}
-"""
-
-rule nhcal_sampling_fraction_analysis:
-    input:
-        combined="sim_output/nhcal_sampling_fraction/sim_combined.edm4hep.rnt.root",
         script=workflow.source_path("scripts/sampling_fraction_analysis.cxx"),
     output:
         pdf="results/nhcal_sampling_fraction/hist_sampf_vs_Ehit.pdf",
@@ -71,7 +58,9 @@ rule nhcal_sampling_fraction_analysis:
     params:
         DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
-        binary="results/nhcal_sampling_fraction/sampling_fraction_analysis"
+        binary="results/nhcal_sampling_fraction/sampling_fraction_analysis",
+        # podio::makeReader expands glob patterns, so no need to hadd the inputs
+        SIM_GLOB="sim_output/nhcal_sampling_fraction/*/Ekin*GeV/sim.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
@@ -82,6 +71,6 @@ rule nhcal_sampling_fraction_analysis:
             -L/opt/local/lib \
             -lpodio -lpodioIO -lpodioRootIO -ledm4hep -lDDCore -lDDRec \
             -o {output.pdf}.bin && \
-        {output.pdf}.bin "{input.combined}" "{output.pdf}" "{output.png}" "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}" && \
+        {output.pdf}.bin "{params.SIM_GLOB}" "{output.pdf}" "{output.png}" "{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}" && \
         rm {output.pdf}.bin
         """

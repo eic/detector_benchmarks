@@ -95,17 +95,16 @@ rule tracking_performance_hit_maps:
         hitsrz_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/hitsrz_dd4hep.root",
         nhits_eta_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
         nhits_eta_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
-        sim_hadd=temporary("sim_output/tracking_performance/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/{PARTICLE}.{ENERGY}.edm4hep.rnt.root"),
     params:
+        # podio::makeReader expands glob patterns, so no need to hadd the inputs
+        SIM_GLOB=lambda wildcards: f"sim_output/tracking_performance/{wildcards.DETECTOR_CONFIG}/{wildcards.PARTICLE}/{wildcards.ENERGY}/*/{wildcards.PARTICLE}_{wildcards.ENERGY}_*.edm4hep.rnt.root",
         MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell: """
-echo "Merging simulation files into: {output}"
-hadd -f {output.sim_hadd} {input.sim}
 OUTPUT_PREFIX="$(dirname {output.hitsxy_png})"
-echo "Generating hit maps and Nhits vs eta for: {output.sim_hadd}"
-root -l -b -q {input.script_hitsmap}'("{output.sim_hadd}", "'$OUTPUT_PREFIX'")'
-root -l -b -q {input.script_nhits_eta}'("{output.sim_hadd}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
+echo "Generating hit maps and Nhits vs eta for: {params.SIM_GLOB}"
+root -l -b -q {input.script_hitsmap}'("{params.SIM_GLOB}", "'$OUTPUT_PREFIX'")'
+root -l -b -q {input.script_nhits_eta}'("{params.SIM_GLOB}", "{params.MOMENTUM}", "'$OUTPUT_PREFIX'")'
 """
 
 rule tracking_performance_at_momentum:

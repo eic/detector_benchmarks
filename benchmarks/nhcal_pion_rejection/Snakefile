@@ -50,26 +50,13 @@ exec env DETECTOR_CONFIG={params.DETECTOR_CONFIG} \
 
 """
 
-rule nhcal_pion_rejection_combine:
+rule nhcal_pion_rejection_analysis:
     input:
-        lambda wildcards: expand(
+        recon=lambda wildcards: expand(
             "sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             INDEX=range(int(wildcards.N)),
-        )
-    output:
-        temp("sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root"),
-    wildcard_constraints:
-        N = r"\d+",
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-hadd -f {output} {input}
-"""
-
-rule nhcal_pion_rejection_analysis:
-    input:
-        combined="sim_output/nhcal_pion_rejection/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        ),
         script=workflow.source_path("scripts/pion_rejection_analysis.cxx"),
     output:
         png="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.png",
@@ -77,8 +64,10 @@ rule nhcal_pion_rejection_analysis:
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+        # podio::makeReader expands glob patterns, so no need to hadd the inputs
+        RECON_GLOB = lambda wildcards: f"sim_output/nhcal_pion_rejection/sim_{wildcards.DETECTOR_CONFIG}.*.eicrecon.edm4hep.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-    root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+    root -l -b -q '{input.script}+("{params.RECON_GLOB}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
 """

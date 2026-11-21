@@ -36,30 +36,16 @@ exec npsim \
     --outputFile {output}
 """
 
-rule nhcal_basic_distribution_combine:
+rule nhcal_basic_distribution_analysis:
     input:
-        lambda wildcards: expand(
+        workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
+        workflow.source_path("scripts/NeutronThresholdUtil.h"),
+        sim=lambda wildcards: expand(
             "sim_output/nhcal_basic_distribution/E{ENERGY:.1f}GeV/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             ENERGY=float(wildcards.ENERGY),
             INDEX=range(int(wildcards.N)),
         ),
-    wildcard_constraints:
-        N=r"\d+",
-        ENERGY=r"\d+(\.\d+)?"
-    output:
-        temp("sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.rnt.root"),
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-            hadd -f {output} {input}
-        """
-
-rule nhcal_basic_distribution_analysis:
-    input:
-        workflow.source_path("scripts/HistogramsNeutronThresholds.h"),
-        workflow.source_path("scripts/NeutronThresholdUtil.h"),
-        combined="sim_output/nhcal_basic_distribution/sim_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.edm4hep.rnt.root",
         script=workflow.source_path("scripts/basic_distribution_analysis.cxx"),
     output:
         png="results/nhcal_basic_distribution/analysis_E{ENERGY}GeV_{DETECTOR_CONFIG}_{N}files.png",
@@ -70,10 +56,11 @@ rule nhcal_basic_distribution_analysis:
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+        SIM_GLOB = lambda wildcards: f"sim_output/nhcal_basic_distribution/E{float(wildcards.ENERGY):.1f}GeV/sim_{wildcards.DETECTOR_CONFIG}.*.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            root -l -b -q '{input.script}+("{input.combined}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+            root -l -b -q '{input.script}+("{params.SIM_GLOB}","{output.png}","{output.root}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
         """
 
 rule nhcal_basic_distribution_combine_energy_resolution:

@@ -44,7 +44,7 @@
 
 #include "podio/Frame.h"
 #include "podio/CollectionBase.h"
-#include "podio/ROOTReader.h"
+#include "podio/Reader.h"
 #include "podio/CollectionIDTable.h"
 #include "podio/ObjectID.h"
 
@@ -289,8 +289,7 @@ trackXYatZ(const TVector3& A, const TVector3& B, double zTarget){
 int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
 
     gStyle->SetOptStat(0);
-    podio::ROOTReader reader;
-    reader.openFile(filename);
+    auto reader = podio::makeReader(filename);
     unsigned nEvents = reader.getEntries("events"); 
     cout << "Number of events: " << nEvents << endl;
 
@@ -435,9 +434,7 @@ int dimuon_photoproduction_analysis(const string& filename, string outname_pdf, 
     };
 
     for (unsigned ev = 0; ev < nEvents; ev++) {
-        auto frameData = reader.readNextEntry(podio::Category::Event);
-        if (!frameData) continue;
-        podio::Frame frame(std::move(frameData));
+        auto frame = reader.readNextEvent();
 
         auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
             return frame.get(name);

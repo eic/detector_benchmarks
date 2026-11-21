@@ -10,7 +10,7 @@ rule nhcal_dimuon_photoproduction_presimulate:
             pwd
             echo "Output dir: {params.outdir}"
             make -C benchmarks/nhcal_dimuon_photoproduction/scripts
-            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir} {params.SEED}
+            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX:q} {params.outdir:q} {params.SEED:q}
             ls -la {params.outdir}/
         """
 

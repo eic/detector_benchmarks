@@ -8,6 +8,8 @@
 #include "TMath.h"
 
 #include <vector>
+#include <cerrno>
+#include <cstdlib>
 #include <utility>
 #include <map>
 
@@ -56,7 +58,17 @@ int main(int argc, char* argv[]) {
     }
     char* runcard  = argv[1];
     char* outfile = argv[2];
-    const char* seed = (argc == 4) ? argv[3] : nullptr;
+    long seed = -1;
+    if (argc == 4) {
+        // Pythia accepts Random:seed in [1, 900000000] for a fixed seed
+        char* end = nullptr;
+        errno = 0;
+        seed = std::strtol(argv[3], &end, 10);
+        if (errno != 0 || end == argv[3] || *end != '\0' || seed < 1 || seed > 900000000) {
+            cerr << "Invalid seed '" << argv[3] << "': must be an integer in [1, 900000000]" << endl;
+            return 2;
+        }
+    }
     //const char* xmlDB    = "/users/PAS2524/lkosarz/Pythia/pythia8312/share/Pythia8/xmldoc";
     const char* xmlDB    = "/opt/local/share/Pythia8/xmldoc";
     
@@ -83,9 +95,13 @@ int main(int argc, char* argv[]) {
     cout << "Runcard '" << runcard << "' loaded." << endl;
 
     // Override the runcard's time-based seed for reproducible output
-    if (seed != nullptr) {
-        pythia->readString("Random:setSeed = on");
-        pythia->readString(Form("Random:seed = %s", seed));
+    if (seed > 0) {
+        if (!pythia->readString("Random:setSeed = on")
+            || !pythia->readString(Form("Random:seed = %ld", seed))
+            || pythia->settings.mode("Random:seed") != seed) {
+            cerr << "Failed to set Pythia random seed to " << seed << endl;
+            return 1;
+        }
         cout << "Random seed set to " << seed << endl;
     }
     

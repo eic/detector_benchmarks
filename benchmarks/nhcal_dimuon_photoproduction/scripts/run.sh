@@ -29,4 +29,4 @@ mkdir -p "$OUTDIR"
 OUTBASE="${OUTDIR}/DiMuon_ep_18x275GeV.${INDEX}"
 LOG="${OUTDIR}/DiMuon_ep_18x275GeV_${INDEX}.log"
 
-"${SCRIPT_DIR}/pythiaDiMuon" "${SCRIPT_DIR}/ep_DiMuon.cmnd" "$OUTBASE" ${SEED} | tee "$LOG"
+"${SCRIPT_DIR}/pythiaDiMuon" "${SCRIPT_DIR}/ep_DiMuon.cmnd" "$OUTBASE" ${SEED:+"$SEED"} | tee "$LOG"

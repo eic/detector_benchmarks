@@ -50,12 +50,13 @@ void PrintVec(std::vector<pair<int, double>> input);
 
 int main(int argc, char* argv[]) {
     
-    if (argc != 3) {
-        cout << "Usage: " << argv[0] << " runcard  outfile" << endl;
+    if (argc != 3 && argc != 4) {
+        cout << "Usage: " << argv[0] << " runcard  outfile  [seed]" << endl;
         return 2;
     }
     char* runcard  = argv[1];
     char* outfile = argv[2];
+    const char* seed = (argc == 4) ? argv[3] : nullptr;
     //const char* xmlDB    = "/users/PAS2524/lkosarz/Pythia/pythia8312/share/Pythia8/xmldoc";
     const char* xmlDB    = "/opt/local/share/Pythia8/xmldoc";
     
@@ -80,6 +81,13 @@ int main(int argc, char* argv[]) {
     //  Read in runcard (should be star_hf_tune_v1.0.cmd)
     pythia->readFile(runcard);
     cout << "Runcard '" << runcard << "' loaded." << endl;
+
+    // Override the runcard's time-based seed for reproducible output
+    if (seed != nullptr) {
+        pythia->readString("Random:setSeed = on");
+        pythia->readString(Form("Random:seed = %s", seed));
+        cout << "Random seed set to " << seed << endl;
+    }
     
 
     TFile *treeFile  = new TFile(Form("%s_tree.root", outfile),"RECREATE");

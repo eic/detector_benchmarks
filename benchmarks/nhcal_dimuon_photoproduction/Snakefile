@@ -71,6 +71,8 @@ rule nhcal_dimuon_photoproduction_analysis:
     output:
         png="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.pdf",
+    wildcard_constraints:
+        N=r"\d+",
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",

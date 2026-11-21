@@ -61,6 +61,8 @@ rule nhcal_pion_rejection_analysis:
     output:
         png="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_pion_rejection/analysis_{DETECTOR_CONFIG}_{N}files.pdf",
+    wildcard_constraints:
+        N=r"\d+",
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",

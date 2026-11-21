@@ -59,7 +59,6 @@ rule nhcal_sampling_fraction_analysis:
         DETECTOR_PATH=config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG="epic_backward_hcal_only_sampF.xml",
         binary="results/nhcal_sampling_fraction/sampling_fraction_analysis",
-        # podio::makeReader expands glob patterns, so no need to hadd the inputs
         SIM_GLOB="sim_output/nhcal_sampling_fraction/*/Ekin*GeV/sim.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

@@ -56,7 +56,6 @@ rule nhcal_basic_distribution_analysis:
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
-        # podio::makeReader expands glob patterns, so no need to hadd the inputs
         SIM_GLOB = lambda wildcards: f"sim_output/nhcal_basic_distribution/E{float(wildcards.ENERGY):.1f}GeV/sim_{wildcards.DETECTOR_CONFIG}.*.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

@@ -76,7 +76,6 @@ rule nhcal_dimuon_photoproduction_analysis:
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
-        # podio::makeReader expands glob patterns, so no need to hadd the inputs
         RECON_GLOB = lambda wildcards: f"sim_output/nhcal_dimuon_photoproduction/sim_{wildcards.DETECTOR_CONFIG}.*.eicrecon.edm4hep.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

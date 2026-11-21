@@ -48,7 +48,6 @@ rule nhcal_acceptance_analysis:
         N=r"\d+",
         ENERGY=r"\d+",
     params:
-        # podio::makeReader expands glob patterns, so no need to hadd the inputs
         SIM_GLOB=lambda wildcards: f"sim_output/nhcal_acceptance/E{wildcards.ENERGY}GeV/sim_{wildcards.DETECTOR_CONFIG}.*.edm4hep.rnt.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:

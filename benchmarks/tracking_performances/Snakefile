@@ -96,7 +96,6 @@ rule tracking_performance_hit_maps:
         nhits_eta_png="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.png",
         nhits_eta_root="local/{DETECTOR_CONFIG}/{PARTICLE}/{ENERGY}/Nhits_vs_eta.root",
     params:
-        # podio::makeReader expands glob patterns, so no need to hadd the inputs
         SIM_GLOB=lambda wildcards: f"sim_output/tracking_performance/{wildcards.DETECTOR_CONFIG}/{wildcards.PARTICLE}/{wildcards.ENERGY}/*/{wildcards.PARTICLE}_{wildcards.ENERGY}_*.edm4hep.rnt.root",
         MOMENTUM=lambda wildcards: str(float(wildcards.ENERGY.replace("GeV", "").replace("MeV", "e-3"))),
     singularity: EIC_SINGULARITY_CONTAINER,

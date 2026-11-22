@@ -3,13 +3,14 @@ rule nhcal_dimuon_photoproduction_presimulate:
         "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     params:
         outdir=lambda wc, output: os.path.dirname(output[0]),
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             pwd
             echo "Output dir: {params.outdir}"
             make -C benchmarks/nhcal_dimuon_photoproduction/scripts
-            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir}
+            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX:q} {params.outdir:q} {params.SEED:q}
             ls -la {params.outdir}/
         """
 

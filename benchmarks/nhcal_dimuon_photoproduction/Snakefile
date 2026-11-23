@@ -3,19 +3,21 @@ rule nhcal_dimuon_photoproduction_presimulate:
         "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
     params:
         outdir=lambda wc, output: os.path.dirname(output[0]),
+        SEED=lambda wildcards: "1" + wildcards.INDEX,
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
             pwd
             echo "Output dir: {params.outdir}"
             make -C benchmarks/nhcal_dimuon_photoproduction/scripts
-            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX} {params.outdir}
+            benchmarks/nhcal_dimuon_photoproduction/scripts/run.sh {wildcards.INDEX:q} {params.outdir:q} {params.SEED:q}
             ls -la {params.outdir}/
         """
 
 rule nhcal_dimuon_photoproduction_simulate:
     input:
-        "sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
+        hepmc="sim_input/DiMuon_ep_18x275GeV.{INDEX}.hepmc3",
+        geometry_lib=find_epic_libraries(),
     output:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.edm4hep.rnt.root",
     params:
@@ -33,7 +35,7 @@ rule nhcal_dimuon_photoproduction_simulate:
         """
             exec npsim \
                 --compactFile {params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}.xml \
-                --inputFile {input} \
+                --inputFile {input.hepmc} \
                 -v WARNING \
                 --random.seed {params.SEED} \
                 --numberOfEvents {params.N_EVENTS} \
@@ -48,6 +50,7 @@ rule nhcal_dimuon_photoproduction_recon:
         "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root"
     params:
         DETECTOR_CONFIG = lambda wildcards: wildcards.DETECTOR_CONFIG,
+        EICRECON_HASH=get_spack_package_hash("eicrecon"),
     cache: True
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
@@ -58,35 +61,25 @@ rule nhcal_dimuon_photoproduction_recon:
 
         """
 
-rule nhcal_dimuon_photoproduction_combine:
+rule nhcal_dimuon_photoproduction_analysis:
     input:
-        lambda wildcards: expand(
+        recon=lambda wildcards: expand(
             "sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}.{INDEX}.eicrecon.edm4hep.root",
             DETECTOR_CONFIG=wildcards.DETECTOR_CONFIG,
             INDEX=range(int(wildcards.N)),
-        )
-    output:
-        temp("sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root"),
-    wildcard_constraints:
-        N = r"\d+",
-    singularity: EIC_SINGULARITY_CONTAINER,
-    shell:
-        """
-            hadd -f {output} {input}
-        """
-
-rule nhcal_dimuon_photoproduction_analysis:
-    input:
-        combined="sim_output/nhcal_dimuon_photoproduction/sim_{DETECTOR_CONFIG}_{N}files.eicrecon.edm4hep.root",
+        ),
         script=workflow.source_path("scripts/dimuon_photoproduction_analysis.cxx"),
     output:
         png="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.png",
         pdf="results/nhcal_dimuon_photoproduction/analysis_{DETECTOR_CONFIG}_{N}files.pdf",
+    wildcard_constraints:
+        N=r"\d+",
     params:
         DETECTOR_PATH   = config["DETECTOR_PREFIX"] + "/share/epic",
         DETECTOR_CONFIG = lambda wildcards: f"{wildcards.DETECTOR_CONFIG}.xml",
+        RECON_GLOB = lambda wildcards: f"sim_output/nhcal_dimuon_photoproduction/sim_{wildcards.DETECTOR_CONFIG}.*.eicrecon.edm4hep.root",
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-            root -l -b -q '{input.script}+("{input.combined}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
+            root -l -b -q '{input.script}+("{params.RECON_GLOB}","{output.pdf}","{output.png}","{params.DETECTOR_PATH}/{params.DETECTOR_CONFIG}")'
         """

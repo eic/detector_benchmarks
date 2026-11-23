@@ -44,7 +44,7 @@
 
 #include "podio/Frame.h"
 #include "podio/CollectionBase.h"
-#include "podio/ROOTReader.h"
+#include "podio/Reader.h"
 #include "podio/CollectionIDTable.h"
 #include "podio/ObjectID.h"
 
@@ -289,8 +289,7 @@ trackXYatZ(const TVector3& A, const TVector3& B, double zTarget){
 int pion_rejection_analysis(const string& filename, string outname_pdf, string outname_png, TString compact_file) {
 
     gStyle->SetOptStat(0);
-    podio::ROOTReader reader;
-    reader.openFile(filename);
+    auto reader = podio::makeReader(filename);
     unsigned nEvents = reader.getEntries("events");
     cout << "Number of events: " << nEvents << endl;
 
@@ -407,9 +406,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
     };
 
     for (unsigned ev = 0; ev < nEvents; ev++) {
-        auto frameData = reader.readNextEntry(podio::Category::Event);
-        if (!frameData) continue;
-        podio::Frame frame(std::move(frameData));
+        auto frame = reader.readNextEvent();
 
         auto getCol = [&](const std::string& name) -> const podio::CollectionBase* {
             return frame.get(name);
@@ -443,7 +440,7 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
         vector<edm4eic::ReconstructedParticle> matchedRecos;
         auto find_associated_reco = [&](const edm4hep::MCParticle& mc)->void {
             try {
-                if (!linkCol.isValid() || linkCol.empty()) return;
+                if (!linkCol.hasID() || linkCol.empty()) return;
                 
                 for (const auto& link : linkCol) {
                     auto simpart = link.getTo();
@@ -456,10 +453,10 @@ int pion_rejection_analysis(const string& filename, string outname_pdf, string o
             } catch (...) {}
         };
 
-        if (!linkCol.isValid() || linkCol.empty()) continue;
+        if (!linkCol.hasID() || linkCol.empty()) continue;
         for(const auto&  p: vPions) if (p.getPDG() == -211) find_associated_reco(p);
 
-        if (!recParts.isValid() || !projSegs.isValid() || !hcalRec.isValid() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
+        if (!recParts.hasID() || !projSegs.hasID() || !hcalRec.hasID() || recParts.empty() || projSegs.empty() || hcalRec.empty()) continue;
         
         set<int> uniqueCentersZ10;
         map<double, double> layerData;

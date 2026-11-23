@@ -31,7 +31,8 @@ void gen_particles(
 		    double phi_min = 0., // Minimum azimuthal angle, in degrees
                     double phi_max = 360., // Maximum azimuthal angle, in degrees
                     double p = 10.,  // Momentum in GeV/c
-		    int dist = 0  //Momentum distribution: 0=fixed, 1=uniform, 2=Gaussian
+		    int dist = 0,  //Momentum distribution: 0=fixed, 1=uniform, 2=Gaussian
+		    UInt_t seed = 1  // Random seed (0 = seed from the clock)
                   )
 { 
   WriterAscii hepmc_output(out_fname);
@@ -39,7 +40,7 @@ void gen_particles(
   GenEvent evt(Units::GEV, Units::MM);
 
   // Random number generator
-  TRandom3 *r1 = new TRandom3(0); //Use time as random seed
+  TRandom3 *r1 = new TRandom3(seed);
   
   // Getting generated particle information
   TDatabasePDG *pdg = new TDatabasePDG();

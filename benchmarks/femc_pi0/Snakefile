@@ -15,11 +15,12 @@ rule femc_pi0_generate:
         th_max=28,
         th_min=2.0,
         P=lambda wildcards: wildcards.P,
+        SEED=lambda wildcards: stable_seed("femc_pi0", wildcards.P),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
 mkdir -p sim_output/femc_pi0
-root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {params.P})'
+root -l -b -q '{input.script}({params.N_EVENTS},"{output.GEN_FILE}", "pi0", {params.th_min}, {params.th_max}, 0., 360., {params.P}, 0, 1, {params.SEED})'
 """
 
 rule femc_pi0_simulate:

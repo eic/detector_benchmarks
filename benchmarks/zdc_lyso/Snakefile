@@ -14,10 +14,11 @@ rule zdc_lyso_sim_hepmc:
         BEAM_ENERGY=lambda wildcards: wildcards.BEAM_ENERGY,
         THETA_MIN=lambda wildcards: wildcards.THETA_MIN,
         THETA_MAX=lambda wildcards: wildcards.THETA_MAX,
+        SEED=lambda wildcards: stable_seed("zdc_lyso", wildcards.PARTICLE, wildcards.BEAM_ENERGY, wildcards.THETA_MIN, wildcards.THETA_MAX),
     singularity: EIC_SINGULARITY_CONTAINER,
     shell:
         """
-root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{params.PARTICLE}", {params.THETA_MIN}, {params.THETA_MAX}, 0, 360, {params.BEAM_ENERGY})'
+root -l -b -q '{input.script}({params.num_events}, "{output.hepmcfile}", "{params.PARTICLE}", {params.THETA_MIN}, {params.THETA_MAX}, 0, 360, {params.BEAM_ENERGY}, 0, {params.SEED})'
 """
 
 

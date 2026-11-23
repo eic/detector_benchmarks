@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 import time
 from pathlib import Path
 from stat import S_ISREG
@@ -13,6 +14,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--snakemake-output-cache-dir", type=str, help="Will try to use $SNAKEMAKE_OUTPUT_CACHE by default")
 parser.add_argument("--symlink-roots-dir", type=str)
 parser.add_argument("--target-size", type=str, help="Target size of the cache after pruning (can use K,M,G suffixes)", required=True)
+parser.add_argument("--min-free", type=str, help="After reaching the target size, keep removing entries until the filesystem holding the cache has at least this much free space (can use K,M,G suffixes)")
 parser.add_argument("--grace-period", type=str, default="6h", help="Never remove entries modified more recently than this (can use s,m,h,d suffixes)")
 
 args = parser.parse_args()
@@ -36,14 +38,24 @@ if args.grace_period[-1] in ["s", "m", "h", "d"]:
 else:
     grace_period = float(args.grace_period)
 
-if args.target_size[-1] in ["K", "M", "G"]:
-    target_size = int(args.target_size[:-1]) * {
-        "K": 1024,
-        "M": 1024**2,
-        "G": 1024**3,
-    }[args.target_size[-1]]
-else:
-    target_size = int(args.target_size)
+def parse_size(size):
+    if size[-1] in ["K", "M", "G"]:
+        return int(size[:-1]) * {
+            "K": 1024,
+            "M": 1024**2,
+            "G": 1024**3,
+        }[size[-1]]
+    else:
+        return int(size)
+
+target_size = parse_size(args.target_size)
+min_free = parse_size(args.min_free) if args.min_free is not None else None
+
+def free_space():
+    # space available to unprivileged users (statvfs f_bavail) on the filesystem holding the cache
+    return shutil.disk_usage(cache_dir).free
+
+GiB = 1024**3
 
 # List the cache before scanning for symlinks: entries stored (and symlinked)
 # while the scan is running are then never considered for removal
@@ -55,8 +67,13 @@ if args.symlink_roots_dir is not None:
         if path.is_symlink():
             alive.add(path.resolve())
 
+now = time.time()
 paths = []
 total_size = 0
+# space allocated on disk (st_blocks), unlike the apparent size (st_size) used for the target size
+total_allocated = 0
+grace_size = grace_count = 0
+alive_size = alive_count = 0
 for cache_path in cache_paths:
     try:
         stat = cache_path.stat()
@@ -69,22 +86,63 @@ for cache_path in cache_paths:
         cache_path.unlink(missing_ok=True)
         print(f"Removing empty {cache_path}")
         continue
+    allocated = stat.st_blocks * 512
     total_size += size
-    if time.time() - stat.st_mtime < grace_period:
+    total_allocated += allocated
+    if now - stat.st_mtime < grace_period:
         # recently stored, its symlinks may not have been seen by the scan
+        grace_size += size
+        grace_count += 1
         continue
-    age = time.time() - stat.st_atime
+    if cache_path in alive:
+        alive_size += size
+        alive_count += 1
+    age = now - stat.st_atime
     score = size * age
-    paths.append((cache_path, score, size))
+    paths.append((cache_path, score, size, allocated))
 
 print(f"Total cache size: {total_size / 1024. / 1024.:.1f} MiB")
+if min_free is not None:
+    print(f"Free space: {free_space() / GiB:.1f} GiB (minimum {min_free / GiB:.1f} GiB)")
 
-paths.sort(key=lambda t: t[1])
-while total_size >= target_size and paths:
-    cache_path, _, size = paths.pop()
+def remove_next():
+    global total_size, total_allocated
+    cache_path, _, size, allocated = paths.pop()
     if cache_path in alive:
         print(f"{cache_path} is alive")
     else:
         cache_path.unlink(missing_ok=True)
         print(f"Removing {cache_path} of {size / 1024. / 1024.:.1f} MiB")
         total_size -= size
+        total_allocated -= allocated
+
+paths.sort(key=lambda t: t[1])
+while total_size >= target_size and paths:
+    remove_next()
+
+if min_free is not None:
+    # The cache shares its filesystem with the pipeline scratch directories, so
+    # a cache below the target size does not guarantee free space. Keep
+    # removing entries in the same order. Free space is measured again after
+    # every removal, because an entry that is still open (e.g. being read by a
+    # running job) frees no space until it is closed. The grace period and the
+    # alive protection still apply: removing those entries would break
+    # running pipelines.
+    while free_space() < min_free and paths:
+        remove_next()
+
+    free = free_space()
+    print(f"Total cache size after pruning: {total_size / 1024. / 1024.:.1f} MiB")
+    print(f"Free space after pruning: {free / GiB:.1f} GiB (minimum {min_free / GiB:.1f} GiB)")
+    if free < min_free:
+        usage = shutil.disk_usage(cache_dir)
+        print(
+            f"WARNING: free space on the filesystem holding {cache_dir} is {free / GiB:.1f} GiB, "
+            f"below the minimum of {min_free / GiB:.1f} GiB (short by {(min_free - free) / GiB:.1f} GiB), "
+            f"and no removable cache entries are left. "
+            f"The remaining cache of {total_size / GiB:.1f} GiB is protected: "
+            f"{grace_size / GiB:.1f} GiB in {grace_count} entries modified less than {args.grace_period} ago (grace period), "
+            f"{alive_size / GiB:.1f} GiB in {alive_count} entries that symbolic links under {args.symlink_roots_dir or '(no --symlink-roots-dir)'} point to (alive). "
+            f"Outside the cache, about {max(usage.used - total_allocated, 0) / GiB:.1f} GiB of the {usage.total / GiB:.1f} GiB filesystem is used "
+            f"(pipeline scratch directories, and removed cache entries that are still open)."
+        )

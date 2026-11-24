@@ -128,7 +128,7 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 
 	TH1D* h_b0_pt_resolution = new TH1D("b0_pt_resolution", ";#Delta p_{T} [GeV/c]", 100, -2.0, 2.0);
     TH2D* h_b0_pt_resolution_percent = new TH2D("b0_deltaPt_over_pt_vs_pt", ";P_{T, MC} [GeV/c]; #Delta p_{T}/p_{T, MC} [percent/100]", 100, 0.0, 2.5, 100, -1.0, 1.0);	
-	TH2D* h_b0_p_resolution_percent = new TH2D("b0_deltaP_over_p_vs_p", ";Three-Momentum,  p_{MC} [GeV/c]; #Delta p/p_{MC} [percent/100]", 100, 0.0, 20.0, 100, -1.0, 1.0);	
+	TH2D* h_b0_p_resolution_percent = new TH2D("b0_deltaP_over_p_vs_p", ";Three-Momentum,  p_{MC} [GeV/c]; #Delta p/p_{MC} [percent/100]", 100, 0.0, 120.0, 100, -1.0, 1.0);	
     TH2D* h_b0_px_resolution_percent = new TH2D("b0_deltaPx_over_px_vs_px", ";  P_{x, MC} [GeV/c]; #Delta p_{x}/p_{x, MC} [percent/100]", 100, -10.0, 10.0, 100, -1.0, 1.0);	
 	TH2D* h_b0_py_resolution_percent = new TH2D("b0_deltaPy_over_py_vs_py", ";  p_{y, MC} [GeV/c]; #Delta p_{y}/p_{y, MC} [percent/100]", 100, -10.0, 10.0, 100, -1.0, 1.0);	
 	TH2D* h_b0_pz_resolution_percent = new TH2D("b0_deltaPz_over_pz_vs_pz", ";  p_{z, MC} [GeV/c]; #Delta p_{z}/p_{z, MC} [percent/100]", 100, 0.0, 320.0, 100, -1.0, 1.0);	

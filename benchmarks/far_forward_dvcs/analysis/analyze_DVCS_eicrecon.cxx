@@ -15,6 +15,7 @@
 #include <map>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TLegend.h>
 #include <TFile.h>
 #include <TROOT.h>
 #include <TTreeReader.h>
@@ -128,7 +129,7 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 
 	TH1D* h_b0_pt_resolution = new TH1D("b0_pt_resolution", ";#Delta p_{T} [GeV/c]", 100, -2.0, 2.0);
     TH2D* h_b0_pt_resolution_percent = new TH2D("b0_deltaPt_over_pt_vs_pt", ";P_{T, MC} [GeV/c]; #Delta p_{T}/p_{T, MC} [percent/100]", 100, 0.0, 2.5, 100, -1.0, 1.0);	
-	TH2D* h_b0_p_resolution_percent = new TH2D("b0_deltaP_over_p_vs_p", ";Three-Momentum,  p_{MC} [GeV/c]; #Delta p/p_{MC} [percent/100]", 100, 0.0, 20.0, 100, -1.0, 1.0);	
+	TH2D* h_b0_p_resolution_percent = new TH2D("b0_deltaP_over_p_vs_p", ";Three-Momentum,  p_{MC} [GeV/c]; #Delta p/p_{MC} [percent/100]", 100, 0.0, 120.0, 100, -1.0, 1.0);	
     TH2D* h_b0_px_resolution_percent = new TH2D("b0_deltaPx_over_px_vs_px", ";  P_{x, MC} [GeV/c]; #Delta p_{x}/p_{x, MC} [percent/100]", 100, -10.0, 10.0, 100, -1.0, 1.0);	
 	TH2D* h_b0_py_resolution_percent = new TH2D("b0_deltaPy_over_py_vs_py", ";  p_{y, MC} [GeV/c]; #Delta p_{y}/p_{y, MC} [percent/100]", 100, -10.0, 10.0, 100, -1.0, 1.0);	
 	TH2D* h_b0_pz_resolution_percent = new TH2D("b0_deltaPz_over_pz_vs_pz", ";  p_{z, MC} [GeV/c]; #Delta p_{z}/p_{z, MC} [percent/100]", 100, 0.0, 320.0, 100, -1.0, 1.0);	
@@ -139,6 +140,10 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 	TH1D* h_extracted_px_resolution;
 	TH1D* h_extracted_py_resolution;
 	TH1D* h_extracted_pz_resolution;
+
+	//truth-seeded reference for the B0 resolutions
+	TH2D* h_b0_pt_resolution_percent_ts = (TH2D*)h_b0_pt_resolution_percent->Clone("b0_deltaPt_over_pt_vs_pt_truth_seeded");
+	TH2D* h_b0_p_resolution_percent_ts = (TH2D*)h_b0_p_resolution_percent->Clone("b0_deltaP_over_p_vs_p_truth_seeded");
 	
 	//RP momentum resolution
 	
@@ -241,15 +246,15 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 		TTreeReaderArray<float>  b0_cluster_energy = {tree_reader, "B0ECalClusters.energy"}; //deposited energy in cluster
 		
 		//reco tracks (where b0 tracks live!!!)
-		//TTreeReaderArray<float> reco_track_x = {tree_reader, "ReconstructedChargedParticles.momentum.x"};
-    	//TTreeReaderArray<float> reco_track_y = {tree_reader, "ReconstructedChargedParticles.momentum.y"};
-    	//TTreeReaderArray<float> reco_track_z = {tree_reader, "ReconstructedChargedParticles.momentum.z"};
-		//TTreeReaderArray<int> reco_track_PDG = {tree_reader, "ReconstructedChargedParticles.PDG"};
-		
-		TTreeReaderArray<float> reco_track_x = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.x"};
-    	TTreeReaderArray<float> reco_track_y = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.y"};
-    	TTreeReaderArray<float> reco_track_z = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.z"};
-		TTreeReaderArray<int> reco_track_PDG = {tree_reader, "ReconstructedTruthSeededChargedParticles.PDG"};
+		TTreeReaderArray<float> reco_track_x = {tree_reader, "ReconstructedChargedParticles.momentum.x"};
+    	TTreeReaderArray<float> reco_track_y = {tree_reader, "ReconstructedChargedParticles.momentum.y"};
+    	TTreeReaderArray<float> reco_track_z = {tree_reader, "ReconstructedChargedParticles.momentum.z"};
+		TTreeReaderArray<int> reco_track_PDG = {tree_reader, "ReconstructedChargedParticles.PDG"};
+		//truth-seeded tracks, as a reference for the B0 resolutions
+		TTreeReaderArray<float> reco_ts_track_x = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.x"};
+    	TTreeReaderArray<float> reco_ts_track_y = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.y"};
+    	TTreeReaderArray<float> reco_ts_track_z = {tree_reader, "ReconstructedTruthSeededChargedParticles.momentum.z"};
+		TTreeReaderArray<int> reco_ts_track_PDG = {tree_reader, "ReconstructedTruthSeededChargedParticles.PDG"};
 		
 		//forward EMCAL endcap
 		TTreeReaderArray<float> pECAL_cluster_x = {tree_reader, "EcalEndcapPTruthClusters.position.x"};
@@ -474,6 +479,15 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 				h_b0_py_resolution_percent->Fill(final_mc_track.Py(), delPy_percent);
 				h_b0_pz_resolution_percent->Fill(final_mc_track.Pz(), delPz_percent);
 			}
+
+			//same B0 proton selection for the truth-seeded tracks
+			for(int iRecoTrk = 0; iRecoTrk < reco_ts_track_x.GetSize(); iRecoTrk++){
+				TVector3 prec_reco_tracks(reco_ts_track_x[iRecoTrk], reco_ts_track_y[iRecoTrk], reco_ts_track_z[iRecoTrk]);
+				prec_reco_tracks.RotateY(0.025); //remove crossing angle
+				if(reco_ts_track_PDG[iRecoTrk] != 0 || prec_reco_tracks.Eta() < 4.0){ continue; }
+				h_b0_pt_resolution_percent_ts->Fill(final_mc_track.Perp(), (prec_reco_tracks.Perp() - final_mc_track.Perp())/final_mc_track.Perp());
+				h_b0_p_resolution_percent_ts->Fill(final_mc_track.Mag(), (prec_reco_tracks.Mag() - final_mc_track.Mag())/final_mc_track.Mag());
+			}
 				
 		
 				
@@ -505,6 +519,11 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
     h_b0_extracted_p_resolution = extractResolution("b0_extracted_p_resolution", h_b0_p_resolution_percent, false);
     h_b0_extracted_p_resolution->GetXaxis()->SetTitle("p_{MC} [GeV/c]");
     h_b0_extracted_p_resolution->GetYaxis()->SetTitle("#Delta p/p_{MC} [percent/100]");
+
+	TH1D* h_b0_extracted_pt_resolution_ts = extractResolution("b0_extracted_pt_resolution_truth_seeded", h_b0_pt_resolution_percent_ts, false);
+	TH1D* h_b0_extracted_p_resolution_ts = extractResolution("b0_extracted_p_resolution_truth_seeded", h_b0_p_resolution_percent_ts, false);
+	TH1D* h_b0_seeding[2][2] = {{h_b0_extracted_p_resolution, h_b0_extracted_p_resolution_ts}, {h_b0_extracted_pt_resolution, h_b0_extracted_pt_resolution_ts}};
+	for(auto h : h_b0_seeding){ h[1]->SetXTitle(h[0]->GetXaxis()->GetTitle()); h[1]->SetYTitle(h[0]->GetYaxis()->GetTitle()); }
 
 	h_extracted_px_resolution = extractResolution("track_extracted_px_resolution", h_b0_px_resolution_percent, false);
 	h_extracted_py_resolution = extractResolution("track_extracted_py_resolution", h_b0_py_resolution_percent, false);
@@ -633,6 +652,23 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 
 	SaveHistogramsFromList(*gDirectory->GetList(), outputDir + "/far_forward_dvcs_");
 
+	//B0 resolutions: real seeding vs truth seeding
+	for(auto h : h_b0_seeding){
+		TCanvas c(h[0]->GetName() + TString("_seeding_comparison"), "", 800, 600);
+		TLegend leg(0.5, 0.75, 0.88, 0.88);
+		for(int s = 0; s < 2; s++){
+			TH1* hc = h[s]->DrawCopy(s == 0 ? "E1 P" : "E1 P SAME");
+			hc->SetStats(0);
+			hc->SetMarkerStyle(s == 0 ? 20 : 25);
+			hc->SetMarkerColor(s == 0 ? kAzure + 2 : kOrange + 7);
+			hc->SetLineColor(hc->GetMarkerColor());
+			if(s == 0 && h[1]->GetMaximum() > h[0]->GetMaximum()){ hc->SetMaximum(1.1*h[1]->GetMaximum()); }
+			leg.AddEntry(hc, TString::Format("%s seeding (%.0f tracks)", s == 0 ? "Real" : "Truth", (s == 0 ? h_b0_p_resolution_percent : h_b0_p_resolution_percent_ts)->GetEntries()), "p");
+		}
+		leg.Draw();
+		c.SaveAs(outputDir + "/far_forward_dvcs_" + c.GetName() + ".png");
+	}
+
 	TFile * outputFile = new TFile(outputFileName, "RECREATE");
 
 	h_eta_MC->Write();
@@ -697,6 +733,11 @@ void analyze_DVCS_eicrecon(TString fileList = "inputFileList.list", TString outp
 	h_extracted_px_resolution->Write();
 	h_extracted_py_resolution->Write();
 	h_extracted_pz_resolution->Write();
+
+	h_b0_pt_resolution_percent_ts->Write();
+	h_b0_extracted_pt_resolution_ts->Write();
+	h_b0_p_resolution_percent_ts->Write();
+	h_b0_extracted_p_resolution_ts->Write();
 	
 	h_RP_pt_resolution->Write();
 	h_RP_pt_resolution_percent->Write();
